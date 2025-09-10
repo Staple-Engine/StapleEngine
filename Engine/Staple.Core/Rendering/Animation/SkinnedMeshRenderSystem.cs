@@ -53,7 +53,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 renderer.mesh.meshAssetIndex < 0 ||
                 renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
                 renderer.materials == null ||
-                renderer.materials.Count != renderer.mesh.submeshes.Count)
+                renderer.materials.Count == 0)
             {
                 continue;
             }
@@ -71,11 +71,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             }
 
             if (skip)
-            {
-                continue;
-            }
-
-            if (renderer.mesh.submeshes.Count > 0 && renderer.materials.Count != renderer.mesh.submeshes.Count)
             {
                 continue;
             }
@@ -113,9 +108,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             var renderer = relatedComponent as SkinnedMeshRenderer;
 
             if (renderer.isVisible == false ||
-                renderer.mesh?.MeshAssetMesh is not MeshAsset.MeshInfo meshAssetMesh ||
+                renderer.mesh?.MeshAssetMesh == null ||
                 renderer.materials == null ||
-                renderer.materials.Count != renderer.mesh.submeshes.Count)
+                renderer.materials.Count == 0)
             {
                 continue;
             }
@@ -292,6 +287,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
             {
+                if (j >= renderer.materials.Count)
+                {
+                    break;
+                }
+
                 var assetGuid = meshAsset.Guid.GuidHash;
 
                 var material = renderer.materials[j];

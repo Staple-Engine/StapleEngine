@@ -163,11 +163,6 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if (renderer.mesh.submeshes.Count > 0 && renderer.materials.Count != renderer.mesh.submeshes.Count)
-            {
-                continue;
-            }
-
             renderer.mesh.UploadMeshData();
 
             if(transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
@@ -230,11 +225,6 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if (renderer.mesh.submeshes.Count > 0 && renderer.materials.Count != renderer.mesh.submeshes.Count)
-            {
-                continue;
-            }
-
             if (instanceCache.TryGetValue(viewID, out var cache) == false)
             {
                 cache = [];
@@ -273,7 +263,12 @@ public sealed class MeshRenderSystem : IRenderSystem
             {
                 for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
                 {
-                    Add(renderer.materials[0], i);
+                    if(i >= renderer.materials.Count)
+                    {
+                        break;
+                    }
+
+                    Add(renderer.materials[i], i);
                 }
             }
         }

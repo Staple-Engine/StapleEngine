@@ -826,18 +826,26 @@ public static class EditorGUI
 
         if (current is IGuidAsset guidAsset)
         {
-            var guid = guidAsset.Guid.Guid;
-
-            if(Path.IsPathRooted(guid))
+            if(guidAsset is Mesh mesh)
             {
-                var cacheIndex = guid.IndexOf(StapleEditor.instance.currentPlatform.ToString());
-
-                guid = guid.Substring(cacheIndex + $"{StapleEditor.instance.currentPlatform}0".Length).Replace("\\", "/");
-
-                guid = AssetDatabase.GetAssetGuid(guid) ?? guid;
+                selectedName = mesh.MeshAssetMesh?.name;
             }
 
-            selectedName = AssetDatabase.GetAssetName(guid);
+            if(selectedName == null)
+            {
+                var guid = guidAsset.Guid.Guid;
+
+                if (Path.IsPathRooted(guid))
+                {
+                    var cacheIndex = guid.IndexOf(StapleEditor.instance.currentPlatform.ToString());
+
+                    guid = guid.Substring(cacheIndex + $"{StapleEditor.instance.currentPlatform}0".Length).Replace("\\", "/");
+
+                    guid = AssetDatabase.GetAssetGuid(guid) ?? guid;
+                }
+
+                selectedName = AssetDatabase.GetAssetName(guid);
+            }
         }
 
         selectedName ??= current?.ToString() ?? "(None)";

@@ -236,12 +236,12 @@ public class Transform : IComponent
     /// <summary>
     /// The forward direction
     /// </summary>
-    public Vector3 Forward => Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, -1), Rotation));
+    public Vector3 Forward => Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, 1), Rotation));
 
     /// <summary>
     /// The backwards direction
     /// </summary>
-    public Vector3 Back => Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, 1), Rotation));
+    public Vector3 Back => Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, -1), Rotation));
 
     /// <summary>
     /// The up direction

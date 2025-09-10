@@ -80,7 +80,7 @@ public class MeshAssetMetadata
     public bool flipUVs = false;
 
     [Key(2)]
-    public bool flipWindingOrder = true;
+    public bool flipWindingOrder = false;
 
     [Key(3)]
     public bool regenerateNormals;

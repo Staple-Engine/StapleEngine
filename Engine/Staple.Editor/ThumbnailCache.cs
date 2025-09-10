@@ -449,7 +449,8 @@ internal class ThumbnailCache
 
                         tempEntity.Name = "TEMP";
 
-                        meshRenderer.materials = [material];
+                        meshRenderer.materials = Enumerable.Repeat(material, meshRenderer.materials.Count)
+                            .ToList();
 
                         tempEntity.SetLayer((uint)LayerMask.NameToLayer(StapleEditor.RenderTargetLayerName), true);
 

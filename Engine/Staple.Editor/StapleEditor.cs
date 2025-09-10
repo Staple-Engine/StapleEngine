@@ -791,7 +791,7 @@ internal partial class StapleEditor
 
                 World.AddChangeReceiver(RenderSystem.Instance);
 
-                cameraTransform.Position = new Vector3(0, 0, 5);
+                cameraTransform.Position = new Vector3(0, 0, -5);
 
                 try
                 {
@@ -879,15 +879,16 @@ internal partial class StapleEditor
                         axis += cameraTransform.Back;
                     }
 
-                    cameraTransform.LocalPosition += axis * 5 * Time.unscaledDeltaTime * (Input.GetKey(KeyCode.LeftShift) ? 2 : Input.GetKey(KeyCode.LeftControl) ? 0.5f : 1);
+                    cameraTransform.LocalPosition += axis * 5 * Time.unscaledDeltaTime *
+                        (Input.GetKey(KeyCode.LeftShift) ? 2 : Input.GetKey(KeyCode.LeftControl) ? 0.5f : 1);
                 }
 
                 if (io.WantTextInput == false && Input.GetMouseButton(MouseButton.Right))
                 {
                     var rotation = cameraTransform.LocalRotation.ToEulerAngles();
 
-                    rotation.X -= Input.MouseRelativePosition.Y;
-                    rotation.Y -= Input.MouseRelativePosition.X;
+                    rotation.X += Input.MouseRelativePosition.Y;
+                    rotation.Y += Input.MouseRelativePosition.X;
 
                     cameraTransform.LocalRotation = Math.FromEulerAngles(rotation);
                 }

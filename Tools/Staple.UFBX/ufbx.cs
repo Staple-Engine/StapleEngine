@@ -24,6 +24,7 @@ public unsafe struct UFBXMeshBone
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
 public unsafe struct UFBXMesh
 {
+    public UFBXString name;
     public Vector3* vertices;
     public Vector3* normals;
     public Vector3* tangents;

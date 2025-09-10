@@ -371,7 +371,7 @@ public class UFXImporter : IMeshImporter
             {
                 var m = new MeshAssetMeshInfo
                 {
-                    name = $"Mesh {meshData.meshes.Count}",
+                    name = mesh.name.ToString(),
                     materialGuid = mesh.materialIndex >= 0 && mesh.materialIndex < materialMapping.Count ? materialMapping[mesh.materialIndex] :
                         AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath),
                     type = mesh.isSkinned ? MeshAssetType.Skinned : MeshAssetType.Normal,

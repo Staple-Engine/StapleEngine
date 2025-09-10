@@ -1651,18 +1651,19 @@ internal class ResourceManager
 
         var original = guid;
 
-        var index = 0;
+        var indexString = "0";
 
         if(guid.Contains(':'))
         {
             var split = guid.Split(':');
 
-            if(split.Length != 2 || int.TryParse(split[1], out index) == false || index < 0)
+            if(split.Length != 2)
             {
                 return null;
             }
 
             guid = split[0];
+            indexString = split[1];
         }
 
         if (ignoreCache == false &&
@@ -1674,16 +1675,31 @@ internal class ResourceManager
 
         var asset = LoadMeshAsset(guid);
 
-        if(asset == null ||
-            (asset.meshes.Count > 0 &&
-            index >= asset.meshes.Count))
+        if(asset == null)
         {
             return null;
         }
 
+        var meshIndex = 0;
+
         if (asset.meshes.Count > 0)
         {
-            var m = asset.meshes[index];
+            if(string.IsNullOrEmpty(indexString) == false)
+            {
+                if(int.TryParse(indexString, out meshIndex) == false)
+                {
+                    meshIndex = asset.meshes.FindIndex(x => x.name == indexString);
+                }
+            }
+
+            if(meshIndex < 0 || meshIndex >= asset.meshes.Count)
+            {
+                Log.Error($"[ResourceManager] Failed to load mesh {original}: Invalid mesh index {meshIndex}");
+
+                return null;
+            }
+
+            var m = asset.meshes[meshIndex];
 
             mesh = new Mesh(true, false)
             {
@@ -1711,7 +1727,7 @@ internal class ResourceManager
                 bounds = m.transformedBounds,
 
                 meshAsset = asset,
-                meshAssetIndex = index,
+                meshAssetIndex = meshIndex,
             };
 
             if (m.colors.Length > 0)
@@ -1749,7 +1765,7 @@ internal class ResourceManager
             };
         }
 
-        mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{index}" : original;
+        mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{meshIndex}" : original;
 
         if(ignoreCache == false)
         {

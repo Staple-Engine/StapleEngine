@@ -77,6 +77,48 @@ static size_t ClampSize(size_t a, size_t min, size_t max)
 	return MinSize(MaxSize(a, min), max);
 }
 
+class String
+{
+public:
+	char data[10240];
+	int32_t length;
+
+	String() : length(0)
+	{
+		memset(data, 0, sizeof(data));
+	}
+
+	String(const char* ptr)
+	{
+		this->length = (int32_t)strlen(ptr);
+
+		memset(data, 0, sizeof(data));
+		memcpy(data, ptr, this->length);
+	}
+
+	String(const char* ptr, size_t length)
+	{
+		this->length = length > 10240 ? 1024 : (int32_t)length;
+
+		memset(data, 0, sizeof(data));
+		memcpy(data, ptr, this->length);
+	}
+
+	String(const String& o) : length(o.length)
+	{
+		memcpy(data, o.data, sizeof(data));
+	}
+
+	String& operator=(const String& o)
+	{
+		length = o.length;
+
+		memcpy(data, o.data, sizeof(data));
+
+		return *this;
+	}
+};
+
 class Vertex
 {
 public:
@@ -126,6 +168,7 @@ public:
 class Mesh
 {
 public:
+	String name;
 	Vector3* vertices;
 	Vector3* normals;
 	Vector3* tangents;
@@ -168,7 +211,7 @@ public:
 		bones(nullptr), boneCount(0) {
 	}
 
-	Mesh(const Mesh& o) : vertices(nullptr), normals(nullptr), tangents(nullptr), bitangents(nullptr),
+	Mesh(const Mesh& o) : name(o.name), vertices(nullptr), normals(nullptr), tangents(nullptr), bitangents(nullptr),
 		uv0(nullptr), uv1(nullptr), uv2(nullptr), uv3(nullptr),
 		uv4(nullptr), uv5(nullptr), uv6(nullptr), uv7(nullptr),
 		color0(nullptr), color1(nullptr), color2(nullptr), color3(nullptr),
@@ -241,6 +284,7 @@ public:
 		DELETE(indices);
 		DELETE(bones);
 
+		name = o.name;
 		vertexCount = o.vertexCount;
 		indexCount = o.indexCount;
 		boneCount = o.boneCount;
@@ -267,48 +311,6 @@ public:
 		COPY(boneWeights, o.boneWeights, Vector4, vertexCount);
 		COPY(bones, o.bones, MeshBone, boneCount);
 		COPY(indices, o.indices, uint32_t, indexCount);
-
-		return *this;
-	}
-};
-
-class String
-{
-public:
-	char data[10240];
-	int32_t length;
-
-	String() : length(0)
-	{
-		memset(data, 0, sizeof(data));
-	}
-
-	String(const char* ptr)
-	{
-		this->length = (int32_t)strlen(ptr);
-
-		memset(data, 0, sizeof(data));
-		memcpy(data, ptr, this->length);
-	}
-
-	String(const char* ptr, size_t length)
-	{
-		this->length = length > 10240 ? 1024 : (int32_t)length;
-
-		memset(data, 0, sizeof(data));
-		memcpy(data, ptr, this->length);
-	}
-
-	String(const String& o) : length(o.length)
-	{
-		memcpy(data, o.data, sizeof(data));
-	}
-
-	String& operator=(const String& o)
-	{
-		length = o.length;
-
-		memcpy(data, o.data, sizeof(data));
 
 		return *this;
 	}
@@ -349,6 +351,7 @@ public:
 
 			Mesh ownMesh;
 
+			ownMesh.name = String(node->name.data, node->name.length);
 			ownMesh.isSkinned = mesh->skin_deformers.count > 0;
 
 			ufbx_material* material = j < node->materials.count ? node->materials[j] : nullptr;
@@ -1098,9 +1101,8 @@ CEXPORT Scene* UFBXLoadScene(const char* fileName)
 	opts.ignore_missing_external_files = true;
 	opts.generate_missing_normals = true;
 
-	opts.target_axes.right = UFBX_COORDINATE_AXIS_POSITIVE_X;
-	opts.target_axes.up = UFBX_COORDINATE_AXIS_POSITIVE_Y;
-	opts.target_axes.front = UFBX_COORDINATE_AXIS_POSITIVE_Z;
+	opts.target_axes = ufbx_axes_left_handed_y_up;
+	opts.handedness_conversion_axis = UFBX_MIRROR_AXIS_X;
 
 	opts.target_unit_meters = 1.0f;
 	opts.space_conversion = UFBX_SPACE_CONVERSION_MODIFY_GEOMETRY;
