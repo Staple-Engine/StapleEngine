@@ -1,6 +1,8 @@
 Type VertexFragment
 
-Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING, NORMALMAP
+Blend SrcAlpha OneMinusSrcAlpha
+
+Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING, NORMALMAP, CUTOUT
 
 Begin Parameters
 
@@ -22,6 +24,8 @@ uniform texture heightTexture
 variant: NORMALMAP uniform texture normalTexture
 uniform color specularColor
 uniform texture specularTexture
+variant: CUTOUT uniform float cutout
+uniform float alphaThreshold = 0.25
 
 End Parameters
 
@@ -83,6 +87,15 @@ void main()
 	vec4 diffuse = v_color * diffuseColor;
 	#else
 	vec4 diffuse = texture2D(diffuseTexture, v_texcoord0) * diffuseColor;
+	#endif
+	
+	#if CUTOUT
+	if(diffuse.a < alphaThreshold)
+	{
+		discard;
+		
+		return;
+	}
 	#endif
 	
 #if LIT && PER_VERTEX_LIGHTING

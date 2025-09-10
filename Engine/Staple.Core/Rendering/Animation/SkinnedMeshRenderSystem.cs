@@ -169,11 +169,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             return;
         }
 
-        bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
-            bgfx.StateFlags.WriteA |
-            bgfx.StateFlags.WriteZ |
-            bgfx.StateFlags.DepthTestLequal;
-
         Material lastMaterial = null;
 
         var lastMeshAsset = 0;
@@ -356,9 +351,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var program = material.ShaderProgram;
 
-                bgfx.set_state((ulong)(state |
+                bgfx.set_state((ulong)(material.shader.StateFlags |
                     renderer.mesh.PrimitiveFlag() |
-                    material.shader.BlendingFlag |
                     material.CullingFlag), 0);
 
                 var flags = bgfx.DiscardFlags.State;

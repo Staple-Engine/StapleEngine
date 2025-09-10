@@ -48,12 +48,8 @@ namespace Staple
                 _ = bgfx.set_transform(&transform, 1);
             }
 
-            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
-                bgfx.StateFlags.WriteA |
-                bgfx.StateFlags.WriteZ |
-                bgfx.StateFlags.DepthTestLequal |
+            bgfx.StateFlags state = material.shader.StateFlags |
                 (bgfx.StateFlags)topology |
-                material.shader.BlendingFlag |
                 material.CullingFlag;
 
             bgfx.set_state((ulong)state, 0);
@@ -116,12 +112,8 @@ namespace Staple
                 _ = bgfx.set_transform(&transform, 1);
             }
 
-            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
-                bgfx.StateFlags.WriteA |
-                bgfx.StateFlags.WriteZ |
-                bgfx.StateFlags.DepthTestLequal |
+            bgfx.StateFlags state = material.shader.StateFlags |
                 (bgfx.StateFlags)topology |
-                material.shader.BlendingFlag |
                 material.CullingFlag;
 
             bgfx.set_state((ulong)state, 0);
@@ -184,12 +176,8 @@ namespace Staple
                 _ = bgfx.set_transform(&transform, 1);
             }
 
-            bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
-                bgfx.StateFlags.WriteA |
-                bgfx.StateFlags.WriteZ |
-                bgfx.StateFlags.DepthTestLequal |
+            bgfx.StateFlags state = material.shader.StateFlags |
                 (bgfx.StateFlags)topology |
-                material.shader.BlendingFlag |
                 material.CullingFlag;
 
             bgfx.set_state((ulong)state, 0);

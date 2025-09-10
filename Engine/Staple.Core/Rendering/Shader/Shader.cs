@@ -143,6 +143,39 @@ public partial class Shader : IGuidAsset
 
     public GuidHasher Guid => guidHasher;
 
+    internal bgfx.StateFlags BlendingFlag
+    {
+        get
+        {
+            if (sourceBlend != BlendMode.Off && destinationBlend != BlendMode.Off)
+            {
+                return (bgfx.StateFlags)RenderSystem.BlendFunction((bgfx.StateFlags)sourceBlend, (bgfx.StateFlags)destinationBlend);
+            }
+
+            return 0;
+        }
+    }
+
+    internal bool IsTransparent
+    {
+        get
+        {
+            return ((sourceBlend == BlendMode.Off && destinationBlend == BlendMode.Off) ||
+                (sourceBlend == BlendMode.One && destinationBlend == BlendMode.Zero) ||
+                (sourceBlend == BlendMode.Zero && destinationBlend == BlendMode.One)) == false;
+        }
+    }
+
+    internal bgfx.StateFlags StateFlags
+    {
+        get
+        {
+            var baseFlags = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.WriteZ | bgfx.StateFlags.DepthTestLequal;
+
+            return baseFlags | BlendingFlag;
+        }
+    }
+
     /// <summary>
     /// Whether this shader has been disposed
     /// </summary>
@@ -355,19 +388,6 @@ public partial class Shader : IGuidAsset
                     },
                 }]).ToArray();
             }
-        }
-    }
-
-    internal bgfx.StateFlags BlendingFlag
-    {
-        get
-        {
-            if (sourceBlend != BlendMode.Off && destinationBlend != BlendMode.Off)
-            {
-                return (bgfx.StateFlags)RenderSystem.BlendFunction((bgfx.StateFlags)sourceBlend, (bgfx.StateFlags)destinationBlend);
-            }
-
-            return 0;
         }
     }
 

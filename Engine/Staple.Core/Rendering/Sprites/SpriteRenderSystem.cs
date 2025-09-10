@@ -505,10 +505,6 @@ public class SpriteRenderSystem : IRenderSystem
             return;
         }
 
-        var state = bgfx.StateFlags.WriteRgb |
-            bgfx.StateFlags.WriteA |
-            bgfx.StateFlags.DepthTestLequal;
-
         var orderedSprites = container
             .OrderBy(x => x.layer)
             .ThenBy(x => x.sortingOrder)
@@ -617,7 +613,7 @@ public class SpriteRenderSystem : IRenderSystem
             }
 
             //Don't use culling for sprites
-            bgfx.set_state((ulong)(state | s.material.shader.BlendingFlag), 0);
+            bgfx.set_state((ulong)(s.material.shader.StateFlags), 0);
 
             s.material.shader.SetColor(s.material.GetShaderHandle(Material.MainColorProperty), s.color);
             s.material.shader.SetTexture(s.material.GetShaderHandle(Material.MainTextureProperty), s.texture);

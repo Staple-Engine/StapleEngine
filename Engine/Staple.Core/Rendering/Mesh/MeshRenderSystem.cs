@@ -79,12 +79,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         var matrix = Math.TRS(position, scale, rotation);
 
-        bgfx.StateFlags state = bgfx.StateFlags.WriteRgb |
-            bgfx.StateFlags.WriteA |
-            bgfx.StateFlags.WriteZ |
-            bgfx.StateFlags.DepthTestLequal |
+        bgfx.StateFlags state = material.shader.StateFlags |
             mesh.PrimitiveFlag() |
-            material.shader.BlendingFlag |
             material.CullingFlag;
 
         unsafe
@@ -297,11 +293,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         bgfx.discard((byte)bgfx.DiscardFlags.All);
 
-        var state = bgfx.StateFlags.WriteRgb |
-            bgfx.StateFlags.WriteA |
-            bgfx.StateFlags.WriteZ |
-            bgfx.StateFlags.DepthTestLequal;
-
         foreach (var (_, contents) in instance)
         {
             if (contents.instanceInfos.Length == 0)
@@ -337,9 +328,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword))
             {
-                bgfx.set_state((ulong)(state |
+                bgfx.set_state((ulong)(material.shader.StateFlags |
                     contents.instanceInfos.Contents[0].mesh.PrimitiveFlag() |
-                    material.shader.BlendingFlag |
                     material.CullingFlag), 0);
 
                 contents.instanceInfos.Contents[0].mesh.SetActive(contents.instanceInfos.Contents[0].submeshIndex);
@@ -403,9 +393,8 @@ public sealed class MeshRenderSystem : IRenderSystem
             {
                 for (var i = 0; i < contents.instanceInfos.Length; i++)
                 {
-                    bgfx.set_state((ulong)(state |
+                    bgfx.set_state((ulong)(material.shader.StateFlags |
                         contents.instanceInfos.Contents[0].mesh.PrimitiveFlag() |
-                        material.shader.BlendingFlag |
                         material.CullingFlag), 0);
 
                     var content = contents.instanceInfos.Contents[i];
