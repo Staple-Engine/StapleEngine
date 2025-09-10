@@ -693,7 +693,7 @@ public:
 		parentIndex = node->parent ? node->parent->typed_id : -1;
 
 		localTransform.position = Vector3(node->local_transform.translation);
-		localTransform.rotation = Vector4(node->local_transform.rotation);
+		localTransform.rotation = Vector4(ufbx_euler_to_quat(node->euler_rotation, node->rotation_order));
 		localTransform.scale = Vector3(node->local_transform.scale);
 
 		if (node->mesh != nullptr)
