@@ -488,7 +488,7 @@ internal class ImGuiProxy
                         bgfx.set_transient_vertex_buffer(0, &tvb, drawCmd.VtxOffset, (uint)numVertices);
                         bgfx.set_transient_index_buffer(&tib, drawCmd.IdxOffset, drawCmd.ElemCount);
 
-                        bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+                        RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, (int)drawCmd.ElemCount / 3, 1);
                     }
                 }
             }

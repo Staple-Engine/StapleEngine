@@ -5,11 +5,92 @@ using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace Staple.Internal;
 
 public sealed partial class RenderSystem
 {
+    #region Fields and Classes
+    /// <summary>
+    /// Contains information on a draw call
+    /// </summary>
+    internal class DrawCall
+    {
+        public Vector3 position;
+        public Quaternion rotation;
+        public Vector3 scale;
+        public Entity entity;
+        public Renderable renderable;
+        public IComponent relatedComponent;
+    }
+
+    /// <summary>
+    /// Contains lists of drawcalls per view ID
+    /// </summary>
+    internal class DrawBucket
+    {
+        public Dictionary<ushort, List<DrawCall>> drawCalls = [];
+    }
+
+    internal static byte Priority = 1;
+
+    /// <summary>
+    /// Keep the current and previous draw buckets to interpolate around
+    /// </summary>
+    private DrawBucket previousDrawBucket = new(), currentDrawBucket = new();
+
+    /// <summary>
+    /// Render thread lock
+    /// </summary>
+    private readonly Lock lockObject = new();
+
+    /// <summary>
+    /// Whether we need to generate draw calls (interpolator only)
+    /// </summary>
+    private bool needsDrawCalls = false;
+
+    /// <summary>
+    /// Time accumulator (interpolator only)
+    /// </summary>
+    private float accumulator = 0.0f;
+
+    /// <summary>
+    /// All registered render systems
+    /// </summary>
+    internal readonly List<IRenderSystem> renderSystems = [];
+
+    /// <summary>
+    /// Temporary transform for rendering with the interpolator
+    /// </summary>
+    private readonly Transform stagingTransform = new();
+
+    /// <summary>
+    /// Queued list of callbacks for frames
+    /// </summary>
+    private readonly Dictionary<uint, List<Action>> queuedFrameCallbacks = [];
+
+    /// <summary>
+    /// The render queue
+    /// </summary>
+    private readonly List<((Camera, Transform), List<(IRenderSystem, List<(Entity, Transform, IComponent)>)>)> renderQueue = [];
+
+    /// <summary>
+    /// The entity query for every entity with a transform
+    /// </summary>
+    private readonly SceneQuery<Transform> entityQuery = new();
+
+    /// <summary>
+    /// Cached per-frame used view IDs
+    /// </summary>
+    private HashSet<ushort> usedViewIDs = [];
+
+    /// <summary>
+    /// Cached per-frame used view IDs (previous frame)
+    /// </summary>
+    private HashSet<ushort> previousUsedViewIDs = [];
+    #endregion
+
     #region Helpers
     /// <summary>
     /// Calculates the blending function for blending flags
@@ -193,8 +274,7 @@ public sealed partial class RenderSystem
             return;
         }
 
-        DrawnRenderers = 0;
-        CulledRenderers = 0;
+        RenderStats.Clear();
 
         (previousUsedViewIDs, usedViewIDs) = (usedViewIDs, previousUsedViewIDs);
 
@@ -392,13 +472,9 @@ public sealed partial class RenderSystem
                         }
                     }
 
-                    if (renderable.isVisible)
+                    if (renderable.isVisible == false)
                     {
-                        DrawnRenderers++;
-                    }
-                    else
-                    {
-                        CulledRenderers++;
+                        RenderStats.culledDrawCalls++;
                     }
                 }
             }
@@ -480,13 +556,9 @@ public sealed partial class RenderSystem
                         {
                             renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
 
-                            if (renderable.isVisible)
+                            if (renderable.isVisible == false)
                             {
-                                DrawnRenderers++;
-                            }
-                            else
-                            {
-                                CulledRenderers++;
+                                RenderStats.culledDrawCalls++;
                             }
                         }
                     }
@@ -690,13 +762,11 @@ public sealed partial class RenderSystem
 
                                 if (renderable.isVisible)
                                 {
-                                    DrawnRenderers++;
-
                                     AddDrawCall(contents[j].Item1, contents[j].Item2, contents[j].Item3, renderable, CurrentViewID);
                                 }
                                 else
                                 {
-                                    CulledRenderers++;
+                                    RenderStats.culledDrawCalls++;
                                 }
                             }
                         }
@@ -803,5 +873,20 @@ public sealed partial class RenderSystem
             });
         }
     }
+
+    internal static void Submit(ushort viewID, bgfx.ProgramHandle program, bgfx.DiscardFlags flags, int triangles, int instances)
+    {
+        bgfx.submit(viewID, program, 0, (byte)flags);
+
+        RenderStats.drawCalls++;
+        RenderStats.triangleCount += triangles * instances;
+
+        if (instances > 1)
+        {
+            RenderStats.batchedDrawCalls += instances;
+        }
+
+    }
+
     #endregion
 }

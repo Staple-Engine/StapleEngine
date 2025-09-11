@@ -197,6 +197,7 @@
 		<Compile Include="Rendering\MaterialLighting.cs" />
 		<Compile Include="Rendering\Access.cs" />
 		<Compile Include="Rendering\Mesh\MeshInstanceOptions.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderStats.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\Shader\ComputeShader.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />

@@ -69,7 +69,7 @@ static partial class Program
                 continue;
             }
 
-            WorkScheduler.Dispatch(Path.GetFileName(textFileName.Replace(".meta", "")), () =>
+            WorkScheduler.Main.Dispatch(Path.GetFileName(textFileName.Replace(".meta", "")), () =>
             {
                 var inputFile = textFileName.Replace(".meta", "");
 

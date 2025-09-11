@@ -71,7 +71,7 @@ static partial class Program
                 continue;
             }
 
-            WorkScheduler.Dispatch(Path.GetFileName(audioFileName.Replace(".meta", "")), () =>
+            WorkScheduler.Main.Dispatch(Path.GetFileName(audioFileName.Replace(".meta", "")), () =>
             {
                 //Console.WriteLine($"\t\t -> {outputFile}");
 

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace Baker;
 
@@ -98,7 +99,7 @@ vec4 i_data4        :   TEXCOORD3;
                 continue;
             }
 
-            WorkScheduler.Dispatch(Path.GetFileName(currentShader), () =>
+            WorkScheduler.Main.Dispatch(Path.GetFileName(currentShader), () =>
             {
                 //Console.WriteLine($"\t\t -> {outputFile}");
 
@@ -352,6 +353,8 @@ vec4 i_data4        :   TEXCOORD3;
                     }
 
                     var entries = new SerializableShaderEntry();
+
+                    Lock entryLock = new();
 
                     generatedShader.data.Add(renderer switch
                     {
@@ -961,7 +964,10 @@ vec4 i_data4        :   TEXCOORD3;
                                     return;
                                 }
 
-                                entries.data.AddOrSetKey(variantKey, shaderObject);
+                                lock(entryLock)
+                                {
+                                    entries.data.AddOrSetKey(variantKey, shaderObject);
+                                }
 
                                 break;
 
@@ -1059,7 +1065,10 @@ vec4 i_data4        :   TEXCOORD3;
                                     return;
                                 }
 
-                                entries.data.AddOrSetKey(variantKey, shaderObject);
+                                lock (entryLock)
+                                {
+                                    entries.data.AddOrSetKey(variantKey, shaderObject);
+                                }
 
                                 break;
                         }
@@ -1071,12 +1080,22 @@ vec4 i_data4        :   TEXCOORD3;
                     }
                     else
                     {
+                        var workScheduler = new WorkScheduler()
+                        {
+                            logCompletion = false,
+                        };
+
                         foreach (var pair in variants)
                         {
                             var variantKey = string.Join(" ", pair);
 
-                            Build(variantKey, pair);
+                            workScheduler.Dispatch(variantKey, () =>
+                            {
+                                Build(variantKey, pair);
+                            });
                         }
+
+                        workScheduler.WaitForTasks();
                     }
                 }
 

@@ -61,7 +61,7 @@ static partial class Program
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
             }
 
-            WorkScheduler.Dispatch(Path.GetFileName(prefabFileName.Replace(".meta", "")), () =>
+            WorkScheduler.Main.Dispatch(Path.GetFileName(prefabFileName.Replace(".meta", "")), () =>
             {
                 //Console.WriteLine($"\t\t -> {outputFile}");
 

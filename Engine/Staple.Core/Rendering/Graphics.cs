@@ -27,7 +27,8 @@ namespace Staple
         /// <param name="materialSetupCallback">A callback to setup the material. If it's not set, the default behaviour will be used</param>
         public static void RenderGeometry(VertexBuffer vertex, IndexBuffer index,
             int startVertex, int vertexCount, int startIndex, int indexCount, Material material,
-            Vector3 position, Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, ushort viewID, Action materialSetupCallback = null)
+            Vector3 position, Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, ushort viewID,
+            Action materialSetupCallback = null)
         {
             if(vertex == null ||
                 vertex.Disposed ||
@@ -78,9 +79,9 @@ namespace Staple
 
             if(program.Valid)
             {
-                lightSystem?.ApplyLightProperties(position, transform, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+                RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(topology, indexCount), 1);
             }
             else
             {
@@ -142,9 +143,9 @@ namespace Staple
 
             if (program.Valid)
             {
-                lightSystem?.ApplyLightProperties(position, transform, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+                RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(topology, indices.Length), 1);
             }
             else
             {
@@ -206,9 +207,9 @@ namespace Staple
 
             if (program.Valid)
             {
-                lightSystem?.ApplyLightProperties(position, transform, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+                RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(topology, indices.Length), 1);
             }
             else
             {

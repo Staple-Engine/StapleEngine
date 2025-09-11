@@ -346,8 +346,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 renderer.mesh.SetActive(j);
 
-                lightSystem?.ApplyLightProperties(item.transform.Position, item.transform.Matrix, material,
-                    RenderSystem.CurrentCamera.Item2.Position, lighting);
+                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
                 var program = material.ShaderProgram;
 
@@ -361,7 +360,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 buffer?.SetBufferActive(SkinningBufferIndex, Access.Read);
 
-                bgfx.submit(viewID, program, 0, (byte)flags);
+                RenderSystem.Submit(viewID, program, flags, renderer.mesh.SubmeshTriangleCount(j), 1);
             }
         }
 

@@ -408,7 +408,7 @@ static partial class Program
             Thread.Sleep(25);
         }
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         //First phase of processing textures
         foreach (var path in inputPaths)
@@ -418,7 +418,7 @@ static partial class Program
             ProcessTextures(platform, texturecPath, path, outPath);
         }
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         foreach (var path in inputPaths)
         {
@@ -427,7 +427,7 @@ static partial class Program
             ProcessMeshes(platform, path, outPath);
         }
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         //Second phase of processing textures because some textures might be generated
         foreach (var path in inputPaths)
@@ -437,7 +437,7 @@ static partial class Program
             ProcessTextures(platform, texturecPath, path, outPath);
         }
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         foreach (var path in inputPaths)
         {
@@ -446,7 +446,7 @@ static partial class Program
             ProcessAudio(platform, path, outPath);
         }
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         foreach (var path in inputPaths)
         {
@@ -455,7 +455,7 @@ static partial class Program
             ProcessMaterials(platform, path, outPath);
         }
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         foreach (var path in inputPaths)
         {
@@ -464,7 +464,7 @@ static partial class Program
             ProcessAssets(platform, path, outPath);
         }
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         foreach (var path in inputPaths)
         {
@@ -473,7 +473,7 @@ static partial class Program
             ProcessPrefabs(platform, path, outPath);
         }
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         foreach (var path in inputPaths)
         {
@@ -482,7 +482,7 @@ static partial class Program
             ProcessFonts(platform, path, outPath);
         }
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         foreach (var path in inputPaths)
         {
@@ -491,7 +491,7 @@ static partial class Program
             ProcessTextAssets(platform, path, outPath);
         }
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         Console.WriteLine($"Cleaning up moved and deleted files in the output folder");
 
@@ -512,7 +512,7 @@ static partial class Program
 
         ProcessAppSettings(platform, inputPaths[0], outputPath, editorMode);
 
-        WorkScheduler.WaitForTasks();
+        WorkScheduler.Main.WaitForTasks();
 
         //Cleanup extra folders only if we're in editor mode
         if (editorMode)

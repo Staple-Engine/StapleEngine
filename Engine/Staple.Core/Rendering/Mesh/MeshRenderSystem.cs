@@ -11,8 +11,6 @@ namespace Staple.Internal;
 /// </summary>
 public sealed class MeshRenderSystem : IRenderSystem
 {
-    private const int LightBufferIndex = 14;
-
     /// <summary>
     /// Contains info on a mesh render instance
     /// </summary>
@@ -29,9 +27,7 @@ public sealed class MeshRenderSystem : IRenderSystem
     {
         public ExpandableContainer<InstanceInfo> instanceInfos = new();
         public Transform[] transforms;
-        public Matrix4x4[] normalMatrices;
         public Matrix4x4[] transformMatrices;
-        public VertexBuffer normalMatrixBuffer;
     }
 
     private readonly Dictionary<ushort, Dictionary<int, InstanceData>> instanceCache = [];
@@ -106,9 +102,9 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         if (program.Valid)
         {
-            lightSystem?.ApplyLightProperties(position, matrix, material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-            bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+            RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
         }
         else
         {
@@ -118,15 +114,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     public void ClearRenderData(ushort viewID)
     {
-        if (instanceCache.TryGetValue(viewID, out var renderData))
-        {
-            foreach(var pair in renderData)
-            {
-                pair.Value.normalMatrixBuffer?.Destroy();
-            }
-
-            instanceCache.Remove(viewID);
-        }
+        instanceCache.Remove(viewID);
     }
 
     public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
@@ -275,9 +263,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             {
                 if(p.Value.instanceInfos.Length == 0)
                 {
-                    p.Value.normalMatrixBuffer?.Destroy();
                     p.Value.transforms = [];
-                    p.Value.normalMatrices = [];
                     p.Value.transformMatrices = [];
                 }
             }
@@ -340,7 +326,6 @@ public sealed class MeshRenderSystem : IRenderSystem
                 {
                     contents.transforms = new Transform[contents.instanceInfos.Length];
                     contents.transformMatrices = new Matrix4x4[contents.instanceInfos.Length];
-                    contents.normalMatrices = new Matrix4x4[contents.instanceInfos.Length];
 
                     for (var i = 0; i < contents.transforms.Length; i++)
                     {
@@ -348,22 +333,8 @@ public sealed class MeshRenderSystem : IRenderSystem
                     }
                 }
 
-                lightSystem?.ApplyInstancedLightProperties(contents.transforms, contents.normalMatrices, material,
-                    RenderSystem.CurrentCamera.Item2.Position, contents.instanceInfos.Contents[0].lighting);
-
-                if (contents.normalMatrixBuffer?.Disposed ?? true)
-                {
-                    //TODO: Support Matrix3x3 instead for this
-                    contents.normalMatrixBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
-                        .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
-                        .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
-                        .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
-                        .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
-                        .Build(),
-                        RenderBufferFlags.ComputeRead, true, (uint)contents.transforms.Length);
-                }
-
-                contents.normalMatrixBuffer?.Update(contents.normalMatrices.AsSpan(), 0, true);
+                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
+                    contents.instanceInfos.Contents[0].lighting);
 
                 for (var i = 0; i < contents.transforms.Length; i++)
                 {
@@ -378,9 +349,10 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     instanceBuffer.Bind(0, instanceBuffer.count);
 
-                    contents.normalMatrixBuffer?.SetBufferActive(LightBufferIndex, Access.Read);
-
-                    bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+                    RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All,
+                        Mesh.TriangleCount(contents.instanceInfos.Contents[0].mesh.MeshTopology,
+                        contents.instanceInfos.Contents[0].mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex)),
+                        instanceBuffer.count);
                 }
                 else
                 {
@@ -408,14 +380,17 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     content.mesh.SetActive(content.submeshIndex);
 
-                    lightSystem?.ApplyLightProperties(content.transform.Position, content.transform.Matrix, material,
-                        RenderSystem.CurrentCamera.Item2.Position, content.lighting);
+                    lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
+                        content.lighting);
 
                     var program = material.ShaderProgram;
 
                     var flags = bgfx.DiscardFlags.State;
 
-                    bgfx.submit(viewID, program, 0, (byte)flags);
+                    RenderSystem.Submit(viewID, program, flags,
+                        Mesh.TriangleCount(contents.instanceInfos.Contents[0].mesh.MeshTopology,
+                        contents.instanceInfos.Contents[0].mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex)),
+                        1);
                 }
             }
         }

@@ -63,7 +63,7 @@ static partial class Program
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
             }
 
-            WorkScheduler.Dispatch(Path.GetFileName(fontFileName.Replace(".meta", "")), () =>
+            WorkScheduler.Main.Dispatch(Path.GetFileName(fontFileName.Replace(".meta", "")), () =>
             {
                 //Console.WriteLine($"\t\t -> {outputFile}");
 

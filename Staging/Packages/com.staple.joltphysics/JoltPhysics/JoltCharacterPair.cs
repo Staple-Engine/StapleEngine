@@ -10,6 +10,7 @@ internal class JoltCharacterPair : IBody3D
 {
     public Entity entity;
     public Character character;
+    public Transform transform;
     public float friction;
     public float gravityFactor;
     public bool enabled;

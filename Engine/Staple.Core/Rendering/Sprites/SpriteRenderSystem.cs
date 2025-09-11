@@ -629,7 +629,7 @@ public class SpriteRenderSystem : IRenderSystem
 
             if (program.Valid)
             {
-                bgfx.submit(viewID, program, 0, (byte)bgfx.DiscardFlags.All);
+                RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(MeshTopology.Triangles, (int)indexCount), 1);
             }
             else
             {

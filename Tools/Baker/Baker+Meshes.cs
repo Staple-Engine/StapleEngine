@@ -218,7 +218,7 @@ static partial class Program
                 continue;
             }
 
-            WorkScheduler.Dispatch(Path.GetFileName(meshFileName.Replace(".meta", "")), () =>
+            WorkScheduler.Main.Dispatch(Path.GetFileName(meshFileName.Replace(".meta", "")), () =>
             {
                 #endregion
                 //Console.WriteLine($"\t\t -> {outputFile}");

@@ -122,17 +122,13 @@ public class JoltPhysics3D : IPhysics3D
 
         var physicsSettings = new PhysicsSystemSettings()
         {
+            MaxBodies = MaxBodyCount,
+            MaxBodyPairs = MaxBodyPairs,
+            NumBodyMutexes = NumBodyMutexes,
             BroadPhaseLayerInterface = broadPhaseLayerInterface,
             ObjectLayerPairFilter = objectLayerPairFilter,
             ObjectVsBroadPhaseLayerFilter = objectVsBroadPhaseLayerFilter,
         };
-
-        if(Platform.IsEditor)
-        {
-            physicsSettings.MaxBodies = MaxBodyCount;
-            physicsSettings.MaxBodyPairs = MaxBodyPairs;
-            physicsSettings.NumBodyMutexes = NumBodyMutexes;
-        }
 
         physicsSystem = new(physicsSettings);
 
@@ -416,7 +412,12 @@ public class JoltPhysics3D : IPhysics3D
         {
             foreach (var pair in bodies)
             {
-                var transform = pair.entity.GetComponent<Transform>();
+                if(pair.MotionType == BodyMotionType.Static)
+                {
+                    continue;
+                }
+
+                var transform = pair.transform;
 
                 if (transform != null)
                 {
@@ -444,22 +445,22 @@ public class JoltPhysics3D : IPhysics3D
                     pair.character.PostSimulation(0.05f);
                 }
 
-                var transform = pair.entity.GetComponent<Transform>();
+                var transform = pair.transform;
 
                 if (transform != null)
                 {
                     var body = pair.character;
 
-                    var t = body.GetPositionAndRotation();
+                    var (position, rotation) = body.GetPositionAndRotation();
 
-                    if (transform.Position != t.position)
+                    if (transform.Position != position)
                     {
-                        transform.Position = t.position;
+                        transform.Position = position;
                     }
 
-                    if (transform.Rotation != t.rotation)
+                    if (transform.Rotation != rotation)
                     {
-                        transform.Rotation = t.rotation;
+                        transform.Rotation = rotation;
                     }
                 }
             }
@@ -490,6 +491,7 @@ public class JoltPhysics3D : IPhysics3D
                 {
                     character = character,
                     entity = entity,
+                    transform = entity.GetComponent<Transform>(),
                     gravityFactor = gravityFactor,
                     friction = friction,
                     enabled = true,
@@ -578,6 +580,7 @@ public class JoltPhysics3D : IPhysics3D
                 {
                     body = b,
                     entity = entity,
+                    transform = entity.GetComponent<Transform>(),
                 };
 
                 bodies.Add(pair);

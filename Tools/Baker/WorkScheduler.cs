@@ -5,13 +5,18 @@ using System.Threading.Tasks;
 
 namespace Baker;
 
-internal static class WorkScheduler
+internal class WorkScheduler
 {
-    private static int taskCount = 0;
-    private static int workCount = 0;
-    private static readonly Lock syncObject = new();
+    private int taskCount = 0;
+    private int workCount = 0;
 
-    public static void WaitForTasks()
+    public bool logCompletion = true;
+
+    private readonly Lock syncObject = new();
+
+    public static readonly WorkScheduler Main = new();
+
+    public void WaitForTasks()
     {
         for (; ; )
         {
@@ -27,7 +32,7 @@ internal static class WorkScheduler
         }
     }
 
-    public static void Dispatch(string fileName, Action task)
+    public void Dispatch(string fileName, Action task)
     {
         lock(syncObject)
         {
@@ -50,7 +55,10 @@ internal static class WorkScheduler
             {
                 taskCount--;
 
-                Console.WriteLine($"[{workCount - taskCount}/{workCount}] {fileName}");
+                if(logCompletion)
+                {
+                    Console.WriteLine($"[{workCount - taskCount}/{workCount}] {fileName}");
+                }
             }
         });
     }

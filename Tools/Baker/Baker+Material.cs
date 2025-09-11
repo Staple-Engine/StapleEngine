@@ -66,7 +66,7 @@ static partial class Program
                 continue;
             }
 
-            WorkScheduler.Dispatch(Path.GetFileName(materialFileName.Replace(".meta", "")), () =>
+            WorkScheduler.Main.Dispatch(Path.GetFileName(materialFileName.Replace(".meta", "")), () =>
             {
                 //Console.WriteLine($"\t\t -> {outputFile}");
 

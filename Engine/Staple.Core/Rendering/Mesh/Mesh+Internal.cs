@@ -903,4 +903,42 @@ public sealed partial class Mesh
 
         return null;
     }
+
+    internal static int TriangleCount(MeshTopology topology, int indexCount)
+    {
+        return topology switch
+        {
+            MeshTopology.Triangles => indexCount / 3,
+            MeshTopology.TriangleStrip => indexCount - 2,
+            //Can't calculate for other modes
+            _ => indexCount,
+        };
+    }
+
+    internal int SubmeshTriangleCount(int submeshIndex)
+    {
+        if(submeshIndex < 0)
+        {
+            return 0;
+        }
+
+        if(submeshes.Count == 0)
+        {
+            if(submeshIndex == 0)
+            {
+                return TriangleCount(MeshTopology, Indices.Length);
+            }
+
+            return 0;
+        }
+
+        if(submeshIndex >= submeshes.Count)
+        {
+            return 0;
+        }
+
+        var submesh = submeshes[submeshIndex];
+
+        return TriangleCount(MeshTopology, submesh.indexCount);
+    }
 }

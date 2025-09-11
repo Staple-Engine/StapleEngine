@@ -11,6 +11,7 @@ namespace Staple.JoltPhysics;
 internal class JoltBodyPair : IBody3D
 {
     public Entity entity;
+    public Transform transform;
     public Body body;
 
     public Entity Entity => entity;

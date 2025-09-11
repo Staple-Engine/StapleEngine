@@ -67,7 +67,7 @@ static partial class Program
                 continue;
             }
 
-            WorkScheduler.Dispatch(Path.GetFileName(sceneFileName.Replace(".meta", "")), () =>
+            WorkScheduler.Main.Dispatch(Path.GetFileName(sceneFileName.Replace(".meta", "")), () =>
             {
                 //Console.WriteLine($"\t\t -> {outputFile}");
 

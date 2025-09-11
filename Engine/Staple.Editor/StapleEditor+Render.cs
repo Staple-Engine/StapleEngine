@@ -138,8 +138,7 @@ internal partial class StapleEditor
 
         var renderSystem = RenderSystem.Instance;
 
-        RenderSystem.CulledRenderers = 0;
-        RenderSystem.DrawnRenderers = 0;
+        RenderSystem.RenderStats.Clear();
 
         foreach (var system in renderSystem.renderSystems)
         {
@@ -178,13 +177,9 @@ internal partial class StapleEditor
                             }
                         }
 
-                        if (renderable.isVisible)
+                        if (renderable.isVisible == false)
                         {
-                            RenderSystem.DrawnRenderers++;
-                        }
-                        else
-                        {
-                            RenderSystem.CulledRenderers++;
+                            RenderSystem.RenderStats.culledDrawCalls++;
                         }
                     }
                 }

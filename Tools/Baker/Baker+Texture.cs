@@ -88,7 +88,7 @@ static partial class Program
                 continue;
             }
 
-            WorkScheduler.Dispatch(Path.GetFileName(textureFileName.Replace(".meta", "")), () =>
+            WorkScheduler.Main.Dispatch(Path.GetFileName(textureFileName.Replace(".meta", "")), () =>
             {
                 var inputFile = textureFileName.Replace(".meta", "");
 
