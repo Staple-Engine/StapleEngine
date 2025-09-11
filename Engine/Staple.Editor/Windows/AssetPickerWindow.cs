@@ -99,6 +99,13 @@ internal class AssetPickerWindow : EditorWindow
             .Select(x => new ImGuiUtils.ContentGridItem()
             {
                 name = x?.name ?? "(None)",
+                notVisible = () =>
+                {
+                    if(x != null)
+                    {
+                        ThumbnailCache.RemoveRenderRequest(x.path);
+                    }
+                },
                 ensureValidTexture = (texture) =>
                 {
                     if (StapleEditor.instance.RefreshingAssets)
@@ -108,7 +115,8 @@ internal class AssetPickerWindow : EditorWindow
 
                     if (x != null && ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(ThumbnailPath(x.path))))
                     {
-                        return ThumbnailCache.GetThumbnail(ThumbnailPath(x.path)) ?? projectBrowser.GetResourceIcon(ProjectBrowser.ResourceTypeForExtension(x.extension));
+                        return ThumbnailCache.GetThumbnail(ThumbnailPath(x.path)) ??
+                            projectBrowser.GetResourceIcon(ProjectBrowser.ResourceTypeForExtension(x.extension));
                     }
 
                     return texture ?? fileIcon;

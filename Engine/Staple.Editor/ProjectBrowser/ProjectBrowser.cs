@@ -436,6 +436,7 @@ internal class ProjectBrowser
             var item = new ImGuiUtils.ContentGridItem()
             {
                 name = node.name,
+                notVisible = () => ThumbnailCache.RemoveRenderRequest(node.path),
             };
 
             switch (node.type)
@@ -451,7 +452,8 @@ internal class ProjectBrowser
 
                         if ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(node.path))
                         {
-                            return ThumbnailCache.GetThumbnail(node.path) ?? GetResourceIcon(ResourceTypeForExtension(node.extension));
+                            return ThumbnailCache.GetThumbnail(node.path) ??
+                                GetResourceIcon(ResourceTypeForExtension(node.extension));
                         }
 
                         return texture;

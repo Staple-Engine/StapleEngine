@@ -15,6 +15,7 @@ internal static class ImGuiUtils
         public string name;
         public Texture texture;
         public Func<Texture, Texture> ensureValidTexture;
+        public Action notVisible;
     }
 
     /// <summary>
@@ -127,6 +128,10 @@ internal static class ImGuiUtils
 
                     ImGui.TextWrapped(item.name);
                 }
+            }
+            else
+            {
+                item.notVisible?.Invoke();
             }
 
             ImGui.NextColumn();

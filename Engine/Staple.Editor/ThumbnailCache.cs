@@ -214,7 +214,7 @@ internal class ThumbnailCache
 
                         var offset = mesh.Bounds.center + mesh.Bounds.size * 0.75f;
                         var position = new Vector3(-offset.X, offset.Y, offset.Z * 1.5f);
-                        var forward = Vector3.Normalize(position);
+                        var forward = Vector3.Normalize(-position);
 
                         var cameraTransform = new Transform
                         {
@@ -465,9 +465,9 @@ internal class ThumbnailCache
                             cullingLayers = new(LayerMask.GetMask(StapleEditor.RenderTargetLayerName)),
                         };
 
-                        var position = Vector3.One * 0.5F;
+                        var position = new Vector3(0.5f, 0.5f, -0.5f);
 
-                        var forward = Vector3.Normalize(position);
+                        var forward = Vector3.Normalize(-position);
 
                         var cameraTransform = new Transform
                         {
@@ -1077,6 +1077,19 @@ internal class ThumbnailCache
 
                 MainThreadRenderTask(current.Value);
             }
+        }
+    }
+
+    /// <summary>
+    /// Removes a pending render request
+    /// </summary>
+    /// <param name="path">The path of the request</param>
+    public static void RemoveRenderRequest(string path)
+    {
+        lock (renderRequestLock)
+        {
+            pendingRenderRequests.Remove(path);
+            pendingMainThreadRenderRequests.Remove(path);
         }
     }
 
