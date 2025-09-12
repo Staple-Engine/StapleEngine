@@ -1877,6 +1877,7 @@ internal class ResourceManager
                     topology = m.topology,
                     lighting = asset.lighting,
                     type = m.type,
+                    components = m.Components,
 
                     bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
 

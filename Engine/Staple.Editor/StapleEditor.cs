@@ -220,15 +220,15 @@ internal partial class StapleEditor
                         continue;
                     }
 
+                    if (renderQueue.TryGetValue(system, out var content) == false)
+                    {
+                        content = [];
+
+                        renderQueue.Add(system, content);
+                    }
+
                     if (entity.TryGetComponent(system.RelatedComponent, out var component))
                     {
-                        if (renderQueue.TryGetValue(system, out var content) == false)
-                        {
-                            content = [];
-
-                            renderQueue.Add(system, content);
-                        }
-
                         content.Add((entity, transform, component));
                     }
                 }

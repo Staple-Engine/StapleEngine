@@ -242,6 +242,7 @@ public sealed partial class RenderSystem
     public void Startup()
     {
         RegisterSystem(new CullingVolumeSystem());
+        RegisterSystem(new MeshCombineSystem());
         RegisterSystem(new LightSystem());
         RegisterSystem(new SpriteRenderSystem());
         RegisterSystem(new SkinnedMeshAnimatorSystem());
@@ -280,21 +281,7 @@ public sealed partial class RenderSystem
 
         usedViewIDs.Clear();
 
-        foreach(var pair in renderQueue)
-        {
-            foreach(var item in pair.Item2)
-            {
-                foreach(var (_, _, renderable) in item.Item2)
-                {
-                    if(renderable is not Renderable r)
-                    {
-                        continue;
-                    }
-
-                    r.cullingState = CullingState.None;
-                }
-            }
-        }
+        ClearCullingStates();
 
         foreach(var system in renderSystems)
         {
@@ -339,6 +326,28 @@ public sealed partial class RenderSystem
                     }
 
                     system.ClearRenderData(viewID);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Clears the culling states of the entire render queue
+    /// </summary>
+    internal void ClearCullingStates()
+    {
+        foreach (var pair in renderQueue)
+        {
+            foreach (var item in pair.Item2)
+            {
+                foreach (var (_, _, renderable) in item.Item2)
+                {
+                    if (renderable is not Renderable r)
+                    {
+                        continue;
+                    }
+
+                    r.cullingState = CullingState.None;
                 }
             }
         }
@@ -394,15 +403,15 @@ public sealed partial class RenderSystem
                                 continue;
                             }
 
+                            if (collected.TryGetValue(system, out var content) == false)
+                            {
+                                content = [];
+
+                                collected.Add(system, content);
+                            }
+
                             if (entityInfo.Item1.TryGetComponent(system.RelatedComponent, out var component))
                             {
-                                if(collected.TryGetValue(system, out var content) == false)
-                                {
-                                    content = [];
-
-                                    collected.Add(system, content);
-                                }
-
                                 content.Add((entityInfo.Item1, entityInfo.Item2, component));
                             }
                         }
@@ -447,6 +456,11 @@ public sealed partial class RenderSystem
         for (var i = 0; i < queueLength; i++)
         {
             var (system, content) = queue[i];
+
+            if(content.Count == 0)
+            {
+                continue;
+            }
 
             system.Prepare();
 
@@ -739,6 +753,11 @@ public sealed partial class RenderSystem
                     var system = systemInfo.Item1;
                     var contents = systemInfo.Item2;
 
+                    if(contents.Count == 0)
+                    {
+                        continue;
+                    }
+
                     system.Preprocess(CollectionsMarshal.AsSpan(contents), camera, cameraTransform);
 
                     var contentLength = contents.Count;
@@ -883,7 +902,7 @@ public sealed partial class RenderSystem
 
         if (instances > 1)
         {
-            RenderStats.batchedDrawCalls += instances;
+            RenderStats.savedDrawCalls += instances;
         }
 
     }

@@ -885,6 +885,106 @@ public sealed partial class Mesh : IGuidAsset
     /// </summary>
     public int IndexCount => indices?.Length ?? 0;
 
+    /// <summary>
+    /// Gets the mesh components for this mesh
+    /// </summary>
+    /// <remarks>Doesn't work if you use <see cref="SetMeshData(Span{byte}, VertexLayout)"/> or
+    /// <see cref="SetMeshData{T}(Span{T}, VertexLayout)"/> unless the mesh comes from a mesh asset</remarks>
+    public MeshAssetComponent Components
+    {
+        get
+        {
+            if(MeshAssetMesh != null)
+            {
+                return MeshAssetMesh.components;
+            }
+
+            var result = MeshAssetComponent.None;
+
+            if ((UV?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV1;
+            }
+
+            if ((UV2?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV2;
+            }
+
+            if ((UV3?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV3;
+            }
+
+            if ((UV4?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV4;
+            }
+
+            if ((UV5?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV5;
+            }
+
+            if ((UV6?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV6;
+            }
+
+            if ((UV7?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV7;
+            }
+
+            if ((UV8?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.UV8;
+            }
+
+            if ((normals?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Normal;
+            }
+
+            if ((tangents?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Tangent;
+            }
+
+            if ((bitangents?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Bitangent;
+            }
+
+            if ((colors?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Color1;
+            }
+
+            if ((colors2?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Color2;
+            }
+
+            if ((colors3?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Color3;
+            }
+
+            if ((colors4?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.Color4;
+            }
+
+            if ((boneIndices?.Length ?? 0) > 0 || (boneWeights?.Length ?? 0) > 0)
+            {
+                result |= MeshAssetComponent.BoneIndicesWeights;
+            }
+
+            return result;
+        }
+    }
+
     private readonly GuidHasher guidHasher = new();
 
     public GuidHasher Guid => guidHasher;

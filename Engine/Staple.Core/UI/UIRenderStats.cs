@@ -1,5 +1,4 @@
 ﻿using Staple.Internal;
-using System;
 using System.Text;
 
 namespace Staple.UI;
@@ -15,8 +14,8 @@ public class UIRenderStats(UIManager manager, string ID) : UIText(manager, ID)
         builder.Clear();
 
         builder.AppendLine($"{World.Current.EntityCount} Entities");
-        builder.AppendLine($"{RenderSystem.RenderStats.drawCalls} drawcalls ({RenderSystem.RenderStats.batchedDrawCalls} batched, {RenderSystem.RenderStats.triangleCount} triangles)");
-        builder.AppendLine($"{RenderSystem.RenderStats.culledDrawCalls} culled renderers");
+        builder.AppendLine($"{RenderSystem.RenderStats.drawCalls} drawcalls ({RenderSystem.RenderStats.savedDrawCalls} saved, {RenderSystem.RenderStats.culledDrawCalls} culled)");
+        builder.AppendLine($"{RenderSystem.RenderStats.triangleCount} triangles");
 
         Text = builder.ToString();
     }

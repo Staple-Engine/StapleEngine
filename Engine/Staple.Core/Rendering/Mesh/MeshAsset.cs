@@ -201,6 +201,11 @@ public sealed class MeshAsset : IGuidAsset
         /// The lighting to apply
         /// </summary>
         public MaterialLighting lighting;
+
+        /// <summary>
+        /// The components of this mesh
+        /// </summary>
+        public MeshAssetComponent components;
     }
 
     /// <summary>

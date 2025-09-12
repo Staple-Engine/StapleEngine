@@ -10,6 +10,7 @@ public sealed class VertexLayoutBuilder
 {
     private bgfx.VertexLayout layout;
     private bool completed = false;
+    private MeshAssetComponent components;
 
     public VertexLayoutBuilder()
     {
@@ -36,6 +37,106 @@ public sealed class VertexLayoutBuilder
         if(completed)
         {
             return this;
+        }
+
+        switch (name)
+        {
+            case VertexAttribute.Normal:
+
+                components |= MeshAssetComponent.Normal;
+
+                break;
+
+            case VertexAttribute.Tangent:
+
+                components |= MeshAssetComponent.Tangent;
+
+                break;
+
+            case VertexAttribute.Bitangent:
+
+                components |= MeshAssetComponent.Bitangent;
+
+                break;
+
+            case VertexAttribute.Color0:
+
+                components |= MeshAssetComponent.Color1;
+
+                break;
+
+            case VertexAttribute.Color1:
+
+                components |= MeshAssetComponent.Color2;
+
+                break;
+
+            case VertexAttribute.Color2:
+
+                components |= MeshAssetComponent.Color3;
+
+                break;
+
+            case VertexAttribute.Color3:
+
+                components |= MeshAssetComponent.Color4;
+
+                break;
+
+            case VertexAttribute.BoneIndices:
+            case VertexAttribute.BoneWeight:
+
+                components |= MeshAssetComponent.BoneIndicesWeights;
+
+                break;
+
+            case VertexAttribute.TexCoord0:
+
+                components |= MeshAssetComponent.UV1;
+
+                break;
+
+            case VertexAttribute.TexCoord1:
+
+                components |= MeshAssetComponent.UV2;
+
+                break;
+
+            case VertexAttribute.TexCoord2:
+
+                components |= MeshAssetComponent.UV3;
+
+                break;
+
+            case VertexAttribute.TexCoord3:
+
+                components |= MeshAssetComponent.UV4;
+
+                break;
+
+            case VertexAttribute.TexCoord4:
+
+                components |= MeshAssetComponent.UV5;
+
+                break;
+
+            case VertexAttribute.TexCoord5:
+
+                components |= MeshAssetComponent.UV6;
+
+                break;
+
+            case VertexAttribute.TexCoord6:
+
+                components |= MeshAssetComponent.UV7;
+
+                break;
+
+            case VertexAttribute.TexCoord7:
+
+                components |= MeshAssetComponent.UV8;
+
+                break;
         }
 
         unsafe
@@ -94,7 +195,8 @@ public sealed class VertexLayoutBuilder
 
                 return new VertexLayout()
                 {
-                    layout = layout
+                    layout = layout,
+                    Components = components,
                 };
             }
         }

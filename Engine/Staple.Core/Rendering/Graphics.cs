@@ -44,6 +44,8 @@ namespace Staple
                 throw new Exception("Invalid arguments passed");
             }
 
+            bgfx.discard((byte)bgfx.DiscardFlags.All);
+
             unsafe
             {
                 _ = bgfx.set_transform(&transform, 1);
@@ -99,6 +101,8 @@ namespace Staple
             {
                 throw new Exception("Invalid arguments passed");
             }
+
+            bgfx.discard((byte)bgfx.DiscardFlags.All);
 
             var vertexBuffer = VertexBuffer.CreateTransient(vertices, layout);
             var indexBuffer = IndexBuffer.CreateTransient(indices);
@@ -163,6 +167,8 @@ namespace Staple
             {
                 throw new Exception("Invalid arguments passed");
             }
+
+            bgfx.discard((byte)bgfx.DiscardFlags.All);
 
             var vertexBuffer = VertexBuffer.CreateTransient(vertices, layout);
             var indexBuffer = IndexBuffer.CreateTransient(indices);

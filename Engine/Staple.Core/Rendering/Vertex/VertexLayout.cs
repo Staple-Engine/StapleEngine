@@ -11,6 +11,11 @@ public sealed class VertexLayout
     internal bgfx.VertexLayout layout;
 
     /// <summary>
+    /// The mesh components for this layout
+    /// </summary>
+    public MeshAssetComponent Components { get; internal set; }
+
+    /// <summary>
     /// Decodes attribute data from the vertex layout
     /// </summary>
     /// <param name="name">The attribute name</param>

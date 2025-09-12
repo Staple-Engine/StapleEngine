@@ -14,7 +14,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     private const int SkinningBufferIndex = 15;
 
     /// <summary>
-    /// Infor for rendering
+    /// Info for rendering
     /// </summary>
     private struct RenderInfo
     {

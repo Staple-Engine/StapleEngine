@@ -156,16 +156,23 @@ internal partial class StapleEditor
 
             renderQueue.disabledEntities.Clear();
 
-            foreach(var pair in renderQueue.renderQueue)
+            RenderSystem.Instance.ClearCullingStates();
+
+            foreach (var pair in renderQueue.renderQueue)
             {
+                if(pair.Value.Count == 0)
+                {
+                    continue;
+                }
+
                 foreach(var item in pair.Value)
                 {
                     if(item.Item3 is Renderable renderable &&
                         renderable.enabled)
                     {
                         renderable.isVisible = renderable.enabled &&
-                            renderable.forceRenderingOff == false;
-                        renderable.cullingState = CullingState.None;
+                            renderable.forceRenderingOff == false &&
+                            renderable.cullingState != CullingState.Invisible;
 
                         if (renderable.isVisible)
                         {
