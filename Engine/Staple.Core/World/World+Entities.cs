@@ -130,6 +130,8 @@ public partial class World
     {
         lock (lockObject)
         {
+            entityCount++;
+
             for (var i = 0; i < cachedEntityList.Length; i++)
             {
                 if (cachedEntityList[i].alive == false)

@@ -161,13 +161,15 @@ public partial class World
 
     public static World Current { get; internal set; } = new();
 
+    private int entityCount;
+
     public int EntityCount
     {
         get
         {
-            lock(globalLockObject)
+            lock (lockObject)
             {
-                return entities.Count;
+                return entityCount;
             }
         }
     }
@@ -334,6 +336,8 @@ public partial class World
                     info.alive = false;
                     info.prefabGUID = null;
                     info.prefabLocalID = 0;
+
+                    entityCount--;
                 }
             }
 

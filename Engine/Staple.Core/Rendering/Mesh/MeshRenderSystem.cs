@@ -350,8 +350,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                     instanceBuffer.Bind(0, instanceBuffer.count);
 
                     RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All,
-                        Mesh.TriangleCount(contents.instanceInfos.Contents[0].mesh.MeshTopology,
-                        contents.instanceInfos.Contents[0].mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex)),
+                        contents.instanceInfos.Contents[0].mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
                         instanceBuffer.count);
                 }
                 else
@@ -388,8 +387,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                     var flags = bgfx.DiscardFlags.State;
 
                     RenderSystem.Submit(viewID, program, flags,
-                        Mesh.TriangleCount(contents.instanceInfos.Contents[0].mesh.MeshTopology,
-                        contents.instanceInfos.Contents[0].mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex)),
+                        contents.instanceInfos.Contents[0].mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
                         1);
                 }
             }
