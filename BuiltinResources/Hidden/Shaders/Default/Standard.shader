@@ -7,7 +7,7 @@ Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING, NORMALMAP, CUTOU
 Begin Parameters
 
 varying vec2 v_texcoord0 : TEXCOORD0 = vec2(0.0, 0.0)
-varying vec3 v_fragPos : TEXCOORD1
+varying vec3 v_worldPos : TEXCOORD1
 varying vec3 v_normal : NORMAL
 varying vec3 v_lightNormal : TEXCOORD3
 varying vec4 v_color : COLOR
@@ -36,7 +36,7 @@ End Instancing
 Begin Vertex
 
 $input a_position, a_texcoord0, a_normal, a_color0, a_tangent, a_bitangent
-$output v_texcoord0, v_fragPos, v_normal, v_color, v_instanceID, v_tangent, v_bitangent, v_lightNormal
+$output v_texcoord0, v_worldPos, v_normal, v_color, v_instanceID, v_tangent, v_bitangent, v_lightNormal
 
 #include "StapleLighting.sh"
 
@@ -55,8 +55,9 @@ void main()
 
 	gl_Position = v_pos;
 
+	v_worldPos = mul(model, vec4(a_position, 1.0)).xyz;
+
 	v_texcoord0 = a_texcoord0;
-	v_fragPos = mul(viewWorld, vec4(a_position, 1.0)).xyz;
 	v_normal = a_normal;
 	
 	v_lightNormal = StapleLightNormal(a_normal, model);
@@ -67,7 +68,7 @@ void main()
 	v_instanceID = StapleInstanceID;
 	
 #if LIT && PER_VERTEX_LIGHTING
-	v_color = vec4(diffuseColor.rgb * StapleProcessLights(int(v_instanceID), u_viewPos, v_fragPos, v_normal), diffuseColor.a);
+	v_color = vec4(diffuseColor.rgb * StapleProcessLights(int(v_instanceID), u_viewPos, v_worldPos, v_normal), diffuseColor.a);
 	
 	#if VERTEX_COLORS
 		v_color = a_color0 * v_color;
@@ -80,7 +81,7 @@ End Vertex
 
 Begin Fragment
 
-$input v_texcoord0, v_fragPos, v_normal, v_color, v_instanceID, v_tangent, v_bitangent, v_lightNormal
+$input v_texcoord0, v_worldPos, v_normal, v_color, v_instanceID, v_tangent, v_bitangent, v_lightNormal
 
 #include "StapleLighting.sh"
 
@@ -110,9 +111,9 @@ void main()
 
 	vec3 normalMapNormal = normalize(texture2D(normalTexture, v_texcoord0).xyz * 2.0 - 1.0);
 
-	vec3 light = StapleProcessLightsTangent(int(v_instanceID), u_viewPos, v_fragPos, normalMapNormal, tbn);
+	vec3 light = StapleProcessLightsTangent(int(v_instanceID), u_viewPos, v_worldPos, normalMapNormal, tbn);
 #else
-	vec3 light = StapleProcessLights(int(v_instanceID), u_viewPos, v_fragPos, v_lightNormal);
+	vec3 light = StapleProcessLights(int(v_instanceID), u_viewPos, v_worldPos, v_lightNormal);
 #endif
 
 	gl_FragColor = vec4(light, 1) * diffuse;

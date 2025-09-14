@@ -27,7 +27,8 @@ uniform vec3 u_viewPos;
 
 vec3 StapleLightNormal(vec3 normal, mat4 modelView)
 {
-	mat4 inverseMatrix = inverse(transpose(modelView));
+	mat4 inverseMatrix = transpose(inverse(modelView));
+
 	mat3 normalMatrix = mat3(inverseMatrix[0].xyz,
 		inverseMatrix[1].xyz,
 		inverseMatrix[2].xyz);
@@ -44,44 +45,45 @@ float StapleLightScaling(float dotProduct)
 #endif
 }
 
-float StapleLightDiffuseFactor(vec3 normal, vec3 lightDir)
+float StapleLightDiffuseFactor(vec3 normal, vec3 lightDirection)
 {
-	return max(StapleLightScaling(dot(lightDir, normal)), 0.0);
+	return max(StapleLightScaling(dot(lightDirection, normal)), 0.0);
 }
 
-float StapleLightSpecularFactor(vec3 viewPos, vec3 fragPos, vec3 lightDir, vec3 normal, float shininess)
+float StapleLightSpecularFactor(vec3 viewPosition, vec3 worldPosition, vec3 lightDirection, vec3 normal, float shininess)
 {
-	vec3 viewDir = normalize(viewPos - fragPos);
-	vec3 reflectDir = reflect(-lightDir, normal);
+	vec3 viewDirection = normalize(viewPosition - worldPosition);
+	vec3 reflectDirection = reflect(-lightDirection, normal);
 	
-	return pow(max(StapleLightScaling(dot(viewDir, reflectDir)), 0.0), shininess);
+	return pow(max(StapleLightScaling(dot(viewDirection, reflectDirection)), 0.0), shininess);
 }
 
-vec3 StapleLightDirection(int index, vec3 fragPos)
+vec3 StapleLightDirection(int index, vec3 worldPosition)
 {
 	vec4 typePosition = u_lightTypePosition[index];
 	
 	int lightType = int(typePosition.x);
+	vec3 position = typePosition.yzw;
 
 	if(lightType == 0) //Spot
 	{
 		//TODO
 	
-		return normalize(typePosition.yzw - fragPos);
+		return normalize(position - worldPosition);
 	}
 	else if(lightType == 1) //Directional
 	{
-		return normalize(typePosition.yzw);
+		return normalize(position);
 	}
 	else if(lightType == 2) //Point
 	{
-		return normalize(typePosition.yzw - fragPos);
+		return normalize(position - worldPosition);
 	}
 	
-	return normalize(typePosition.yzw - fragPos);
+	return normalize(position - worldPosition);
 }
 
-vec3 StapleProcessLights(int instanceID, vec3 viewPos, vec3 fragPos, vec3 normal)
+vec3 StapleProcessLights(int instanceID, vec3 viewPosition, vec3 worldPosition, vec3 normal)
 {
 	vec3 ambient = StapleLightAmbient.rgb;
 	
@@ -95,15 +97,15 @@ vec3 StapleProcessLights(int instanceID, vec3 viewPos, vec3 fragPos, vec3 normal
 	
 	for(int i = 0; i < StapleLightCount; i++)
 	{
-		vec3 lightDir = StapleLightDirection(i, fragPos);
+		vec3 lightDirection = StapleLightDirection(i, worldPosition);
 		
-		float diffuseFactor = StapleLightDiffuseFactor(normal, lightDir);
+		float diffuseFactor = StapleLightDiffuseFactor(normal, lightDirection);
 		
 		diffuse += diffuseFactor * StapleLightDiffuse[i].rgb;
 		
 		float shininess = StapleLightSpecular[i].a;
 		
-		float specularFactor = StapleLightSpecularFactor(viewPos, fragPos, lightDir, normal, shininess);
+		float specularFactor = StapleLightSpecularFactor(viewPosition, worldPosition, lightDirection, normal, shininess);
 		
 		specular += specularFactor * StapleLightDiffuse[i].rgb;
 	}
@@ -111,7 +113,7 @@ vec3 StapleProcessLights(int instanceID, vec3 viewPos, vec3 fragPos, vec3 normal
 	return ambient + diffuse; //+ specular;
 }
 
-vec3 StapleProcessLightsTangent(int instanceID, vec3 viewPos, vec3 fragPos, vec3 normal, mat3 tangentMatrix)
+vec3 StapleProcessLightsTangent(int instanceID, vec3 viewPosition, vec3 worldPosition, vec3 normal, mat3 tangentMatrix)
 {
 	vec3 ambient = StapleLightAmbient.rgb;
 	
@@ -125,17 +127,17 @@ vec3 StapleProcessLightsTangent(int instanceID, vec3 viewPos, vec3 fragPos, vec3
 	
 	for(int i = 0; i < StapleLightCount; i++)
 	{
-		vec3 lightDir = StapleLightDirection(i, fragPos);
+		vec3 lightDirection = StapleLightDirection(i, worldPosition);
 		
-		lightDir = normalize(mul(lightDir, tangentMatrix));
+		lightDirection = normalize(mul(lightDirection, tangentMatrix));
 		
-		float diffuseFactor = StapleLightDiffuseFactor(normal, lightDir);
+		float diffuseFactor = StapleLightDiffuseFactor(normal, lightDirection);
 		
 		diffuse += diffuseFactor * StapleLightDiffuse[i].rgb;
 		
 		float shininess = StapleLightSpecular[i].a;
 		
-		float specularFactor = StapleLightSpecularFactor(viewPos, fragPos, lightDir, normal, shininess);
+		float specularFactor = StapleLightSpecularFactor(viewPosition, worldPosition, lightDirection, normal, shininess);
 		
 		specular += specularFactor * StapleLightDiffuse[i].rgb;
 	}
