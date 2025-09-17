@@ -35,7 +35,7 @@ Please note that binaries aren't as updated as the main branch, so you'll likely
 
 # Building
 
-You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
+You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
 
 <details>
 
