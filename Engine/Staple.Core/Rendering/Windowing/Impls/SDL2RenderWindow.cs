@@ -162,7 +162,7 @@ internal class SDL2RenderWindow : IRenderWindow
 
             case WindowMode.BorderlessFullscreen:
 
-                windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_BORDERLESS;
+                windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN_DESKTOP;
 
                 windowPosition = new Vector2Int(SDL.SDL_WINDOWPOS_UNDEFINED_DISPLAY(monitor), SDL.SDL_WINDOWPOS_UNDEFINED_DISPLAY(monitor));
 
