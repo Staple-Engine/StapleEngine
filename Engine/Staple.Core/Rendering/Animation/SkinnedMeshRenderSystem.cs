@@ -77,14 +77,14 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             if (transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
             {
-                var localSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.LocalRotation));
+                var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(transform.LocalRotation));
 
-                var globalSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.Rotation));
+                var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(transform.Rotation));
 
-                renderer.localBounds = new(transform.LocalPosition + Vector3.Transform(renderer.mesh.bounds.center, transform.LocalRotation) * transform.LocalScale,
+                renderer.localBounds = new(transform.LocalPosition + renderer.mesh.bounds.center.Transformed(transform.LocalRotation) * transform.LocalScale,
                     localSize * transform.LocalScale);
 
-                renderer.bounds = new(transform.Position + Vector3.Transform(renderer.mesh.bounds.center, transform.Rotation) * transform.Scale,
+                renderer.bounds = new(transform.Position + renderer.mesh.bounds.center.Transformed(transform.Rotation) * transform.Scale,
                     globalSize * transform.Scale);
             }
         }
@@ -138,16 +138,16 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 if (rootTransform != null)
                 {
-                    if(rootTransform.entity.GetComponent<SkinnedMeshInstance>() == null)
+                    if(rootTransform.Entity.GetComponent<SkinnedMeshInstance>() == null)
                     {
-                        var instance = rootTransform.entity.AddComponent<SkinnedMeshInstance>();
+                        var instance = rootTransform.Entity.AddComponent<SkinnedMeshInstance>();
 
                         instance.mesh = renderer.mesh;
                     }
 
-                    if(rootTransform.entity.GetComponent<CullingVolume>() == null)
+                    if(rootTransform.Entity.GetComponent<CullingVolume>() == null)
                     {
-                        rootTransform.entity.AddComponent<CullingVolume>();
+                        rootTransform.Entity.AddComponent<CullingVolume>();
                     }
                 }
 
@@ -380,7 +380,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             return null;
         }
 
-        if(current.entity.Name == rootNode.name)
+        if(current.Entity.Name == rootNode.name)
         {
             return current;
         }
@@ -388,14 +388,14 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         //If we have a staple root, we need to go one more ahead
         if(rootNode.name == "StapleRoot")
         {
-            if(current.parent?.parent?.parent?.entity.Name == rootNode.name)
+            if(current.Parent?.Parent?.Parent?.Entity.Name == rootNode.name)
             {
-                return current.parent.parent.parent;
+                return current.Parent.Parent.Parent;
             }
         }
 
         //All Skinned Meshes are in a child of a child of the root
-        var expectedRoot = current.parent?.parent;
+        var expectedRoot = current.Parent?.Parent;
 
         if(expectedRoot == null)
         {
@@ -404,9 +404,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
         foreach(var child in expectedRoot.Children)
         {
-            if(child.entity.Name == rootNode.name)
+            if(child.Entity.Name == rootNode.name)
             {
-                return child.parent;
+                return child.Parent;
             }
         }
 
@@ -429,9 +429,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
         var reverseParentTransform = Matrix4x4.Identity;
 
-        if (transforms[0]?.parent != null)
+        if (transforms[0]?.Parent != null)
         {
-            var parent = transforms[0].parent;
+            var parent = transforms[0].Parent;
 
             if (parent != null)
             {

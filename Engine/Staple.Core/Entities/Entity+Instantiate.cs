@@ -48,7 +48,7 @@ public partial struct Entity
         {
             foreach (var child in sourceTransform.Children)
             {
-                InstantiateInternal(child.entity, targetTransform, false, false);
+                InstantiateInternal(child.Entity, targetTransform, false, false);
             }
         }
 
@@ -94,7 +94,7 @@ public partial struct Entity
         {
             foreach (var child in sourceTransform.Children)
             {
-                InstantiateInternal(child.entity, targetTransform, false, false);
+                InstantiateInternal(child.Entity, targetTransform, false, false);
             }
         }
 
@@ -141,7 +141,7 @@ public partial struct Entity
             return default;
         }
 
-        return SceneSerialization.InstantiatePrefab(parent?.entity ?? default, prefab.data);
+        return SceneSerialization.InstantiatePrefab(parent?.Entity ?? default, prefab.data);
     }
 
     /// <summary>

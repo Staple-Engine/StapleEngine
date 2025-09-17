@@ -37,7 +37,7 @@ internal class FrustumCuller
 
         var magnitude = vector3.Length();
 
-        planes[0].Normal = Vector3.Normalize(vector3);
+        planes[0].Normal = vector3.Normalized;
         planes[0].D = vector.W / magnitude;
 
         vector = new Vector4(clip.M14 + clip.M11,
@@ -49,7 +49,7 @@ internal class FrustumCuller
 
         magnitude = vector3.Length();
 
-        planes[1].Normal = Vector3.Normalize(vector3);
+        planes[1].Normal = vector3.Normalized;
         planes[1].D = vector.W / magnitude;
 
         vector = new Vector4(clip.M14 + clip.M12,
@@ -61,7 +61,7 @@ internal class FrustumCuller
 
         magnitude = vector3.Length();
 
-        planes[2].Normal = Vector3.Normalize(vector3);
+        planes[2].Normal = vector3.Normalized;
         planes[2].D = vector.W / magnitude;
 
         vector = new Vector4(clip.M14 - clip.M12,
@@ -73,7 +73,7 @@ internal class FrustumCuller
 
         magnitude = vector3.Length();
 
-        planes[3].Normal = Vector3.Normalize(vector3);
+        planes[3].Normal = vector3.Normalized;
         planes[3].D = vector.W / magnitude;
 
         vector = new Vector4(clip.M14 - clip.M13,
@@ -85,7 +85,7 @@ internal class FrustumCuller
 
         magnitude = vector3.Length();
 
-        planes[4].Normal = Vector3.Normalize(vector3);
+        planes[4].Normal = vector3.Normalized;
         planes[4].D = vector.W / magnitude;
 
         vector = new Vector4(clip.M14 + clip.M13,
@@ -97,7 +97,7 @@ internal class FrustumCuller
 
         magnitude = vector3.Length();
 
-        planes[5].Normal = Vector3.Normalize(vector3);
+        planes[5].Normal = vector3.Normalized;
         planes[5].D = vector.W / magnitude;
     }
 

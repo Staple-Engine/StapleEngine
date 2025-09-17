@@ -86,7 +86,7 @@ namespace StapleCodeGeneration
             {
                 void HandleNamedSymbol(INamedTypeSymbol t, string baseTypeName)
                 {
-                    if (t.IsAbstract || t.IsGenericType || t.Name.EndsWith("Attribute") ||
+                    if (t.IsAbstract || t.IsGenericType || t.IsStatic || t.Name.EndsWith("Attribute") ||
                         t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
@@ -167,7 +167,7 @@ namespace StapleCodeGeneration
 
                 void HandleSymbol(ISymbol t)
                 {
-                    if (t.IsAbstract || t.Name.EndsWith("Attribute") ||
+                    if (t.IsAbstract || t.Name.EndsWith("Attribute") || t.IsStatic ||
                         t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&

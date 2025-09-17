@@ -120,7 +120,7 @@ public partial struct Entity
         {
             foreach (var child in transform.Children)
             {
-                child.entity.SetLayer(layer, true);
+                child.Entity.SetLayer(layer, true);
             }
         }
     }

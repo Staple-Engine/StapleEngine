@@ -214,12 +214,12 @@ internal class ThumbnailCache
 
                         var offset = mesh.Bounds.center + mesh.Bounds.size * 0.75f;
                         var position = new Vector3(-offset.X, offset.Y, offset.Z * 1.5f);
-                        var forward = Vector3.Normalize(-position);
+                        var forward = -position.Normalized;
 
                         var cameraTransform = new Transform
                         {
                             LocalPosition = position,
-                            LocalRotation = Math.LookAt(forward, Vector3.UnitY),
+                            LocalRotation = Math.LookAt(forward, Vector3.Up),
                         };
 
                         var overrideLights = LightSystem.OverrideLights;
@@ -467,12 +467,12 @@ internal class ThumbnailCache
 
                         var position = new Vector3(0.5f, 0.5f, -0.5f);
 
-                        var forward = Vector3.Normalize(-position);
+                        var forward = position.Normalized;
 
                         var cameraTransform = new Transform
                         {
                             LocalPosition = position,
-                            LocalRotation = Math.LookAt(forward, Vector3.UnitY),
+                            LocalRotation = Math.LookAt(forward, Vector3.Up),
                         };
 
                         meshRenderer.overrideLighting = true;

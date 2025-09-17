@@ -121,7 +121,7 @@ public partial struct Entity
             {
                 foreach (var child in transform.Children)
                 {
-                    Recursive(child.entity);
+                    Recursive(child.Entity);
                 }
             }
         }
@@ -135,7 +135,7 @@ public partial struct Entity
 
         foreach(var child in transform.Children)
         {
-            Recursive(child.entity);
+            Recursive(child.Entity);
         }
 
         return result.ToArray();
@@ -174,7 +174,7 @@ public partial struct Entity
             {
                 foreach (var child in transform.Children)
                 {
-                    Recursive(child.entity);
+                    Recursive(child.Entity);
                 }
             }
         }
@@ -188,7 +188,7 @@ public partial struct Entity
 
         foreach (var child in transform.Children)
         {
-            Recursive(child.entity);
+            Recursive(child.Entity);
         }
 
         return result.ToArray();
@@ -227,7 +227,7 @@ public partial struct Entity
             {
                 foreach (var child in transform.Children)
                 {
-                    Recursive(child.entity);
+                    Recursive(child.Entity);
                 }
             }
         }
@@ -241,7 +241,7 @@ public partial struct Entity
 
         foreach (var child in transform.Children)
         {
-            Recursive(child.entity);
+            Recursive(child.Entity);
         }
 
         return result.ToArray();
@@ -261,17 +261,17 @@ public partial struct Entity
 
         var transform = GetComponent<Transform>();
 
-        if(transform == null || transform.parent == null)
+        if(transform == null || transform.Parent == null)
         {
             return default;
         }
 
-        if(transform.parent.entity.TryGetComponent(t, out var value))
+        if(transform.Parent.Entity.TryGetComponent(t, out var value))
         {
             return value;
         }
 
-        return transform.parent.entity.GetComponentInParent(t);
+        return transform.Parent.Entity.GetComponentInParent(t);
     }
 
     /// <summary>
@@ -288,17 +288,17 @@ public partial struct Entity
 
         var transform = GetComponent<Transform>();
 
-        if (transform == null || transform.parent == null)
+        if (transform == null || transform.Parent == null)
         {
             return default;
         }
 
-        if (transform.parent.entity.TryGetComponent(out T value))
+        if (transform.Parent.Entity.TryGetComponent(out T value))
         {
             return value;
         }
 
-        return transform.parent.entity.GetComponentInParent<T>();
+        return transform.Parent.Entity.GetComponentInParent<T>();
     }
 
     /// <summary>

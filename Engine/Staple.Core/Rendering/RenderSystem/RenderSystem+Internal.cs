@@ -583,7 +583,7 @@ public sealed partial class RenderSystem
 
             foreach(var child in t.Children)
             {
-                Handle(child.entity, child);
+                Handle(child.Entity, child);
             }
         }
 
@@ -694,7 +694,7 @@ public sealed partial class RenderSystem
 
         foreach (var pair in renderQueue)
         {
-            RenderStandard(pair.Item1.Item2.entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, true, CurrentViewID++);
+            RenderStandard(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, true, CurrentViewID++);
         }
 
         foreach(var (_, transform) in entityQuery.Contents)
@@ -714,7 +714,7 @@ public sealed partial class RenderSystem
 
         foreach (var pair in renderQueue)
         {
-            RenderAccumulator(pair.Item1.Item2.entity, pair.Item1.Item1, pair.Item1.Item2, CurrentViewID++);
+            RenderAccumulator(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2, CurrentViewID++);
         }
 
         foreach (var (_, transform) in entityQuery.Contents)
@@ -740,7 +740,7 @@ public sealed partial class RenderSystem
 
                 unsafe
                 {
-                    var projection = Camera.Projection(cameraTransform.entity, camera);
+                    var projection = Camera.Projection(cameraTransform.Entity, camera);
                     var view = cameraTransform.Matrix;
 
                     Matrix4x4.Invert(view, out view);

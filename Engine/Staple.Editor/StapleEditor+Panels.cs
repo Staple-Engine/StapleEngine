@@ -18,11 +18,11 @@ internal partial class StapleEditor
     {
         var result = false;
 
-        EditorGUI.Menu("Create", $"{parent?.entity}Create", () =>
+        EditorGUI.Menu("Create", $"{parent?.Entity}Create", () =>
         {
             foreach (var t in registeredEntityTemplates)
             {
-                EditorGUI.MenuItem(t.Name, $"{parent?.entity}Create{t.Name}", () =>
+                EditorGUI.MenuItem(t.Name, $"{parent?.Entity}Create{t.Name}", () =>
                 {
                     var e = t.Create();
 
@@ -270,7 +270,7 @@ internal partial class StapleEditor
                                         return;
                                     }
 
-                                    if (entity.TryGetComponent<Transform>(out var t) && t.parent == null)
+                                    if (entity.TryGetComponent<Transform>(out var t) && t.Parent == null)
                                     {
                                         targetEntity = entity;
                                     }
@@ -519,16 +519,16 @@ internal partial class StapleEditor
             {
                 if(skip ||
                     transform == null ||
-                    transform.entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName) ||
-                    transform.entity.HierarchyVisibility == EntityHierarchyVisibility.Hide ||
-                    transform.entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
+                    transform.Entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName) ||
+                    transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.Hide ||
+                    transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
                 {
                     return;
                 }
 
-                var entityName = transform.entity.Name;
+                var entityName = transform.Entity.Name;
 
-                var hasPrefab = transform.entity.TryGetPrefab(out _, out _);
+                var hasPrefab = transform.Entity.TryGetPrefab(out _, out _);
 
                 if(hasPrefab)
                 {
@@ -539,15 +539,15 @@ internal partial class StapleEditor
                 {
                     var beforeString = before ? "BEFORE" : "AFTER";
 
-                    ImGui.Selectable($"##{transform.entity.Name}-{transform.entity.Identifier.ID}-{beforeString}",
+                    ImGui.Selectable($"##{transform.Entity.Name}-{transform.Entity.Identifier.ID}-{beforeString}",
                         ImGui.IsDragDropActive() ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.Disabled,
                         new Vector2(ImGui.GetContentRegionAvail().X, 2));
 
                     if (ImGui.BeginDragDropTarget())
                     {
-                        var targetTransform = transform.parent;
-                        var siblingIndex = transform.SiblingIndex + (draggedEntity.GetComponent<Transform>() == transform.parent ? 0 : before ? -1 : 1);
-                        var childCount = (transform.parent?.ChildCount ?? 0);
+                        var targetTransform = transform.Parent;
+                        var siblingIndex = transform.SiblingIndex + (draggedEntity.GetComponent<Transform>() == transform.Parent ? 0 : before ? -1 : 1);
+                        var childCount = (transform.Parent?.ChildCount ?? 0);
 
                         if (siblingIndex < 0)
                         {
@@ -579,17 +579,17 @@ internal partial class StapleEditor
                     }
                 }
 
-                if(transform.SiblingIndex == 0 && transform.parent != null)
+                if(transform.SiblingIndex == 0 && transform.Parent != null)
                 {
                     HandleReorder(true);
                 }
 
                 EditorGUI.TreeNodeIcon(entityIcon, hasPrefab ? PrefabColor : Color.White, entityName,
-                    $"{transform.entity}", transform.ChildCount == 0, () =>
+                    $"{transform.Entity}", transform.ChildCount == 0, () =>
                 {
                     foreach (var child in transform.Children)
                     {
-                        var childEntity = World.Current.FindEntity(child.entity.Identifier.ID);
+                        var childEntity = World.Current.FindEntity(child.Entity.Identifier.ID);
 
                         if (childEntity.IsValid)
                         {
@@ -611,15 +611,15 @@ internal partial class StapleEditor
                 {
                     if(ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                     {
-                        ZoomInEntity(transform.entity);
+                        ZoomInEntity(transform.Entity);
                     }
                     else if (Input.GetMouseButtonUp(MouseButton.Right))
                     {
-                        ImGui.OpenPopup($"{transform.entity.Identifier}_Context");
+                        ImGui.OpenPopup($"{transform.Entity.Identifier}_Context");
                     }
                     else if (Input.GetMouseButtonUp(MouseButton.Left))
                     {
-                        SetSelectedEntity(transform.entity);
+                        SetSelectedEntity(transform.Entity);
                     }
                 },
                 () =>
@@ -629,7 +629,7 @@ internal partial class StapleEditor
                         ImGui.PopStyleColor();
                     }
 
-                    if (ImGui.BeginPopup($"{transform.entity.Identifier}_Context"))
+                    if (ImGui.BeginPopup($"{transform.Entity.Identifier}_Context"))
                     {
                         if (CreateEntityMenu(transform))
                         {
@@ -640,16 +640,16 @@ internal partial class StapleEditor
                             return;
                         }
 
-                        if ((sceneMode != SceneMode.Prefab || transform.parent != null) &&
+                        if ((sceneMode != SceneMode.Prefab || transform.Parent != null) &&
                             ImGui.MenuItem("Duplicate"))
                         {
-                            Entity.Instantiate(transform.entity, transform.parent);
+                            Entity.Instantiate(transform.Entity, transform.Parent);
                         }
 
-                        if ((sceneMode != SceneMode.Prefab || transform.parent != null) &&
+                        if ((sceneMode != SceneMode.Prefab || transform.Parent != null) &&
                             ImGui.MenuItem("Delete"))
                         {
-                            transform.entity.Destroy();
+                            transform.Entity.Destroy();
 
                             ImGui.EndMenu();
 
@@ -665,7 +665,7 @@ internal partial class StapleEditor
 
                     if (ImGui.BeginDragDropTarget())
                     {
-                        dropTargetEntity = transform.entity;
+                        dropTargetEntity = transform.Entity;
 
                         var payload = ImGui.AcceptDragDropPayload("ENTITY");
 
@@ -703,7 +703,7 @@ internal partial class StapleEditor
                     }
                     else if (ImGui.BeginDragDropSource())
                     {
-                        draggedEntity = transform.entity;
+                        draggedEntity = transform.Entity;
 
                         unsafe
                         {
@@ -726,7 +726,7 @@ internal partial class StapleEditor
 
             foreach(var (entity, transform) in renderQueue.transforms.Contents)
             {
-                if (transform.parent == null)
+                if (transform.Parent == null)
                 {
                     Recursive(transform);
                 }

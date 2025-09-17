@@ -1357,7 +1357,7 @@ public sealed partial class Mesh : IGuidAsset
             var p1 = positions[indices[i + 1]];
             var p2 = positions[indices[i + 2]];
 
-            var normal = Vector3.Cross(p1 - p0, p2 - p0);
+            var normal = (p1 - p0).Cross(p2 - p0);
 
             normals[indices[i]] += normal;
             normals[indices[i + 1]] += normal;
@@ -1406,7 +1406,7 @@ public sealed partial class Mesh : IGuidAsset
 
         for (var i = 0; i < normals.Length; i++)
         {
-            normals[i] = Vector3.Normalize(normals[i]);
+            normals[i] = normals[i].Normalized;
         }
 
         return normals;
@@ -1444,7 +1444,7 @@ public sealed partial class Mesh : IGuidAsset
             var p1 = positions[indices[i + 1]];
             var p2 = positions[indices[i + 2]];
 
-            var normal = Vector3.Cross(p1 - p0, p2 - p0);
+            var normal = (p1 - p0).Cross(p2 - p0);
 
             normals[indices[i]] += normal;
             normals[indices[i + 1]] += normal;
@@ -1493,7 +1493,7 @@ public sealed partial class Mesh : IGuidAsset
 
         for (var i = 0; i < positions.Length; i++)
         {
-            normals[i] = Vector3.Normalize(normals[i]);
+            normals[i] = normals[i].Normalized;
         }
 
         return normals;

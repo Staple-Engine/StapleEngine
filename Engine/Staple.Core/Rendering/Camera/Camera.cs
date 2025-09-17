@@ -105,8 +105,8 @@ public sealed class Camera : IComponent
                     var halfDepth = (farPlane - nearPlane) * 0.5f;
 
                     var z = cameraTransform.Forward;
-                    var x = Vector3.Normalize(Vector3.Cross(Vector3.UnitY, z));
-                    var y = Vector3.Normalize(Vector3.Cross(z, x));
+                    var x = Vector3.Up.Cross(z).Normalized;
+                    var y = z.Cross(x).Normalized;
 
                     var center = cameraTransform.Position + z * (nearPlane + halfDepth);
 
@@ -133,8 +133,8 @@ public sealed class Camera : IComponent
                     var farWidth = farHeight * Width / Height;
 
                     var z = cameraTransform.Forward;
-                    var x = Vector3.Normalize(Vector3.Cross(Vector3.UnitY, z));
-                    var y = Vector3.Normalize(Vector3.Cross(z, x));
+                    var x = Vector3.Up.Cross(z).Normalized;
+                    var y = z.Cross(x).Normalized;
 
                     var nearCenter = cameraTransform.Position + z * nearPlane;
                     var farCenter = cameraTransform.Position + z * farPlane;
@@ -246,12 +246,12 @@ public sealed class Camera : IComponent
             return default;
         }
 
-        var viewSpace = Vector4.Transform(clipSpace, invP);
+        var viewSpace = clipSpace.Transformed(invP);
 
         viewSpace.W = 1;
 
         //We don't need to invert the world space matrix since it is already being inverted in the render system
-        return Vector4.Transform(viewSpace, transform.Matrix).ToVector3();
+        return viewSpace.Transformed(transform.Matrix).ToVector3();
     }
 
     /// <summary>
@@ -275,13 +275,13 @@ public sealed class Camera : IComponent
             return new Ray();
         }
 
-        var viewSpace = Vector4.Transform(clipSpace, invP);
+        var viewSpace = clipSpace.Transformed(invP);
 
         viewSpace.W = 1;
 
         //We don't need to invert the world space matrix since it is already being inverted in the render system
-        var worldSpace = Vector4.Transform(viewSpace, transform.Matrix);
+        var worldSpace = viewSpace.Transformed(transform.Matrix);
 
-        return new Ray(transform.Position, Vector3.Normalize(worldSpace.ToVector3() - transform.Position));
+        return new Ray(transform.Position, (worldSpace.ToVector3() - transform.Position).Normalized);
     }
 }

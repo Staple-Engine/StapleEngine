@@ -58,7 +58,7 @@ internal partial class StapleEditor
 
                     if (ImGuizmo.Manipulate(ref view, ref projection, transformOperation, transformMode, ref matrix, ref delta, snap, localBound, snap))
                     {
-                        Matrix4x4.Invert(selectedTransform.parent?.Matrix ?? Matrix4x4.Identity, out var invParent);
+                        Matrix4x4.Invert(selectedTransform.Parent?.Matrix ?? Matrix4x4.Identity, out var invParent);
 
                         var local = matrix * invParent;
 
@@ -263,7 +263,7 @@ internal partial class StapleEditor
                     Math.Clamp01(Vector3.Distance(transform.Position, cameraTransform.Position) - MinComponentIconDistance));
                 componentIconMaterial.MainTexture = icon;
 
-                var rotation = Math.LookAt(Vector3.Normalize(cameraTransform.Position - transform.Position), Vector3.UnitY) *
+                var rotation = Math.LookAt((cameraTransform.Position - transform.Position).Normalized, Vector3.Up) *
                     Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 180 * Math.Deg2Rad);
 
                 MeshRenderSystem.RenderMesh(Mesh.Quad, transform.Position, rotation, Vector3.One, componentIconMaterial, MaterialLighting.Unlit, WireframeView);

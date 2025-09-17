@@ -49,7 +49,7 @@ internal class EntityTests
 
         Assert.IsNotNull(transform);
 
-        Assert.IsTrue(transform.entity.IsValid);
+        Assert.IsTrue(transform.Entity.IsValid);
 
         entity.RemoveComponent<Transform>();
 
@@ -59,11 +59,11 @@ internal class EntityTests
 
         transform = new();
 
-        Assert.IsFalse(transform.entity.IsValid);
+        Assert.IsFalse(transform.Entity.IsValid);
 
         entity.SetComponent(transform);
 
-        Assert.IsTrue(transform.entity.IsValid);
+        Assert.IsTrue(transform.Entity.IsValid);
 
         World.Current = null;
     }

@@ -53,13 +53,13 @@ public class OpenALAudioListener : IAudioListener
         {
             rotation = value;
 
-            var rotationVector = Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, -1), rotation));
+            var rotationVector = Vector3.Forward.Transformed(rotation).Normalized;
 
             var values = new float[6]
             {
-                rotation.X,
-                rotation.Y,
-                rotation.Z,
+                rotationVector.X,
+                rotationVector.Y,
+                rotationVector.Z,
                 0,
                 1,
                 0,

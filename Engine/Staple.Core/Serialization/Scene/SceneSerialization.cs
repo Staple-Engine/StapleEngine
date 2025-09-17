@@ -255,7 +255,7 @@ internal static class SceneSerialization
 
         var entityTransform = entity.GetComponent<Transform>();
 
-        var parent = entityTransform.parent?.entity ?? default;
+        var parent = entityTransform.Parent?.Entity ?? default;
 
         if (entityTransform != null)
         {
@@ -333,12 +333,12 @@ internal static class SceneSerialization
 
         void GatherIDs(Transform transform)
         {
-            if(transform.entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
+            if(transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
             {
                 return;
             }
 
-            localIDs.Add(transform.entity.Identifier.ID, localIDs.Count);
+            localIDs.Add(transform.Entity.Identifier.ID, localIDs.Count);
 
             foreach(var child in transform.Children)
             {
@@ -350,18 +350,18 @@ internal static class SceneSerialization
 
         void GatherSceneObjects(Transform transform, bool first)
         {
-            if(transform.entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
+            if(transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
             {
                 return;
             }
 
             if(first == false)
             {
-                var entityObject = SerializeEntity(transform.entity, StapleSerializationMode.Scene);
+                var entityObject = SerializeEntity(transform.Entity, StapleSerializationMode.Scene);
 
                 if(entityObject == null ||
-                    localIDs.TryGetValue(transform.entity.Identifier.ID, out var localID) == false ||
-                    localIDs.TryGetValue(transform.parent.entity.Identifier.ID, out var localParent) == false)
+                    localIDs.TryGetValue(transform.Entity.Identifier.ID, out var localID) == false ||
+                    localIDs.TryGetValue(transform.Parent.Entity.Identifier.ID, out var localParent) == false)
                 {
                     return;
                 }

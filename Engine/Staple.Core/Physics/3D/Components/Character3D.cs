@@ -32,5 +32,5 @@ public class Character3D : IComponent
     /// <summary>
     /// The upwards orientation of this character
     /// </summary>
-    public Vector3 upDirection = Vector3.UnitY;
+    public Vector3 upDirection = Vector3.Up;
 }

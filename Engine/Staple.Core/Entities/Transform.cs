@@ -96,12 +96,12 @@ public class Transform : IComponent
     /// <summary>
     /// The parent of this transform, if any.
     /// </summary>
-    public Transform parent { get; private set; }
+    public Transform Parent { get; private set; }
 
     /// <summary>
     /// The entity this transform belongs to
     /// </summary>
-    public Entity entity { get; internal set; }
+    public Entity Entity { get; internal set; }
 
     /// <summary>
     /// Gets the transform's Global Transformation Matrix
@@ -130,7 +130,7 @@ public class Transform : IComponent
 
         set
         {
-            var parentPosition = parent?.Position ?? Vector3.Zero;
+            var parentPosition = Parent?.Position ?? Vector3.Zero;
 
             var target = value - parentPosition;
 
@@ -169,7 +169,7 @@ public class Transform : IComponent
 
         set
         {
-            var parentScale = parent?.Scale ?? Vector3.One;
+            var parentScale = Parent?.Scale ?? Vector3.One;
 
             var target = value / parentScale;
 
@@ -208,7 +208,7 @@ public class Transform : IComponent
 
         set
         {
-            var parentRotation = parent?.Rotation ?? Quaternion.Identity;
+            var parentRotation = Parent?.Rotation ?? Quaternion.Identity;
 
             var target = Quaternion.Inverse(parentRotation) * value;
 
@@ -236,37 +236,37 @@ public class Transform : IComponent
     /// <summary>
     /// The forward direction
     /// </summary>
-    public Vector3 Forward => Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, 1), Rotation));
+    public Vector3 Forward => Vector3.Forward.Transformed(Rotation).Normalized;
 
     /// <summary>
     /// The backwards direction
     /// </summary>
-    public Vector3 Back => Vector3.Normalize(Vector3.Transform(new Vector3(0, 0, -1), Rotation));
+    public Vector3 Back => Vector3.Back.Transformed(Rotation).Normalized;
 
     /// <summary>
     /// The up direction
     /// </summary>
-    public Vector3 Up => Vector3.Normalize(Vector3.Transform(new Vector3(0, 1, 0), Rotation));
+    public Vector3 Up => Vector3.Up.Transformed(Rotation).Normalized;
 
     /// <summary>
     /// The down direction
     /// </summary>
-    public Vector3 Down => Vector3.Normalize(Vector3.Transform(new Vector3(0, -1, 0), Rotation));
+    public Vector3 Down => Vector3.Down.Transformed(Rotation).Normalized;
 
     /// <summary>
     /// The left direction
     /// </summary>
-    public Vector3 Left => Vector3.Normalize(Vector3.Transform(new Vector3(-1, 0, 0), Rotation));
+    public Vector3 Left => Vector3.Left.Transformed(Rotation).Normalized;
 
     /// <summary>
     /// The right direction
     /// </summary>
-    public Vector3 Right => Vector3.Normalize(Vector3.Transform(new Vector3(1, 0, 0), Rotation));
+    public Vector3 Right => Vector3.Right.Transformed(Rotation).Normalized;
 
     /// <summary>
     /// The root transform of this transform
     /// </summary>
-    public Transform Root => parent != null ? parent.Root : this;
+    public Transform Root => Parent != null ? Parent.Root : this;
 
     /// <summary>
     /// The total children in this transform
@@ -276,14 +276,14 @@ public class Transform : IComponent
     /// <summary>
     /// The index of this transform in its parent
     /// </summary>
-    public int SiblingIndex => parent != null ? parent.ChildIndex(this) : 0;
+    public int SiblingIndex => Parent != null ? Parent.ChildIndex(this) : 0;
 
     /// <summary>
     /// Sets this transform's index in its parent
     /// </summary>
     /// <param name="index">The new index</param>
     /// <returns>Whether this was moved</returns>
-    public bool SetSiblingIndex(int index) => parent?.MoveChild(this, index) ?? false;
+    public bool SetSiblingIndex(int index) => Parent?.MoveChild(this, index) ?? false;
 
     /// <summary>
     /// Gets a child at a specific index
@@ -307,12 +307,12 @@ public class Transform : IComponent
 
         foreach(var child in Children)
         {
-            if(partial && child.entity.Name.StartsWith(name, System.StringComparison.Ordinal))
+            if(partial && child.Entity.Name.StartsWith(name, System.StringComparison.Ordinal))
             {
                 return child;
             }
 
-            if(child.entity.Name == name)
+            if(child.Entity.Name == name)
             {
                 return child;
             }
@@ -339,9 +339,9 @@ public class Transform : IComponent
             return;
         }
 
-        this.parent?.DetachChild(this);
+        this.Parent?.DetachChild(this);
 
-        this.parent = parent;
+        this.Parent = parent;
 
         parent?.AttachChild(this);
 
@@ -362,14 +362,14 @@ public class Transform : IComponent
 
             matrix = Math.TRS(position, scale, rotation);
 
-            if(parent != null)
+            if(Parent != null)
             {
-                ref readonly Matrix4x4 parentMatrix = ref parent.Matrix;
+                ref readonly Matrix4x4 parentMatrix = ref Parent.Matrix;
 
                 finalMatrix = matrix * parentMatrix;
-                finalPosition = Vector3.Transform(position, parentMatrix);
-                finalRotation = parent.Rotation * rotation;
-                finalScale = parent.Scale * scale;
+                finalPosition = position.Transformed(parentMatrix);
+                finalRotation = Parent.Rotation * rotation;
+                finalScale = Parent.Scale * scale;
             }
             else
             {

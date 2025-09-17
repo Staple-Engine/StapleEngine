@@ -651,16 +651,16 @@ internal class ResourceManager
                 {
                     self.SetParent(parent);
 
-                    if(World.Current?.TryGetEntity(self.entity, out var entityInfo) ?? false)
+                    if(World.Current?.TryGetEntity(self.Entity, out var entityInfo) ?? false)
                     {
-                        entityInfo.enabledInHierarchy = parent.entity.EnabledInHierarchy;
+                        entityInfo.enabledInHierarchy = parent.Entity.EnabledInHierarchy;
                     }
                 }
             }
 
             foreach(var pair in localIDs)
             {
-                var entity = pair.Value.entity;
+                var entity = pair.Value.Entity;
                 var sceneObject = sceneObjects[localSceneObjects[pair.Key]];
 
                 foreach(var component in sceneObject.components)
@@ -837,7 +837,7 @@ internal class ResourceManager
 
             foreach (var pair in localIDs)
             {
-                var entity = pair.Value.entity;
+                var entity = pair.Value.Entity;
                 var sceneObject = sceneData.objects[localSceneObjects[pair.Key]];
 
                 foreach (var component in sceneObject.components)
@@ -908,7 +908,7 @@ internal class ResourceManager
 
             foreach(var pair in localIDs)
             {
-                var entity = pair.Value.entity;
+                var entity = pair.Value.Entity;
 
                 entity.IterateComponents((ref IComponent c) =>
                 {
@@ -2029,9 +2029,9 @@ internal class ResourceManager
                         {
                             Matrix4x4.Decompose(node.OriginalGlobalTransform, out var scale, out var rotation, out var position);
 
-                            var size = Vector3.Abs(Vector3.Transform(newMesh.bounds.size * scale, rotation));
+                            var size = Vector3.Abs((newMesh.bounds.size * scale).Transformed(rotation));
 
-                            var center = Vector3.Transform(newMesh.bounds.center * scale, rotation);
+                            var center = (newMesh.bounds.center * scale).Transformed(rotation);
 
                             newMesh.transformedBounds = new(center + position, size);
 

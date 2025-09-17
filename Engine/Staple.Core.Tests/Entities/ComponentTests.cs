@@ -17,7 +17,7 @@ internal class ComponentTests
 
         Assert.IsNotNull(transform);
 
-        Assert.IsTrue(transform.entity.IsValid);
+        Assert.IsTrue(transform.Entity.IsValid);
 
         Assert.IsTrue(entity.TryGetComponent(out transform));
 
@@ -39,7 +39,7 @@ internal class ComponentTests
 
         Assert.IsNotNull(transform);
 
-        Assert.IsTrue(transform.entity.IsValid);
+        Assert.IsTrue(transform.Entity.IsValid);
 
         World.Current = null;
     }
@@ -55,7 +55,7 @@ internal class ComponentTests
 
         Assert.IsNotNull(transform);
 
-        Assert.IsTrue(transform.entity.IsValid);
+        Assert.IsTrue(transform.Entity.IsValid);
 
         entity.RemoveComponent<Transform>();
 
@@ -83,7 +83,7 @@ internal class ComponentTests
 
         Assert.IsNotNull(transform);
 
-        Assert.IsTrue(transform.entity.IsValid);
+        Assert.IsTrue(transform.Entity.IsValid);
 
         entity.RemoveComponent<Transform>();
 

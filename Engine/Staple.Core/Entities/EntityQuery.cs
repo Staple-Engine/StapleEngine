@@ -289,20 +289,20 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
                 {
                     var transform = target.GetComponent<Transform>();
 
-                    if(transform?.parent != null)
+                    if(transform?.Parent != null)
                     {
-                        var current = transform.parent;
+                        var current = transform.Parent;
 
                         while(current != null)
                         {
-                            if(current.entity.TryGetComponent<T>(out var t) && current.entity.TryGetComponent<T2>(out var t2))
+                            if(current.Entity.TryGetComponent<T>(out var t) && current.Entity.TryGetComponent<T2>(out var t2))
                             {
                                 items.Add((t, t2));
 
                                 break;
                             }
 
-                            current = current.parent;
+                            current = current.Parent;
                         }
                     }
                 }
@@ -319,20 +319,20 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
 
                     var transform = target.GetComponent<Transform>();
 
-                    if (transform?.parent != null)
+                    if (transform?.Parent != null)
                     {
-                        var current = transform.parent;
+                        var current = transform.Parent;
 
                         while (current != null)
                         {
-                            if (current.entity.TryGetComponent<T>(out t) && current.entity.TryGetComponent<T2>(out t2))
+                            if (current.Entity.TryGetComponent<T>(out t) && current.Entity.TryGetComponent<T2>(out t2))
                             {
                                 items.Add((t, t2));
 
                                 break;
                             }
 
-                            current = current.parent;
+                            current = current.Parent;
                         }
                     }
                 }
@@ -351,7 +351,7 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
                             return;
                         }
 
-                        if (transform.entity.TryGetComponent<T>(out var t) && transform.entity.TryGetComponent<T2>(out var t2))
+                        if (transform.Entity.TryGetComponent<T>(out var t) && transform.Entity.TryGetComponent<T2>(out var t2))
                         {
                             items.Add((t, t2));
                         }
@@ -390,7 +390,7 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
                             return;
                         }
 
-                        if (transform.entity.TryGetComponent<T>(out var t) && transform.entity.TryGetComponent<T2>(out var t2))
+                        if (transform.Entity.TryGetComponent<T>(out var t) && transform.Entity.TryGetComponent<T2>(out var t2))
                         {
                             items.Add((t, t2));
                         }

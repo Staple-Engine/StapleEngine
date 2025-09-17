@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Staple;
@@ -447,9 +446,9 @@ public static class Math
     /// <remarks>From https://discussions.unity.com/t/what-is-the-source-code-of-quaternion-lookrotation/72474</remarks>
     public static Quaternion LookAt(Vector3 forward, Vector3 up)
     {
-        var vector = Vector3.Normalize(forward);
-        var vector2 = Vector3.Normalize(Vector3.Cross(up, vector));
-        var vector3 = Vector3.Cross(vector, vector2);
+        var vector = forward.Normalized;
+        var vector2 = up.Cross(vector);
+        var vector3 = vector.Cross(vector2);
 
         var m00 = vector2.X;
         var m01 = vector2.Y;

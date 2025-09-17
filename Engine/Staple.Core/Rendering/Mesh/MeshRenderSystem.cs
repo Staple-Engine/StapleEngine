@@ -151,14 +151,14 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             if(transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
             {
-                var localSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.LocalRotation));
+                var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(transform.LocalRotation));
 
-                var globalSize = Vector3.Abs(Vector3.Transform(renderer.mesh.bounds.size, transform.Rotation));
+                var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(transform.Rotation));
 
-                renderer.localBounds = new(transform.LocalPosition + Vector3.Transform(renderer.mesh.bounds.center, transform.LocalRotation) * transform.LocalScale,
+                renderer.localBounds = new(transform.LocalPosition + renderer.mesh.bounds.center.Transformed(transform.LocalRotation) * transform.LocalScale,
                     localSize * transform.LocalScale);
 
-                renderer.bounds = new(transform.Position + Vector3.Transform(renderer.mesh.bounds.center, transform.Rotation) * transform.Scale,
+                renderer.bounds = new(transform.Position + renderer.mesh.bounds.center.Transformed(transform.Rotation) * transform.Scale,
                     globalSize * transform.Scale);
             }
         }

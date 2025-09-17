@@ -165,6 +165,7 @@
 		<Compile Include="Input\InputDevice.cs" />
 		<Compile Include="Jobs\ActionJob.cs" />
 		<Compile Include="Math\BoundingSphere.cs" />
+		<Compile Include="Math\MathExtensions.cs" />
 		<Compile Include="Math\NoiseGenerator.cs" />
 		<Compile Include="Math\Vector3Int.cs" />
 		<Compile Include="Math\Vector4Int.cs" />

@@ -149,7 +149,7 @@ public sealed class MeshCombineSystem : IRenderSystem
 
                         foreach (var position in mesh.vertices)
                         {
-                            vertices.Add(Vector3.Transform(position, matrix));
+                            vertices.Add(position.Transformed(matrix));
                         }
 
                         if((mesh.normals?.Length ?? 0) > 0)
@@ -263,14 +263,14 @@ public sealed class MeshCombineSystem : IRenderSystem
 
             if (transform.ChangedThisFrame || combine.localBounds.size == Vector3.Zero)
             {
-                var localSize = Vector3.Abs(Vector3.Transform(combine.combinedMeshBounds.size, transform.LocalRotation));
+                var localSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(transform.LocalRotation));
 
-                var globalSize = Vector3.Abs(Vector3.Transform(combine.combinedMeshBounds.size, transform.Rotation));
+                var globalSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(transform.Rotation));
 
-                combine.localBounds = new(transform.LocalPosition + Vector3.Transform(combine.combinedMeshBounds.center, transform.LocalRotation) * transform.LocalScale,
+                combine.localBounds = new(transform.LocalPosition + combine.combinedMeshBounds.center.Transformed(transform.LocalRotation) * transform.LocalScale,
                     localSize * transform.LocalScale);
 
-                combine.bounds = new(transform.Position + Vector3.Transform(combine.combinedMeshBounds.center, transform.Rotation) * transform.Scale,
+                combine.bounds = new(transform.Position + combine.combinedMeshBounds.center.Transformed(transform.Rotation) * transform.Scale,
                     globalSize * transform.Scale);
             }
         }

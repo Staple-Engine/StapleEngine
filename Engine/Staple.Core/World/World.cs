@@ -321,7 +321,7 @@ public partial class World
 
                         child.SetParent(null);
 
-                        Destroy(child.entity);
+                        Destroy(child.Entity);
                     }
 
                     foreach(var pair in info.components)
@@ -369,7 +369,7 @@ public partial class World
 
                 if(transform != null)
                 {
-                    transform.entity = default;
+                    transform.Entity = default;
                 }
 
                 foreach(var pair in entity.components)
