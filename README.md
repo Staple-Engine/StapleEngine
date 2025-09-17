@@ -6,8 +6,6 @@
 
 ![Screenshot of Staple Editor in use](Screenshots/MainSample.png)
 
-.NET Game Engine "stapled" together
-
 # Status
 
 Early state, usable for small demos
@@ -31,13 +29,13 @@ Early state, usable for small demos
 
 # Installation
 
-You can grab binaries from the releases page. You also need the [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
+You can grab binaries from the releases page. You also need the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
 
 Please note that binaries aren't as updated as the main branch, so you'll likely want to build either way.
 
 # Building
 
-You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 9 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
+You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/9.0).
 
 <details>
 
@@ -88,7 +86,7 @@ sudo apt install premake git build-essential libxi-dev libxinerama-dev libxrandr
 ```bash
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
 chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version 9.0.301
+./dotnet-install.sh --version 10.0.100-rc.1.25451.107
 ```
 
 ##### Don't forget to add to your shell
@@ -109,7 +107,7 @@ sudo pacman -S premake git base-devel libxi libxinerama libxcursor libx11 gtk3 c
 ```bash
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
 chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version 9.0.301
+./dotnet-install.sh --version 10.0.100-rc.1.25451.107
 ```
 
 ##### Don't forget to add to your shell
