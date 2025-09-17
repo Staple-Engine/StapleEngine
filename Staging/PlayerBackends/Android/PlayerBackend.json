@@ -4,7 +4,7 @@
 	"redistOutput": "lib/arm64-v8a",
 	"dataDir": "Assets",
 	"platformRuntime": "android-arm64",
-	"framework": "net9.0-android",
+	"framework": "net10.0-android",
 	"publish": false,
 	"dataDirIsOutput": false,
 	"renderers": [

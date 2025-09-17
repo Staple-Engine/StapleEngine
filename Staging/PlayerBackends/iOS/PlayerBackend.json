@@ -4,7 +4,7 @@
 	"redistOutput": ".",
 	"dataDir": ".",
 	"platformRuntime": "ios-arm64",
-	"framework": "net9.0-ios",
+	"framework": "net10.0-ios",
 	"publish": false,
 	"dataDirIsOutput": false,
 	"renderers": [

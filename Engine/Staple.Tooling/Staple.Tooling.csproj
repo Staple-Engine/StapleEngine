@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<AppDesignerFolder>Properties</AppDesignerFolder>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 	</PropertyGroup>
@@ -44,12 +44,12 @@
 	</ItemGroup>
 	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<Reference Include="StapleCore">
-			<HintPath>..\Staple.Core\bin\Debug\net9.0\Staple.Core.dll</HintPath>
+			<HintPath>..\Staple.Core\bin\Debug\net10.0\Staple.Core.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 		<Reference Include="StapleCore">
-			<HintPath>..\Staple.Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
+			<HintPath>..\Staple.Core\bin\Release\net10.0\Staple.Core.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 </Project>

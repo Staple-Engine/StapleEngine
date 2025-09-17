@@ -3,7 +3,7 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<AppDesignerFolder>Properties</AppDesignerFolder>
-		<TargetFrameworks>net9.0</TargetFrameworks>
+		<TargetFrameworks>net10.0</TargetFrameworks>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 	</PropertyGroup>
@@ -34,22 +34,22 @@
 
 	<PropertyGroup Condition="'$(STAPLE_ANDROID)'=='true'">
 		<DefineConstants>$(DefineConstants);STAPLE_ANDROID</DefineConstants>
-		<TargetFrameworks>$(TargetFrameworks);net9.0-android</TargetFrameworks>
+		<TargetFrameworks>$(TargetFrameworks);net10.0-android</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(STAPLE_IOS)'=='true'">
 		<DefineConstants>$(DefineConstants);STAPLE_IOS</DefineConstants>
-		<TargetFrameworks>$(TargetFrameworks);net9.0-ios</TargetFrameworks>
+		<TargetFrameworks>$(TargetFrameworks);net10.0-ios</TargetFrameworks>
 	</PropertyGroup>
 
 	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<Reference Include="Staple.Core">
-			<HintPath>..\Staple.Core\bin\Debug\net9.0\Staple.Core.dll</HintPath>
+			<HintPath>..\Staple.Core\bin\Debug\net10.0\Staple.Core.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	<ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 		<Reference Include="Staple.Core">
-			<HintPath>..\Staple.Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
+			<HintPath>..\Staple.Core\bin\Release\net10.0\Staple.Core.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	<ItemGroup>

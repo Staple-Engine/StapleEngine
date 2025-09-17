@@ -6,7 +6,7 @@ local BX_DIR = "bx"
 solution "Dependencies_Dotnet"
 	location(BUILD_DIR)
 	configurations { "Release", "Debug" }
-	dotnetframework "net9.0"
+	dotnetframework "net10.0"
 	
 	filter "configurations:Release"
 		defines "NDEBUG"

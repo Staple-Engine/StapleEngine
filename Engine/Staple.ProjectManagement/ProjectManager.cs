@@ -59,11 +59,11 @@ public partial class ProjectManager
 
     private readonly Dictionary<AppPlatform, string> platformFramework = new()
     {
-        { AppPlatform.Windows, "net9.0" },
-        { AppPlatform.Linux, "net9.0" },
-        { AppPlatform.MacOSX, "net9.0" },
-        { AppPlatform.Android, "net9.0-android" },
-        { AppPlatform.iOS, "net9.0-ios" },
+        { AppPlatform.Windows, "net10.0" },
+        { AppPlatform.Linux, "net10.0" },
+        { AppPlatform.MacOSX, "net10.0" },
+        { AppPlatform.Android, "net10.0-android" },
+        { AppPlatform.iOS, "net10.0-ios" },
     };
 
     public string basePath;
@@ -1272,7 +1272,7 @@ public partial class ProjectManager
         var projectProperties = new Dictionary<string, string>()
         {
             { "OutputType", "Library" },
-            { "TargetFramework", "net9.0" },
+            { "TargetFramework", "net10.0" },
             { "StripSymbols", "true" },
             { "PublishAOT", "true" },
             { "IsAOTCompatible", "true" },
@@ -1354,6 +1354,7 @@ public partial class ProjectManager
             { "IlcGenerateCompleteTypeMetadata", "false" },
             { "IlcPgoOptimize", "true" },
             { "UseSystemResourceKeys", "true" },
+            { "UseMonoRuntime", "false" },
         };
 
         var asmDefProjectProperties = new Dictionary<string, string>()

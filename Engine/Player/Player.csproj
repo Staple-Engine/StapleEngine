@@ -2,7 +2,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
@@ -45,10 +45,10 @@
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)Player/bin/$(Configuration)/net9.0/Player*" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)Staple.Core/bin/$(Configuration)/net9.0/Staple.Core.dll" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net9.0/*.dll" "$(SolutionDir)../Staging"
-		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy "$(SolutionDir)Player/bin/$(Configuration)/net10.0/Player*" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy "$(SolutionDir)Staple.Core/bin/$(Configuration)/net10.0/Staple.Core.dll" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy "$(SolutionDir)../Dependencies/build/dotnet/bin/$(Configuration)/net10.0/*.dll" "$(SolutionDir)../Staging"
+		$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy "$(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/*.[DLL]" "$(SolutionDir)../Staging"
 	</PostBuildEvent>
   </PropertyGroup>
 </Project>
