@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
 		<AppDesignerFolder>Properties</AppDesignerFolder>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	</PropertyGroup>
@@ -26,34 +26,34 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<Reference Include="MessagePack">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\MessagePack.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\MessagePack.dll</HintPath>
 		</Reference>
 		<Reference Include="Newtonsoft.Json">
 			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 		</Reference>
 		<Reference Include="Staple.Core">
-			<HintPath>..\..\Engine\Staple.Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
+			<HintPath>..\..\Engine\Staple.Core\bin\Release\net10.0\Staple.Core.dll</HintPath>
 		</Reference>
 		<Reference Include="Staple.Player.Windows">
-			<HintPath>..\..\Engine\Staple.Player.Windows\bin\Release\net9.0\Staple.Player.Windows.dll</HintPath>
+			<HintPath>..\..\Engine\Staple.Player.Windows\bin\Release\net10.0\Staple.Player.Windows.dll</HintPath>
 		</Reference>
 		<Reference Include="Staple.Player.Linux">
-			<HintPath>..\..\Engine\Staple.Player.Linux\bin\Release\net9.0\Staple.Player.Linux.dll</HintPath>
+			<HintPath>..\..\Engine\Staple.Player.Linux\bin\Release\net10.0\Staple.Player.Linux.dll</HintPath>
 		</Reference>
 		<Reference Include="Staple.Player.MacOSX">
-			<HintPath>..\..\Engine\Staple.Player.MacOSX\bin\Release\net9.0\Staple.Player.MacOSX.dll</HintPath>
+			<HintPath>..\..\Engine\Staple.Player.MacOSX\bin\Release\net10.0\Staple.Player.MacOSX.dll</HintPath>
 		</Reference>
 		<Reference Include="Staple.Tooling">
-			<HintPath>..\..\Engine\Staple.Tooling\bin\Release\net9.0\Staple.Tooling.dll</HintPath>
+			<HintPath>..\..\Engine\Staple.Tooling\bin\Release\net10.0\Staple.Tooling.dll</HintPath>
 		</Reference>
 		<Reference Include="NVorbis">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NVorbis.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\NVorbis.dll</HintPath>
 		</Reference>
 		<Reference Include="NAudio">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\NAudio.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\NAudio.dll</HintPath>
 		</Reference>
 		<Reference Include="OggVorbisEncoder">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net9.0\OggVorbisEncoder.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\OggVorbisEncoder.dll</HintPath>
 		</Reference>
 		<ProjectReference Include="..\..\Engine\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
@@ -94,17 +94,17 @@
 	</ItemGroup>
 	<PropertyGroup>
 		<PostBuildEvent>
-			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy $(SolutionDir)../Dependencies/JsonNet/*.dll $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/JsonNet/*.dll $(SolutionDir)bin\
 		</PostBuildEvent>
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
 		<PostBuildEvent>
-			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/StapleToolingSupport.[DLL] $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/StapleToolingSupport.[DLL] $(SolutionDir)bin\
 		</PostBuildEvent>
 	</PropertyGroup>
 	<PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
 		<PostBuildEvent>
-			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net9.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/libStapleToolingSupport.[DLL] $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/libStapleToolingSupport.[DLL] $(SolutionDir)bin\
 		</PostBuildEvent>
 	</PropertyGroup>
 </Project>

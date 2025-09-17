@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,10 +12,10 @@
 		<HintPath>..\..\Dependencies\SharpGLTF\SharpGLTF.Core.dll</HintPath>
 	</Reference>
 	<Reference Include="StapleCore">
-		<HintPath>..\..\Engine\Staple.Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
+		<HintPath>..\..\Engine\Staple.Core\bin\Release\net10.0\Staple.Core.dll</HintPath>
 	</Reference>
 	<Reference Include="StapleTooling">
-		<HintPath>..\..\Engine\Staple.Tooling\bin\Release\net9.0\Staple.Tooling.dll</HintPath>
+		<HintPath>..\..\Engine\Staple.Tooling\bin\Release\net10.0\Staple.Tooling.dll</HintPath>
 	</Reference>
   </ItemGroup>
 

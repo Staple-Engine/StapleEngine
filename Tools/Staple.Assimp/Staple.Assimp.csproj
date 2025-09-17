@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -15,10 +15,10 @@
 		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
 	</Reference>
 	<Reference Include="Staple.Core">
-		<HintPath>..\..\Engine\Staple.Core\bin\Release\net9.0\Staple.Core.dll</HintPath>
+		<HintPath>..\..\Engine\Staple.Core\bin\Release\net10.0\Staple.Core.dll</HintPath>
 	</Reference>
 	<Reference Include="Staple.Tooling">
-		<HintPath>..\..\Engine\Staple.Tooling\bin\Release\net9.0\Staple.Tooling.dll</HintPath>
+		<HintPath>..\..\Engine\Staple.Tooling\bin\Release\net10.0\Staple.Tooling.dll</HintPath>
 	</Reference>
   </ItemGroup>
 
