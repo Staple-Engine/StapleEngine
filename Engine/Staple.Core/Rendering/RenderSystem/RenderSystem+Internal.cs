@@ -902,7 +902,7 @@ public sealed partial class RenderSystem
 
         if (instances > 1)
         {
-            RenderStats.savedDrawCalls += instances;
+            RenderStats.savedDrawCalls += (instances - 1);
         }
 
     }

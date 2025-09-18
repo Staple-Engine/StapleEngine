@@ -98,39 +98,11 @@ public partial class World
     /// Contains camera entity information
     /// Used by the SortedCameras property
     /// </summary>
-    public class CameraInfo
+    public struct CameraInfo
     {
         public Entity entity;
         public Camera camera;
         public Transform transform;
-    }
-
-    /// <summary>
-    /// Listener to calculate the sorted cameras in a scene
-    /// </summary>
-    public class SortedCamerasHolder : IWorldChangeReceiver
-    {
-        public CameraInfo[] sortedCameras = [];
-
-        public void WorldChanged()
-        {
-            var pieces = new List<CameraInfo>();
-            var cameras = Scene.Query<Camera, Transform>(false);
-
-            foreach ((Entity e, Camera c, Transform t) in cameras)
-            {
-                pieces.Add(new()
-                {
-                    camera = c,
-                    entity = e,
-                    transform = t,
-                });
-            }
-
-            pieces.Sort((x, y) => x.camera.depth.CompareTo(y.camera.depth));
-
-            sortedCameras = pieces.ToArray();
-        }
     }
 
     private class WorldChangeBox : ObservableBox
@@ -174,6 +146,16 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Gets all available cameras sorted by depth
+    /// </summary>
+    public CameraInfo[] SortedCameras => sortedCameras;
+
+    /// <summary>
+    /// Gets all entities with a valid transform that don't have a parent
+    /// </summary>
+    public (Entity, Transform)[] RootEntities => rootEntities;
+
     private readonly Lock lockObject = new();
     private static readonly Lock globalLockObject = new();
 
@@ -186,7 +168,11 @@ public partial class World
     private SceneQuery<CallbackComponent> callableComponents;
     private SceneQuery<Camera, Transform> cameras;
 
-    internal SortedCamerasHolder sortedCamerasHolder;
+    private readonly List<CameraInfo> sortedCamerasBacking = [];
+    private readonly List<(Entity, Transform)> rootEntitiesBacking = [];
+
+    internal CameraInfo[] sortedCameras = [];
+    internal (Entity, Transform)[] rootEntities = [];
 
     private EntityInfo[] cachedEntityList = [];
     private bool needsEmitWorldChange = false;
@@ -256,7 +242,66 @@ public partial class World
     {
         if(Current != null)
         {
-            Current.cachedEntityList = Current.entities.ToArray();
+            if(Current.cachedEntityList.Length != Current.entities.Count)
+            {
+                Array.Resize(ref Current.cachedEntityList, Current.entities.Count);
+
+                for(var i = 0; i < Current.entities.Count; i++)
+                {
+                    Current.cachedEntityList[i] = Current.entities[i];
+                }
+            }
+
+            {
+                Current.sortedCamerasBacking.Clear();
+                var cameras = Scene.Query<Camera, Transform>(false);
+
+                foreach ((Entity e, Camera c, Transform t) in cameras)
+                {
+                    Current.sortedCamerasBacking.Add(new()
+                    {
+                        camera = c,
+                        entity = e,
+                        transform = t,
+                    });
+                }
+
+                Current.sortedCamerasBacking.Sort((x, y) => x.camera.depth.CompareTo(y.camera.depth));
+
+                if(Current.sortedCameras.Length != Current.sortedCamerasBacking.Count)
+                {
+                    Array.Resize(ref Current.sortedCameras, Current.sortedCamerasBacking.Count);
+                }
+
+                for(var i = 0; i < Current.sortedCameras.Length; i++)
+                {
+                    Current.sortedCameras[i] = Current.sortedCamerasBacking[i];
+                }
+            }
+
+            {
+                var transforms = Scene.Query<Transform>(true);
+
+                Current.rootEntitiesBacking.Clear();
+
+                foreach(var (e, t) in transforms)
+                {
+                    if(t.Parent == null)
+                    {
+                        Current.rootEntitiesBacking.Add((e, t));
+                    }
+                }
+
+                if(Current.rootEntities.Length != Current.rootEntitiesBacking.Count)
+                {
+                    Array.Resize(ref Current.rootEntities, Current.rootEntitiesBacking.Count);
+                }
+
+                for(var i = 0; i < Current.rootEntities.Length; i++)
+                {
+                    Current.rootEntities[i] = Current.rootEntitiesBacking[i];
+                }
+            }
         }
 
         sceneQueries.Emit();
@@ -277,13 +322,6 @@ public partial class World
         lock(lockObject)
         {
             cameras ??= new();
-
-            if (sortedCamerasHolder == null)
-            {
-                sortedCamerasHolder = new();
-
-                AddChangeReceiver(sortedCamerasHolder);
-            }
 
             if (removedComponents.Count > 0)
             {
@@ -367,10 +405,7 @@ public partial class World
             {
                 var transform = GetComponent<Transform>(entity.ToEntity());
 
-                if(transform != null)
-                {
-                    transform.Entity = default;
-                }
+                transform?.Entity = default;
 
                 foreach(var pair in entity.components)
                 {

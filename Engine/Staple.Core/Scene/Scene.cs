@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Staple;
 
-public class Scene
+public sealed class Scene
 {
     internal static bool InstancingComponent = false;
 
@@ -16,6 +16,11 @@ public class Scene
     /// A list of all scenes we can load
     /// </summary>
     internal static List<string> sceneList = [];
+
+    /// <summary>
+    /// All entities without a parent transform
+    /// </summary>
+    public static (Entity, Transform)[] RootEntities => World.Current?.RootEntities;
 
     /// <summary>
     /// Gets all available cameras sorted by depth

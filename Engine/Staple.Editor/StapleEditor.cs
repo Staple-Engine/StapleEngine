@@ -189,13 +189,25 @@ internal partial class StapleEditor
     class RenderQueue : IWorldChangeReceiver
     {
         public readonly SceneQuery<Transform> transforms = new(true);
-        public readonly Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>> renderQueue = [];
+        public readonly Dictionary<IRenderSystem, (List<(Entity, Transform, IComponent)>, List<(Entity, Transform, Renderable)>)> renderQueue = [];
         public readonly List<Entity> disabledEntities = [];
+        private readonly Dictionary<IRenderSystem, bool> componentIsRenderable = [];
 
         public void WorldChanged()
         {
             renderQueue.Clear();
             disabledEntities.Clear();
+            componentIsRenderable.Clear();
+
+            foreach (var system in RenderSystem.Instance.renderSystems)
+            {
+                if(system.UsesOwnRenderProcess)
+                {
+                    continue;
+                }
+
+                componentIsRenderable.Add(system, system.RelatedComponent?.IsAssignableTo(typeof(Renderable)) ?? false);
+            }
 
             foreach (var (entity, transform) in transforms.Contents)
             {
@@ -222,14 +234,21 @@ internal partial class StapleEditor
 
                     if (renderQueue.TryGetValue(system, out var content) == false)
                     {
-                        content = [];
+                        content = ([], []);
 
                         renderQueue.Add(system, content);
                     }
 
                     if (entity.TryGetComponent(system.RelatedComponent, out var component))
                     {
-                        content.Add((entity, transform, component));
+                        content.Item1.Add((entity, transform, component));
+
+                        var isRenderable = componentIsRenderable[system];
+
+                        if(isRenderable)
+                        {
+                            content.Item2.Add((entity, transform, (Renderable)component));
+                        }
                     }
                 }
             }

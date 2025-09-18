@@ -55,11 +55,6 @@ public partial class World
     }
 
     /// <summary>
-    /// Gets all available cameras sorted by depth
-    /// </summary>
-    public CameraInfo[] SortedCameras => sortedCamerasHolder?.sortedCameras ?? [];
-
-    /// <summary>
     /// Adds a component to an entity
     /// </summary>
     /// <typeparam name="T">The component type</typeparam>

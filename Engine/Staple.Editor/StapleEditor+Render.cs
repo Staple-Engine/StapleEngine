@@ -160,15 +160,16 @@ internal partial class StapleEditor
 
             foreach (var pair in renderQueue.renderQueue)
             {
-                if(pair.Value.Count == 0)
+                var (components, renderables) = pair.Value;
+
+                if(renderables.Count == 0)
                 {
                     continue;
                 }
 
-                foreach(var item in pair.Value)
+                foreach (var (_, _, renderable) in renderables)
                 {
-                    if(item.Item3 is Renderable renderable &&
-                        renderable.enabled)
+                    if (renderable.enabled)
                     {
                         renderable.isVisible = renderable.enabled &&
                             renderable.forceRenderingOff == false &&
@@ -193,27 +194,24 @@ internal partial class StapleEditor
 
                 try
                 {
-                    pair.Key.Preprocess(pair.Value.ToArray(), camera, cameraTransform);
+                    pair.Key.Preprocess(components.ToArray(), camera, cameraTransform);
 
-                    foreach (var item in pair.Value)
+                    foreach (var (entity, transform, renderable) in renderables)
                     {
-                        if (item.Item3 is Renderable renderable)
+                        if (renderable.enabled)
                         {
-                            if (renderable.enabled)
+                            if(transform.ChangedThisFrame)
                             {
-                                if(item.Item2.ChangedThisFrame)
-                                {
-                                    ReplaceEntityBodyIfNeeded(item.Item1, renderable.bounds);
-                                }
+                                ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
                             }
-                            else
-                            {
-                                ClearEntityBody(item.Item1);
-                            }
+                        }
+                        else
+                        {
+                            ClearEntityBody(entity);
                         }
                     }
 
-                    pair.Key.Process(pair.Value.ToArray(), camera, cameraTransform, SceneView);
+                    pair.Key.Process(components.ToArray(), camera, cameraTransform, SceneView);
 
                     pair.Key.Submit(SceneView);
                 }
@@ -221,6 +219,11 @@ internal partial class StapleEditor
                 {
                     Log.Error($"[{pair.Key.GetType()}] {e}");
                 }
+            }
+
+            foreach(var (_, transform) in renderQueue.transforms.Contents)
+            {
+                transform.changedThisFrame = false;
             }
 
             if (hasGizmos)
@@ -241,32 +244,6 @@ internal partial class StapleEditor
                         }
                     }
                 });
-            }
-
-            foreach(var (entity, transform) in renderQueue.transforms.Contents)
-            {
-                transform.changedThisFrame = false;
-
-                if(Vector3.Distance(transform.Position, cameraTransform.Position) < MinComponentIconDistance)
-                {
-                    continue;
-                }
-
-                if(componentIcons.TryGetValue(entity, out var icon) == false)
-                {
-                    continue;
-                }
-
-                componentIconMaterial ??= new Material(SpriteRenderSystem.DefaultMaterial.Value);
-
-                componentIconMaterial.MainColor = Color.Lerp(Color.Clear, Color.White,
-                    Math.Clamp01(Vector3.Distance(transform.Position, cameraTransform.Position) - MinComponentIconDistance));
-                componentIconMaterial.MainTexture = icon;
-
-                var rotation = Math.LookAt((cameraTransform.Position - transform.Position).Normalized, Vector3.Up) *
-                    Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), 180 * Math.Deg2Rad);
-
-                MeshRenderSystem.RenderMesh(Mesh.Quad, transform.Position, rotation, Vector3.One, componentIconMaterial, MaterialLighting.Unlit, WireframeView);
             }
         }
     }

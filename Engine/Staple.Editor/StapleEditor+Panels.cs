@@ -724,7 +724,7 @@ internal partial class StapleEditor
                 HandleReorder(false);
             }
 
-            foreach(var (entity, transform) in renderQueue.transforms.Contents)
+            foreach(var (entity, transform) in Scene.RootEntities)
             {
                 if (transform.Parent == null)
                 {
