@@ -146,4 +146,15 @@ internal interface IRenderWindow
     /// <param name="windowMode">The window mode</param>
     /// <returns>Whether it was successfully set</returns>
     bool SetResolution(int width, int height, WindowMode windowMode);
+
+    /// <summary>
+    /// Shows text input UI. Call when you need the user to write something.
+    /// </summary>
+    /// <remarks>May not show anything depending on platform.</remarks>
+    void ShowTextInput();
+
+    /// <summary>
+    /// Hides text input UI.
+    /// </summary>
+    void HideTextInput();
 }

@@ -899,6 +899,23 @@ internal class RenderWindow
     }
 
     /// <summary>
+    /// Shows text input UI. Call when you need the user to write something.
+    /// </summary>
+    /// <remarks>May not show anything depending on platform.</remarks>
+    public void ShowTextInput()
+    {
+        window.ShowTextInput();
+    }
+
+    /// <summary>
+    /// Hides text input UI.
+    /// </summary>
+    public void HideTextInput()
+    {
+        window.HideTextInput();
+    }
+
+    /// <summary>
     /// Creates a render window
     /// </summary>
     /// <param name="width">The window's width</param>

@@ -365,6 +365,8 @@ internal partial class StapleEditor
     public SceneMode sceneMode = SceneMode.Scene;
 
     private bool initialized = false;
+
+    private bool showingTextInput = false;
     #endregion
 
     #region Game
@@ -897,6 +899,20 @@ internal partial class StapleEditor
             if(io.WantTextInput)
             {
                 projectBrowser.ClearSelection();
+            }
+
+            if(io.WantTextInput != showingTextInput)
+            {
+                showingTextInput = io.WantTextInput;
+
+                if(showingTextInput)
+                {
+                    window.ShowTextInput();
+                }
+                else
+                {
+                    window.HideTextInput();
+                }
             }
 
             if(playMode == PlayMode.Playing)

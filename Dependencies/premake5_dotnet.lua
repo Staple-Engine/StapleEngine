@@ -31,13 +31,13 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
-project "SDL2-CS"
+project "SDL3-CS"
 	kind "SharedLib"
 	language "C#"
 	clr "Unsafe"
 	
 	files {
-		"SDL2-CS/**.cs"
+		"SDL3-CS/**.cs"
 	}
 
 project "NAudio"

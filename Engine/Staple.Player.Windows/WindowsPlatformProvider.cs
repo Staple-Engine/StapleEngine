@@ -19,7 +19,7 @@ internal class WindowsPlatformProvider : IPlatformProvider
         }
     }
 
-    public IRenderWindow CreateWindow() => new SDL2RenderWindow();
+    public IRenderWindow CreateWindow() => new SDL3RenderWindow();
 
     public void ConsoleLog(object message) => Console.WriteLine($"{message}");
 

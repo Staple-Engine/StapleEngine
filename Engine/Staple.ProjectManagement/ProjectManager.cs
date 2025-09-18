@@ -214,6 +214,8 @@ public partial class ProjectManager
         DeleteAll("dll");
         DeleteAll("dylib*");
         DeleteAll("so*");
+        DeleteAll("deps.json");
+        DeleteAll("runtimeconfig.json");
 
         var pluginFiles = AssetDatabase.FindAssetsByType(typeof(PluginAsset).FullName);
 
@@ -505,11 +507,11 @@ public partial class ProjectManager
 
         if (flags.HasFlag(ProjectGenerationFlags.IsPlayer) == false)
         {
-            p.AddItem("Reference", "StapleCore", [new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleCoreFileName))]);
+            p.AddItem("Reference", "Staple.Core", [new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleCoreFileName))]);
 
             if(flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
             {
-                p.AddItem("Reference", "StapleEditor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleEditorFileName))]);
+                p.AddItem("Reference", "Staple.Editor", [new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleEditorFileName))]);
             }
         }
 
@@ -593,18 +595,18 @@ public partial class ProjectManager
 
                                         if (flags.HasFlag(ProjectGenerationFlags.IsPlayer))
                                         {
-                                            asmProj.AddItem("Reference", "StapleCore", [new("HintPath", backendStapleCorePath)]);
+                                            asmProj.AddItem("Reference", "Staple.Core", [new("HintPath", backendStapleCorePath)]);
                                         }
                                         else
                                         {
-                                            asmProj.AddItem("Reference", "StapleCore",
+                                            asmProj.AddItem("Reference", "Staple.Core",
                                                 [
                                                     new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleCoreFileName))
                                                 ]);
 
                                             if (flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
                                             {
-                                                asmProj.AddItem("Reference", "StapleEditor",
+                                                asmProj.AddItem("Reference", "Staple.Editor",
                                                     [
                                                         new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleEditorFileName))
                                                     ]);
@@ -687,18 +689,18 @@ public partial class ProjectManager
 
                         if (flags.HasFlag(ProjectGenerationFlags.IsPlayer))
                         {
-                            project.AddItem("Reference", "StapleCore", [new("HintPath", backendStapleCorePath)]);
+                            project.AddItem("Reference", "Staple.Core", [new("HintPath", backendStapleCorePath)]);
                         }
                         else
                         {
-                            project.AddItem("Reference", "StapleCore",
+                            project.AddItem("Reference", "Staple.Core",
                                 [
                                     new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleCoreFileName))
                                 ]);
 
                             if (flags.HasFlag(ProjectGenerationFlags.ReferenceEditor))
                             {
-                                project.AddItem("Reference", "StapleEditor",
+                                project.AddItem("Reference", "Staple.Editor",
                                     [
                                         new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleEditorFileName))
                                     ]);
@@ -1085,7 +1087,7 @@ public partial class ProjectManager
                     break;
             }
 
-            p.AddItem("Reference", "StapleCore",
+            p.AddItem("Reference", "Staple.Core",
                 [
                     new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, StapleCoreFileName))
                 ]);
@@ -1099,24 +1101,6 @@ public partial class ProjectManager
                 [
                     new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "MessagePack.dll"))
                 ]);
-
-            p.AddItem("Reference", "NAudio",
-                [
-                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NAudio.dll"))
-                ]);
-
-            p.AddItem("Reference", "NVorbis",
-                [
-                    new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "NVorbis.dll"))
-                ]);
-
-            if (platform == AppPlatform.Windows || platform == AppPlatform.Linux || platform == AppPlatform.MacOSX)
-            {
-                p.AddItem("Reference", "SDL2-CS",
-                    [
-                        new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "SDL2-CS.dll"))
-                    ]);
-            }
 
             switch (platform)
             {

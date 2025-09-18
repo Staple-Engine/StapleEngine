@@ -186,5 +186,13 @@ internal class iOSRenderWindow : IRenderWindow
     public void SetCursor(CursorImage image)
     {
     }
+
+    public void ShowTextInput()
+    {
+    }
+
+    public void HideTextInput()
+    {
+    }
 }
 #endif

@@ -22,6 +22,7 @@ namespace Staple
             "NVorbis.",
             "GLFW.",
             "SDL2.",
+            "SDL3.",
             "Bgfx.",
             "DrLibs.",
             "OpenAL.",
