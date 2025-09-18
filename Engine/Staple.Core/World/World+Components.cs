@@ -126,11 +126,11 @@ public partial class World
             {
                 try
                 {
-                    var field = t.GetField("entity");
+                    var field = t.GetField("Entity") ?? t.GetField("entity");
 
                     field?.SetValue(component, entity);
 
-                    var property = t.GetProperty("entity");
+                    var property = t.GetProperty("Entity") ?? t.GetProperty("entity");
 
                     if(property != null)
                     {
@@ -452,11 +452,11 @@ public partial class World
                     {
                         try
                         {
-                            var field = t.GetField("entity");
+                            var field = t.GetField("Entity") ?? t.GetField("entity");
 
                             field?.SetValue(component, entity);
 
-                            var property = t.GetProperty("entity");
+                            var property = t.GetProperty("Entity") ?? t.GetProperty("entity");
 
                             if (property != null)
                             {
