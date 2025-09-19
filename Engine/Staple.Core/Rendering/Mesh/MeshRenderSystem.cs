@@ -220,7 +220,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             void Add(Material material, int submeshIndex)
             {
-                var key = renderer.mesh.Guid.GuidHash ^ material.StateHash ^ (int)lighting;
+                var key = HashCode.Combine(renderer.mesh.Guid.GuidHash, material.Guid.GuidHash, lighting, submeshIndex);
 
                 if (cache.TryGetValue(key, out var meshCache) == false)
                 {
@@ -279,6 +279,11 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         bgfx.discard((byte)bgfx.DiscardFlags.All);
 
+        Material lastMaterial = null;
+        MaterialLighting lastLighting = MaterialLighting.Unlit;
+        var lastInstances = 0;
+        var forceDiscard = false;
+
         foreach (var (_, contents) in instance)
         {
             if (contents.instanceInfos.Length == 0)
@@ -286,24 +291,42 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            bgfx.discard((byte)bgfx.DiscardFlags.All);
+            var renderData = contents.instanceInfos.Contents[0];
 
-            var material = contents.instanceInfos.Contents[0].material;
+            var needsDiscard = forceDiscard ||
+                lastMaterial != renderData.material ||
+                lastLighting != renderData.lighting ||
+                (contents.instanceInfos.Contents.Length == 1) != (lastInstances == 1);
 
-            material.DisableShaderKeyword(Shader.SkinningKeyword);
+            var material = renderData.material;
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
-            lightSystem?.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
-
-            if (material.ShaderProgram.Valid == false)
+            if (needsDiscard)
             {
-                continue;
+                lastMaterial = material;
+                lastLighting = renderData.lighting;
+                lastInstances = contents.instanceInfos.Contents.Length;
+                forceDiscard = false;
+
+                bgfx.discard((byte)bgfx.DiscardFlags.All);
+
+                material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+                lightSystem?.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
+
+                if (material.ShaderProgram.Valid == false)
+                {
+                    continue;
+                }
+
+                material.ApplyProperties(Material.ApplyMode.All);
+
+                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
+                    contents.instanceInfos.Contents[0].lighting);
             }
 
-            material.ApplyProperties(Material.ApplyMode.All);
-
-            if(contents.instanceInfos.Contents.Length > 1)
+            if (contents.instanceInfos.Contents.Length > 1)
             {
                 material.EnableShaderKeyword(Shader.InstancingKeyword);
             }
@@ -333,9 +356,6 @@ public sealed class MeshRenderSystem : IRenderSystem
                     }
                 }
 
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
-                    contents.instanceInfos.Contents[0].lighting);
-
                 for (var i = 0; i < contents.transforms.Length; i++)
                 {
                     contents.transformMatrices[i] = contents.transforms[i].Matrix;
@@ -349,13 +369,17 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     instanceBuffer.Bind(0, instanceBuffer.count);
 
-                    RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All,
-                        contents.instanceInfos.Contents[0].mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
+                    var flags = bgfx.DiscardFlags.State;
+
+                    RenderSystem.Submit(viewID, program, flags,
+                        renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
                         instanceBuffer.count);
                 }
                 else
                 {
                     Log.Error($"[MeshRenderSystem] Failed to render {contents.instanceInfos.Contents[0].mesh.Guid}: Instance buffer creation failed");
+
+                    forceDiscard = true;
 
                     bgfx.discard((byte)bgfx.DiscardFlags.All);
                 }
@@ -379,15 +403,12 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     content.mesh.SetActive(content.submeshIndex);
 
-                    lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
-                        content.lighting);
-
                     var program = material.ShaderProgram;
 
                     var flags = bgfx.DiscardFlags.State;
 
                     RenderSystem.Submit(viewID, program, flags,
-                        contents.instanceInfos.Contents[0].mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
+                        renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
                         1);
                 }
             }
