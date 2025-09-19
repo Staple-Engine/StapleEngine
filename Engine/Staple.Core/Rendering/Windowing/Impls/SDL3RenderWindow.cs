@@ -487,7 +487,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
                 case SDL.SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
 
-                    Input.MouseScrollCallback(_event.wheel.mouse_x, _event.wheel.mouse_y);
+                    Input.MouseScrollCallback(_event.wheel.x, _event.wheel.y);
 
                     break;
 

@@ -167,31 +167,6 @@ internal partial class StapleEditor
                     continue;
                 }
 
-                foreach (var (_, _, renderable) in renderables)
-                {
-                    if (renderable.enabled)
-                    {
-                        renderable.isVisible = renderable.enabled &&
-                            renderable.forceRenderingOff == false &&
-                            renderable.cullingState != CullingState.Invisible;
-
-                        if (renderable.isVisible)
-                        {
-                            if (renderable.cullingState == CullingState.None)
-                            {
-                                renderable.isVisible = camera.IsVisible(renderable.bounds);
-
-                                renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
-                            }
-                        }
-
-                        if (renderable.isVisible == false)
-                        {
-                            RenderSystem.RenderStats.culledDrawCalls++;
-                        }
-                    }
-                }
-
                 try
                 {
                     pair.Key.Preprocess(components.ToArray(), camera, cameraTransform);
@@ -200,7 +175,26 @@ internal partial class StapleEditor
                     {
                         if (renderable.enabled)
                         {
-                            if(transform.ChangedThisFrame)
+                            renderable.isVisible = renderable.enabled &&
+                                renderable.forceRenderingOff == false &&
+                                renderable.cullingState != CullingState.Invisible;
+
+                            if (renderable.isVisible)
+                            {
+                                if (renderable.cullingState == CullingState.None)
+                                {
+                                    renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                                }
+                            }
+
+                            if (renderable.isVisible == false)
+                            {
+                                RenderSystem.RenderStats.culledDrawCalls++;
+                            }
+
+                            if (transform.ChangedThisFrame)
                             {
                                 ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
                             }

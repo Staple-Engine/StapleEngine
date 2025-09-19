@@ -346,8 +346,8 @@ vec4 i_data4        :   TEXCOORD3;
 
                 foreach (var renderer in renderers)
                 {
-                    //PSSL and d3d12 ignored for now
-                    if (renderer == Renderer.pssl || renderer == Renderer.d3d12)
+                    //PSSL ignored for now
+                    if (renderer == Renderer.pssl)
                     {
                         continue;
                     }
@@ -362,6 +362,7 @@ vec4 i_data4        :   TEXCOORD3;
                         Renderer.opengl => RendererType.OpenGL,
                         Renderer.opengles => RendererType.OpenGLES,
                         Renderer.d3d11 => RendererType.Direct3D11,
+                        Renderer.d3d12 => RendererType.Direct3D12,
                         Renderer.metal => RendererType.Metal,
                         _ => throw new InvalidOperationException($"Invalid renderer type {renderer} when mapping to regular renderer type"),
                     },

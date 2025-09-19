@@ -26,8 +26,7 @@ public sealed class MeshRenderSystem : IRenderSystem
     private class InstanceData
     {
         public ExpandableContainer<InstanceInfo> instanceInfos = new();
-        public Transform[] transforms;
-        public Matrix4x4[] transformMatrices;
+        public Matrix4x4[] transformMatrices = [];
     }
 
     private readonly Dictionary<ushort, Dictionary<int, InstanceData>> instanceCache = [];
@@ -261,10 +260,9 @@ public sealed class MeshRenderSystem : IRenderSystem
         {
             foreach (var p in pair.Value)
             {
-                if(p.Value.instanceInfos.Length == 0)
+                if(p.Value.instanceInfos.Length != p.Value.transformMatrices.Length)
                 {
-                    p.Value.transforms = [];
-                    p.Value.transformMatrices = [];
+                    Array.Resize(ref p.Value.transformMatrices, p.Value.instanceInfos.Length);
                 }
             }
         }
@@ -345,20 +343,9 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 var program = material.ShaderProgram;
 
-                if ((contents.transforms?.Length ?? 0) != contents.instanceInfos.Length)
+                for (var i = 0; i < contents.instanceInfos.Length; i++)
                 {
-                    contents.transforms = new Transform[contents.instanceInfos.Length];
-                    contents.transformMatrices = new Matrix4x4[contents.instanceInfos.Length];
-
-                    for (var i = 0; i < contents.transforms.Length; i++)
-                    {
-                        contents.transforms[i] = contents.instanceInfos.Contents[i].transform;
-                    }
-                }
-
-                for (var i = 0; i < contents.transforms.Length; i++)
-                {
-                    contents.transformMatrices[i] = contents.transforms[i].Matrix;
+                    contents.transformMatrices[i] = contents.instanceInfos.Contents[i].transform.Matrix;
                 }
 
                 var instanceBuffer = InstanceBuffer.Create(contents.transformMatrices.Length, Marshal.SizeOf<Matrix4x4>());
@@ -408,8 +395,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                     var flags = bgfx.DiscardFlags.State;
 
                     RenderSystem.Submit(viewID, program, flags,
-                        renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
-                        1);
+                        renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex), 1);
                 }
             }
         }

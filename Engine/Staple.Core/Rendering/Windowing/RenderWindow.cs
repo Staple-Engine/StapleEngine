@@ -571,13 +571,11 @@ internal class RenderWindow
 
                         break;
 
-#if STAPLE_SUPPORTS_D3D12
                     case RendererType.Direct3D12:
 
                         rendererType = bgfx.RendererType.Direct3D12;
 
                         break;
-#endif
 
                     case RendererType.OpenGL:
 
