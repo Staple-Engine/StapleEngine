@@ -1432,7 +1432,19 @@ internal static class StapleSerializer
 
                     var value = DeserializeField(type, field, field.FieldType, pair.Value, mode);
 
-                    if(value is null || value.GetType().IsAssignableTo(field.FieldType) == false)
+                    if (field.FieldType == typeof(Entity) && value is int i)
+                    {
+                        var localEntity = Scene.FindEntity(i);
+
+                        if(localEntity.IsValid)
+                        {
+                            field.SetValue(instance, localEntity);
+                        }
+
+                        continue;
+                    }
+
+                    if (value is null || value.GetType().IsAssignableTo(field.FieldType) == false)
                     {
                         continue;
                     }

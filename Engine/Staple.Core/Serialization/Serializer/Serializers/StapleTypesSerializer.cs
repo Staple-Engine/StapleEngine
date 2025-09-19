@@ -336,11 +336,14 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
 
             case Type t when t == typeof(Entity):
 
+                try
                 {
-                    if (fieldInfo.value is int i)
-                    {
-                        return i;
-                    }
+                    var ID = Convert.ToInt32(fieldInfo.value);
+
+                    return ID;
+                }
+                catch(Exception)
+                {
                 }
 
                 break;
