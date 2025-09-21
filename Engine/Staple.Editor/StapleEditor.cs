@@ -1227,7 +1227,7 @@ internal partial class StapleEditor
             ImGuiProxy.instance.EndFrame();
 
             if (World.Current != null &&
-                Input.GetMouseButtonDown(MouseButton.Left) &&
+                Input.GetMouseButton(MouseButton.Left) &&
                 mouseIsHoveringImGui == false &&
                 ImGuizmo.IsUsingAny() == false &&
                 viewportType == ViewportType.Scene)
