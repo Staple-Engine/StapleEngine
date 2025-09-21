@@ -2,6 +2,7 @@
 using System.Reflection;
 using System;
 using System.Linq;
+using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -43,7 +44,7 @@ internal static class SceneSerialization
         var rotation = sceneObject.transform.rotation.ToVector3();
 
         transform.LocalPosition = sceneObject.transform.position.ToVector3();
-        transform.LocalRotation = Math.FromEulerAngles(rotation);
+        transform.LocalRotation = Quaternion.Euler(rotation);
         transform.LocalScale = sceneObject.transform.scale.ToVector3();
 
         foreach (var component in sceneObject.components)

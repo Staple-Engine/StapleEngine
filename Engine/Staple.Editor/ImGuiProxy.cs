@@ -107,14 +107,22 @@ internal class ImGuiProxy
 
         io.Fonts.AddFontDefault();
 
-        var bytes = Convert.FromBase64String(FontData.IntelOneMonoRegular);
+        var editor = Convert.FromBase64String(FontData.IntelOneMonoMedium);
+        var header = Convert.FromBase64String(FontData.IntelOneMonoBold);
 
         unsafe
         {
-            fixed(byte * ptr = bytes)
+            var editorPtr = new Span<byte>(editor);
+            var headerPtr = new Span<byte>(header);
+
+            fixed(byte *ptr = editorPtr)
             {
-                editorFont = io.Fonts.AddFontFromMemoryTTF(ptr, bytes.Length, 18);
-                headerFont = io.Fonts.AddFontFromMemoryTTF(ptr, bytes.Length, 32);
+                editorFont = io.Fonts.AddFontFromMemoryTTF(ptr, editor.Length, 20);
+            }
+
+            fixed(byte *ptr = headerPtr)
+            {
+                headerFont = io.Fonts.AddFontFromMemoryTTF(ptr, header.Length, 22);
             }
         }
 

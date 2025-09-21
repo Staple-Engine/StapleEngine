@@ -360,7 +360,7 @@ public class Transform : IComponent
         {
             changed = false;
 
-            matrix = Math.TRS(position, scale, rotation);
+            matrix = Matrix4x4.TRS(position, scale, rotation);
 
             if(Parent != null)
             {
@@ -455,5 +455,15 @@ public class Transform : IComponent
         Scene.RequestWorldUpdate();
 
         return true;
+    }
+
+    /// <summary>
+    /// Rotates this transform
+    /// </summary>
+    /// <param name="angles">Angles to rotate by</param>
+    /// <param name="relativeToWorld">Whether in world space or local space</param>
+    public void Rotate(Vector3 angles, bool relativeToWorld = false)
+    {
+        Rotation = Rotation.Rotate(angles, relativeToWorld);
     }
 }

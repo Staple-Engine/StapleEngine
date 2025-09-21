@@ -51,12 +51,12 @@ public class PlayerControlSystem : IEntitySystemUpdate
 
             if(component.is3D)
             {
-                var rotation = Math.ToEulerAngles(transform.LocalRotation);
+                var rotation = transform.LocalRotation.ToEulerAngles();
 
                 rotation.X -= component.rotation.Y;
                 rotation.Y -= component.rotation.X;
 
-                targetRotation = Math.FromEulerAngles(rotation);
+                targetRotation = Quaternion.Euler(rotation);
             }
 
             var targetDirection = direction * component.speed;

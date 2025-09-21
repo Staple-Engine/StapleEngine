@@ -72,7 +72,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         mesh.UploadMeshData();
 
-        var matrix = Math.TRS(position, scale, rotation);
+        var matrix = Matrix4x4.TRS(position, scale, rotation);
 
         bgfx.StateFlags state = material.shader.StateFlags |
             mesh.PrimitiveFlag() |

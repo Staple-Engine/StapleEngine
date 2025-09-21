@@ -12,12 +12,12 @@ public class HighlightableSystem : IEntitySystemUpdate
     {
         var sortedCameras = Scene.SortedCameras;
 
-        var c = sortedCameras.FirstOrDefault();
-
-        if(c == null)
+        if (sortedCameras.Length == 0)
         {
             return;
         }
+
+        var c = sortedCameras.FirstOrDefault();
 
         var mousePosition = Vector2.Zero;
 

@@ -96,7 +96,7 @@ internal class TransformTests
 
         Assert.IsFalse(transform.Changed);
 
-        transform.LocalRotation = Staple.Math.FromEulerAngles(new Vector3(0, 90, 0));
+        transform.LocalRotation = Quaternion.Euler(new Vector3(0, 90, 0));
 
         Assert.IsTrue(transform.Changed);
 
@@ -164,7 +164,7 @@ internal class TransformTests
 
         transform.SetParent(parent);
 
-        transform.LocalRotation = Staple.Math.FromEulerAngles(new(0, 45, 0));
+        transform.LocalRotation = Quaternion.Euler(new(0, 45, 0));
 
         Assert.That(transform.Changed, Is.True);
 
@@ -176,7 +176,7 @@ internal class TransformTests
 
         Assert.That(angles, Is.EqualTo(new Vector3(0, 45, 0)));
 
-        parent.LocalRotation = Staple.Math.FromEulerAngles(new(0, 45, 0));
+        parent.LocalRotation = Quaternion.Euler(new(0, 45, 0));
 
         angles = transform.Rotation.ToEulerAngles();
 
@@ -186,7 +186,7 @@ internal class TransformTests
 
         Assert.That(angles, Is.EqualTo(new Vector3(0, 90, 0)));
 
-        transform.Rotation = Staple.Math.FromEulerAngles(new(0, 45, 0));
+        transform.Rotation = Quaternion.Euler(new(0, 45, 0));
 
         angles = transform.Rotation.ToEulerAngles();
 

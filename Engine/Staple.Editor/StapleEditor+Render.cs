@@ -53,7 +53,7 @@ internal partial class StapleEditor
                         snap = (float*)Unsafe.AsPointer(ref snaps[0]);
                     }
 
-                    var matrix = Math.TRS(selectedTransform.Position, selectedTransform.Scale, selectedTransform.Rotation);
+                    var matrix = Matrix4x4.TRS(selectedTransform.Position, selectedTransform.Scale, selectedTransform.Rotation);
                     var delta = Matrix4x4.Identity;
 
                     if (ImGuizmo.Manipulate(ref view, ref projection, transformOperation, transformMode, ref matrix, ref delta, snap, localBound, snap))

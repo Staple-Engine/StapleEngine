@@ -183,7 +183,7 @@ public class Vector3Holder
 
     public Quaternion ToQuaternion()
     {
-        return Math.FromEulerAngles(ToVector3());
+        return Quaternion.Euler(ToVector3());
     }
 
     public static bool operator==(Vector3Holder lhs, Vector3Holder rhs)

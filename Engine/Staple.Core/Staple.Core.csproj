@@ -101,6 +101,7 @@
 		<Compile Include="Attributes\AutoAssignEntityAttribute.cs" />
 		<Compile Include="Attributes\ButtonAttribute.cs" />
 		<Compile Include="Attributes\ComponentIconAttribute.cs" />
+		<Compile Include="Attributes\HeaderAttribute.cs" />
 		<Compile Include="Attributes\MinAttribute.cs" />
 		<Compile Include="Attributes\MultilineAttribute.cs" />
 		<Compile Include="Attributes\PropertyAttribute.cs" />

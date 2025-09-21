@@ -1070,7 +1070,7 @@ internal partial class StapleEditor
 
                         if (rotation != newRotation)
                         {
-                            transform.LocalRotation = Math.FromEulerAngles(newRotation);
+                            transform.LocalRotation = Quaternion.Euler(newRotation);
                         }
 
                         transform.LocalScale = EditorGUI.Vector3Field("Scale", $"SELECTED{localComponent.GetType().FullName}SCALE", transform.LocalScale);

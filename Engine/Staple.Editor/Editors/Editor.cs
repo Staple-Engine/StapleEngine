@@ -115,6 +115,13 @@ public class Editor
                 var type = field.FieldType;
                 var name = field.Name.ExpandCamelCaseName();
 
+                var header = field.GetCustomAttribute<HeaderAttribute>();
+
+                if(header != null)
+                {
+                    EditorGUI.HeaderLabel(header.caption);
+                }
+
                 PropertyInspector(type, name, $"{targetName}{IDSuffix}",
                     () => field.GetValue(target),
                     (value) => field.SetValue(target, value),
@@ -566,7 +573,7 @@ public class Editor
 
                     if (newValue != value)
                     {
-                        quaternion = Math.FromEulerAngles(newValue);
+                        quaternion = Quaternion.Euler(newValue);
 
                         setter(quaternion);
                     }

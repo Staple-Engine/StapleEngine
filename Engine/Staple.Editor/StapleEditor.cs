@@ -911,7 +911,7 @@ internal partial class StapleEditor
                     rotation.X += Input.MouseRelativePosition.Y;
                     rotation.Y += Input.MouseRelativePosition.X;
 
-                    cameraTransform.LocalRotation = Math.FromEulerAngles(rotation);
+                    cameraTransform.LocalRotation = Quaternion.Euler(rotation);
                 }
             }
 
@@ -1227,7 +1227,7 @@ internal partial class StapleEditor
             ImGuiProxy.instance.EndFrame();
 
             if (World.Current != null &&
-                Input.GetMouseButton(MouseButton.Left) &&
+                Input.GetMouseButtonDown(MouseButton.Left) &&
                 mouseIsHoveringImGui == false &&
                 ImGuizmo.IsUsingAny() == false &&
                 viewportType == ViewportType.Scene)

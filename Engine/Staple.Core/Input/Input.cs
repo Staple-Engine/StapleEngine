@@ -754,7 +754,7 @@ public static class Input
 
             if (Cursor.LockState == CursorLockMode.Locked)
             {
-                MouseRelativePosition = newPos;
+                MouseRelativePosition += newPos;
             }
             else
             {
