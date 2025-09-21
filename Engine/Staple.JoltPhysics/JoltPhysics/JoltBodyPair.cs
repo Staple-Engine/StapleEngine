@@ -16,6 +16,14 @@ internal class JoltBodyPair : IBody3D
 
     public Entity Entity => entity;
 
+    public Vector3 previousPosition;
+    public Vector3 currentPosition;
+    public Vector3 interpolatedPosition;
+
+    public Quaternion previousRotation = Quaternion.Identity;
+    public Quaternion currentRotation = Quaternion.Identity;
+    public Quaternion interpolatedRotation = Quaternion.Identity;
+
     public bool IsTrigger
     {
         get => body.IsSensor;
@@ -25,16 +33,42 @@ internal class JoltBodyPair : IBody3D
 
     public Vector3 Position
     {
-        get => body.CenterOfMassPosition;
+        get
+        {
+            if (Physics.InterpolatePhysics)
+            {
+                return interpolatedPosition;
+            }
 
-        set => Physics3D.Instance.SetBodyPosition(this, value);
+            return currentPosition;
+        }
+
+        set
+        {
+            currentPosition = value;
+
+            Physics3D.Instance.SetBodyPosition(this, value);
+        }
     }
 
     public Quaternion Rotation
     {
-        get => body.Rotation;
+        get
+        {
+            if (Physics.InterpolatePhysics)
+            {
+                return interpolatedRotation;
+            }
 
-        set => Physics3D.Instance.SetBodyRotation(this, value);
+            return currentRotation;
+        }
+
+        set
+        {
+            currentRotation = value;
+
+            Physics3D.Instance.SetBodyRotation(this, value);
+        }
     }
 
     public Vector3 Velocity

@@ -797,7 +797,7 @@ namespace MessagePack.Formatters.Staple
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(26);
+            writer.WriteArrayHeader(27);
             writer.Write(value.runInBackground);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.appName, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.companyName, options);
@@ -824,6 +824,7 @@ namespace MessagePack.Formatters.Staple
             writer.Write(value.enableLighting);
             writer.Write(value.allowFullscreenSwitch);
             writer.Write(value.allowUnsafeCode);
+            writer.Write(value.usePhysicsInterpolation);
         }
 
         public global::Staple.AppSettings Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -919,6 +920,9 @@ namespace MessagePack.Formatters.Staple
                         break;
                     case 25:
                         ____result.allowUnsafeCode = reader.ReadBoolean();
+                        break;
+                    case 26:
+                        ____result.usePhysicsInterpolation = reader.ReadBoolean();
                         break;
                     default:
                         reader.Skip();

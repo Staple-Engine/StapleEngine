@@ -18,6 +18,11 @@ public interface IPhysics3D
     Vector3 Gravity { get; set; }
 
     /// <summary>
+    /// Whether to interpolate physics
+    /// </summary>
+    bool InterpolatePhysics { get; set; }
+
+    /// <summary>
     /// Initializes this physics implementation
     /// </summary>
     void Startup();

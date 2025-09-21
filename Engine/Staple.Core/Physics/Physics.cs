@@ -17,10 +17,20 @@ public static class Physics
 
         set
         {
-            if(Physics3D.Instance != null)
-            {
-                Physics3D.Instance.Gravity = value;
-            }
+            Physics3D.Instance?.Gravity = value;
+        }
+    }
+
+    /// <summary>
+    /// Whether to interpolate physics
+    /// </summary>
+    public static bool InterpolatePhysics
+    {
+        get => Physics3D.Instance?.InterpolatePhysics ?? false;
+
+        set
+        {
+            Physics3D.Instance?.InterpolatePhysics = value;
         }
     }
 

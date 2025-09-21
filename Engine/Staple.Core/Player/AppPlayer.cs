@@ -113,7 +113,6 @@ internal class AppPlayer
                 }
 
                 Time.fixedDeltaTime = 1 / (float)AppSettings.Current.fixedTimeFrameRate;
-                Physics3D.PhysicsDeltaTime = 1 / (float)AppSettings.Current.physicsFrameRate;
 
                 bool hasFocus = renderWindow.window.IsFocused;
 

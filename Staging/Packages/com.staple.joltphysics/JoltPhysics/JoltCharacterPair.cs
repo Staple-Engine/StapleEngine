@@ -15,6 +15,14 @@ internal class JoltCharacterPair : IBody3D
     public float gravityFactor;
     public bool enabled;
 
+    public Vector3 previousPosition;
+    public Vector3 currentPosition;
+    public Vector3 interpolatedPosition;
+
+    public Quaternion previousRotation = Quaternion.Identity;
+    public Quaternion currentRotation = Quaternion.Identity;
+    public Quaternion interpolatedRotation = Quaternion.Identity;
+
     public Entity Entity => entity;
 
     public bool IsTrigger
@@ -26,16 +34,42 @@ internal class JoltCharacterPair : IBody3D
 
     public Vector3 Position
     {
-        get => character.GetPosition();
+        get
+        {
+            if (Physics.InterpolatePhysics)
+            {
+                return interpolatedPosition;
+            }
 
-        set => character.SetPosition(value);
+            return currentPosition;
+        }
+
+        set
+        {
+            currentPosition = value;
+
+            character.SetPosition(value);
+        }
     }
 
     public Quaternion Rotation
     {
-        get => character.GetRotation();
+        get
+        {
+            if (Physics.InterpolatePhysics)
+            {
+                return interpolatedRotation;
+            }
 
-        set => character.SetRotation(value);
+            return currentRotation;
+        }
+
+        set
+        {
+            currentRotation = value;
+
+            character.SetRotation(value);
+        }
     }
 
     public Vector3 Velocity

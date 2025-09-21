@@ -83,11 +83,25 @@ internal class AppSettingsWindow : EditorWindow
 
     private void Physics()
     {
-        projectAppSettings.physicsFrameRate = EditorGUI.IntField("Physics frame rate", "AppSettings.Physics.FrameRate", projectAppSettings.physicsFrameRate);
+        var previousFrameRate = projectAppSettings.physicsFrameRate;
+
+        projectAppSettings.physicsFrameRate = EditorGUI.IntField("Physics frame rate", "AppSettings.Physics.FrameRate",
+            projectAppSettings.physicsFrameRate);
 
         if (projectAppSettings.physicsFrameRate <= 0)
         {
             projectAppSettings.physicsFrameRate = 1;
+        }
+
+        var previousInterpolation = projectAppSettings.usePhysicsInterpolation;
+
+        projectAppSettings.usePhysicsInterpolation = EditorGUI.Toggle("Interpolate physics", "AppSettings.Physics.Interpolate",
+            projectAppSettings.usePhysicsInterpolation);
+
+        if (previousFrameRate != projectAppSettings.physicsFrameRate ||
+            previousInterpolation != projectAppSettings.usePhysicsInterpolation)
+        {
+            Physics3D.Instance.UpdateConfiguration();
         }
     }
 

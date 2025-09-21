@@ -169,6 +169,12 @@ public class AppSettings
     [Key(25)]
     public bool allowUnsafeCode = false;
 
+    /// <summary>
+    /// Whether to interpolate physics
+    /// </summary>
+    [Key(26)]
+    public bool usePhysicsInterpolation = false;
+
     [IgnoreMember]
     public static AppSettings Default
     {
@@ -266,6 +272,7 @@ public class AppSettings
             allowFullscreenSwitch = allowFullscreenSwitch,
             enableLighting = enableLighting,
             allowUnsafeCode = allowUnsafeCode,
+            usePhysicsInterpolation = usePhysicsInterpolation,
         };
     }
 }

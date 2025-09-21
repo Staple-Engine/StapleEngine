@@ -38,6 +38,9 @@ public class JoltPhysics3D : IPhysics3D
     private bool locked = false;
     private int lastAddedBodyCount = 0;
 
+    private float deltaTimer;
+    private float interpolationAccumulator;
+
     public bool Destroyed => destroyed;
 
     public Vector3 Gravity
@@ -46,6 +49,8 @@ public class JoltPhysics3D : IPhysics3D
 
         set => physicsSystem.Gravity = value;
     }
+
+    public bool InterpolatePhysics { get; set; }
 
     public void Startup()
     {
@@ -365,12 +370,79 @@ public class JoltPhysics3D : IPhysics3D
             return;
         }
 
-        var collisionSteps = Math.CeilToInt(deltaTime / (1 / 60.0f));
+        deltaTimer += deltaTime;
+
+        interpolationAccumulator += deltaTime;
+
+        if (deltaTimer >= Physics3D.PhysicsDeltaTime)
+        {
+            deltaTimer -= Physics3D.PhysicsDeltaTime;
+
+            Simulate();
+
+            interpolationAccumulator = 0;
+        }
+
+        if (Physics.InterpolatePhysics)
+        {
+            var alpha = interpolationAccumulator / Physics3D.PhysicsDeltaTime;
+
+            foreach (var pair in bodies)
+            {
+                lock (threadLock)
+                {
+                    if (pair.body.IsActive == false)
+                    {
+                        continue;
+                    }
+
+                    pair.interpolatedPosition = Vector3.Lerp(pair.previousPosition, pair.currentPosition, Math.Clamp01(alpha));
+                    pair.interpolatedRotation = Quaternion.Slerp(pair.previousRotation, pair.currentRotation, Math.Clamp01(alpha));
+
+                    if (pair.transform != null)
+                    {
+                        pair.transform.Position = pair.interpolatedPosition;
+                        pair.transform.Rotation = pair.interpolatedRotation;
+                    }
+                }
+            }
+
+            foreach (var pair in characters)
+            {
+                lock (threadLock)
+                {
+                    if(pair.enabled == false)
+                    {
+                        continue;
+                    }
+
+                    pair.interpolatedPosition = Vector3.Lerp(pair.previousPosition, pair.currentPosition, Math.Clamp01(alpha));
+                    pair.interpolatedRotation = Quaternion.Slerp(pair.previousRotation, pair.currentRotation, Math.Clamp01(alpha));
+
+                    if(pair.transform != null)
+                    {
+                        pair.transform.Position = pair.interpolatedPosition;
+                        pair.transform.Rotation = pair.interpolatedRotation;
+                    }
+                }
+            }
+        }
+    }
+
+    private void Simulate()
+    {
+        var collisionSteps = Math.CeilToInt(Physics3D.PhysicsDeltaTime / (1 / 60.0f));
 
         lock (threadLock)
         {
             foreach (var pair in bodies)
             {
+                if(Physics.InterpolatePhysics)
+                {
+                    pair.previousPosition = pair.currentPosition;
+                    pair.previousRotation = pair.currentRotation;
+                }
+
                 if (pair.entity.EnabledInHierarchy == false)
                 {
                     if (pair.body.IsActive)
@@ -386,9 +458,15 @@ public class JoltPhysics3D : IPhysics3D
 
             foreach (var pair in characters)
             {
+                if (Physics.InterpolatePhysics)
+                {
+                    pair.previousPosition = pair.currentPosition;
+                    pair.previousRotation = pair.currentRotation;
+                }
+
                 if (pair.entity.EnabledInHierarchy == false)
                 {
-                    if(pair.enabled)
+                    if (pair.enabled)
                     {
                         pair.enabled = false;
 
@@ -404,65 +482,45 @@ public class JoltPhysics3D : IPhysics3D
             }
         }
 
-        physicsSystem.Update(deltaTime, collisionSteps, jobSystem);
+        physicsSystem.Update(Physics3D.PhysicsDeltaTime, collisionSteps, jobSystem);
 
         callbackGatherer.PerformAll();
 
-        lock(threadLock)
+        lock (threadLock)
         {
             foreach (var pair in bodies)
             {
-                if(pair.MotionType == BodyMotionType.Static)
+                if (pair.body.IsActive == false)
                 {
                     continue;
                 }
 
-                var transform = pair.transform;
+                pair.currentPosition = pair.body.Position;
+                pair.currentRotation = pair.body.Rotation;
 
-                if (transform != null)
+                if (Physics.InterpolatePhysics == false && pair.transform != null)
                 {
-                    var body = pair.body;
-
-                    var p = body.Position;
-                    var r = body.Rotation;
-
-                    if(transform.Position != p)
-                    {
-                        transform.Position = p;
-                    }
-
-                    if(transform.Rotation != r)
-                    {
-                        transform.Rotation = r;
-                    }
+                    pair.transform.Position = pair.currentPosition;
+                    pair.transform.Rotation = pair.currentRotation;
                 }
             }
 
             foreach (var pair in characters)
             {
-                if (pair.enabled)
+                if (pair.enabled == false)
                 {
-                    pair.character.PostSimulation(0.05f);
+                    continue;
                 }
 
-                var transform = pair.transform;
+                (pair.currentPosition, pair.currentRotation) = pair.character.GetPositionAndRotation();
 
-                if (transform != null)
+                if (Physics.InterpolatePhysics == false && pair.transform != null)
                 {
-                    var body = pair.character;
-
-                    var (position, rotation) = body.GetPositionAndRotation();
-
-                    if (transform.Position != position)
-                    {
-                        transform.Position = position;
-                    }
-
-                    if (transform.Rotation != rotation)
-                    {
-                        transform.Rotation = rotation;
-                    }
+                    pair.transform.Position = pair.currentPosition;
+                    pair.transform.Rotation = pair.currentRotation;
                 }
+
+                pair.character.PostSimulation(0.05f);
             }
         }
     }
@@ -1336,5 +1394,34 @@ public class JoltPhysics3D : IPhysics3D
             bodies.Clear();
             characters.Clear();
         }
+    }
+
+    public bool TryGetBodyPositionAndRotation(IBody3D body, out Vector3 position, out Quaternion rotation)
+    {
+        if (body is JoltBodyPair b)
+        {
+            lock (threadLock)
+            {
+                position = b.body.Position;
+                rotation = b.body.Rotation;
+            }
+
+            return true;
+        }
+
+        if (body is JoltCharacterPair c)
+        {
+            lock (threadLock)
+            {
+                (position, rotation) = c.character.GetPositionAndRotation();
+            }
+
+            return true;
+        }
+
+        position = default;
+        rotation = default;
+
+        return false;
     }
 }

@@ -24,6 +24,8 @@ public sealed class Physics3D : ISubsystem
 
     public const int PhysicsPickLayer = 31;
 
+    public static float PhysicsDeltaTime { get; internal set; } = 1 / 60.0f;
+
     /// <summary>
     /// The implementation type to use for this subsystem
     /// </summary>
@@ -36,9 +38,6 @@ public sealed class Physics3D : ISubsystem
 
     private static readonly Vector3 DefaultGravity = new(0, -9.81f, 0);
 
-    internal static float PhysicsDeltaTime = 1 / 60.0f;
-
-    private float deltaTimer = 0.0f;
     private bool needsSubsystemCheck = true;
     private readonly bool implIsValid;
     private readonly Lock lockObject = new();
@@ -84,10 +83,38 @@ public sealed class Physics3D : ISubsystem
         }
     }
 
+    /// <summary>
+    /// Whether to interpolate physics
+    /// </summary>
+    public bool InterpolatePhysics
+    {
+        get
+        {
+            if (implIsValid == false)
+            {
+                return false;
+            }
+
+            return Impl.InterpolatePhysics;
+        }
+
+        set
+        {
+            if (implIsValid == false)
+            {
+                return;
+            }
+
+            Impl.InterpolatePhysics = value;
+        }
+    }
+
     public Physics3D(IPhysics3D impl)
     {
         Impl = impl;
         implIsValid = impl != null;
+
+        UpdateConfiguration();
 
         EntitySystemManager.Instance.onSubsystemsModified += () => needsSubsystemCheck = true;
     }
@@ -562,6 +589,12 @@ public sealed class Physics3D : ISubsystem
     #endregion
 
     #region Internal
+    internal void UpdateConfiguration()
+    {
+        PhysicsDeltaTime = 1 / (float)AppSettings.Current.physicsFrameRate;
+        InterpolatePhysics = AppSettings.Current.usePhysicsInterpolation;
+    }
+
     public void Startup()
     {
         if(implIsValid == false)
@@ -660,14 +693,7 @@ public sealed class Physics3D : ISubsystem
             }
         }
 
-        deltaTimer += Time.unscaledDeltaTime;
-
-        if(deltaTimer >= PhysicsDeltaTime)
-        {
-            deltaTimer -= PhysicsDeltaTime;
-
-            Impl.Update(PhysicsDeltaTime);
-        }
+        Impl.Update(Time.deltaTime);
     }
 
     public void BodyActivated(IBody3D body)
