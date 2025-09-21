@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "com.staple.openal": "1.0.0",
-    "com.staple.joltphysics": "1.0.0"
+    "com.staple.joltphysics": "1.0.0",
+    "com.staple.firstpersoncamera": "1.0.0"
   }
 }

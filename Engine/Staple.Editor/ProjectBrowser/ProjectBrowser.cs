@@ -556,6 +556,11 @@ internal class ProjectBrowser
 
             void HandleFile(string path)
             {
+                if(path.EndsWith(".meta"))
+                {
+                    return;
+                }
+
                 try
                 {
                     if (File.Exists($"{path}.meta") == false)
@@ -887,6 +892,26 @@ internal class ProjectBrowser
                                 Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
 
                                 File.WriteAllText($"{path}.meta", jsonData);
+                            }
+                            catch (Exception)
+                            {
+                            }
+
+                            break;
+
+                        case ProjectBrowserResourceType.Code:
+
+                            try
+                            {
+                                var holder = new AssetHolder()
+                                {
+                                    guid = Hash(),
+                                    typeName = "Unknown",
+                                };
+
+                                var json = JsonConvert.SerializeObject(holder, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
+
+                                File.WriteAllText($"{path}.meta", json);
                             }
                             catch (Exception)
                             {

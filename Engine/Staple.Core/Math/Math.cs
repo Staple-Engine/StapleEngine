@@ -221,4 +221,12 @@ public static class Math
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Tan(float value) => (float)System.Math.Tan(value);
+
+    /// <summary>
+    /// Ensures a value repeats to a specific length
+    /// </summary>
+    /// <param name="t">The value</param>
+    /// <param name="length">The length</param>
+    /// <returns>The new value</returns>
+    public static float Repeat(float t, float length) => t - Floor(t / length) * length;
 }

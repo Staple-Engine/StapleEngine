@@ -1,74 +1,18 @@
 [
   {
     "kind": "Entity",
-    "name": "Camera",
+    "name": "Cube",
     "ID": 1,
     "parent": 0,
     "transform": {
       "position": {
         "x": 0.0,
         "y": 0.0,
-        "z": 5.0
-      },
-      "rotation": {
-        "x": 0.0,
-        "y": 0.0,
-        "z": 0.0
-      },
-      "scale": {
-        "x": 1.0,
-        "y": 1.0,
-        "z": 1.0
-      }
-    },
-    "components": [
-      {
-        "type": "Staple.Camera",
-        "data": {
-          "viewMode": "Default",
-          "clearMode": "SolidColor",
-          "cameraType": "Perspective",
-          "orthographicSize": 5.0,
-          "fov": 90.0,
-          "nearPlane": 0.01,
-          "farPlane": 1000.0,
-          "viewport": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 1.0,
-            "w": 1.0
-          },
-          "clearColor": "#3366FFFF",
-          "cullingLayers": 4294967295
-        }
-      },
-      {
-        "type": "TestGame.KeyboardControlComponent",
-        "data": {
-          "speed": 1.0,
-          "is3D": true
-        }
-      }
-    ],
-    "layer": "Default",
-    "enabled": true,
-    "prefabGuid": null,
-    "prefabLocalID": 0
-  },
-  {
-    "kind": "Entity",
-    "name": "Cube",
-    "ID": 2,
-    "parent": 0,
-    "transform": {
-      "position": {
-        "x": 0.0,
-        "y": 0.0,
         "z": 0.0
       },
       "rotation": {
         "x": 0.0,
-        "y": 45.000004,
+        "y": 45.0,
         "z": 0.0
       },
       "scale": {
@@ -89,19 +33,22 @@
           "forceRenderingOff": false,
           "receiveShadows": true,
           "sortingLayer": 0,
-          "sortingOrder": 0
+          "sortingOrder": 0,
+          "overrideLighting": false,
+          "lighting": "Unlit"
         }
       }
     ],
     "layer": "Default",
     "enabled": true,
     "prefabGuid": null,
-    "prefabLocalID": 0
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
   },
   {
     "kind": "Entity",
     "name": "Light",
-    "ID": 3,
+    "ID": 2,
     "parent": 0,
     "transform": {
       "position": {
@@ -132,6 +79,214 @@
     "layer": "Default",
     "enabled": true,
     "prefabGuid": null,
-    "prefabLocalID": 0
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
+  },
+  {
+    "kind": "Entity",
+    "name": "Player",
+    "ID": 3,
+    "parent": 0,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 2.0,
+        "z": -5.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.CapsuleCollider3D",
+        "data": {
+          "height": 1.5,
+          "radius": 1.0,
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          }
+        }
+      },
+      {
+        "type": "Staple.Character3D",
+        "data": {
+          "gravityFactor": 1.0,
+          "friction": 0.2,
+          "mass": 80.0,
+          "maxSlopeAngle": 50.0,
+          "upDirection": {
+            "x": 0.0,
+            "y": 1.0,
+            "z": 0.0
+          }
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
+  },
+  {
+    "kind": "Entity",
+    "name": "Camera",
+    "ID": 4,
+    "parent": 3,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.Camera",
+        "data": {
+          "viewMode": "Default",
+          "clearMode": "SolidColor",
+          "cameraType": "Perspective",
+          "orthographicSize": 5.0,
+          "fov": 90.0,
+          "nearPlane": 0.01,
+          "farPlane": 1000.0,
+          "viewport": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "depth": 0,
+          "clearColor": "#0ECFE0FF",
+          "cullingLayers": 4294967295
+        }
+      },
+      {
+        "type": "Staple.FirstPersonCamera",
+        "data": {
+          "allowLook": true,
+          "allowMove": true,
+          "sensitivity": 50.0,
+          "minVerticalRotation": -90.0,
+          "maxVerticalRotation": 90.0,
+          "moveSpeed": 5.0,
+          "focus": 3
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
+  },
+  {
+    "kind": "Entity",
+    "name": "Cube",
+    "ID": 5,
+    "parent": 0,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": -0.5,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 100.0,
+        "y": 0.1,
+        "z": 100.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.MeshRenderer",
+        "data": {
+          "mesh": "Internal/Cube",
+          "materials": [
+            "88428bcf-6adb-49e1-ace8-fb2cf71a2959"
+          ],
+          "enabled": true,
+          "forceRenderingOff": false,
+          "receiveShadows": true,
+          "sortingLayer": 0,
+          "sortingOrder": 0,
+          "overrideLighting": false,
+          "lighting": "Unlit"
+        }
+      },
+      {
+        "type": "Staple.BoxCollider3D",
+        "data": {
+          "size": {
+            "x": 1.0,
+            "y": 1.0,
+            "z": 1.0
+          },
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 1.0
+          }
+        }
+      },
+      {
+        "type": "Staple.RigidBody3D",
+        "data": {
+          "motionType": "Static",
+          "freezeRotationX": false,
+          "freezeRotationY": false,
+          "freezeRotationZ": false,
+          "is2DPlane": false,
+          "gravityFactor": 1.0,
+          "isTrigger": false,
+          "friction": 0.2,
+          "restitution": 0.0,
+          "mass": 80.0
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
   }
 ]

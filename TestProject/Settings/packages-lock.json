@@ -9,6 +9,11 @@
       "version": "1.0.0",
       "source": "Builtin",
       "dependencies": {}
+    },
+    "com.staple.firstpersoncamera": {
+      "version": "1.0.0",
+      "source": "Builtin",
+      "dependencies": {}
     }
   }
 }
