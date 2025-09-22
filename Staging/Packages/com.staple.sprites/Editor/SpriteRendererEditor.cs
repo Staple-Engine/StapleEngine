@@ -1,10 +1,9 @@
-﻿using Staple.Internal;
 using System;
 
 namespace Staple.Editor;
 
 [CustomEditor(typeof(SpriteRenderer))]
-internal class SpriteRendererEditor : Editor
+public class SpriteRendererEditor : Editor
 {
     public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
@@ -20,7 +19,7 @@ internal class SpriteRendererEditor : Editor
 
             case nameof(SpriteRenderer.material):
 
-                renderer.material ??= SpriteRenderSystem.DefaultMaterial.Value;
+                renderer.material ??= SpriteUtils.DefaultMaterial.Value;
 
                 return false;
         }

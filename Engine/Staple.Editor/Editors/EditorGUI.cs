@@ -1550,6 +1550,18 @@ public static class EditorGUI
     }
 
     /// <summary>
+    /// Shows the sprite picker for a specific texture
+    /// </summary>
+    /// <param name="texture">The texture</param>
+    /// <param name="selected">Called when an item is selected</param>
+    public static void ShowSpritePicker(Texture texture, Action<int> selected)
+    {
+        var editor = StapleEditor.instance;
+
+        editor.ShowSpritePicker(texture, texture.metadata.sprites, selected);
+    }
+
+    /// <summary>
     /// Shows a field where an entity can be dragged into
     /// </summary>
     /// <param name="name">The name of the field</param>

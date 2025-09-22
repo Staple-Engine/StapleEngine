@@ -1,4 +1,4 @@
-﻿using Staple.Internal;
+using Staple.Internal;
 using System;
 using System.IO;
 using System.Numerics;
@@ -6,7 +6,7 @@ using System.Numerics;
 namespace Staple.Editor;
 
 [CustomEditor(typeof(SpriteAnimation))]
-internal class SpriteAnimationEditor : StapleAssetEditor
+public class SpriteAnimationEditor : StapleAssetEditor
 {
     private int currentFrame = 0;
     private float timer = 0.0f;
@@ -38,11 +38,11 @@ internal class SpriteAnimationEditor : StapleAssetEditor
 
                         EditorGUI.SameLine();
 
-                        if (frame >= 0 && frame < asset.texture.metadata.sprites.Count)
+                        if (frame >= 0 && frame < asset.texture.Sprites.Length)
                         {
-                            var sprite = asset.texture.metadata.sprites[frame];
+                            var sprite = asset.texture.Sprites[frame];
 
-                            EditorGUI.TextureRect(asset.texture, sprite.rect, new Vector2(32, 32), sprite.rotation);
+                            EditorGUI.TextureRect(asset.texture, sprite.Rect, new Vector2(32, 32), sprite.Rotation);
                         }
                         else
                         {
@@ -53,7 +53,6 @@ internal class SpriteAnimationEditor : StapleAssetEditor
 
                         EditorGUI.Button("O", $"SpriteAnimationFrames{i}Browse", () =>
                         {
-                            var editor = StapleEditor.instance;
                             var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(asset.texture.Guid.Guid));
 
                             if (assetPath != asset.texture.Guid.Guid && Path.IsPathRooted(assetPath) == false)
@@ -61,9 +60,7 @@ internal class SpriteAnimationEditor : StapleAssetEditor
                                 assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
                             }
 
-                            editor.ShowSpritePicker(ThumbnailCache.GetTexture(assetPath) ?? asset.texture,
-                                asset.texture.metadata.sprites,
-                                (index) => asset.frames[frameIndex] = index);
+                            EditorGUI.ShowSpritePicker(asset.texture, (index) => asset.frames[frameIndex] = index);
                         });
                     }
                 });
@@ -111,20 +108,20 @@ internal class SpriteAnimationEditor : StapleAssetEditor
 
             var frame = asset.frames[currentFrame];
 
-            if(frame < 0 || frame >= asset.texture.metadata.sprites.Count)
+            if(frame < 0 || frame >= asset.texture.Sprites.Length)
             {
                 return;
             }
 
-            var sprite = asset.texture.metadata.sprites[frame];
+            var sprite = asset.texture.Sprites[frame];
 
             var width = EditorGUI.RemainingHorizontalSpace();
 
-            var aspect = sprite.rect.Width / (float)sprite.rect.Height;
+            var aspect = sprite.Rect.Width / (float)sprite.Rect.Height;
 
             var height = width / aspect;
 
-            EditorGUI.TextureRect(asset.texture, sprite.rect, new Vector2(width, height), sprite.rotation);
+            EditorGUI.TextureRect(asset.texture, sprite.Rect, new Vector2(width, height), sprite.Rotation);
         }
     }
 }

@@ -46,7 +46,7 @@ public class TextRenderSystem : IRenderSystem
 
         if(material == null)
         {
-            var resource = SpriteRenderSystem.DefaultMaterial.Value;
+            var resource = SpriteUtils.DefaultMaterial.Value;
 
             if(resource != null)
             {

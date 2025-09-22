@@ -1,5 +1,4 @@
-﻿using Staple.Internal;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace Staple;
 
@@ -40,6 +39,6 @@ public sealed class SpriteAnimation : IStapleAsset, IGuidAsset
     /// <returns>The Sprite Animation, or null</returns>
     public static object Create(string path)
     {
-        return ResourceManager.instance.LoadAsset<SpriteAnimation>(path);
+        return Resources.Load<SpriteAnimation>(path);
     }
 }

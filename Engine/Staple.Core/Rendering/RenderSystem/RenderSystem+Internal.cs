@@ -244,7 +244,6 @@ public sealed partial class RenderSystem
         RegisterSystem(new CullingVolumeSystem());
         RegisterSystem(new MeshCombineSystem());
         RegisterSystem(new LightSystem());
-        RegisterSystem(new SpriteRenderSystem());
         RegisterSystem(new SkinnedMeshAnimatorSystem());
         RegisterSystem(new SkinnedMeshAttachmentSystem());
         RegisterSystem(new SkinnedMeshRenderSystem());

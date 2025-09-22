@@ -776,7 +776,7 @@ internal partial class StapleEditor
 
                 Physics3D.Instance.Startup();
 
-                wireframeMaterial = SpriteRenderSystem.DefaultMaterial.Value;
+                wireframeMaterial = SpriteUtils.DefaultMaterial.Value;
 
                 wireframeMesh = new Mesh(true, true)
                 {

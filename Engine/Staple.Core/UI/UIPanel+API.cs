@@ -20,7 +20,7 @@ public partial class UIPanel
             return;
         }
 
-        material ??= new(SpriteRenderSystem.DefaultMaterial.Value);
+        material ??= new(SpriteUtils.DefaultMaterial.Value);
 
         vertices[0].position = new(0, size.Y, 0);
         vertices[0].uv = new(0, 1);
@@ -31,7 +31,7 @@ public partial class UIPanel
         vertices[3].position = new(size.X, size.Y, 0);
         vertices[3].uv = new(1, 1);
 
-        var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteRenderSystem.vertexLayout.Value);
+        var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteUtils.VertexLayout.Value);
 
         var indexBuffer = IndexBuffer.CreateTransient(indices);
 
@@ -72,7 +72,7 @@ public partial class UIPanel
             return;
         }
 
-        material ??= new(SpriteRenderSystem.DefaultMaterial.Value);
+        material ??= new(SpriteUtils.DefaultMaterial.Value);
 
         vertices[0].position = new(0, size.Y, 0);
         vertices[0].uv = new(rect.left / (float)texture.Width, rect.bottom / (float)texture.Height);
@@ -83,7 +83,7 @@ public partial class UIPanel
         vertices[3].position = new(size.X, size.Y, 0);
         vertices[3].uv = new(rect.right / (float)texture.Width, rect.bottom / (float)texture.Height);
 
-        var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteRenderSystem.vertexLayout.Value);
+        var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteUtils.VertexLayout.Value);
 
         var indexBuffer = IndexBuffer.CreateTransient(indices);
 
@@ -124,10 +124,10 @@ public partial class UIPanel
             return;
         }
 
-        if (ninePatchVertices.Length != SpriteRenderSystem.NinePatchVertexCount)
+        if (ninePatchVertices.Length != SpriteUtils.NinePatchVertexCount)
         {
-            Array.Resize(ref ninePatchVertices, SpriteRenderSystem.NinePatchVertexCount);
-            Array.Resize(ref ninePatchIndices, SpriteRenderSystem.NinePatchVertexCount);
+            Array.Resize(ref ninePatchVertices, SpriteUtils.NinePatchVertexCount);
+            Array.Resize(ref ninePatchIndices, SpriteUtils.NinePatchVertexCount);
         }
 
         var actualSize = size;
@@ -135,15 +135,15 @@ public partial class UIPanel
         actualSize.X -= border.left + border.right;
         actualSize.Y -= border.top + border.bottom;
 
-        SpriteRenderSystem.MakeNinePatchGeometry(ninePatchVertices.AsSpan(), ninePatchIndices.AsSpan(), texture, actualSize, border, true);
+        SpriteUtils.MakeNinePatchGeometry(ninePatchVertices.AsSpan(), ninePatchIndices.AsSpan(), texture, actualSize, border, true);
 
         position += border.Position;
 
-        var vertexBuffer = VertexBuffer.CreateTransient(ninePatchVertices.AsSpan(), SpriteRenderSystem.vertexLayout.Value);
+        var vertexBuffer = VertexBuffer.CreateTransient(ninePatchVertices.AsSpan(), SpriteUtils.VertexLayout.Value);
 
         var indexBuffer = IndexBuffer.CreateTransient(ninePatchIndices);
 
-        material ??= new(SpriteRenderSystem.DefaultMaterial.Value);
+        material ??= new(SpriteUtils.DefaultMaterial.Value);
 
         if (vertexBuffer == null || indexBuffer == null)
         {
@@ -202,7 +202,7 @@ public partial class UIPanel
     /// <param name="parameters">Text parameters for the text</param>
     protected void RenderText(string str, TextParameters parameters)
     {
-        material ??= new(SpriteRenderSystem.DefaultMaterial.Value);
+        material ??= new(SpriteUtils.DefaultMaterial.Value);
 
         parameters.Position(parameters.position + new Vector2(0, parameters.fontSize));
 

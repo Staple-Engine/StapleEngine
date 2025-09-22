@@ -27,7 +27,7 @@ public partial class UIPanel
     /// <summary>
     /// Cached ninepatch vertices
     /// </summary>
-    private SpriteRenderSystem.SpriteVertex[] ninePatchVertices = [];
+    private SpriteUtils.Vertex[] ninePatchVertices = [];
 
     /// <summary>
     /// Cached ninepatch indices
@@ -42,7 +42,7 @@ public partial class UIPanel
     /// <summary>
     /// Cached normal sprite vertices
     /// </summary>
-    private static readonly SpriteRenderSystem.SpriteVertex[] vertices = new SpriteRenderSystem.SpriteVertex[4];
+    private static readonly SpriteUtils.Vertex[] vertices = new SpriteUtils.Vertex[4];
 
     /// <summary>
     /// Cached normal sprite indices

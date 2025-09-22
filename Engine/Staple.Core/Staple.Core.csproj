@@ -206,7 +206,7 @@
 		<Compile Include="Rendering\Shader\ComputeShader.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
 		<Compile Include="Rendering\Sprites\Sprite.cs" />
-		<Compile Include="Rendering\Sprites\SpriteRenderMode.cs" />
+		<Compile Include="Rendering\Sprites\SpriteUtils.cs" />
 		<Compile Include="Rendering\Texture\RenderTargetBackbufferRatio.cs" />
 		<Compile Include="Rendering\Texture\TextureFormat.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />
@@ -309,8 +309,6 @@
 		<Compile Include="External\StbImageWriteSharp\src\StbImageWrite.cs" />
 		<Compile Include="External\StbImageWriteSharp\src\StbImageWrite.Generated.cs" />
 		<Compile Include="Player\iOS\StapleViewController.cs" />
-		<Compile Include="Rendering\Sprites\SpriteAnimation.cs" />
-		<Compile Include="Rendering\Sprites\SpriteRenderer.cs" />
 		<Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />
 		<Compile Include="External\StbImageSharp\src\AnimatedGifEnumerator.cs" />
 		<Compile Include="External\StbImageSharp\src\ColorComponents.cs" />
@@ -435,7 +433,6 @@
 		<Compile Include="Rendering\Windowing\RenderWindow.cs" />
 		<Compile Include="Rendering\RendererType.cs" />
 		<Compile Include="Rendering\Shader\Shader.cs" />
-		<Compile Include="Rendering\Sprites\SpriteRenderSystem.cs" />
 		<Compile Include="Rendering\Texture\Texture.cs" />
 		<Compile Include="Rendering\Texture\TextureFlags.cs" />
 		<Compile Include="Rendering\Text\Text.cs" />

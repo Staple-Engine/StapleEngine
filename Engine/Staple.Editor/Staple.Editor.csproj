@@ -57,7 +57,6 @@
     <Compile Include="Editors\Assets\AudioClipEditor.cs" />
     <Compile Include="Editors\Default\BoxCollider3DGizmoEditor.cs" />
     <Compile Include="Editors\Assets\FolderAssetEditor.cs" />
-    <Compile Include="Editors\Assets\SpriteAnimationEditor.cs" />
     <Compile Include="Editors\Assets\StapleAssetEditor.cs" />
     <Compile Include="Editors\Assets\MaterialEditor.cs" />
     <Compile Include="Editors\Assets\MeshAssetEditor.cs" />
@@ -67,7 +66,6 @@
     <Compile Include="Attributes\CustomEditorAttribute.cs" />
     <Compile Include="Editors\Default\SkinnedMeshAttachmentEditor.cs" />
     <Compile Include="Editors\Default\SkinnedMeshRendererEditor.cs" />
-    <Compile Include="Editors\Default\SpriteRendererEditor.cs" />
     <Compile Include="Editors\Editor.cs" />
     <Compile Include="Editors\EditorGUI.cs" />
     <Compile Include="Editors\EditorWindow.cs" />
@@ -103,7 +101,6 @@
     <Compile Include="Templates\PointLightTemplate.cs" />
     <Compile Include="Templates\QuadTemplate.cs" />
     <Compile Include="Templates\SphereTemplate.cs" />
-    <Compile Include="Templates\SpriteTemplate.cs" />
     <Compile Include="Templates\UICanvasTemplate.cs" />
     <Compile Include="UndoStack.cs" />
     <Compile Include="Windows\EditorSettingsWindow.cs" />

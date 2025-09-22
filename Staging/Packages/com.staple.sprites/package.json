@@ -1,0 +1,11 @@
+{
+	"name": "com.staple.sprites",
+	"version": "1.0.0",
+	"description": "Sprite support",
+	"displayName": "Sprites",
+	"minStapleVersion": "0.2",
+	"author": "Staple Engine",
+	"dependencies": [],
+	"keywords": "sprites",
+	"license": "MIT"
+}

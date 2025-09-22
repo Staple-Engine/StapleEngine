@@ -1,5 +1,3 @@
-﻿using Staple.Internal;
-
 namespace Staple.Editor.Templates;
 
 public class SpriteTemplate : IEntityTemplate
@@ -16,7 +14,7 @@ public class SpriteTemplate : IEntityTemplate
 
         renderer.sprite = texture != null && texture.Sprites.Length > 0 ? texture.Sprites[0] : null;
 
-        renderer.material = SpriteRenderSystem.DefaultMaterial.Value;
+        renderer.material = SpriteUtils.DefaultMaterial.Value;
 
         return entity;
     }

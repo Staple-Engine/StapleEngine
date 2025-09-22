@@ -275,7 +275,7 @@ public sealed class UIManager
 
                 if(p.panel == inputBlocker)
                 {
-                    var material = SpriteRenderSystem.DefaultMaterial.Value;
+                    var material = SpriteUtils.DefaultMaterial.Value;
 
                     var color = material.MainColor;
 

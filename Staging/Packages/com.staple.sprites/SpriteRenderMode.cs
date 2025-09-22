@@ -1,4 +1,4 @@
-﻿namespace Staple;
+namespace Staple;
 
 /// <summary>
 /// How to render a sprite

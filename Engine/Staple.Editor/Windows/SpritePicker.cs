@@ -51,7 +51,7 @@ internal class SpritePicker : EditorWindow
         for (var i = 0; i < sprites.Count; i++)
         {
             var sprite = sprites[i];
-            var spriteRect = sprite.originalRect.IsEmpty ? sprite.rect : sprite.originalRect;
+            var spriteRect = sprite.rect;
 
             var position = new Vector2Int(Math.RoundToInt(currentCursor.X + spriteRect.left * scale),
                 Math.RoundToInt(currentCursor.Y + spriteRect.top * scale));

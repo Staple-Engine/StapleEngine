@@ -1,4 +1,4 @@
-﻿using Bgfx;
+using Bgfx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,31 +62,6 @@ public class SpriteRenderSystem : IRenderSystem
             .Build();
     });
 
-    /// <summary>
-    /// Gets the default material for sprites
-    /// </summary>
-    public static readonly Lazy<Material> DefaultMaterial = new(() =>
-    {
-        var material = ResourceManager.instance.LoadMaterial($"Hidden/Materials/Sprite.{AssetSerialization.MaterialExtension}");
-
-        if (material != null)
-        {
-            ResourceManager.instance.LockAsset(material.Guid.Guid);
-
-            if (material.MainTexture is Texture t)
-            {
-                ResourceManager.instance.LockAsset(t.Guid.Guid);
-            }
-
-            if (material.shader is Shader s)
-            {
-                ResourceManager.instance.LockAsset(s.Guid.Guid);
-            }
-        }
-
-        return material;
-    });
-
     private static readonly Vector3[] vertices =
     [
         new Vector3(-0.5f, -0.5f, 0),
@@ -123,6 +98,11 @@ public class SpriteRenderSystem : IRenderSystem
     /// List of nine patch cache items to remove this frame
     /// </summary>
     private readonly HashSet<int> ninePatchItemsToRemove = [];
+
+    /// <summary>
+    /// List of materials we can modify at will
+    /// </summary>
+    private readonly Dictionary<int, Material> mutableMaterials = [];
 
     public bool UsesOwnRenderProcess => false;
 
@@ -294,10 +274,7 @@ public class SpriteRenderSystem : IRenderSystem
                 hasValidAnimation;
 
             if (hasValidTexture == false ||
-                r.material == null ||
-                r.material.shader == null ||
-                r.material.Disposed ||
-                r.material.shader.Disposed)
+                (r.material?.IsValid ?? false) == false)
             {
                 continue;
             }
@@ -332,7 +309,7 @@ public class SpriteRenderSystem : IRenderSystem
 
                 var frame = r.animation.frames[r.currentFrame];
 
-                if (frame < 0 || frame >= r.animation.texture.metadata.sprites.Count)
+                if (frame < 0 || frame >= r.animation.texture.Sprites.Length)
                 {
                     continue;
                 }
@@ -395,10 +372,7 @@ public class SpriteRenderSystem : IRenderSystem
                 hasValidAnimation;
 
             if (hasValidTexture == false ||
-                r.material == null ||
-                r.material.shader == null ||
-                r.material.Disposed ||
-                r.material.shader.Disposed)
+                (r.material?.IsValid ?? false) == false)
             {
                 continue;
             }
@@ -414,7 +388,7 @@ public class SpriteRenderSystem : IRenderSystem
 
                 var frame = r.animation.frames[r.currentFrame];
 
-                if (frame < 0 || frame >= r.animation.texture.metadata.sprites.Count)
+                if (frame < 0 || frame >= r.animation.texture.Sprites.Length)
                 {
                     continue;
                 }
@@ -476,10 +450,20 @@ public class SpriteRenderSystem : IRenderSystem
                 scale.Y *= -1;
             }
 
+            if(mutableMaterials.TryGetValue(r.material.Guid.GuidHash, out var mutableMaterial) == false)
+            {
+                mutableMaterial = new(r.material);
+
+                mutableMaterial.DisableShaderKeyword(Shader.SkinningKeyword);
+                mutableMaterial.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                mutableMaterials.Add(r.material.Guid.GuidHash, mutableMaterial);
+            }
+
             container.Add(new SpriteRenderInfo()
             {
                 color = r.color,
-                material = r.material,
+                material = mutableMaterial,
                 texture = sprite.texture,
                 textureRect = sprite.Rect,
                 transform = transform,
@@ -539,8 +523,8 @@ public class SpriteRenderSystem : IRenderSystem
 
             VertexBuffer vertexBuffer = null;
             IndexBuffer indexBuffer = null;
-            uint vertexCount = 4;
-            uint indexCount = 6;
+            var vertexCount = 4;
+            var indexCount = 6;
 
             switch(s.renderMode)
             {
@@ -564,8 +548,8 @@ public class SpriteRenderSystem : IRenderSystem
 
                         cache.framesSinceUse = 0;
 
-                        vertexCount = (uint)cache.vertices.Length;
-                        indexCount = (uint)cache.indices.Length;
+                        vertexCount = cache.vertices.Length;
+                        indexCount = cache.indices.Length;
 
                         vertexBuffer = VertexBuffer.CreateTransient(cache.vertices.AsSpan(), vertexLayout.Value);
 
@@ -602,39 +586,11 @@ public class SpriteRenderSystem : IRenderSystem
                 continue;
             }
 
-            vertexBuffer.SetActive(0, 0, vertexCount);
-            indexBuffer.SetActive(0, indexCount);
+            s.material.MainColor = s.color;
+            s.material.MainTexture = s.texture;
 
-            unsafe
-            {
-                var transform = Matrix4x4.CreateScale(s.scale) * s.transform.Matrix;
-
-                _ = bgfx.set_transform(&transform, 1);
-            }
-
-            //Don't use culling for sprites
-            bgfx.set_state((ulong)(s.material.shader.StateFlags), 0);
-
-            s.material.shader.SetColor(s.material.GetShaderHandle(Material.MainColorProperty), s.color);
-            s.material.shader.SetTexture(s.material.GetShaderHandle(Material.MainTextureProperty), s.texture);
-
-            s.material.DisableShaderKeyword(Shader.SkinningKeyword);
-            s.material.DisableShaderKeyword(Shader.InstancingKeyword);
-
-            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
-            lightSystem?.ApplyMaterialLighting(s.material, MaterialLighting.Unlit);
-
-            var program = s.material.ShaderProgram;
-
-            if (program.Valid)
-            {
-                RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(MeshTopology.Triangles, (int)indexCount), 1);
-            }
-            else
-            {
-                bgfx.discard((byte)bgfx.DiscardFlags.All);
-            }
+            Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertexCount, 0, indexCount, s.material, Vector3.Zero,
+                Matrix4x4.CreateScale(s.scale) * s.transform.Matrix, MeshTopology.Triangles, MaterialLighting.Unlit, viewID);
         }
     }
 }
