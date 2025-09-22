@@ -151,18 +151,17 @@ public partial class World
             }
 
             if(Platform.IsPlaying &&
+                Scene.InstancingComponent == false &&
                 callableComponentTypes.Count != 0 &&
-                t.IsSubclassOf(typeof(CallbackComponent)))
+                component is CallbackComponent callback)
             {
-                var instance = component as CallbackComponent;
-
                 try
                 {
-                    instance.Awake();
+                    callback.Awake();
                 }
                 catch (Exception e)
                 {
-                    Log.Debug($"{entity.Name} ({instance.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                    Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
                 }
             }
 

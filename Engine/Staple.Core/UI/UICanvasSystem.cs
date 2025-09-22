@@ -65,19 +65,7 @@ public class UICanvasSystem : IRenderSystem
 
         foreach(var (_, canvas) in canvases.Contents)
         {
-            canvas.manager.CanvasSize = new(Screen.Width, Screen.Height);
-
-            if (canvas.layout != canvas.lastLayout)
-            {
-                canvas.manager.Clear();
-
-                canvas.lastLayout = canvas.layout;
-
-                if (canvas.layout?.text != null)
-                {
-                    canvas.manager.LoadLayouts(canvas.layout.text);
-                }
-            }
+            canvas.CheckLayoutChanges();
 
             canvas.manager.Update();
             canvas.manager.Draw();

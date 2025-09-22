@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 
@@ -8,10 +9,10 @@ public class UICheckBox(UIManager manager, string ID) : UIPanel(manager, ID)
 {
     private Texture checkTexture;
     private Texture uncheckTexture;
-    private int fontSize;
-    private Color fontColor;
     private Vector2Int labelOffset;
     private bool checkedValue;
+    private int fontSize;
+    private TextParameters parameters = new();
 
     public bool Checked
     {
@@ -49,9 +50,12 @@ public class UICheckBox(UIManager manager, string ID) : UIPanel(manager, ID)
     {
         checkTexture = skin.GetTexture("CheckBox", "CheckTexture");
         uncheckTexture = skin.GetTexture("CheckBox", "UnCheckTexture");
-        fontSize = Manager.DefaultFontSize;
-        fontColor = Manager.DefaultFontColor;
         labelOffset = skin.GetVector2Int("CheckBox", "LabelOffset");
+        
+        fontSize = Manager.DefaultFontSize;
+
+        parameters.TextColor(Manager.DefaultFontColor)
+            .SecondaryTextColor(Manager.DefaultSecondaryFontColor);
     }
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
@@ -71,6 +75,72 @@ public class UICheckBox(UIManager manager, string ID) : UIPanel(manager, ID)
                 (p.ValueKind == JsonValueKind.True || p.ValueKind == JsonValueKind.False))
             {
                 checkedValue = p.GetBoolean();
+            }
+        }
+        {
+            if (properties.TryGetValue(nameof(TextParameters.fontSize), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.Number)
+            {
+                fontSize = p.GetNumberValue<int>();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.textColor), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                parameters.textColor = new Color(p.GetString());
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.secondaryTextColor), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                parameters.secondaryTextColor = new Color(p.GetString());
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.borderColor), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                parameters.borderColor = new Color(p.GetString());
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.borderSize), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.Number)
+            {
+                parameters.borderSize = p.GetNumberValue<int>();
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.font), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.String)
+            {
+                var guid = AssetDatabase.GetAssetGuid(p.GetString());
+
+                guid ??= p.GetString();
+
+                parameters.font = guid;
+            }
+        }
+
+        {
+            if (properties.TryGetValue(nameof(TextParameters.rotation), out var t) &&
+                t is JsonElement p &&
+                p.ValueKind == JsonValueKind.Number)
+            {
+                parameters.rotation = p.GetNumberValue<float>();
             }
         }
     }
@@ -100,9 +170,16 @@ public class UICheckBox(UIManager manager, string ID) : UIPanel(manager, ID)
 
         DrawSprite(position, t.Size, t, Color.White.WithAlpha(Alpha));
 
-        RenderText(caption, new TextParameters()
+        var textColor = parameters.textColor;
+        var secondaryTextColor = parameters.secondaryTextColor;
+
+        RenderText(caption, parameters
+            .TextColor(textColor.WithAlpha(Alpha))
+            .SecondaryTextColor(secondaryTextColor.WithAlpha(Alpha))
             .FontSize(fontSize)
-            .TextColor(fontColor.WithAlpha(Alpha))
             .Position(position + new Vector2Int(t.Width, 0) + labelOffset));
+
+        parameters.textColor = textColor;
+        parameters.secondaryTextColor = secondaryTextColor;
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System.Configuration;
 using System.Numerics;
 
 namespace Staple;
@@ -15,10 +16,7 @@ public static class Physics
     {
         get => Physics3D.Instance?.Gravity ?? Vector3.Zero;
 
-        set
-        {
-            Physics3D.Instance?.Gravity = value;
-        }
+        set => Physics3D.Instance?.Gravity = value;
     }
 
     /// <summary>
@@ -26,11 +24,28 @@ public static class Physics
     /// </summary>
     public static bool InterpolatePhysics
     {
-        get => Physics3D.Instance?.InterpolatePhysics ?? false;
+        get => AppSettings.Current?.usePhysicsInterpolation ?? false;
+
+        set => AppSettings.Current?.usePhysicsInterpolation = value;
+    }
+
+    /// <summary>
+    /// The current physics frame rate
+    /// </summary>
+    public static int PhysicsFrameRate
+    {
+        get => AppSettings.Current?.physicsFrameRate ?? 0;
 
         set
         {
-            Physics3D.Instance?.InterpolatePhysics = value;
+            AppSettings.Current?.physicsFrameRate = value;
+
+            if(AppSettings.Current?.physicsFrameRate <= 0)
+            {
+                AppSettings.Current?.physicsFrameRate = 1;
+            }
+
+            Physics3D.Instance?.UpdateConfiguration();
         }
     }
 
