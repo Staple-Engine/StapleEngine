@@ -45,7 +45,7 @@ cd ../bgfx
 
 ../GENie/bin/linux/genie --with-tools --with-shared-lib --gcc=linux-clang gmake
 
-make .build/projects/gmake-linux-clang $(nproc) config=release64
+make .build/projects/gmake-linux-clang/Makefile $(nproc) config=release64
 
 mkdir -p ../../Tools/bin
 
