@@ -19,6 +19,7 @@
 #define StapleModelMatrix u_model[0]
 #endif
 
+#if !BGFX_SHADER_LANGUAGE_GLSL
 //From https://gist.github.com/mattatz/86fff4b32d198d0928d0fa4ff32cf6fa
 mat4 inverse(mat4 m)
 {
@@ -59,6 +60,7 @@ mat4 inverse(mat4 m)
 
     return ret;
 }
+#endif
 
 #ifdef SKINNING
 BUFFER_RO(StapleBoneMatrices, vec4, STAPLE_SKINNING_STAGE_INDEX);
