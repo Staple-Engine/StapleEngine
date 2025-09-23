@@ -317,6 +317,8 @@ internal partial class StapleEditor
     #region Entities
     private Entity selectedEntity;
 
+    private readonly Dictionary<Entity, bool> entityTreeStates = [];
+
     private bool resetSelection = false;
 
     internal Entity draggedEntity;
@@ -1645,9 +1647,21 @@ internal partial class StapleEditor
             return;
         }
 
+        if(selectedEntity.TryGetComponent<Transform>(out var transform))
+        {
+            transform = transform.Parent;
+
+            while(transform != null)
+            {
+                entityTreeStates.AddOrSetKey(transform.Entity, true);
+
+                transform = transform.Parent;
+            }
+        }
+
         var counter = 0;
 
-        selectedEntity.IterateComponents((ref IComponent component) =>
+        selectedEntity.IterateComponents((ref component) =>
         {
             counter++;
 

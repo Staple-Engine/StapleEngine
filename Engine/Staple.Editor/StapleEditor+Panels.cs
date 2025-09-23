@@ -5,9 +5,11 @@ using Newtonsoft.Json;
 using Staple.Internal;
 using Staple.ProjectManagement;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Staple.Editor;
@@ -584,8 +586,13 @@ internal partial class StapleEditor
                     HandleReorder(true);
                 }
 
+                if(entityTreeStates.TryGetValue(transform.Entity, out var open) == false)
+                {
+                    entityTreeStates.Add(transform.Entity, open);
+                }
+
                 EditorGUI.TreeNodeIcon(entityIcon, hasPrefab ? PrefabColor : Color.White, entityName,
-                    $"{transform.Entity}", transform.ChildCount == 0, () =>
+                    $"{transform.Entity}", transform.ChildCount == 0, ref open, () =>
                 {
                     foreach (var child in transform.Children)
                     {
@@ -720,6 +727,8 @@ internal partial class StapleEditor
                         return;
                     }
                 });
+
+                entityTreeStates[transform.Entity] = open;
 
                 HandleReorder(false);
             }
@@ -1831,16 +1840,26 @@ internal partial class StapleEditor
             return;
         }
 
-        var minMax = new Vector3[renderables.Length * 2];
+        var minMax = new List<Vector3>();
 
         for(var i = 0; i < renderables.Length; i++)
         {
-            minMax[i * 2] = renderables[i].bounds.min;
-            minMax[i * 2 + 1] = renderables[i].bounds.min;
+            var renderable = renderables[i];
+
+            if(renderable.enabled)
+            {
+                minMax.Add(renderable.bounds.min);
+                minMax.Add(renderable.bounds.min);
+            }
         }
 
-        var aabb = AABB.CreateFromPoints(minMax);
+        if(minMax.Count == 0)
+        {
+            return;
+        }
 
-        cameraTransform.Position = aabb.center + aabb.size / 2;
+        var aabb = AABB.CreateFromPoints(CollectionsMarshal.AsSpan(minMax));
+
+        cameraTransform.Position = aabb.center + aabb.size * 2 * cameraTransform.Back;
     }
 }
