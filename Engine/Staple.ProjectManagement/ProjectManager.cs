@@ -1044,6 +1044,7 @@ public partial class ProjectManager
                     else
                     {
                         p.SetProperty("PublishSingleFile", flags.HasFlag(ProjectGenerationFlags.PublishSingleFile) ? "true" : "false");
+                        p.SetProperty("PublishTrimmed", "true");
                         p.SetProperty("EnableTrimAnalyzer", "true");
                         p.SetProperty("EnableSingleFileAnalyzer", "true");
                         p.SetProperty("EnableAotAnalyzer", "true");
@@ -1083,6 +1084,7 @@ public partial class ProjectManager
                     p.SetProperty("EnableTrimAnalyzer", "true");
                     p.SetProperty("EnableSingleFileAnalyzer", "true");
                     p.SetProperty("EnableAotAnalyzer", "true");
+                    p.SetProperty("PublishTrimmed", "true");
 
                     break;
             }

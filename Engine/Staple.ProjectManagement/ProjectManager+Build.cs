@@ -322,11 +322,11 @@ public partial class ProjectManager
 
             if (backend.publish)
             {
-                args = $" publish -r {backend.platformRuntime} \"{projectPath}\" -c {configurationName} -o \"{outPath}\"";
+                args = $" publish -r {backend.platformRuntime} \"Player\" -c {configurationName} -o \"{outPath}\"";
             }
             else
             {
-                args = $" build \"{projectPath}\" -c {configurationName} -o \"{outPath}\"";
+                args = $" build \"Player\" -c {configurationName} -o \"{outPath}\"";
             }
 
             processInfo = new ProcessStartInfo("dotnet", args)
@@ -334,7 +334,7 @@ public partial class ProjectManager
                 CreateNoWindow = true,
                 RedirectStandardOutput = true,
                 WindowStyle = ProcessWindowStyle.Hidden,
-                WorkingDirectory = Environment.CurrentDirectory,
+                WorkingDirectory = projectDirectory,
             };
 
             process = new Process
