@@ -1097,6 +1097,79 @@ public static class EditorGUI
     }
 
     /// <summary>
+    /// Creates a tree node, and runs a handler if it's open
+    /// </summary>
+    /// <param name="label">The label of the tree node</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="leaf">Whether it's a leaf (doesn't open on click, no arrow)</param>
+    /// <param name="open">Whether the node is open. Will be updated once the UI changes too</param>
+    /// <param name="clickHandler">A handler for when it is clicked</param>
+    /// <param name="openHandler">A handler for when it is open</param>
+    /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    /// <param name="defaultOpen">Whether the tree should be open by default</param>
+    /// <remarks>Click Handler will trigger when the left or right mouse button is clicked</remarks>
+    public static void TreeNode(string label, string key, bool leaf, ref bool open, Action openHandler, Action clickHandler,
+        Action prefixHandler = null, bool defaultOpen = false)
+    {
+        var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+
+        if (leaf)
+        {
+            flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
+        }
+
+        if (defaultOpen)
+        {
+            flags |= ImGuiTreeNodeFlags.DefaultOpen;
+        }
+
+        ImGui.SetNextItemOpen(open);
+
+        open = ImGui.TreeNodeEx($"##{key}", flags);
+
+        var stateKey = $"{label}-{key}";
+
+        if (treeViewStates.TryGetValue(stateKey, out var isOpen) == false)
+        {
+            isOpen = false;
+
+            treeViewStates.Add(stateKey, isOpen);
+        }
+
+        usedTreeViewStates.Add(stateKey.GetHashCode());
+
+        if (isOpen != open)
+        {
+            treeViewStates.AddOrSetKey(stateKey, open);
+        }
+
+        isOpen = open;
+
+        ImGui.SameLine();
+
+        var clicked = ImGui.Selectable(label);
+
+        ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
+
+        if (ImGui.IsItemClicked() ||
+            clicked ||
+            (ImGui.IsItemHovered() && Input.GetMouseButtonUp(MouseButton.Right)))
+        {
+            ExecuteHandler(clickHandler, $"TreeNode {label} click");
+        }
+
+        if (open)
+        {
+            ExecuteHandler(openHandler, $"TreeNode {label} open");
+
+            if (leaf == false)
+            {
+                ImGui.TreePop();
+            }
+        }
+    }
+
+    /// <summary>
     /// Creates a tree node with an icon, and runs a handler if it's open
     /// </summary>
     /// <param name="icon">The icon texture</param>
@@ -1190,6 +1263,106 @@ public static class EditorGUI
         Action prefixHandler = null)
     {
         TreeNodeIcon(icon, Color.White, label, key, leaf, openHandler, clickHandler, prefixHandler);
+    }
+
+    /// <summary>
+    /// Creates a tree node with an icon, and runs a handler if it's open
+    /// </summary>
+    /// <param name="icon">The icon texture</param>
+    /// <param name="color">The icon's tint color</param>
+    /// <param name="label">The label of the tree node</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="leaf">Whether it's a leaf (doesn't open on click, no arrow)</param>
+    /// <param name="open">Whether the node is open. Will be updated once the UI changes too</param>
+    /// <param name="clickHandler">A handler for when it is clicked</param>
+    /// <param name="openHandler">A handler for when it is open</param>
+    /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    /// <param name="defaultOpen">Whether the tree should be open by default</param>
+    /// <remarks>Click Handler will trigger when the left or right mouse button is clicked</remarks>
+    public static void TreeNodeIcon(Texture icon, Color color, string label, string key, bool leaf, ref bool open,
+        Action openHandler, Action clickHandler, Action prefixHandler = null, bool defaultOpen = false)
+    {
+        var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+
+        if (leaf)
+        {
+            flags |= ImGuiTreeNodeFlags.Leaf | ImGuiTreeNodeFlags.NoTreePushOnOpen;
+        }
+
+        if (defaultOpen)
+        {
+            flags |= ImGuiTreeNodeFlags.DefaultOpen;
+        }
+
+        ImGui.SetNextItemOpen(open);
+
+        open = ImGui.TreeNodeEx($"##{key}", flags);
+
+        var stateKey = $"{label}-{key}";
+
+        if (treeViewStates.TryGetValue(stateKey, out var isOpen) == false)
+        {
+            isOpen = false;
+
+            treeViewStates.Add(stateKey, isOpen);
+        }
+
+        usedTreeViewStates.Add(stateKey.GetHashCode());
+
+        if (isOpen != open)
+        {
+            treeViewStates.AddOrSetKey(stateKey, open);
+        }
+
+        isOpen = open;
+
+        if (icon != null)
+        {
+            ImGui.SameLine();
+
+            Texture(icon, new Vector2(20, 20), color);
+        }
+
+        ImGui.SameLine();
+
+        var clicked = ImGui.Selectable(MakeIdentifier(label, key));
+
+        ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
+
+        if (ImGui.IsItemClicked() ||
+            clicked ||
+            (ImGui.IsItemHovered() && Input.GetMouseButtonUp(MouseButton.Right)))
+        {
+            ExecuteHandler(clickHandler, $"TreeNode {label} click");
+        }
+
+        if (open)
+        {
+            ExecuteHandler(openHandler, $"TreeNode {label} open");
+
+            if (leaf == false)
+            {
+                ImGui.TreePop();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Creates a tree node with an icon, and runs a handler if it's open
+    /// </summary>
+    /// <param name="icon">The icon texture</param>
+    /// <param name="label">The label of the tree node</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="leaf">Whether it's a leaf (doesn't open on click, no arrow)</param>
+    /// <param name="openHandler">A handler for when it is open</param>
+    /// <param name="clickHandler">A handler for when it is clicked</param>
+    /// <param name="openHandler">A handler for when it is open</param>
+    /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
+    /// <remarks>Click Handler will trigger when the left or right mouse button is clicked</remarks>
+    public static void TreeNodeIcon(Texture icon, string label, string key, bool leaf, ref bool open, Action openHandler, Action clickHandler,
+        Action prefixHandler = null)
+    {
+        TreeNodeIcon(icon, Color.White, label, key, leaf, ref open, openHandler, clickHandler, prefixHandler);
     }
 
     /// <summary>

@@ -1103,7 +1103,7 @@ internal class ProjectBrowser
 
             var hasChildren = node.subnodes.Any(x => x.type == ProjectBrowserNodeType.Folder);
 
-            EditorGUI.TreeNodeIcon(folderTexture, node.name, node.name, hasChildren == false, () =>
+            EditorGUI.TreeNodeIcon(folderTexture, node.name, node.name, hasChildren == false, ref node.open, () =>
             {
                 if (hasChildren)
                 {
@@ -1197,16 +1197,15 @@ internal class ProjectBrowser
                     return;
                 }
 
-                if (item.subnodes.Count == 0)
+                if (item.subnodes.Count == 0 && item.type == ProjectBrowserNodeType.File)
                 {
-                    if (item.type == ProjectBrowserNodeType.File)
-                    {
-                        onDoubleClick?.Invoke(item);
-                    }
+                    onDoubleClick?.Invoke(item);
                 }
                 else
                 {
                     currentContentNode = item;
+
+                    item.open = true;
 
                     UpdateCurrentContentNodes(item.subnodes);
                 }

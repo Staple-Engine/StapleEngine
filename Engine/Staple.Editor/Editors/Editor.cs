@@ -324,7 +324,7 @@ public class Editor
 
                                     list.Add(listType.IsValueType ? Activator.CreateInstance(listType) : null);
                                 });
-                            });
+                            }, true);
 
                             if (changed)
                             {
@@ -388,7 +388,7 @@ public class Editor
 
                                     list.Add(listType.IsValueType ? Activator.CreateInstance(listType) : null);
                                 });
-                            });
+                            }, true);
 
                             if (changed)
                             {
@@ -454,7 +454,7 @@ public class Editor
 
                                         list.Add(Activator.CreateInstance(listType));
                                     });
-                                });
+                                }, true);
 
                             if (changed)
                             {

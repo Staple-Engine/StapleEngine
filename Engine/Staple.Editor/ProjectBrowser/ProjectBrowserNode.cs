@@ -51,4 +51,9 @@ internal class ProjectBrowserNode
     /// The action to execute on double click
     /// </summary>
     public ProjectBrowserNodeAction action = ProjectBrowserNodeAction.None;
+
+    /// <summary>
+    /// Whether the tree node for this item is open
+    /// </summary>
+    public bool open;
 }
