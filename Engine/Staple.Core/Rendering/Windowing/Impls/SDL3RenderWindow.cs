@@ -696,8 +696,8 @@ internal class SDL3RenderWindow : IRenderWindow
 
                         type = NativeWindowType.X11;
 
-                        windowPointer = SDL.SDL_GetPointerProperty(SDL.SDL_GetWindowProperties(window),
-                            SDL.SDL_PROP_WINDOW_X11_WINDOW_NUMBER, nint.Zero);
+                        windowPointer = (nint)SDL.SDL_GetNumberProperty(SDL.SDL_GetWindowProperties(window),
+                            SDL.SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
                         monitorPointer = SDL.SDL_GetPointerProperty(SDL.SDL_GetWindowProperties(window),
                             SDL.SDL_PROP_WINDOW_X11_DISPLAY_POINTER, nint.Zero);
 
