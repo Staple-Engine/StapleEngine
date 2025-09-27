@@ -20,12 +20,12 @@ Early state, usable for small demos
 | Assets | <ul><li>Custom asset system easily defined in code</li><li>Asset pipeline baker tool that imports resources into engine-ready formats</li></ul>|
 | Graphics | <ul><li>Forward rendering using BGFX</li><li>Custom shader format with support for variants</li><li>Shaders and Compute Shaders</li><li>Material system with support for toggling variants based on parameters being set</li><li>Culling Volumes for culling parts of the world efficiently</li></ul> |
 | Input | <ul><li>Keyboard, Mouse, Touch, Gamepad support</li><li>Input Actions</li></ul> |
-| Physics | <ul><li>Jolt Physics</li></ul> |
+| Physics | <ul><li>Jolt Physics</li><li>Physics Interpolation</li></ul> |
 | Audio | <ul><li>Supports loading OGG, MP3, and WAV audio formats</li><li>OpenAL-based playback</li><li>Supports optional recompression for WAV assets</li></ul> |
-| Meshes | <ul><li>Supports loading GLTF/GLB, FBX, and OBJ</li><li>Skeletal animation/skinning</li><li>Instancing</li><li>Mesh Simplification</li></ul> |
-| Text Rendering | <ul><li>Using FreeType with optional gradients and outlines</li></ul> |
+| Meshes | <ul><li>Supports loading GLTF/GLB, FBX, and OBJ</li><li>Skeletal animation/skinning</li><li>Instancing</li><li>Mesh Simplification</li><li>Mesh Combine at runtime</li></ul> |
+| UI | <ul><li>Using FreeType with optional gradients and outlines</li><li>Skinnable UI system with JSON-based layouts</li></ul> |
 | Packages | <ul><li>Builtin, git, and local disk packages</li><li>Package manager within the editor</li></ul> |
-| Assemblies and Plugins | <ul><li>Supports assembly definition assets and plugins</li></ul> |
+| Assemblies and Plugins | <ul><li>Supports assembly definition assets and native plugins</li><li>Supports code generator assembly definitions</li></ul> |
 
 # Installation
 
