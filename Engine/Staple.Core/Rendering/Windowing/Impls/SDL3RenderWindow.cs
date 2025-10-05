@@ -40,6 +40,7 @@ internal class SDL3RenderWindow : IRenderWindow
     private class GamepadState
     {
         public nint instance;
+        public int playerIndex;
     }
 
     public nint window;
@@ -383,27 +384,6 @@ internal class SDL3RenderWindow : IRenderWindow
         return modifiers;
     }
 
-    private bool TryFindGamepad(uint which, out uint key, out GamepadState state)
-    {
-        foreach (var pair in gamepads)
-        {
-            var joystickInstance = SDL.SDL_GetJoystickID(SDL.SDL_GetGamepadJoystick(pair.Value.instance));
-
-            if (joystickInstance == which)
-            {
-                key = pair.Key;
-                state = pair.Value;
-
-                return true;
-            }
-        }
-
-        key = default;
-        state = default;
-
-        return false;
-    }
-
     public void PollEvents()
     {
         while(SDL.SDL_PollEvent(out var _event))
@@ -496,12 +476,15 @@ internal class SDL3RenderWindow : IRenderWindow
                     {
                         var instance = SDL.SDL_OpenGamepad(_event.cdevice.which);
 
+                        var playerIndex = SDL.SDL_GetGamepadPlayerIndex(instance);
+
                         gamepads.Add(_event.cdevice.which, new()
                         {
                             instance = instance,
+                            playerIndex = playerIndex,
                         });
 
-                        Input.GamepadConnect(AppEvent.GamepadConnect((int)_event.cdevice.which, GamepadConnectionState.Connected));
+                        Input.GamepadConnect(AppEvent.GamepadConnect(playerIndex, GamepadConnectionState.Connected));
                     }
 
                     break;
@@ -509,13 +492,13 @@ internal class SDL3RenderWindow : IRenderWindow
                 case SDL.SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED:
 
                     {
-                        if(TryFindGamepad(_event.cdevice.which, out var key, out var state))
+                        if(gamepads.TryGetValue(_event.cdevice.which, out var state))
                         {
                             SDL.SDL_CloseGamepad(state.instance);
 
-                            gamepads.Remove(key);
+                            gamepads.Remove(_event.cdevice.which);
 
-                            Input.GamepadConnect(AppEvent.GamepadConnect((int)key, GamepadConnectionState.Disconnected));
+                            Input.GamepadConnect(AppEvent.GamepadConnect(state.playerIndex, GamepadConnectionState.Disconnected));
                         }
                     }
 
@@ -525,9 +508,9 @@ internal class SDL3RenderWindow : IRenderWindow
                 case SDL.SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP:
 
                     {
-                        if (TryFindGamepad(_event.cdevice.which, out var key, out _))
+                        if (gamepads.TryGetValue(_event.cdevice.which, out var state))
                         {
-                            Input.GamepadButton(AppEvent.GamepadButton((int)key,
+                            Input.GamepadButton(AppEvent.GamepadButton(state.playerIndex,
                                 (SDL.SDL_GamepadButton)_event.gbutton.button switch
                                 {
                                     SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_SOUTH => GamepadButton.A,
@@ -562,7 +545,7 @@ internal class SDL3RenderWindow : IRenderWindow
                 case SDL.SDL_EventType.SDL_EVENT_GAMEPAD_AXIS_MOTION:
 
                     {
-                        if (TryFindGamepad(_event.cdevice.which, out var key, out _))
+                        if(gamepads.TryGetValue(_event.cdevice.which, out var state))
                         {
                             var value = _event.gaxis.value;
 
@@ -589,7 +572,7 @@ internal class SDL3RenderWindow : IRenderWindow
                                 floatValue *= -1;
                             }
 
-                            Input.GamepadMovement(AppEvent.GamepadMovement((int)key, axis, floatValue));
+                            Input.GamepadMovement(AppEvent.GamepadMovement(state.playerIndex, axis, floatValue));
                         }
                     }
 

@@ -679,7 +679,7 @@ public static class Input
     {
         lock (lockObject)
         {
-            if (gamepads.TryGetValue(appEvent.gamepadButton.index, out var gamepad) == false)
+            if (gamepads.TryGetValue(appEvent.gamepadMovement.index, out var gamepad) == false)
             {
                 return;
             }
