@@ -73,9 +73,9 @@ public struct Color32
 
     public Color32(uint value)
     {
-        r = (byte)(value & 0xFF000000);
-        g = (byte)(value & 0x00FF0000);
-        b = (byte)(value & 0x0000FF00);
+        r = (byte)((value & 0xFF000000) >> 24);
+        g = (byte)((value & 0x00FF0000) >> 16);
+        b = (byte)((value & 0x0000FF00) >> 8);
         a = (byte)(value & 0x000000FF);
     }
 

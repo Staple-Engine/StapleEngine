@@ -542,7 +542,7 @@ internal partial class StapleEditor
                     var beforeString = before ? "BEFORE" : "AFTER";
 
                     ImGui.Selectable($"##{transform.Entity.Name}-{transform.Entity.Identifier.ID}-{beforeString}",
-                        ImGui.IsDragDropActive() ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.Disabled,
+                        draggedEntity.IsValid ? ImGuiSelectableFlags.None : ImGuiSelectableFlags.Disabled,
                         new Vector2(ImGui.GetContentRegionAvail().X, 2));
 
                     if (ImGui.BeginDragDropTarget())

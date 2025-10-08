@@ -5,6 +5,7 @@ using Hexa.NET.ImNodes;
 using Hexa.NET.ImPlot;
 using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -23,8 +24,8 @@ internal class ImGuiProxy
     public Shader imageProgram;
     public VertexLayout layout;
     public bgfx.UniformHandle textureUniform;
-    public Texture fontTexture;
     public bgfx.TextureHandle activeTexture;
+    public readonly List<(Texture, byte[], int)> textures = [];
 
     public ImFontPtr editorFont;
 
@@ -84,28 +85,35 @@ internal class ImGuiProxy
         ImNodes.SetImGuiContext(ImGuiContext);
 
         ImNodesContext = ImNodes.CreateContext();
+
         ImNodes.SetCurrentContext(ImNodesContext);
         ImNodes.StyleColorsDark(ImNodes.GetStyle());
 
         ImPlotContext = ImPlot.CreateContext();
+
         ImPlot.SetCurrentContext(ImPlotContext);
         ImPlot.StyleColorsDark(ImPlot.GetStyle());
 
         var io = ImGui.GetIO();
+        var platformIO = ImGui.GetPlatformIO();
 
         unsafe
         {
             var setPtr = Marshal.GetFunctionPointerForDelegate(SetClipboardText);
             var getPtr = Marshal.GetFunctionPointerForDelegate(GetClipboardText);
 
-            io.SetClipboardTextFn = (void*)setPtr;
-            io.GetClipboardTextFn = (void*)getPtr;
-            io.ClipboardUserData = (void *)nint.Zero;
+            platformIO.RendererTextureMaxWidth = platformIO.RendererTextureMaxHeight = (int)bgfx.get_caps()->limits.maxTextureSize;
+            platformIO.PlatformSetClipboardTextFn = (void*)setPtr;
+            platformIO.PlatformGetClipboardTextFn = (void*)getPtr;
+            platformIO.PlatformClipboardUserData = (void *)nint.Zero;
+
+            io.Fonts.AddFontDefault();
         }
 
-        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
+        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset |
+            ImGuiBackendFlags.RendererHasTextures;
 
-        io.Fonts.AddFontDefault();
+        io.ConfigWindowsMoveFromTitleBarOnly = true;
 
         var editor = Convert.FromBase64String(FontData.IntelOneMonoMedium);
         var header = Convert.FromBase64String(FontData.IntelOneMonoBold);
@@ -150,37 +158,6 @@ internal class ImGuiProxy
 
         textureUniform = bgfx.create_uniform("s_tex", bgfx.UniformType.Sampler, 1);
 
-        unsafe
-        {
-            byte *data = null;
-            int fontWidth = 0;
-            int fontHeight = 0;
-
-            io.Fonts.GetTexDataAsRGBA32(&data, ref fontWidth, ref fontHeight);
-
-            byte[] fontData = new byte[fontWidth * fontHeight * 4];
-
-            for(int i = 0; i < fontData.Length; i++)
-            {
-                fontData[i] = data[i];
-            }
-
-            fontTexture = Texture.CreatePixels("FONT", fontData, (ushort)fontWidth, (ushort)fontHeight, new TextureMetadata()
-            {
-                useMipmaps = false,
-            },
-            TextureFormat.BGRA8);
-
-            ResourceManager.instance.LockAsset("FONT");
-        }
-
-        if(fontTexture == null)
-        {
-            Log.Error("Failed to load font");
-
-            return false;
-        }
-
         return true;
     }
 
@@ -200,7 +177,13 @@ internal class ImGuiProxy
 
         program?.Destroy();
         imageProgram?.Destroy();
-        fontTexture?.Destroy();
+
+        foreach(var texture in textures)
+        {
+            texture.Item1.Destroy();
+        }
+
+        textures.Clear();
 
         if(pinnedClipboardHandle.IsAllocated)
         {
@@ -208,7 +191,7 @@ internal class ImGuiProxy
         }
     }
 
-    public ImGuiKey GetKey(KeyCode key)
+    public static ImGuiKey GetKey(KeyCode key)
     {
         return key switch
         {
@@ -364,7 +347,9 @@ internal class ImGuiProxy
 
         ImGui.NewFrame();
 
-        ImGui.PushFont(editorFont);
+        ImGuizmo.BeginFrame();
+
+        ImGui.PushFont(editorFont, 20);
 
         frameBegun = true;
     }
@@ -405,6 +390,137 @@ internal class ImGuiProxy
                 return;
             }
 
+            if(drawData.Textures.Size != 0)
+            {
+                var t = new Span<ImTextureDataPtr>(drawData.Textures.Data, drawData.Textures.Size);
+
+                foreach(var texture in t)
+                {
+                    switch(texture.Status)
+                    {
+                        case ImTextureStatus.WantCreate:
+
+                            {
+                                var bytesPerPixel = texture.BytesPerPixel;
+
+                                var pixels = new byte[texture.Width * texture.Height * bytesPerPixel];
+
+                                fixed (void* ptr = pixels)
+                                {
+                                    Buffer.MemoryCopy(texture.Pixels, ptr, pixels.Length, pixels.Length);
+                                }
+
+                                var outTexture = Texture.CreatePixels($"ImGui {texture.UniqueID}", pixels,
+                                    (ushort)texture.Width, (ushort)texture.Height,
+                                    new TextureMetadata()
+                                    {
+                                        useMipmaps = false,
+                                    }, texture.Format switch
+                                    {
+                                        ImTextureFormat.Rgba32 => TextureFormat.RGBA8,
+                                        ImTextureFormat.Alpha8 => TextureFormat.A8,
+                                        _ => TextureFormat.RGBA8,
+                                    });
+
+                                if (outTexture != null)
+                                {
+                                    ResourceManager.instance.LockAsset($"ImGui {texture.UniqueID}");
+
+                                    textures.Add((outTexture, pixels, bytesPerPixel));
+
+                                    texture.SetTexID(new ImTextureID((ulong)outTexture.handle.idx));
+                                }
+                                else
+                                {
+                                    texture.SetTexID(ImTextureID.Null);
+                                }
+
+                                texture.SetStatus(ImTextureStatus.Ok);
+                            }
+
+                            break;
+
+                        case ImTextureStatus.WantUpdates:
+
+                            {
+                                var index = textures.FindIndex(x => x.Item1.handle.idx == texture.TexID.Handle);
+
+                                if(index >= 0)
+                                {
+                                    var (target, pixels, bytesPerPixel) = textures[index];
+
+                                    var updates = texture.Updates;
+
+                                    fixed(byte *ptr = pixels)
+                                    {
+                                        for (var i = 0; i < updates.Size; i++)
+                                        {
+                                            var update = updates.Data[i];
+
+                                            for(var y = 0; y < update.H; y++)
+                                            {
+                                                Buffer.MemoryCopy(texture.GetPixelsAt(update.X, update.Y + y),
+                                                    ptr + update.X * bytesPerPixel + ((update.Y + y) * texture.Width * bytesPerPixel),
+                                                    update.W * bytesPerPixel, update.W * bytesPerPixel);
+                                            }
+                                        }
+                                    }
+
+                                    target.Destroy();
+
+                                    target = Texture.CreatePixels($"ImGui {texture.UniqueID}", pixels,
+                                        (ushort)texture.Width, (ushort)texture.Height,
+                                        new TextureMetadata()
+                                        {
+                                            useMipmaps = false,
+                                        }, texture.Format switch
+                                        {
+                                            ImTextureFormat.Rgba32 => TextureFormat.RGBA8,
+                                            ImTextureFormat.Alpha8 => TextureFormat.A8,
+                                            _ => TextureFormat.RGBA8,
+                                        });
+
+                                    if(target != null)
+                                    {
+                                        textures[index] = (target, pixels, bytesPerPixel);
+
+                                        texture.SetTexID(new ImTextureID((ulong)target.handle.idx));
+                                    }
+                                    else
+                                    {
+                                        texture.SetTexID(ImTextureID.Null);
+                                    }
+
+                                    texture.SetStatus(ImTextureStatus.Ok);
+                                }
+                            }
+
+                            break;
+
+                        case ImTextureStatus.WantDestroy:
+
+                            if(texture.UnusedFrames > 0)
+                            {
+                                for (var i = 0; i < textures.Count; i++)
+                                {
+                                    if (textures[i].Item1.handle.idx == texture.TexID.Handle)
+                                    {
+                                        textures[i].Item1.Destroy();
+
+                                        textures.RemoveAt(i);
+
+                                        break;
+                                    }
+                                }
+
+                                texture.SetStatus(ImTextureStatus.Destroyed);
+                            }
+
+                            break;
+                    }
+                }
+            }
+
             bgfx.set_view_name(viewID, "ImGui", int.MaxValue);
             bgfx.set_view_mode(viewID, bgfx.ViewMode.Sequential);
 
@@ -424,8 +540,8 @@ internal class ImGuiProxy
 
                 var cmdList = drawData.CmdLists.Data[i];
 
-                var numVertices = cmdList->VtxBuffer.Size;
-                var numIndices = cmdList->IdxBuffer.Size;
+                var numVertices = cmdList.VtxBuffer.Size;
+                var numIndices = cmdList.IdxBuffer.Size;
 
                 if (RenderSystem.CheckAvailableTransientBuffers((uint)numVertices, layout.layout, (uint)numIndices) == false)
                 {
@@ -441,15 +557,15 @@ internal class ImGuiProxy
 
                 var size = numVertices * sizeof(ImDrawVert);
 
-                Buffer.MemoryCopy((void *)cmdList->VtxBuffer.Data, tvb.data, size, size);
+                Buffer.MemoryCopy((void *)cmdList.VtxBuffer.Data, tvb.data, size, size);
 
                 size = numIndices * sizeof(ushort);
 
-                Buffer.MemoryCopy((void *)cmdList->IdxBuffer.Data, tib.data, size, size);
+                Buffer.MemoryCopy((void *)cmdList.IdxBuffer.Data, tib.data, size, size);
 
-                for (var j = 0; j < cmdList->CmdBuffer.Size; j++)
+                for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
                 {
-                    var drawCmd = cmdList->CmdBuffer.Data[j];
+                    var drawCmd = cmdList.CmdBuffer.Data[j];
 
                     if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != null)
                     {
@@ -461,17 +577,17 @@ internal class ImGuiProxy
 
                     bgfx.ProgramHandle program = this.program.instances.First().Value.program;
 
-                    if (drawCmd.TextureId != IntPtr.Zero)
+                    if (drawCmd.GetTexID().IsNull == false)
                     {
                         program = imageProgram.instances.First().Value.program;
 
-                        var index = (ushort)drawCmd.TextureId.Handle;
+                        var index = (ushort)drawCmd.GetTexID().Handle;
 
                         activeTexture.idx = index;
                     }
                     else
                     {
-                        activeTexture.idx = fontTexture.handle.idx;
+                        activeTexture.idx = ushort.MaxValue;
                     }
 
                     var clipRect = new Vector4((drawCmd.ClipRect.X - clipPos.X) * clipScale.X,
@@ -504,23 +620,26 @@ internal class ImGuiProxy
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static IntPtr GetImGuiTexture(Texture texture)
+    public static ImTextureRef GetImGuiTexture(Texture texture)
     {
-        if(texture == null ||
-            texture.handle.Valid == false ||
-            texture.Disposed ||
-            texture.metadata.readBack)
+        unsafe
         {
-            return IntPtr.Zero;
-        }
+            if (texture == null ||
+                texture.handle.Valid == false ||
+                texture.Disposed ||
+                texture.metadata.readBack)
+            {
+                return new ImTextureRef(texId: ImTextureID.Null);
+            }
 
-        return new IntPtr(texture.handle.idx);
+            return new ImTextureRef(texId: new ImTextureID((ulong)texture.handle.idx));
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static uint ImGuiRGBA(byte r, byte g, byte b, byte a = 255)
     {
-        return r | ((uint)g << 8) | ((uint)b << 16) | ((uint)a << 24);
+        return ImGui.ColorConvertFloat4ToU32(new Vector4(r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f));
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

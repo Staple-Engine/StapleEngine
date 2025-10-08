@@ -36,7 +36,7 @@ internal partial class StapleEditor
         style.GrabRounding = 4.0f;
         style.TabRounding = 4.0f;
         style.TabBorderSize = 0.0f;
-        style.TabMinWidthForCloseButton = 0.0f;
+        style.TabCloseButtonMinWidthUnselected = style.TabCloseButtonMinWidthSelected = 0.0f;
         style.ColorButtonPosition = ImGuiDir.Right;
         style.ButtonTextAlign = new Vector2(0.5f, 0.5f);
         style.SelectableTextAlign = new Vector2(0.0f, 0.0f);
@@ -76,9 +76,8 @@ internal partial class StapleEditor
         style.Colors[(int)ImGuiCol.ResizeGripActive] = new Vector4(0.2588235437870026f, 0.5882353186607361f, 0.9764705896377563f, 0.949999988079071f);
         style.Colors[(int)ImGuiCol.Tab] = new Vector4(0.1098039224743843f, 0.1490196138620377f, 0.168627455830574f, 1.0f);
         style.Colors[(int)ImGuiCol.TabHovered] = new Vector4(0.2588235437870026f, 0.5882353186607361f, 0.9764705896377563f, 0.800000011920929f);
-        style.Colors[(int)ImGuiCol.TabActive] = new Vector4(0.2000000029802322f, 0.2470588237047195f, 0.2862745225429535f, 1.0f);
-        style.Colors[(int)ImGuiCol.TabUnfocused] = new Vector4(0.1098039224743843f, 0.1490196138620377f, 0.168627455830574f, 1.0f);
-        style.Colors[(int)ImGuiCol.TabUnfocusedActive] = new Vector4(0.1098039224743843f, 0.1490196138620377f, 0.168627455830574f, 1.0f);
+        style.Colors[(int)ImGuiCol.TabDimmed] = new Vector4(0.1098039224743843f, 0.1490196138620377f, 0.168627455830574f, 1.0f);
+        style.Colors[(int)ImGuiCol.TabDimmedSelected] = new Vector4(0.1098039224743843f, 0.1490196138620377f, 0.168627455830574f, 1.0f);
         style.Colors[(int)ImGuiCol.PlotLines] = new Vector4(0.6078431606292725f, 0.6078431606292725f, 0.6078431606292725f, 1.0f);
         style.Colors[(int)ImGuiCol.PlotLinesHovered] = new Vector4(1.0f, 0.4274509847164154f, 0.3490196168422699f, 1.0f);
         style.Colors[(int)ImGuiCol.PlotHistogram] = new Vector4(0.8980392217636108f, 0.6980392336845398f, 0.0f, 1.0f);
@@ -90,7 +89,6 @@ internal partial class StapleEditor
         style.Colors[(int)ImGuiCol.TableRowBgAlt] = new Vector4(1.0f, 1.0f, 1.0f, 0.05999999865889549f);
         style.Colors[(int)ImGuiCol.TextSelectedBg] = new Vector4(0.2588235437870026f, 0.5882353186607361f, 0.9764705896377563f, 0.3499999940395355f);
         style.Colors[(int)ImGuiCol.DragDropTarget] = new Vector4(1.0f, 1.0f, 0.0f, 0.8999999761581421f);
-        style.Colors[(int)ImGuiCol.NavHighlight] = new Vector4(0.2588235437870026f, 0.5882353186607361f, 0.9764705896377563f, 1.0f);
         style.Colors[(int)ImGuiCol.NavWindowingHighlight] = new Vector4(1.0f, 1.0f, 1.0f, 0.699999988079071f);
         style.Colors[(int)ImGuiCol.NavWindowingDimBg] = new Vector4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.2000000029802322f);
         style.Colors[(int)ImGuiCol.ModalWindowDimBg] = new Vector4(0.800000011920929f, 0.800000011920929f, 0.800000011920929f, 0.3499999940395355f);

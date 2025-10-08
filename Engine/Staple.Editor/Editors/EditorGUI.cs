@@ -327,7 +327,7 @@ public static class EditorGUI
     /// <param name="text">The text to show</param>
     public static void HeaderLabel(string text)
     {
-        ImGui.PushFont(ImGuiProxy.instance.headerFont);
+        ImGui.PushFont(ImGuiProxy.instance.headerFont, 22);
 
         Label(text);
 
@@ -943,7 +943,8 @@ public static class EditorGUI
             return;
         }
 
-        ImGui.Image(ImGuiProxy.GetImGuiTexture(texture), size, new Vector4(color.r, color.g, color.b, color.a));
+        ImGui.ImageWithBg(ImGuiProxy.GetImGuiTexture(texture), size, new Vector4(0, 0, 0, 0),
+            new Vector4(color.r, color.g, color.b, color.a));
     }
 
     /// <summary>
