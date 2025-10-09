@@ -31,6 +31,8 @@ internal class ImGuiProxy
 
     public ImFontPtr headerFont;
 
+    private byte[] editor;
+    private byte[] header;
     private bool frameBegun = false;
     private bool destroyed = false;
 
@@ -97,6 +99,11 @@ internal class ImGuiProxy
         var io = ImGui.GetIO();
         var platformIO = ImGui.GetPlatformIO();
 
+        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset |
+            ImGuiBackendFlags.RendererHasTextures;
+
+        io.ConfigWindowsMoveFromTitleBarOnly = true;
+
         unsafe
         {
             var setPtr = Marshal.GetFunctionPointerForDelegate(SetClipboardText);
@@ -106,17 +113,10 @@ internal class ImGuiProxy
             platformIO.PlatformSetClipboardTextFn = (void*)setPtr;
             platformIO.PlatformGetClipboardTextFn = (void*)getPtr;
             platformIO.PlatformClipboardUserData = (void *)nint.Zero;
-
-            io.Fonts.AddFontDefault();
         }
 
-        io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset |
-            ImGuiBackendFlags.RendererHasTextures;
-
-        io.ConfigWindowsMoveFromTitleBarOnly = true;
-
-        var editor = Convert.FromBase64String(FontData.IntelOneMonoMedium);
-        var header = Convert.FromBase64String(FontData.IntelOneMonoBold);
+        editor = Convert.FromBase64String(FontData.IntelOneMonoMedium);
+        header = Convert.FromBase64String(FontData.IntelOneMonoBold);
 
         unsafe
         {
@@ -132,6 +132,8 @@ internal class ImGuiProxy
             {
                 headerFont = io.Fonts.AddFontFromMemoryTTF(ptr, header.Length, 22);
             }
+
+            io.FontDefault = editorFont;
         }
 
         var programPath = $"Hidden/Shaders/UI/ocornut_imgui.{AssetSerialization.ShaderExtension}";
@@ -349,8 +351,6 @@ internal class ImGuiProxy
 
         ImGuizmo.BeginFrame();
 
-        ImGui.PushFont(editorFont, 20);
-
         frameBegun = true;
     }
 
@@ -364,8 +364,6 @@ internal class ImGuiProxy
         if (frameBegun)
         {
             frameBegun = false;
-
-            ImGui.PopFont();
 
             ImGui.Render();
 
