@@ -32,7 +32,11 @@ public static class EditorGUI
 
     private static readonly Dictionary<string, bool> treeViewStates = [];
 
+    private static readonly Dictionary<string, bool> collapsingHeaderStates = [];
+
     private static readonly HashSet<int> usedTreeViewStates = [];
+
+    private static readonly HashSet<int> usedCollapsingHeaderStates = [];
 
     private static readonly List<Action> endFrameCallbacks = [];
 
@@ -123,11 +127,28 @@ public static class EditorGUI
 
                 treeViewStates.Remove(key);
             }
+
+            keys = collapsingHeaderStates.Keys.ToArray();
+
+            foreach(var key in keys)
+            {
+                if(usedCollapsingHeaderStates.Contains(key.GetHashCode()))
+                {
+                    continue;
+                }
+
+                collapsingHeaderStates.Remove(key);
+            }
         }
 
         if (usedTreeViewStates.Count > 0)
         {
             usedTreeViewStates.Clear();
+        }
+
+        if(usedCollapsingHeaderStates.Count > 0)
+        {
+            usedCollapsingHeaderStates.Clear();
         }
     }
 
@@ -1357,7 +1378,6 @@ public static class EditorGUI
     /// <param name="leaf">Whether it's a leaf (doesn't open on click, no arrow)</param>
     /// <param name="openHandler">A handler for when it is open</param>
     /// <param name="clickHandler">A handler for when it is clicked</param>
-    /// <param name="openHandler">A handler for when it is open</param>
     /// <param name="prefixHandler">A handler to run regardless of the node being open</param>
     /// <remarks>Click Handler will trigger when the left or right mouse button is clicked</remarks>
     public static void TreeNodeIcon(Texture icon, string label, string key, bool leaf, ref bool open, Action openHandler, Action clickHandler,
@@ -1883,6 +1903,126 @@ public static class EditorGUI
             }
 
             ImGui.EndTable();
+        }
+    }
+
+    /// <summary>
+    /// Create a collapsing header
+    /// </summary>
+    /// <param name="label">The label for the header</param>
+    /// <param name="key">The header's unique ID</param>
+    /// <param name="showCloseButton">Whether we should show a close button</param>
+    /// <param name="handler">A callback when the header is expanded</param>
+    /// <param name="closed">A callback when the header's close button is clicked</param>
+    /// <param name="defaultOpen">Whether the tree should be open by default</param>
+    public static void CollapsingHeader(string label, string key, bool showCloseButton, Action handler,
+        Action closed, bool defaultOpen = false)
+    {
+        var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+
+        if (defaultOpen)
+        {
+            flags |= ImGuiTreeNodeFlags.DefaultOpen;
+        }
+
+        var visible = showCloseButton;
+        bool open;
+
+        if(showCloseButton)
+        {
+            open = ImGui.CollapsingHeader(MakeIdentifier(label, key), ref visible, flags);
+        }
+        else
+        {
+            open = ImGui.CollapsingHeader(MakeIdentifier(label, key), flags);
+        }
+
+        var stateKey = $"{label}-{key}";
+
+        if (collapsingHeaderStates.TryGetValue(stateKey, out var isOpen) == false)
+        {
+            isOpen = false;
+
+            collapsingHeaderStates.Add(stateKey, isOpen);
+        }
+
+        usedCollapsingHeaderStates.Add(stateKey.GetHashCode());
+
+        if (isOpen != open)
+        {
+            collapsingHeaderStates.AddOrSetKey(stateKey, open);
+        }
+
+        isOpen = open;
+
+        if(open)
+        {
+            ExecuteHandler(handler, key);
+        }
+
+        if(showCloseButton && visible == false)
+        {
+            ExecuteHandler(closed, $"{key} closed");
+        }
+    }
+
+    /// <summary>
+    /// Create a collapsing header
+    /// </summary>
+    /// <param name="label">The label for the header</param>
+    /// <param name="key">The header's unique ID</param>
+    /// <param name="open">Whether the header is open</param>
+    /// <param name="showCloseButton">Whether we should show a close button</param>
+    /// <param name="handler">A callback when the header is expanded</param>
+    /// <param name="closed">A callback when the header's close button is clicked</param>
+    /// <param name="defaultOpen">Whether the tree should be open by default</param>
+    public static void CollapsingHeader(string label, string key, ref bool open, bool showCloseButton, Action handler,
+        Action closed, bool defaultOpen = false)
+    {
+        var flags = ImGuiTreeNodeFlags.OpenOnArrow | ImGuiTreeNodeFlags.OpenOnDoubleClick;
+
+        if (defaultOpen)
+        {
+            flags |= ImGuiTreeNodeFlags.DefaultOpen;
+        }
+
+        var visible = showCloseButton;
+
+        if (showCloseButton)
+        {
+            open = ImGui.CollapsingHeader(MakeIdentifier(label, key), ref visible, flags);
+        }
+        else
+        {
+            open = ImGui.CollapsingHeader(MakeIdentifier(label, key), flags);
+        }
+
+        var stateKey = $"{label}-{key}";
+
+        if (collapsingHeaderStates.TryGetValue(stateKey, out var isOpen) == false)
+        {
+            isOpen = false;
+
+            collapsingHeaderStates.Add(stateKey, isOpen);
+        }
+
+        usedCollapsingHeaderStates.Add(stateKey.GetHashCode());
+
+        if (isOpen != open)
+        {
+            collapsingHeaderStates.AddOrSetKey(stateKey, open);
+        }
+
+        isOpen = open;
+
+        if(open)
+        {
+            ExecuteHandler(handler, key);
+        }
+
+        if(showCloseButton && visible == false)
+        {
+            ExecuteHandler(closed, $"{key} closed");
         }
     }
 }

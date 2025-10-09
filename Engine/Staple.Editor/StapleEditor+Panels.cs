@@ -1062,61 +1062,59 @@ internal partial class StapleEditor
                 var localComponent = component;
                 var removed = false;
 
-                EditorGUI.TreeNode(component.GetType().Name.ExpandCamelCaseName(), $"SELECTED{component.GetType().FullName}", false, () =>
-                {
-                    if(removed)
+                EditorGUI.CollapsingHeader(component.GetType().Name.ExpandCamelCaseName(), $"SELECTED{component.GetType().FullName}",
+                    component is not Transform,
+                    () =>
                     {
-                        return;
-                    }
-
-                    if (localComponent is Transform transform)
-                    {
-                        transform.LocalPosition = EditorGUI.Vector3Field("Position", $"SELECTED{localComponent.GetType().FullName}POSITION", transform.LocalPosition);
-
-                        var rotation = transform.LocalRotation.ToEulerAngles();
-
-                        var newRotation = EditorGUI.Vector3Field("Rotation", $"SELECTED{localComponent.GetType().FullName}ROTATION", rotation);
-
-                        if (rotation != newRotation)
+                        if(removed)
                         {
-                            transform.LocalRotation = Quaternion.Euler(newRotation);
+                            return;
                         }
 
-                        transform.LocalScale = EditorGUI.Vector3Field("Scale", $"SELECTED{localComponent.GetType().FullName}SCALE", transform.LocalScale);
-                    }
-                    else
-                    {
-                        if (cachedEditors.TryGetValue($"{counter}{localComponent.GetType().FullName}", out var editor))
+                        if (localComponent is Transform transform)
                         {
-                            editor.OnInspectorGUI();
+                            transform.LocalPosition = EditorGUI.Vector3Field("Position", $"SELECTED{localComponent.GetType().FullName}POSITION",
+                                transform.LocalPosition);
+
+                            var rotation = transform.LocalRotation.ToEulerAngles();
+
+                            var newRotation = EditorGUI.Vector3Field("Rotation", $"SELECTED{localComponent.GetType().FullName}ROTATION", rotation);
+
+                            if (rotation != newRotation)
+                            {
+                                transform.LocalRotation = Quaternion.Euler(newRotation);
+                            }
+
+                            transform.LocalScale = EditorGUI.Vector3Field("Scale", $"SELECTED{localComponent.GetType().FullName}SCALE",
+                                transform.LocalScale);
                         }
                         else
                         {
-                            cachedEditors.Add($"{counter}{localComponent.GetType().FullName}", new Editor()
+                            if (cachedEditors.TryGetValue($"{counter}{localComponent.GetType().FullName}", out var editor))
                             {
-                                target = localComponent
-                            });
+                                editor.OnInspectorGUI();
+                            }
+                            else
+                            {
+                                cachedEditors.Add($"{counter}{localComponent.GetType().FullName}", new Editor()
+                                {
+                                    target = localComponent
+                                });
+                            }
                         }
-                    }
 
-                    if (EditorGUI.Changed)
-                    {
-                        selectedEntity.SetComponent(localComponent);
-                    }
-                },
-                null,
-                () =>
-                {
-                    EditorGUI.SameLine();
-
-                    EditorGUI.Button("X", $"ENTITYREMOVE{localComponent.GetType()}", () =>
+                        if (EditorGUI.Changed)
+                        {
+                            selectedEntity.SetComponent(localComponent);
+                        }
+                    },
+                    () =>
                     {
                         selectedEntity.RemoveComponent(localComponent.GetType());
 
                         removed = true;
                         resetSelection = true;
-                    });
-                }, true);
+                    }, true);
             });
 
             if(ImGui.Button("Add Component"))
