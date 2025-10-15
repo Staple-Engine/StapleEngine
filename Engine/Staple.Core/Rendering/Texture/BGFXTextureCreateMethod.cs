@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 
 namespace Staple.Internal;
 
@@ -17,6 +16,7 @@ internal class BGFXTextureCreateMethod(string path, byte[] data, TextureMetadata
         {
             Texture.ProcessFlags(ref flags, metadata);
 
+            /*
             bgfx.TextureInfo info;
 
             bgfx.Memory* memory = bgfx.alloc((uint)data.Length);
@@ -39,6 +39,9 @@ internal class BGFXTextureCreateMethod(string path, byte[] data, TextureMetadata
             texture.info = info;
 
             return true;
+            */
+
+            return false;
         }
     }
 }

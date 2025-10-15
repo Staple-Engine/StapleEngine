@@ -8,7 +8,7 @@ cmake -B build\native\freetype\Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIB
 
 cmake -B build\native\freetype\Release -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=true -S freetype -G "Visual Studio 17 2022"
 
-call build_bgfx.cmd
+rem call build_bgfx.cmd
 
 devenv build\native\freetype\Debug\freetype.sln  /Build "Debug|x64"
 
@@ -22,5 +22,5 @@ devenv build\native\Dependencies.sln  /Build "Debug|x64"
 
 devenv build\native\Dependencies.sln  /Build "Release|x64"
 
-dotnet publish build\dotnet\Dependencies_Dotnet.sln -c Debug -o build\dotnet\bin\Debug\net9.0
-dotnet publish build\dotnet\Dependencies_Dotnet.sln -c Release -o build\dotnet\bin\Release\net9.0
+dotnet build build\dotnet\Dependencies_Dotnet.sln -c Debug -p:Platform="Any CPU" -o build\dotnet\bin\Debug\net10.0
+dotnet build build\dotnet\Dependencies_Dotnet.sln -c Release -p:Platform="Any CPU" -o build\dotnet\bin\Release\net10.0

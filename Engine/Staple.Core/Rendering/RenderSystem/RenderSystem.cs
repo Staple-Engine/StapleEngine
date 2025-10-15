@@ -5,7 +5,6 @@ namespace Staple.Internal;
 /// <summary>
 /// Rendering subsystem, handles all rendering
 /// </summary>
-[AdditionalLibrary(AppPlatform.Android, "bgfx")]
 public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 {
     /// <summary>

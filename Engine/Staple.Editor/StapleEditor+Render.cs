@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Hexa.NET.ImGuizmo;
+﻿using Hexa.NET.ImGuizmo;
 using Staple.Internal;
 using System;
 using System.Numerics;
@@ -16,8 +15,10 @@ internal partial class StapleEditor
     /// </summary>
     public void RenderScene()
     {
+        /*
         bgfx.touch(SceneView);
         bgfx.touch(WireframeView);
+        */
 
         ImGuizmo.SetDrawlist();
         ImGuizmo.SetOrthographic(false);
@@ -34,8 +35,10 @@ internal partial class StapleEditor
 
             camera.UpdateFrustum(view, projection);
 
+            /*
             bgfx.set_view_transform(SceneView, &view, &projection);
             bgfx.set_view_transform(WireframeView, &view, &projection);
+            */
 
             if (selectedEntity.IsValid &&
                 selectedEntity.TryGetComponent<Transform>(out var selectedTransform))

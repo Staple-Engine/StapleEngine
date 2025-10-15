@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -59,7 +58,8 @@ public sealed class MeshRenderSystem : IRenderSystem
     /// <param name="material">The material to use</param>
     /// <param name="lighting">The lighting model to use</param>
     /// <param name="viewID">The view ID to render to</param>
-    public static void RenderMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material, MaterialLighting lighting, ushort viewID)
+    public static void RenderMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material,
+        MaterialLighting lighting, ushort viewID)
     {
         if(mesh == null ||
             material == null ||
@@ -68,12 +68,11 @@ public sealed class MeshRenderSystem : IRenderSystem
             return;
         }
 
-        bgfx.discard((byte)bgfx.DiscardFlags.All);
-
         mesh.UploadMeshData();
 
         var matrix = Matrix4x4.TRS(position, scale, rotation);
 
+        /*
         bgfx.StateFlags state = material.shader.StateFlags |
             mesh.PrimitiveFlag() |
             material.CullingFlag;
@@ -84,8 +83,22 @@ public sealed class MeshRenderSystem : IRenderSystem
         }
 
         bgfx.set_state((ulong)state, 0);
+        */
 
-        mesh.SetActive();
+        var renderState = new RenderState()
+        {
+            enableDepth = true,
+            depthWrite = true,
+            primitiveType = mesh.MeshTopology,
+            cull = material.CullingMode,
+            indexBuffer = mesh.indexBuffer,
+            vertexBuffer = mesh.vertexBuffer,
+            vertexLayout = mesh.vertexBuffer.layout,
+            indexCount = mesh.IndexCount,
+            vertexCount = mesh.VertexCount,
+        };
+
+        mesh.SetActive(ref renderState);
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
 
@@ -99,15 +112,13 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         var program = material.ShaderProgram;
 
-        if (program.Valid)
+        if (program != null)
         {
+            renderState.program = program;
+
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-            RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
-        }
-        else
-        {
-            bgfx.discard((byte)bgfx.DiscardFlags.All);
+            RenderSystem.Submit(viewID, renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
         }
     }
 
@@ -275,8 +286,6 @@ public sealed class MeshRenderSystem : IRenderSystem
             return;
         }
 
-        bgfx.discard((byte)bgfx.DiscardFlags.All);
-
         Material lastMaterial = null;
         MaterialLighting lastLighting = MaterialLighting.Unlit;
         var lastInstances = 0;
@@ -307,13 +316,11 @@ public sealed class MeshRenderSystem : IRenderSystem
                 lastInstances = contents.instanceInfos.Contents.Length;
                 forceDiscard = false;
 
-                bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
                 lightSystem?.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
 
-                if (material.ShaderProgram.Valid == false)
+                if (material.ShaderProgram == null)
                 {
                     continue;
                 }
@@ -333,8 +340,9 @@ public sealed class MeshRenderSystem : IRenderSystem
                 material.DisableShaderKeyword(Shader.InstancingKeyword);
             }
 
-            if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword))
+            if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword) && false)
             {
+                /*
                 bgfx.set_state((ulong)(material.shader.StateFlags |
                     contents.instanceInfos.Contents[0].mesh.PrimitiveFlag() |
                     material.CullingFlag), 0);
@@ -370,36 +378,44 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     bgfx.discard((byte)bgfx.DiscardFlags.All);
                 }
+                */
             }
             else
             {
                 for (var i = 0; i < contents.instanceInfos.Length; i++)
                 {
-                    bgfx.set_state((ulong)(material.shader.StateFlags |
-                        contents.instanceInfos.Contents[0].mesh.PrimitiveFlag() |
-                        material.CullingFlag), 0);
-
                     var content = contents.instanceInfos.Contents[i];
 
+                    /*
                     unsafe
                     {
                         var transform = content.transform.Matrix;
 
                         _ = bgfx.set_transform(&transform, 1);
                     }
+                    */
 
-                    content.mesh.SetActive(content.submeshIndex);
+                    var renderState = new RenderState()
+                    {
+                        cull = material.CullingMode,
+                        depthWrite = true,
+                        enableDepth = true,
+                        vertexBuffer = content.mesh.vertexBuffer,
+                        indexBuffer = content.mesh.indexBuffer,
+                        vertexLayout = content.mesh.vertexBuffer.layout,
+                        primitiveType = content.mesh.MeshTopology,
+                    };
+
+                    content.mesh.SetActive(ref renderState, content.submeshIndex);
 
                     var program = material.ShaderProgram;
 
-                    var flags = bgfx.DiscardFlags.State;
-
-                    RenderSystem.Submit(viewID, program, flags,
-                        renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex), 1);
+                    if(program != null)
+                    {
+                        RenderSystem.Submit(viewID, renderState, renderData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
+                    }
                 }
             }
         }
-
-        bgfx.discard((byte)bgfx.DiscardFlags.All);
     }
 }

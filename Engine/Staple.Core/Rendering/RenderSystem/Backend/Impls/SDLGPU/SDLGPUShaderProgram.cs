@@ -1,0 +1,62 @@
+﻿using SDL3;
+
+namespace Staple.Internal;
+
+internal class SDLGPUShaderProgram : IShaderProgram
+{
+    public ShaderType Type { get; private set; }
+
+    public readonly nint device;
+    public nint vertex;
+    public nint fragment;
+    public nint compute;
+    public bool disposed = false;
+
+    public SDLGPUShaderProgram(nint device, nint vertex, nint fragment)
+    {
+        Type = ShaderType.VertexFragment;
+
+        this.device = device;
+        this.vertex = vertex;
+        this.fragment = fragment;
+    }
+
+    public SDLGPUShaderProgram(nint device, nint compute)
+    {
+        Type = ShaderType.Compute;
+
+        this.device = device;
+        this.compute = compute;
+    }
+
+    public void Destroy()
+    {
+        if(disposed)
+        {
+            return;
+        }
+
+        disposed = true;
+
+        switch(Type)
+        {
+            case ShaderType.VertexFragment:
+
+                SDL.SDL_ReleaseGPUShader(device, vertex);
+                SDL.SDL_ReleaseGPUShader(device, fragment);
+
+                vertex = nint.Zero;
+                fragment = nint.Zero;
+
+                break;
+
+            case ShaderType.Compute:
+
+                SDL.SDL_ReleaseGPUShader(device, compute);
+
+                compute = nint.Zero;
+
+                break;
+        }
+    }
+}

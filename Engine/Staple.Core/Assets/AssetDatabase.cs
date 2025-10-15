@@ -527,7 +527,7 @@ public static class AssetDatabase
     /// </summary>
     /// <param name="path">The path for the asset</param>
     /// <returns>The guid or null</returns>
-    public static string GetAssetGuid(string path) => assetGuids.TryGetValue(path, out var guid) ? guid : null;
+    public static string GetAssetGuid(string path) => path != null && assetGuids.TryGetValue(path, out var guid) ? guid : null;
 
     /// <summary>
     /// Gets the type name of an asset

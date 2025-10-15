@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 
 namespace Staple.Internal;
 
@@ -20,6 +19,7 @@ internal class PixelTextureCreateMethod(string path, byte[] data, ushort width, 
         {
             Texture.ProcessFlags(ref flags, metadata);
 
+            /*
             bgfx.Memory* memory = bgfx.alloc((uint)data.Length);
 
             var source = new Span<byte>(data);
@@ -47,6 +47,9 @@ internal class PixelTextureCreateMethod(string path, byte[] data, ushort width, 
             };
 
             return true;
+            */
+
+            return false;
         }
     }
 }

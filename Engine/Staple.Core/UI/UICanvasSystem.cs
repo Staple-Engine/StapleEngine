@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Numerics;
 using Staple.UI;
 
@@ -56,9 +55,11 @@ public class UICanvasSystem : IRenderSystem
         {
             var view = Matrix4x4.Identity;
 
+            /*
             bgfx.set_view_transform(UIViewID, &view, &projection);
             bgfx.set_view_clear(UIViewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
             bgfx.set_view_rect(UIViewID, 0, 0, (ushort)Screen.Width, (ushort)Screen.Height);
+            */
         }
 
         IsPointerOverUI = false;

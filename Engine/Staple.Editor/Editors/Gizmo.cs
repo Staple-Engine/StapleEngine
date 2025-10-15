@@ -142,8 +142,8 @@ public static class Gizmo
 
         meshMaterial.MainColor = color;
 
-        lineLayout ??= new VertexLayoutBuilder()
-            .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
+        lineLayout ??= VertexLayoutBuilder.CreateNew()
+            .Add(VertexAttribute.Position, VertexAttributeType.Float3)
             .Build();
 
         Graphics.RenderSimple([from, to], lineLayout, [0, 1], meshMaterial, Vector3.Zero, Matrix4x4.Identity,
@@ -156,8 +156,8 @@ public static class Gizmo
 
         meshMaterial.MainColor = color;
 
-        lineLayout ??= new VertexLayoutBuilder()
-            .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
+        lineLayout ??= VertexLayoutBuilder.CreateNew()
+            .Add(VertexAttribute.Position, VertexAttributeType.Float3)
             .Build();
 
         Graphics.RenderSimple(points, lineLayout, indices, meshMaterial, Vector3.Zero, Matrix4x4.Identity,
@@ -170,8 +170,8 @@ public static class Gizmo
 
         meshMaterial.MainColor = color;
 
-        lineLayout ??= new VertexLayoutBuilder()
-            .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
+        lineLayout ??= VertexLayoutBuilder.CreateNew()
+            .Add(VertexAttribute.Position, VertexAttributeType.Float3)
             .Build();
 
         Graphics.RenderSimple(points, lineLayout, indices, meshMaterial, Vector3.Zero, Matrix4x4.Identity,

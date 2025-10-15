@@ -30,9 +30,9 @@ public class TextRenderer
         }
     }
 
-    public static Lazy<VertexLayout> VertexLayout = new(() => new VertexLayoutBuilder()
-        .Add(VertexAttribute.Position, 2, VertexAttributeType.Float)
-        .Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float)
+    public static Lazy<VertexLayout> VertexLayout = new(() => VertexLayoutBuilder.CreateNew()
+        .Add(VertexAttribute.Position, VertexAttributeType.Float2)
+        .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2)
         .Build());
 
     public static readonly TextRenderer instance = new();
@@ -470,6 +470,7 @@ public class TextRenderer
 
         if (MakeTextGeometry(text, parameters, scale, flipY, out var vertices, out var indices))
         {
+            /*
             if(VertexBuffer.TransientBufferHasSpace(vertices.Length, VertexLayout.Value) &&
                 IndexBuffer.TransientBufferHasSpace(indices.Length, false))
             {
@@ -486,6 +487,7 @@ public class TextRenderer
                 Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length,
                     material, Vector3.Zero, transform, MeshTopology.Triangles, MaterialLighting.Unlit, viewID);
             }
+            */
         }
     }
 

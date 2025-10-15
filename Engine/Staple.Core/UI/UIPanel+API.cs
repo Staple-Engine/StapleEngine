@@ -31,6 +31,7 @@ public partial class UIPanel
         vertices[3].position = new(size.X, size.Y, 0);
         vertices[3].uv = new(1, 1);
 
+        /*
         var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteUtils.VertexLayout.Value);
 
         var indexBuffer = IndexBuffer.CreateTransient(indices);
@@ -55,6 +56,7 @@ public partial class UIPanel
 
         material.MainColor = c;
         material.MainTexture = t;
+        */
     }
 
     /// <summary>
@@ -83,6 +85,7 @@ public partial class UIPanel
         vertices[3].position = new(size.X, size.Y, 0);
         vertices[3].uv = new(rect.right / (float)texture.Width, rect.bottom / (float)texture.Height);
 
+        /*
         var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteUtils.VertexLayout.Value);
 
         var indexBuffer = IndexBuffer.CreateTransient(indices);
@@ -107,6 +110,7 @@ public partial class UIPanel
 
         material.MainColor = c;
         material.MainTexture = t;
+        */
     }
 
     /// <summary>
@@ -139,6 +143,7 @@ public partial class UIPanel
 
         position += border.Position;
 
+        /*
         var vertexBuffer = VertexBuffer.CreateTransient(ninePatchVertices.AsSpan(), SpriteUtils.VertexLayout.Value);
 
         var indexBuffer = IndexBuffer.CreateTransient(ninePatchIndices);
@@ -165,6 +170,7 @@ public partial class UIPanel
 
         material.MainColor = c;
         material.MainTexture = t;
+        */
     }
 
     /// <summary>
@@ -219,6 +225,7 @@ public partial class UIPanel
             return;
         }
 
+        /*
         var vertexBuffer = VertexBuffer.CreateTransient(textVertices.AsSpan(), TextRenderer.VertexLayout.Value);
 
         var indexBuffer = IndexBuffer.CreateTransient(textIndices);
@@ -227,5 +234,6 @@ public partial class UIPanel
 
         Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertexCount, 0, indexCount, material, Vector3.Zero,
             Matrix4x4.Identity, MeshTopology.Triangles, MaterialLighting.Unlit, Manager.ViewID);
+        */
     }
 }

@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -323,8 +322,6 @@ public sealed class MeshCombineSystem : IRenderSystem
         var lastLighting = MaterialLighting.Unlit;
         var lastTopology = MeshTopology.Triangles;
 
-        bgfx.discard((byte)bgfx.DiscardFlags.All);
-
         var l = content.Length;
 
         for (var i = 0; i < l; i++)
@@ -360,14 +357,10 @@ public sealed class MeshCombineSystem : IRenderSystem
                     lastLighting = lighting;
                     lastTopology = mesh.MeshTopology;
 
-                    bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                     SetupMaterial();
 
-                    if (material.ShaderProgram.Valid == false)
+                    if (material.ShaderProgram == null)
                     {
-                        bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                         continue;
                     }
 
@@ -376,10 +369,8 @@ public sealed class MeshCombineSystem : IRenderSystem
 
                 SetupMaterial();
 
-                if (material.ShaderProgram.Valid == false)
+                if (material.ShaderProgram == null)
                 {
-                    bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                     continue;
                 }
 
@@ -387,22 +378,30 @@ public sealed class MeshCombineSystem : IRenderSystem
                 {
                     var transform = item.transform.Matrix;
 
-                    _ = bgfx.set_transform(&transform, 1);
+                    //_ = bgfx.set_transform(&transform, 1);
                 }
 
-                mesh.SetActive(0);
+                //mesh.SetActive(0);
 
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
                 var program = material.ShaderProgram;
 
-                bgfx.set_state((ulong)(material.shader.StateFlags |
-                    mesh.PrimitiveFlag() |
-                    material.CullingFlag), 0);
+                var renderState = new RenderState()
+                {
+                    cull = material.CullingMode,
+                    primitiveType = mesh.MeshTopology,
+                    depthWrite = true,
+                    enableDepth = true,
+                    indexBuffer = mesh.indexBuffer,
+                    vertexBuffer = mesh.vertexBuffer,
+                    indexCount = mesh.IndexCount,
+                    vertexCount = mesh.VertexCount,
+                    program = program,
+                    vertexLayout = mesh.vertexBuffer.layout,
+                };
 
-                var flags = bgfx.DiscardFlags.State;
-
-                RenderSystem.Submit(viewID, program, flags, mesh.SubmeshTriangleCount(0), 1);
+                RenderSystem.Submit(viewID, renderState, mesh.SubmeshTriangleCount(0), 1);
             }
         }
     }

@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -175,19 +174,6 @@ public sealed class Material : IGuidAsset
     /// </summary>
     public CullingMode CullingMode { get; set; } = CullingMode.Back;
 
-    internal bgfx.StateFlags CullingFlag
-    {
-        get
-        {
-            return CullingMode switch
-            {
-                Staple.CullingMode.Back => bgfx.StateFlags.CullCcw,
-                Staple.CullingMode.Front => bgfx.StateFlags.CullCw,
-                _ => 0,
-            };
-        }
-    }
-
     internal bool needsHashUpdate = true;
     internal int stateHash;
 
@@ -321,14 +307,11 @@ public sealed class Material : IGuidAsset
     /// <summary>
     /// Gets the current shader program, if valid.
     /// </summary>
-    internal bgfx.ProgramHandle ShaderProgram => shader != null &&
+    internal IShaderProgram ShaderProgram => shader != null &&
         shader.Disposed == false &&
         shader.metadata.type == ShaderType.VertexFragment &&
         shader.instances.TryGetValue(ShaderVariantKey, out var instance) ?
-        instance.program : new()
-        {
-            idx = ushort.MaxValue,
-        };
+        instance.program : null;
 
     public Material()
     {
@@ -336,6 +319,11 @@ public sealed class Material : IGuidAsset
 
     public Material(Material sourceMaterial)
     {
+        if(sourceMaterial == null)
+        {
+            return;
+        }
+
         foreach (var parameter in sourceMaterial.parameters)
         {
             parameters.AddOrSetKey(parameter.Key, parameter.Value.Clone());
@@ -1085,6 +1073,7 @@ public sealed class Material : IGuidAsset
                             if (parameter.relatedParameters[0] != null &&
                                 parameter.relatedParameters[1] != null)
                             {
+                                /*
                                 overrideFlags |=
                                     parameter.relatedParameters[0].textureWrapValue switch
                                     {
@@ -1100,6 +1089,7 @@ public sealed class Material : IGuidAsset
                                         TextureWrap.Repeat => 0,
                                         _ => TextureFlags.SamplerVClamp,
                                     };
+                                */
                             }
 
                             if (parameter.shaderHandle.Variant != null)

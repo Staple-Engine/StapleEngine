@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -21,10 +20,7 @@ public partial class ComputeShader : IGuidAsset
 
     private byte[] shaderSource = [];
 
-    private bgfx.ProgramHandle programHandle = new()
-    {
-        idx = ushort.MaxValue,
-    };
+    private IShaderProgram program;
 
     private int usedTextureStages = 0;
 
@@ -97,29 +93,14 @@ public partial class ComputeShader : IGuidAsset
             return false;
         }
 
-        bgfx.Memory* cs = null;
+        program = RenderSystem.Backend.CreateShaderCompute(shaderSource);
 
-        fixed (void* ptr = shaderSource)
-        {
-            cs = bgfx.copy(ptr, (uint)shaderSource.Length);
-        }
-
-        var computeShader = bgfx.create_shader(cs);
-
-        if (computeShader.Valid == false)
+        if (program == null)
         {
             return false;
         }
 
-        programHandle = bgfx.create_compute_program(computeShader, true);
-
-        if (programHandle.Valid == false)
-        {
-            bgfx.destroy_shader(computeShader);
-
-            return false;
-        }
-
+        /*
         if (uniforms.Length > 0)
         {
             foreach (var uniform in uniforms)
@@ -153,6 +134,9 @@ public partial class ComputeShader : IGuidAsset
         Disposed = false;
 
         return true;
+        */
+
+        return false;
     }
 
     internal void AddUniform(Shader.DefaultUniform uniform)
@@ -210,7 +194,7 @@ public partial class ComputeShader : IGuidAsset
                 {
                     count = u.count,
                     isAlias = true,
-                    handle = u.handle,
+                    //handle = u.handle,
                     stage = u.stage,
                     uniform = new()
                     {
@@ -256,6 +240,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="z">The amount of Z threads</param>
     public void Dispatch(ushort viewId, int x, int y, int z)
     {
+        /*
         if (Disposed ||
             metadata.type != ShaderType.Compute ||
             programHandle.Valid == false)
@@ -264,6 +249,7 @@ public partial class ComputeShader : IGuidAsset
         }
 
         bgfx.dispatch(viewId, programHandle, (uint)x, (uint)y, (uint)z, (byte)bgfx.DiscardFlags.All);
+        */
     }
 
     /// <summary>
@@ -282,7 +268,7 @@ public partial class ComputeShader : IGuidAsset
         {
             var temp = new Vector4(value, 0, 0, 0);
 
-            bgfx.set_uniform(uniform.handle, &temp, 1);
+            //bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
 
@@ -302,7 +288,7 @@ public partial class ComputeShader : IGuidAsset
         {
             var temp = new Vector4(value, 0, 0);
 
-            bgfx.set_uniform(uniform.handle, &temp, 1);
+            //bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
 
@@ -329,7 +315,7 @@ public partial class ComputeShader : IGuidAsset
 
             fixed (void* ptr = temp)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -350,7 +336,7 @@ public partial class ComputeShader : IGuidAsset
         {
             var temp = new Vector4(value, 0);
 
-            bgfx.set_uniform(uniform.handle, &temp, 1);
+            //bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
 
@@ -377,7 +363,7 @@ public partial class ComputeShader : IGuidAsset
 
             fixed (void* ptr = temp)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -396,7 +382,7 @@ public partial class ComputeShader : IGuidAsset
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &value, 1);
+            //bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
 
@@ -416,7 +402,7 @@ public partial class ComputeShader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -437,7 +423,7 @@ public partial class ComputeShader : IGuidAsset
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &colorValue, 1);
+            //bgfx.set_uniform(uniform.handle, &colorValue, 1);
         }
     }
 
@@ -457,7 +443,7 @@ public partial class ComputeShader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -480,7 +466,7 @@ public partial class ComputeShader : IGuidAsset
 
         unsafe
         {
-            value.SetActive(uniform.stage, uniform.handle, overrideFlags);
+            //value.SetActive(uniform.stage, uniform.handle, overrideFlags);
         }
     }
 
@@ -498,7 +484,7 @@ public partial class ComputeShader : IGuidAsset
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &value, 1);
+            //bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
 
@@ -518,7 +504,7 @@ public partial class ComputeShader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -537,7 +523,7 @@ public partial class ComputeShader : IGuidAsset
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &value, 1);
+            //bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
 
@@ -557,7 +543,7 @@ public partial class ComputeShader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -574,6 +560,7 @@ public partial class ComputeShader : IGuidAsset
 
         Disposed = true;
 
+        /*
         if(programHandle.Valid)
         {
             bgfx.destroy_program(programHandle);
@@ -583,7 +570,9 @@ public partial class ComputeShader : IGuidAsset
                 idx = ushort.MaxValue,
             };
         }
+        */
 
+        /*
         foreach (var uniform in uniforms)
         {
             if (uniform.isAlias)
@@ -600,6 +589,7 @@ public partial class ComputeShader : IGuidAsset
                 uniform.handle.idx = ushort.MaxValue;
             }
         }
+        */
     }
 
     /// <summary>

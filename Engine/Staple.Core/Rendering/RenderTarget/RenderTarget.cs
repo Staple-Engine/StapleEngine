@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,7 @@ public sealed class RenderTarget
 {
     private static ulong counter = 0;
 
-    internal bgfx.FrameBufferHandle handle;
+    //internal bgfx.FrameBufferHandle handle;
     internal ushort width;
     internal ushort height;
     internal TextureFormat format;
@@ -47,10 +46,12 @@ public sealed class RenderTarget
 
         destroyed = true;
 
+        /*
         if (handle.Valid)
         {
             bgfx.destroy_frame_buffer(handle);
         }
+        */
 
         foreach(var texture in textures)
         {
@@ -117,7 +118,7 @@ public sealed class RenderTarget
             return;
         }
 
-        bgfx.set_view_frame_buffer(viewID, handle);
+        //bgfx.set_view_frame_buffer(viewID, handle);
     }
 
     public void ReadTexture(ushort viewID, byte attachment, Action<Texture, byte[]> completion)
@@ -131,6 +132,7 @@ public sealed class RenderTarget
                 {
                     var texture = GetTexture(attachment);
 
+                    /*
                     if (texture == null ||
                         texture.Disposed ||
                         texture.info.storageSize == 0)
@@ -141,7 +143,9 @@ public sealed class RenderTarget
 
                         return;
                     }
+                    */
 
+                    /*
                     var readBackTexture = Texture.CreateEmpty(texture.info.width, texture.info.height, false, 1,
                         BGFXUtils.GetBGFXTextureFormat(texture.info.format),
                         TextureFlags.BlitDestination | TextureFlags.ReadBack | TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp);
@@ -176,6 +180,7 @@ public sealed class RenderTarget
                             }
                         });
                     }
+                    */
                 });
             }
             catch (Exception e)
@@ -220,8 +225,9 @@ public sealed class RenderTarget
     /// <param name="flags">Additional texture flags</param>
     /// <returns>The render target, or null</returns>
     public static RenderTarget Create(ushort width, ushort height, TextureFormat colorFormat = TextureFormat.RGBA8,
-        bool hasMips = false, ushort layers = 1, TextureFlags flags = TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
+        bool hasMips = false, ushort layers = 1, TextureFlags flags = TextureFlags.None )//TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
     {
+        /*
         var depthFormat = bgfx.is_texture_valid(0, false, 1, bgfx.TextureFormat.D16, (ulong)flags) ? TextureFormat.D16 :
             bgfx.is_texture_valid(0, false, 1, bgfx.TextureFormat.D24S8, (ulong)flags) ? TextureFormat.D24S8 :
             TextureFormat.D32;
@@ -248,6 +254,9 @@ public sealed class RenderTarget
         }
 
         return outValue;
+        */
+
+        return null;
     }
 
     /// <summary>
@@ -258,8 +267,9 @@ public sealed class RenderTarget
     /// <param name="flags">Additional texture lags</param>
     /// <returns>The render target, or null</returns>
     public static RenderTarget Create(RenderTargetBackbufferRatio ratio, TextureFormat format,
-        TextureFlags flags = TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
+        TextureFlags flags = TextureFlags.None)// TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
     {
+        /*
         var handle = bgfx.create_frame_buffer_scaled(BGFXUtils.GetBackbufferRatio(ratio), BGFXUtils.GetTextureFormat(format), (ulong)flags);
 
         if (handle.Valid == false)
@@ -337,6 +347,9 @@ public sealed class RenderTarget
             flags = flags,
             textures = [ texture ],
         };
+        */
+
+        return null;
     }
 
     /// <summary>
@@ -347,6 +360,7 @@ public sealed class RenderTarget
     /// <returns>The render target, or null</returns>
     public static RenderTarget Create(List<Texture> textures, bool destroyTextures = false)
     {
+        /*
         if(textures.Any(x => x == null || x.handle.Valid == false))
         {
             return null;
@@ -393,5 +407,8 @@ public sealed class RenderTarget
                 };
             }
         }
+        */
+
+        return null;
     }
 }

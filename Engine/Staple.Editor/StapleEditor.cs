@@ -1,4 +1,3 @@
-using Bgfx;
 using Hexa.NET.ImGui;
 using Hexa.NET.ImGuizmo;
 using Newtonsoft.Json;
@@ -711,7 +710,7 @@ internal partial class StapleEditor
 
         window = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, true, WindowMode.Windowed,
             playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
-            playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
+            playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.RenderFlags(playerSettings.videoFlags));
 
         if (window == null)
         {
@@ -765,6 +764,7 @@ internal partial class StapleEditor
 
                 style.WindowPadding = Vector2.Zero;
 
+                /*
                 bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
                 bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
 
@@ -773,6 +773,7 @@ internal partial class StapleEditor
 
                 bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
                 bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
+                */
 
                 Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
@@ -855,7 +856,7 @@ internal partial class StapleEditor
 
             var io = ImGui.GetIO();
 
-            bgfx.touch(ClearView);
+            //bgfx.touch(ClearView);
 
             if (window.width == 0 || window.height == 0)
             {
@@ -1271,7 +1272,7 @@ internal partial class StapleEditor
 
         window.OnScreenSizeChange = (hasFocus) =>
         {
-            var flags = RenderSystem.ResetFlags(playerSettings.videoFlags);
+            //var flags = RenderSystem.ResetFlags(playerSettings.videoFlags);
 
             Screen.Width = playerSettings.screenWidth = window.width;
             Screen.Height = playerSettings.screenHeight = window.height;
@@ -1281,6 +1282,7 @@ internal partial class StapleEditor
 
             PlayerSettings.Save(playerSettings);
 
+            /*
             bgfx.reset((uint)window.width, (uint)window.height, (uint)flags, bgfx.TextureFormat.RGBA8);
 
             bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
@@ -1291,6 +1293,7 @@ internal partial class StapleEditor
 
             bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
             bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
+            */
 
             if (hadFocus != hasFocus && hasFocus)
             {

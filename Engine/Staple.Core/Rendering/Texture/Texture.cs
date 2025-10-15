@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using StbImageSharp;
 using StbRectPackSharp;
 using System;
@@ -13,8 +12,8 @@ namespace Staple;
 /// </summary>
 public class Texture : IGuidAsset
 {
-    internal bgfx.TextureHandle handle;
-    internal bgfx.TextureInfo info;
+    //internal bgfx.TextureHandle handle;
+    //internal bgfx.TextureInfo info;
     internal TextureMetadata metadata;
     internal bool renderTarget = false;
 
@@ -31,12 +30,12 @@ public class Texture : IGuidAsset
     /// <summary>
     /// The texture's width
     /// </summary>
-    public int Width => info.width;
+    public int Width => 0;//info.width;
 
     /// <summary>
     /// The texture's height
     /// </summary>
-    public int Height => info.height;
+    public int Height => 0;// info.height;
 
     /// <summary>
     /// The size of the texture as a Vector2Int
@@ -60,6 +59,7 @@ public class Texture : IGuidAsset
     /// <param name="width">The texture's width</param>
     /// <param name="height">The texture's height</param>
     /// <param name="readBack">Whether it can be read back</param>
+    /*
     internal Texture(bgfx.TextureHandle textureHandle, ushort width, ushort height, bool readBack)
     {
         handle = textureHandle;
@@ -76,6 +76,7 @@ public class Texture : IGuidAsset
             height = height,
         };
     }
+    */
 
     internal Texture(ITextureCreateMethod createMethod)
     {
@@ -94,9 +95,12 @@ public class Texture : IGuidAsset
             return false;
         }
 
+        var ok = false;
+
         if(renderTarget || createMethod.Create(this))
         {
             Disposed = false;
+            ok = true;
         }
 
         if((metadata?.sprites?.Count ?? 0) > 0)
@@ -119,7 +123,7 @@ public class Texture : IGuidAsset
             Sprites = sprites;
         }
 
-        return true;
+        return ok;
     }
 
     /// <summary>
@@ -134,12 +138,14 @@ public class Texture : IGuidAsset
 
         Disposed = true;
 
+        /*
         if (handle.Valid)
         {
             bgfx.destroy_texture(handle);
 
             handle.idx = ushort.MaxValue;
         }
+        */
     }
 
     /// <summary>
@@ -154,6 +160,7 @@ public class Texture : IGuidAsset
     /// </summary>
     /// <param name="stage">The texture stage</param>
     /// <param name="sampler">The sampler uniform</param>
+    /*
     internal void SetActive(byte stage, bgfx.UniformHandle sampler, TextureFlags flags = (TextureFlags)uint.MaxValue)
     {
         //CPU-Only
@@ -164,6 +171,7 @@ public class Texture : IGuidAsset
 
         bgfx.set_texture(stage, sampler, handle, (uint)flags);
     }
+    */
 
     /// <summary>
     /// Creates an empty texture
@@ -383,7 +391,7 @@ public class Texture : IGuidAsset
 
                 if(metadata.isLinear == false)
                 {
-                    flags |= TextureFlags.SRGB;
+                    //flags |= TextureFlags.SRGB;
                 }
 
                 break;
@@ -399,12 +407,12 @@ public class Texture : IGuidAsset
                     break;
 
                 case TextureWrap.Mirror:
-                    flags |= TextureFlags.SamplerUMirror;
+                    //flags |= TextureFlags.SamplerUMirror;
 
                     break;
 
                 case TextureWrap.Clamp:
-                    flags |= TextureFlags.SamplerUClamp;
+                    //flags |= TextureFlags.SamplerUClamp;
 
                     break;
             }
@@ -417,12 +425,12 @@ public class Texture : IGuidAsset
                     break;
 
                 case TextureWrap.Mirror:
-                    flags |= TextureFlags.SamplerVMirror;
+                    //flags |= TextureFlags.SamplerVMirror;
 
                     break;
 
                 case TextureWrap.Clamp:
-                    flags |= TextureFlags.SamplerVClamp;
+                    //flags |= TextureFlags.SamplerVClamp;
 
                     break;
             }
@@ -435,12 +443,12 @@ public class Texture : IGuidAsset
                     break;
 
                 case TextureWrap.Mirror:
-                    flags |= TextureFlags.SamplerWMirror;
+                    //flags |= TextureFlags.SamplerWMirror;
 
                     break;
 
                 case TextureWrap.Clamp:
-                    flags |= TextureFlags.SamplerWClamp;
+                    //flags |= TextureFlags.SamplerWClamp;
 
                     break;
             }
@@ -455,23 +463,23 @@ public class Texture : IGuidAsset
 
             case TextureFilter.Point:
 
-                flags |= TextureFlags.SamplerMagPoint;
-                flags |= TextureFlags.SamplerMinPoint;
-                flags |= TextureFlags.SamplerMipPoint;
+                //flags |= TextureFlags.SamplerMagPoint;
+                //flags |= TextureFlags.SamplerMinPoint;
+                //flags |= TextureFlags.SamplerMipPoint;
 
                 break;
 
             case TextureFilter.Anisotropic:
 
-                flags |= TextureFlags.SamplerMagAnisotropic;
-                flags |= TextureFlags.SamplerMinAnisotropic;
+                //flags |= TextureFlags.SamplerMagAnisotropic;
+                //flags |= TextureFlags.SamplerMinAnisotropic;
 
                 break;
         }
 
         if (metadata.readBack)
         {
-            flags |= TextureFlags.ReadBack;
+            //flags |= TextureFlags.ReadBack;
         }
     }
 
@@ -567,6 +575,7 @@ public class Texture : IGuidAsset
     {
         unsafe
         {
+            /*
             if (handle.Valid == false ||
                 metadata.readBack == false ||
                 renderTarget ||
@@ -588,6 +597,7 @@ public class Texture : IGuidAsset
                     completion?.Invoke(this, buffer);
                 });
             }
+            */
         }
     }
 

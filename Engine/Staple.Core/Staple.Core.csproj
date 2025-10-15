@@ -67,15 +67,10 @@
 		<IsAotCompatible>true</IsAotCompatible>
 	</PropertyGroup>
 
-	<ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
-
+	<ItemGroup>
 		<Reference Include="SDL3-CS">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\SDL3-CS.dll</HintPath>
 		</Reference>
-
-	</ItemGroup>
-
-	<ItemGroup>
 		<Reference Include="MessagePack">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\MessagePack.dll</HintPath>
 		</Reference>
@@ -133,7 +128,6 @@
 		<Compile Include="Entities\EntityQuery.cs" />
 		<Compile Include="Entities\IComponentDisposable.cs" />
 		<Compile Include="Entities\Prefab.cs" />
-		<Compile Include="External\BGFX\BGFXUtils.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\FastNoiseLite\FastNoiseLite.cs" />
 		<Compile Include="External\FreeType\FreeType.cs" />
@@ -201,9 +195,22 @@
 		<Compile Include="Rendering\Mesh\MeshCombine.cs" />
 		<Compile Include="Rendering\Mesh\MeshCombineSystem.cs" />
 		<Compile Include="Rendering\Mesh\MeshInstanceOptions.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUIndexBuffer.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURenderCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURendererBackend.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURenderPass.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUShaderProgram.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexBuffer.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexLayout.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexLayoutBuilder.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\IRenderCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\IRendererBackend.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\IRenderPass.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\RenderState.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderStats.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\Shader\ComputeShader.cs" />
+		<Compile Include="Rendering\Shader\IShaderProgram.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
 		<Compile Include="Rendering\Sprites\Sprite.cs" />
 		<Compile Include="Rendering\Sprites\SpriteUtils.cs" />
@@ -217,6 +224,7 @@
 		<Compile Include="Rendering\Vertex\VertexAttributeType.cs" />
 		<Compile Include="Rendering\Windowing\Impls\SDL3RenderWindow.cs" />
 		<Compile Include="Rendering\Windowing\NativeWindowType.cs" />
+		<Compile Include="Rendering\Windowing\RenderModeFlags.cs" />
 		<Compile Include="Scene\ISceneQuery.cs" />
 		<Compile Include="Scene\SceneQuery.cs" />
 		<Compile Include="Serialization\Asset\GuidHasher.cs" />
@@ -286,8 +294,6 @@
 		<Compile Include="Attributes\ComponentCategoryAttribute.cs" />
 		<Compile Include="Attributes\HideInInspectorAttribute.cs" />
 		<Compile Include="Attributes\SortingLayerAttribute.cs" />
-		<Compile Include="External\BGFX\bgfx.cs" />
-		<Compile Include="External\BGFX\bgfx_dllname.cs" />
 		<Compile Include="Rendering\Camera\Camera.cs" />
 		<Compile Include="Rendering\Camera\CameraClearMode.cs" />
 		<Compile Include="Rendering\Camera\CameraType.cs" />
@@ -308,7 +314,6 @@
 		<Compile Include="External\StbImageWriteSharp\src\MemoryStats.cs" />
 		<Compile Include="External\StbImageWriteSharp\src\StbImageWrite.cs" />
 		<Compile Include="External\StbImageWriteSharp\src\StbImageWrite.Generated.cs" />
-		<Compile Include="Player\iOS\StapleViewController.cs" />
 		<Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />
 		<Compile Include="External\StbImageSharp\src\AnimatedGifEnumerator.cs" />
 		<Compile Include="External\StbImageSharp\src\ColorComponents.cs" />
@@ -361,8 +366,6 @@
 		<Compile Include="Rendering\Text\Glyph.cs" />
 		<Compile Include="Rendering\Text\TextFont.cs" />
 		<Compile Include="Rendering\Text\TextParameters.cs" />
-		<Compile Include="Rendering\Windowing\Impls\iOSRenderWindow.cs" />
-		<Compile Include="Rendering\Windowing\Impls\MetalView.cs" />
 		<Compile Include="Rendering\Windowing\IRenderWindow.cs" />
 		<Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
 		<Compile Include="Rendering\Mesh\Mesh+Internal.cs" />

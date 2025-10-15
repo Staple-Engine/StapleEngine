@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -46,7 +45,7 @@ public partial class Shader : IGuidAsset
     public class UniformInfo
     {
         internal ShaderUniform uniform;
-        internal bgfx.UniformHandle handle;
+        //internal bgfx.UniformHandle handle;
         internal byte stage;
         internal int count = 1;
         internal bool isAlias = false;
@@ -58,6 +57,7 @@ public partial class Shader : IGuidAsset
                 return true;
             }
 
+            /*
             bgfx.UniformType type;
 
             switch (uniform.type)
@@ -104,6 +104,9 @@ public partial class Shader : IGuidAsset
             handle = bgfx.create_uniform(uniform.name, type, (ushort)count);
 
             return handle.Valid;
+            */
+
+            return false;
         }
 
         public override string ToString()
@@ -114,7 +117,7 @@ public partial class Shader : IGuidAsset
 
     internal class ShaderInstance
     {
-        public bgfx.ProgramHandle program;
+        public IShaderProgram program;
         public int[] keyPieces;
 
         public byte[] vertexShaderSource;
@@ -143,6 +146,7 @@ public partial class Shader : IGuidAsset
 
     public GuidHasher Guid => guidHasher;
 
+    /*
     internal bgfx.StateFlags BlendingFlag
     {
         get
@@ -155,6 +159,7 @@ public partial class Shader : IGuidAsset
             return 0;
         }
     }
+    */
 
     internal bool IsTransparent
     {
@@ -166,6 +171,7 @@ public partial class Shader : IGuidAsset
         }
     }
 
+    /*
     internal bgfx.StateFlags StateFlags
     {
         get
@@ -175,6 +181,7 @@ public partial class Shader : IGuidAsset
             return baseFlags | BlendingFlag;
         }
     }
+    */
 
     /// <summary>
     /// Whether this shader has been disposed
@@ -245,43 +252,10 @@ public partial class Shader : IGuidAsset
     {
         foreach(var pair in instances)
         {
-            bgfx.Memory* vs, fs;
+            pair.Value.program = RenderSystem.Backend.CreateShaderVertexFragment(pair.Value.vertexShaderSource, pair.Value.fragmentShaderSource);
 
-            fixed (void* ptr = pair.Value.vertexShaderSource)
+            if(pair.Value.program == null)
             {
-                vs = bgfx.copy(ptr, (uint)pair.Value.vertexShaderSource.Length);
-            }
-
-            fixed (void* ptr = pair.Value.fragmentShaderSource)
-            {
-                fs = bgfx.copy(ptr, (uint)pair.Value.fragmentShaderSource.Length);
-            }
-
-            var vertexShader = bgfx.create_shader(vs);
-            var fragmentShader = bgfx.create_shader(fs);
-
-            if (vertexShader.Valid == false || fragmentShader.Valid == false)
-            {
-                if (vertexShader.Valid)
-                {
-                    bgfx.destroy_shader(vertexShader);
-                }
-
-                if (fragmentShader.Valid)
-                {
-                    bgfx.destroy_shader(fragmentShader);
-                }
-
-                return false;
-            }
-
-            pair.Value.program = bgfx.create_program(vertexShader, fragmentShader, true);
-
-            if (pair.Value.program.Valid == false)
-            {
-                bgfx.destroy_shader(vertexShader);
-                bgfx.destroy_shader(fragmentShader);
-
                 return false;
             }
         }
@@ -376,7 +350,7 @@ public partial class Shader : IGuidAsset
                 {
                     count = u.count,
                     isAlias = true,
-                    handle = u.handle,
+                    //handle = u.handle,
                     stage = u.stage,
                     uniform = new()
                     {
@@ -429,7 +403,7 @@ public partial class Shader : IGuidAsset
         {
             var temp = new Vector4(value, 0, 0, 0);
 
-            bgfx.set_uniform(uniform.handle, &temp, 1);
+            //bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
 
@@ -449,7 +423,7 @@ public partial class Shader : IGuidAsset
         {
             var temp = new Vector4(value, 0, 0);
 
-            bgfx.set_uniform(uniform.handle, &temp, 1);
+            //bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
 
@@ -476,7 +450,7 @@ public partial class Shader : IGuidAsset
 
             fixed (void* ptr = temp)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -497,7 +471,7 @@ public partial class Shader : IGuidAsset
         {
             var temp = new Vector4(value, 0);
 
-            bgfx.set_uniform(uniform.handle, &temp, 1);
+            //bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
 
@@ -524,7 +498,7 @@ public partial class Shader : IGuidAsset
 
             fixed (void* ptr = temp)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -543,7 +517,7 @@ public partial class Shader : IGuidAsset
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &value, 1);
+            //bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
 
@@ -563,7 +537,7 @@ public partial class Shader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -584,7 +558,7 @@ public partial class Shader : IGuidAsset
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &colorValue, 1);
+            //bgfx.set_uniform(uniform.handle, &colorValue, 1);
         }
     }
 
@@ -604,7 +578,7 @@ public partial class Shader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -627,7 +601,7 @@ public partial class Shader : IGuidAsset
 
         unsafe
         {
-            value.SetActive(uniform.stage, uniform.handle, overrideFlags);
+            //value.SetActive(uniform.stage, uniform.handle, overrideFlags);
         }
     }
 
@@ -645,7 +619,7 @@ public partial class Shader : IGuidAsset
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &value, 1);
+            //bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
 
@@ -665,7 +639,7 @@ public partial class Shader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -684,7 +658,7 @@ public partial class Shader : IGuidAsset
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &value, 1);
+            //bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
 
@@ -704,7 +678,7 @@ public partial class Shader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -723,17 +697,12 @@ public partial class Shader : IGuidAsset
 
         foreach(var pair in instances)
         {
-            if (pair.Value.program.Valid)
-            {
-                bgfx.destroy_program(pair.Value.program);
+            pair.Value.program?.Destroy();
 
-                pair.Value.program = new()
-                {
-                    idx = ushort.MaxValue,
-                };
-            }
+            pair.Value.program = null;
         }
 
+        /*
         foreach (var uniform in uniforms)
         {
             if (uniform.isAlias)
@@ -750,6 +719,7 @@ public partial class Shader : IGuidAsset
                 uniform.handle.idx = ushort.MaxValue;
             }
         }
+        */
     }
 
     /// <summary>

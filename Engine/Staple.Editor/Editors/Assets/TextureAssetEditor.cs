@@ -48,8 +48,10 @@ internal class TextureAssetEditor : AssetEditor
         {
         }
 
+        /*
         VRAMSize = previewTexture.info.storageSize;
         originalVRAMSize = originalTexture?.info.storageSize ?? 0;
+        */
     }
 
     public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)

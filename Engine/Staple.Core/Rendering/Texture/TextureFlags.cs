@@ -1,11 +1,11 @@
-﻿using Bgfx;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace Staple;
 
 [JsonConverter(typeof(JsonStringEnumConverter<TextureFlags>))]
 public enum TextureFlags : ulong
 {
+    /*
     None = bgfx.TextureFlags.None,
     MSAASample = bgfx.TextureFlags.MsaaSample,
     RenderTarget = bgfx.TextureFlags.Rt,
@@ -68,4 +68,6 @@ public enum TextureFlags : ulong
     SamplerUvwClamp = bgfx.SamplerFlags.UvwClamp,
     SamplerUvwBorder = bgfx.SamplerFlags.UvwBorder,
     SamplerBitsMask = bgfx.SamplerFlags.BitsMask,
+    */
+    None = 0,
 }

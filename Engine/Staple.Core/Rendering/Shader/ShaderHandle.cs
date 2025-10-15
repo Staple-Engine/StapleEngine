@@ -31,7 +31,7 @@ public readonly struct ShaderHandle(object owner, Shader.UniformInfo uniform)
     /// <summary>
     /// Whether this handle is valid
     /// </summary>
-    public bool IsValid => (uniform?.handle.Valid ?? false) && (owner?.TryGetTarget(out _) ?? false);
+    public bool IsValid => false;//(uniform?.handle.Valid ?? false) && (owner?.TryGetTarget(out _) ?? false);
 
     /// <summary>
     /// The uniform's attribute, if any

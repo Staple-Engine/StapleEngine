@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -175,7 +174,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         var lastLighting = MaterialLighting.Unlit;
         var lastTopology = MeshTopology.Triangles;
 
-        bgfx.discard((byte)bgfx.DiscardFlags.All);
+        //bgfx.discard((byte)bgfx.DiscardFlags.All);
 
         foreach(var (entity, instance, transform) in instances.Contents)
         {
@@ -222,17 +221,19 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 boneMatrices = instance.boneMatrices;
             }
 
+            /*
             if ((instance.boneBuffer?.Disposed ?? true))
             {
-                instance.boneBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
-                    .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
+                instance.boneBuffer = VertexBuffer.Create(VertexLayoutBuilder.CreateNew()
+                    .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float4)
+                    .Add(VertexAttribute.TexCoord1, VertexAttributeType.Float4)
+                    .Add(VertexAttribute.TexCoord2, VertexAttributeType.Float4)
+                    .Add(VertexAttribute.TexCoord3, VertexAttributeType.Float4)
                     .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
 
                 instance.boneBuffer.Update(boneMatrices.AsSpan(), 0, true);
             }
+            */
 
             instance.transformUpdateTimer += Time.deltaTime;
 
@@ -258,7 +259,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 UpdateBoneMatrices(instance.mesh.meshAsset, instance.boneMatrices, instance.transformCache);
 
-                instance.boneBuffer.Update(instance.boneMatrices.AsSpan(), 0, true);
+                //instance.boneBuffer.Update(instance.boneMatrices.AsSpan(), 0, true);
             }
         }
 
@@ -314,13 +315,13 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     lastLighting = lighting;
                     lastTopology = renderer.mesh.MeshTopology;
 
-                    bgfx.discard((byte)bgfx.DiscardFlags.All);
+                    //bgfx.discard((byte)bgfx.DiscardFlags.All);
 
                     SetupMaterial();
 
-                    if (material.ShaderProgram.Valid == false)
+                    //if (material.ShaderProgram.Valid == false)
                     {
-                        bgfx.discard((byte)bgfx.DiscardFlags.All);
+                        //bgfx.discard((byte)bgfx.DiscardFlags.All);
 
                         continue;
                     }
@@ -330,9 +331,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 SetupMaterial();
 
-                if (material.ShaderProgram.Valid == false)
+                //if (material.ShaderProgram.Valid == false)
                 {
-                    bgfx.discard((byte)bgfx.DiscardFlags.All);
+                    //bgfx.discard((byte)bgfx.DiscardFlags.All);
 
                     continue;
                 }
@@ -341,15 +342,16 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 {
                     var transform = item.transform.Matrix;
 
-                    _ = bgfx.set_transform(&transform, 1);
+                    //_ = bgfx.set_transform(&transform, 1);
                 }
 
-                renderer.mesh.SetActive(j);
+                //renderer.mesh.SetActive(j);
 
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                var program = material.ShaderProgram;
+                //var program = material.ShaderProgram;
 
+                /*
                 bgfx.set_state((ulong)(material.shader.StateFlags |
                     renderer.mesh.PrimitiveFlag() |
                     material.CullingFlag), 0);
@@ -361,10 +363,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 buffer?.SetBufferActive(SkinningBufferIndex, Access.Read);
 
                 RenderSystem.Submit(viewID, program, flags, renderer.mesh.SubmeshTriangleCount(j), 1);
+                */
             }
         }
 
-        bgfx.discard((byte)bgfx.DiscardFlags.All);
+        //bgfx.discard((byte)bgfx.DiscardFlags.All);
     }
 
     /// <summary>

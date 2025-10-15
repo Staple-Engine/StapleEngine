@@ -18,9 +18,9 @@ public static class SpriteUtils
 
     public static readonly Lazy<VertexLayout> VertexLayout = new(() =>
     {
-        return new VertexLayoutBuilder()
-            .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
-            .Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float)
+        return VertexLayoutBuilder.CreateNew()
+            .Add(VertexAttribute.Position, VertexAttributeType.Float3)
+            .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2)
             .Build();
     });
 

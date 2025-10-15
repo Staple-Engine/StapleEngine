@@ -13,32 +13,6 @@ namespace Baker;
 
 static partial class Program
 {
-    private static readonly string DefaultVaryingData = $$"""
-vec3 a_position     :   POSITION;
-vec3 a_normal       :   NORMAL;
-vec3 a_tangent      :   TANGENT;
-vec3 a_bitangent    :   BITANGENT;
-vec4 a_color0       :   COLOR0;
-vec4 a_color1       :   COLOR1;
-vec4 a_color2       :   COLOR2;
-vec4 a_color3       :   COLOR3;
-vec4 a_weight       :   BLENDWEIGHT;
-vec4 a_indices      :   BLENDINDICES;
-vec2 a_texcoord0    :   TEXCOORD0;
-vec2 a_texcoord1    :   TEXCOORD1;
-vec2 a_texcoord2    :   TEXCOORD2;
-vec2 a_texcoord3    :   TEXCOORD3;
-vec2 a_texcoord4    :   TEXCOORD4;
-vec2 a_texcoord5    :   TEXCOORD5;
-vec2 a_texcoord6    :   TEXCOORD6;
-vec2 a_texcoord7    :   TEXCOORD7;
-vec4 i_data0        :   TEXCOORD7;
-vec4 i_data1        :   TEXCOORD6;
-vec4 i_data2        :   TEXCOORD5;
-vec4 i_data3        :   TEXCOORD4;
-vec4 i_data4        :   TEXCOORD3;
-""";
-
     private static void ProcessShaders(AppPlatform platform, string shadercPath, string inputPath, string outputPath,
         List<string> shaderDefines, List<Renderer> renderers)
     {
@@ -346,12 +320,6 @@ vec4 i_data4        :   TEXCOORD3;
 
                 foreach (var renderer in renderers)
                 {
-                    //PSSL ignored for now
-                    if (renderer == Renderer.pssl)
-                    {
-                        continue;
-                    }
-
                     var entries = new SerializableShaderEntry();
 
                     Lock entryLock = new();
@@ -359,9 +327,6 @@ vec4 i_data4        :   TEXCOORD3;
                     generatedShader.data.Add(renderer switch
                     {
                         Renderer.spirv => RendererType.Vulkan,
-                        Renderer.opengl => RendererType.OpenGL,
-                        Renderer.opengles => RendererType.OpenGLES,
-                        Renderer.d3d11 => RendererType.Direct3D11,
                         Renderer.d3d12 => RendererType.Direct3D12,
                         Renderer.metal => RendererType.Metal,
                         _ => throw new InvalidOperationException($"Invalid renderer type {renderer} when mapping to regular renderer type"),
@@ -373,9 +338,29 @@ vec4 i_data4        :   TEXCOORD3;
                         var shaderPlatform = "";
                         var outShaderFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
 
+                        switch(shaderType)
+                        {
+                            case ShaderCompilerType.vertex:
+
+                                outShaderFileName += ".vert";
+
+                                break;
+
+                            case ShaderCompilerType.fragment:
+
+                                outShaderFileName += ".frag";
+
+                                break;
+
+                            case ShaderCompilerType.compute:
+
+                                outShaderFileName += ".comp";
+
+                                break;
+                        }
+
                         switch (renderer)
                         {
-                            case Renderer.d3d11:
                             case Renderer.d3d12:
 
                                 shaderPlatform = "--platform windows -O 3 ";
@@ -403,48 +388,9 @@ vec4 i_data4        :   TEXCOORD3;
 
                                 break;
 
-                            case Renderer.opengles:
-
-                                shaderPlatform = "--platform android -p 300_es";
-
-                                break;
-
                             case Renderer.metal:
 
                                 shaderPlatform = "--platform osx -p metal";
-
-                                break;
-
-                            case Renderer.opengl:
-
-                                shaderPlatform = "--platform linux ";
-
-                                switch (shaderType)
-                                {
-                                    case ShaderCompilerType.vertex:
-
-                                        shaderPlatform += "-p 120";
-
-                                        break;
-
-                                    case ShaderCompilerType.fragment:
-
-                                        shaderPlatform += "-p 120";
-
-                                        break;
-
-                                    case ShaderCompilerType.compute:
-
-                                        shaderPlatform += "-p 430";
-
-                                        break;
-                                }
-
-                                break;
-
-                            case Renderer.pssl:
-
-                                shaderPlatform = "--platform orbis -p pssl";
 
                                 break;
 

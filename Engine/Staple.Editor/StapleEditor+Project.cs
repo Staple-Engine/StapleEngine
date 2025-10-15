@@ -492,12 +492,6 @@ internal partial class StapleEditor
                             {
                                 switch (item)
                                 {
-                                    case RendererType.Direct3D11:
-
-                                        rendererParameters.Add("-r d3d11");
-
-                                        break;
-
                                     case RendererType.Direct3D12:
 
                                         rendererParameters.Add("-r d3d12");
@@ -507,18 +501,6 @@ internal partial class StapleEditor
                                     case RendererType.Metal:
 
                                         rendererParameters.Add("-r metal");
-
-                                        break;
-
-                                    case RendererType.OpenGL:
-
-                                        rendererParameters.Add("-r opengl");
-
-                                        break;
-
-                                    case RendererType.OpenGLES:
-
-                                        rendererParameters.Add("-r opengles");
 
                                         break;
 

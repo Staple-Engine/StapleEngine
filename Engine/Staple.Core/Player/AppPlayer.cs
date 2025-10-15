@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
 using System.IO;
 using System.Linq;
@@ -51,11 +50,11 @@ internal class AppPlayer
 
     public void ResetRendering(bool hasFocus)
     {
-        var flags = RenderSystem.ResetFlags(playerSettings.videoFlags);
+        var flags = RenderSystem.RenderFlags(playerSettings.videoFlags);
 
         if(hasFocus == false && AppSettings.Current.runInBackground == false)
         {
-            flags |= bgfx.ResetFlags.Suspend;
+            flags |= RenderModeFlags.Suspend;
         }
 
         AppEventQueue.instance.Add(AppEvent.ResetFlags(flags));
@@ -77,7 +76,7 @@ internal class AppPlayer
 
         renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
             playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
-            playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
+            playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.RenderFlags(playerSettings.videoFlags));
 
         if(renderWindow == null)
         {

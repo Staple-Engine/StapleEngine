@@ -200,13 +200,13 @@ public class AppSettings
                     {
                         AppPlatform.Windows,
                         [
-                            RendererType.Direct3D12, RendererType.Direct3D11, RendererType.Vulkan
+                            RendererType.Direct3D12, RendererType.Vulkan
                         ]
                     },
                     {
                         AppPlatform.Linux,
                         [
-                            RendererType.Vulkan, RendererType.OpenGL
+                            RendererType.Vulkan
                         ]
                     },
                     {
@@ -218,7 +218,7 @@ public class AppSettings
                     {
                         AppPlatform.Android,
                         [
-                            RendererType.Vulkan, RendererType.OpenGLES
+                            RendererType.Vulkan
                         ]
                     },
                     {

@@ -1,6 +1,4 @@
-﻿using Bgfx;
-
-namespace Staple.Internal;
+﻿namespace Staple.Internal;
 
 internal class EmptyTextureCreateMethod(ushort width, ushort height, bool hasMips, ushort layers, TextureFormat format, TextureFlags flags) : ITextureCreateMethod
 {
@@ -15,6 +13,9 @@ internal class EmptyTextureCreateMethod(ushort width, ushort height, bool hasMip
     {
         unsafe
         {
+            return false;
+
+            /*
             var handle = bgfx.create_texture_2d(width, height, hasMips, layers, BGFXUtils.GetTextureFormat(format), (ulong)flags, null);
 
             if (handle.Valid == false)
@@ -45,6 +46,7 @@ internal class EmptyTextureCreateMethod(ushort width, ushort height, bool hasMip
             };
 
             return true;
+            */
         }
     }
 }

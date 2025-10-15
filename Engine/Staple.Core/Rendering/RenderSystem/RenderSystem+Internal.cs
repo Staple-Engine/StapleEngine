@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
@@ -31,6 +30,15 @@ public sealed partial class RenderSystem
     internal class DrawBucket
     {
         public Dictionary<ushort, List<DrawCall>> drawCalls = [];
+    }
+
+    /// <summary>
+    /// Contains information on a render command
+    /// </summary>
+    internal class RenderCommand
+    {
+        public IRenderCommand command;
+        public IRenderPass pass;
     }
 
     internal static byte Priority = 1;
@@ -89,6 +97,16 @@ public sealed partial class RenderSystem
     /// Cached per-frame used view IDs (previous frame)
     /// </summary>
     private HashSet<ushort> previousUsedViewIDs = [];
+
+    /// <summary>
+    /// Contains all render commands
+    /// </summary>
+    private readonly Dictionary<ushort, Stack<RenderCommand>> renderCommands = [];
+
+    /// <summary>
+    /// The renderer backend
+    /// </summary>
+    internal static readonly IRendererBackend Backend = new SDLGPURendererBackend();
     #endregion
 
     #region Helpers
@@ -98,11 +116,13 @@ public sealed partial class RenderSystem
     /// <param name="source">The blending source flag</param>
     /// <param name="destination">The blending destination flag</param>
     /// <returns>The combined function</returns>
+    /*
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static ulong BlendFunction(bgfx.StateFlags source, bgfx.StateFlags destination)
     {
         return BlendFunction(source, destination, source, destination);
     }
+    */
 
     /// <summary>
     /// Calculates the blending function for blending flags
@@ -112,11 +132,13 @@ public sealed partial class RenderSystem
     /// <param name="sourceAlpha">The source alpha blending flag</param>
     /// <param name="destinationAlpha">The destination alpha blending flag</param>
     /// <returns>The combined function</returns>
+    /*
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static ulong BlendFunction(bgfx.StateFlags sourceColor, bgfx.StateFlags destinationColor, bgfx.StateFlags sourceAlpha, bgfx.StateFlags destinationAlpha)
     {
         return (ulong)sourceColor | (ulong)destinationColor << 4 | ((ulong)sourceAlpha | (ulong)destinationAlpha << 4) << 8;
     }
+    */
 
     /// <summary>
     /// Checks if we have an available transient buffer
@@ -125,6 +147,7 @@ public sealed partial class RenderSystem
     /// <param name="layout">The vertex layout to use</param>
     /// <param name="numIndices">The amount of indices to check</param>
     /// <returns></returns>
+    /*
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static bool CheckAvailableTransientBuffers(uint numVertices, bgfx.VertexLayout layout, uint numIndices)
     {
@@ -134,46 +157,30 @@ public sealed partial class RenderSystem
                 && (0 == numIndices || numIndices == bgfx.get_avail_transient_index_buffer(numIndices, false));
         }
     }
+    */
 
     /// <summary>
     /// Gets the reset flags for specific video flags
     /// </summary>
     /// <param name="videoFlags">The video flags to use</param>
     /// <returns>The BGFX Reset Flags</returns>
-    internal static bgfx.ResetFlags ResetFlags(VideoFlags videoFlags)
+    internal static RenderModeFlags RenderFlags(VideoFlags videoFlags)
     {
-        var resetFlags = bgfx.ResetFlags.FlushAfterRender | bgfx.ResetFlags.FlipAfterRender; //bgfx.ResetFlags.SrgbBackbuffer;
+        var resetFlags = RenderModeFlags.None;
 
         if (videoFlags.HasFlag(VideoFlags.Vsync))
         {
-            resetFlags |= bgfx.ResetFlags.Vsync;
+            resetFlags |= RenderModeFlags.Vsync;
         }
 
-        if (videoFlags.HasFlag(VideoFlags.MSAAX2))
+        if(videoFlags.HasFlag(VideoFlags.TripleBuffering))
         {
-            resetFlags |= bgfx.ResetFlags.MsaaX2;
-        }
-        else if (videoFlags.HasFlag(VideoFlags.MSAAX4))
-        {
-            resetFlags |= bgfx.ResetFlags.MsaaX4;
-        }
-        else if (videoFlags.HasFlag(VideoFlags.MSAAX8))
-        {
-            resetFlags |= bgfx.ResetFlags.MsaaX8;
-        }
-        else if (videoFlags.HasFlag(VideoFlags.MSAAX16))
-        {
-            resetFlags |= bgfx.ResetFlags.MsaaX16;
+            resetFlags |= RenderModeFlags.TripleBuffering;
         }
 
         if (videoFlags.HasFlag(VideoFlags.HDR10))
         {
-            resetFlags |= bgfx.ResetFlags.Hdr10;
-        }
-
-        if (videoFlags.HasFlag(VideoFlags.HiDPI))
-        {
-            resetFlags |= bgfx.ResetFlags.Hidpi;
+            resetFlags |= RenderModeFlags.HDR10;
         }
 
         return resetFlags;
@@ -446,9 +453,25 @@ public sealed partial class RenderSystem
     {
         usedViewIDs.Add(viewID);
 
-        CurrentCamera = (camera, cameraTransform);
+        var command = Backend.BeginCommand();
 
-        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
+        if(command == null)
+        {
+            return;
+        }
+
+        var pass = PrepareCamera(cameraEntity, camera, cameraTransform, command);
+
+        if (pass == null)
+        {
+            command.Discard();
+
+            return;
+        }
+
+        PushRenderCommand(viewID, command, pass);
+
+        CurrentCamera = (camera, cameraTransform);
 
         var queueLength = queue.Count;
 
@@ -496,6 +519,12 @@ public sealed partial class RenderSystem
 
             system.Submit(viewID);
         }
+
+        pass.Finish();
+
+        command.Submit();
+
+        PopRenderCommand(viewID);
     }
 
     /// <summary>
@@ -512,6 +541,24 @@ public sealed partial class RenderSystem
         Entity entity, Transform entityTransform, bool cull, ushort viewID)
     {
         usedViewIDs.Add(viewID);
+
+        var command = Backend.BeginCommand();
+
+        if (command == null)
+        {
+            return;
+        }
+
+        var pass = PrepareCamera(cameraEntity, camera, cameraTransform, command);
+
+        if (pass == null)
+        {
+            command.Discard();
+
+            return;
+        }
+
+        PushRenderCommand(viewID, command, pass);
 
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
@@ -535,8 +582,6 @@ public sealed partial class RenderSystem
 
             system.Prepare();
         }
-
-        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
         var systemQueues = new Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>>();
 
@@ -595,7 +640,13 @@ public sealed partial class RenderSystem
             pair.Key.Submit(viewID);
         }
 
+        pass.Finish();
+
+        command.Submit();
+
         CurrentCamera = (c.Item1, c.Item2);
+
+        PopRenderCommand(viewID);
     }
 
     /// <summary>
@@ -608,6 +659,24 @@ public sealed partial class RenderSystem
     public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
     {
         usedViewIDs.Add(viewID);
+
+        var command = Backend.BeginCommand();
+
+        if (command == null)
+        {
+            return;
+        }
+
+        var pass = PrepareCamera(cameraEntity, camera, cameraTransform, command);
+
+        if (pass == null)
+        {
+            command.Discard();
+
+            return;
+        }
+
+        PushRenderCommand(viewID, command, pass);
 
         CurrentCamera = (camera, cameraTransform);
 
@@ -627,8 +696,6 @@ public sealed partial class RenderSystem
 
             system.Prepare();
         }
-
-        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
 
         var alpha = accumulator / Time.fixedDeltaTime;
 
@@ -680,6 +747,12 @@ public sealed partial class RenderSystem
         {
             system.Submit(viewID);
         }
+
+        pass.Finish();
+
+        command.Submit();
+
+        PopRenderCommand(viewID);
     }
 
     /// <summary>
@@ -811,8 +884,7 @@ public sealed partial class RenderSystem
     /// <param name="entity">The camera's entity</param>
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
-    /// <param name="viewID">The view ID</param>
-    private static void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform, ushort viewID)
+    private static IRenderPass PrepareCamera(Entity entity, Camera camera, Transform cameraTransform, IRenderCommand command)
     {
         unsafe
         {
@@ -821,29 +893,34 @@ public sealed partial class RenderSystem
 
             Matrix4x4.Invert(view, out view);
 
-            bgfx.set_view_transform(viewID, &view, &projection);
+            //bgfx.set_view_transform(viewID, &view, &projection);
 
             camera.UpdateFrustum(view, projection);
         }
 
+        return command.BeginRenderPass(null, camera.clearMode, camera.clearColor);
+
+        /*
         switch (camera.clearMode)
         {
             case CameraClearMode.Depth:
-                bgfx.set_view_clear(viewID, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
+                //bgfx.set_view_clear(viewID, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
 
                 break;
 
             case CameraClearMode.None:
-                bgfx.set_view_clear(viewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
+                //bgfx.set_view_clear(viewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
 
                 break;
 
             case CameraClearMode.SolidColor:
-                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
+                //bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
 
                 break;
         }
+        */
 
+        /*
         var viewMode = camera.viewMode switch
         {
             CameraViewMode.Default => bgfx.ViewMode.Default,
@@ -859,6 +936,7 @@ public sealed partial class RenderSystem
             (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
 
         bgfx.touch(viewID);
+        */
     }
 
     /// <summary>
@@ -892,9 +970,17 @@ public sealed partial class RenderSystem
         }
     }
 
-    internal static void Submit(ushort viewID, bgfx.ProgramHandle program, bgfx.DiscardFlags flags, int triangles, int instances)
+    internal static void Submit(ushort viewID, RenderState state, int triangles, int instances)
     {
-        bgfx.submit(viewID, program, 0, (byte)flags);
+        if(Instance.renderCommands.TryGetValue(viewID, out var c) == false ||
+            c.Count == 0)
+        {
+            return;
+        }
+
+        var command = c.Peek();
+
+        Backend.Render(command.pass, state);
 
         RenderStats.drawCalls++;
         RenderStats.triangleCount += triangles * instances;
@@ -903,7 +989,33 @@ public sealed partial class RenderSystem
         {
             RenderStats.savedDrawCalls += (instances - 1);
         }
+    }
 
+    internal void PushRenderCommand(ushort viewID, IRenderCommand command, IRenderPass pass)
+    {
+        if(renderCommands.TryGetValue(viewID, out var c) == false)
+        {
+            c = new();
+
+            renderCommands.Add(viewID, c);
+        }
+
+        c.Push(new()
+        {
+            command = command,
+            pass = pass,
+        });
+    }
+
+    internal RenderCommand PopRenderCommand(ushort viewID)
+    {
+        if(renderCommands.TryGetValue(viewID, out var c) == false ||
+            c.Count == 0)
+        {
+            return null;
+        }
+
+        return c.Pop();
     }
 
     #endregion

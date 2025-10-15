@@ -4,5 +4,4 @@ public enum RenderBufferType
 {
     Normal,
     Dynamic,
-    Transient,
 }

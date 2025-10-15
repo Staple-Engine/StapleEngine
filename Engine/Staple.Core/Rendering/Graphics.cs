@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
 using System.Numerics;
 
@@ -44,21 +43,20 @@ namespace Staple
                 throw new Exception("Invalid arguments passed");
             }
 
-            bgfx.discard((byte)bgfx.DiscardFlags.All);
-
-            unsafe
+            var renderState = new RenderState()
             {
-                _ = bgfx.set_transform(&transform, 1);
-            }
-
-            bgfx.StateFlags state = material.shader.StateFlags |
-                (bgfx.StateFlags)topology |
-                material.CullingFlag;
-
-            bgfx.set_state((ulong)state, 0);
-
-            vertex.SetActive(0, (uint)startVertex, (uint)vertexCount);
-            index.SetActive((uint)startIndex, (uint)indexCount);
+                cull = material.CullingMode,
+                primitiveType = topology,
+                depthWrite = true,
+                enableDepth = true,
+                indexBuffer = index,
+                vertexBuffer = vertex,
+                startVertex = startVertex,
+                startIndex = startIndex,
+                vertexCount = vertexCount,
+                indexCount = indexCount,
+                vertexLayout = vertex.layout,
+            };
 
             if(materialSetupCallback != null)
             {
@@ -79,15 +77,13 @@ namespace Staple
 
             var program = material.ShaderProgram;
 
-            if(program.Valid)
+            if(program != null)
             {
+                renderState.program = program;
+
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(topology, indexCount), 1);
-            }
-            else
-            {
-                bgfx.discard((byte)bgfx.DiscardFlags.All);
+                RenderSystem.Submit(viewID, renderState, Mesh.TriangleCount(topology, indexCount), 1);
             }
         }
 
@@ -102,6 +98,7 @@ namespace Staple
                 throw new Exception("Invalid arguments passed");
             }
 
+            /*
             bgfx.discard((byte)bgfx.DiscardFlags.All);
 
             var vertexBuffer = VertexBuffer.CreateTransient(vertices, layout);
@@ -155,6 +152,7 @@ namespace Staple
             {
                 bgfx.discard((byte)bgfx.DiscardFlags.All);
             }
+            */
         }
 
         public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, Material material, Vector3 position,
@@ -168,6 +166,7 @@ namespace Staple
                 throw new Exception("Invalid arguments passed");
             }
 
+            /*
             bgfx.discard((byte)bgfx.DiscardFlags.All);
 
             var vertexBuffer = VertexBuffer.CreateTransient(vertices, layout);
@@ -221,6 +220,7 @@ namespace Staple
             {
                 bgfx.discard((byte)bgfx.DiscardFlags.All);
             }
+            */
         }
     }
 }

@@ -873,7 +873,7 @@ public sealed partial class Mesh : IGuidAsset
         {
             if(meshDataBlob != null && meshDataVertexLayout != null)
             {
-                return meshDataBlob.Length / meshDataVertexLayout.layout.stride;
+                return meshDataBlob.Length / meshDataVertexLayout.Stride;
             }
 
             return vertices?.Length ?? 0;
@@ -1060,9 +1060,9 @@ public sealed partial class Mesh : IGuidAsset
             throw new Exception("Vertex Layout is null");
         }
 
-        if(meshData.Length % vertexLayout.layout.stride != 0)
+        if(meshData.Length % vertexLayout.Stride != 0)
         {
-            throw new Exception($"Mesh Data Blob has misaligned data (has {meshData.Length} bytes, should be multiples of {vertexLayout.layout.stride})");
+            throw new Exception($"Mesh Data Blob has misaligned data (has {meshData.Length} bytes, should be multiples of {vertexLayout.Stride})");
         }
 
         meshDataBlob = meshData.ToArray();
@@ -1070,7 +1070,7 @@ public sealed partial class Mesh : IGuidAsset
 
         if(vertexBuffer != null && vertexBuffer.Disposed == false && isDynamic)
         {
-            vertexBuffer.Update(meshDataBlob, 0, false);
+            vertexBuffer.Update(meshDataBlob);
         }
         else
         {
@@ -1093,9 +1093,9 @@ public sealed partial class Mesh : IGuidAsset
 
         var size = Marshal.SizeOf<T>();
 
-        if(size != vertexLayout.layout.stride)
+        if(size != vertexLayout.Stride)
         {
-            throw new Exception($"Mesh Data element size does not equal vertex layout size (has: {size}, needs: {vertexLayout.layout.stride})");
+            throw new Exception($"Mesh Data element size does not equal vertex layout size (has: {size}, needs: {vertexLayout.Stride})");
         }
 
         unsafe
@@ -1114,7 +1114,7 @@ public sealed partial class Mesh : IGuidAsset
 
         if (vertexBuffer != null && vertexBuffer.Disposed == false && isDynamic)
         {
-            vertexBuffer.Update(meshDataBlob, 0, false);
+            vertexBuffer.Update(meshDataBlob);
         }
         else
         {
@@ -1163,10 +1163,6 @@ public sealed partial class Mesh : IGuidAsset
 
                 break;
 
-            case MeshTopology.Points:
-
-                break;
-
             case MeshTopology.TriangleStrip:
 
                 if(indices.Length < 3)
@@ -1204,9 +1200,9 @@ public sealed partial class Mesh : IGuidAsset
             return;
         }
 
-        if(meshDataBlob != null && meshDataBlob.Length % layout.layout.stride != 0)
+        if(meshDataBlob != null && meshDataBlob.Length % layout.Stride != 0)
         {
-            Log.Error($"[Mesh] Mesh Data Blob has misaligned data (has {meshDataBlob.Length} bytes, should be multiples of {layout.layout.stride})");
+            Log.Error($"[Mesh] Mesh Data Blob has misaligned data (has {meshDataBlob.Length} bytes, should be multiples of {layout.Stride})");
 
             return;
         }
@@ -1218,16 +1214,11 @@ public sealed partial class Mesh : IGuidAsset
             return;
         }
 
-        vertexBuffer = isDynamic ? VertexBuffer.CreateDynamic(layout) : VertexBuffer.Create(vertexBlob, layout);
+        vertexBuffer = VertexBuffer.Create(vertexBlob, layout);
 
         if(vertexBuffer == null)
         {
             return;
-        }
-
-        if(vertexBuffer.type == RenderBufferType.Dynamic)
-        {
-            vertexBuffer.Update(vertexBlob, 0, false);
         }
 
         switch (indexFormat)
@@ -1262,7 +1253,7 @@ public sealed partial class Mesh : IGuidAsset
                         data[i] = (uint)indices[i];
                     }
 
-                    indexBuffer = IndexBuffer.Create(data, RenderBufferFlags.Index32);
+                    indexBuffer = IndexBuffer.Create(data);
                 }
 
                 break;

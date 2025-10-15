@@ -362,7 +362,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
             var renderWindow = AppPlayer.instance.renderWindow;
 
-            renderWindow.InitBGFX();
+            renderWindow.InitializeRenderer();
 
             try
             {

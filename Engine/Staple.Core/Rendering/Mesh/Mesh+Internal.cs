@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using Staple.Utilities;
 using System;
 using System.Collections.Generic;
@@ -460,15 +459,6 @@ public sealed partial class Mesh
     }
 
     /// <summary>
-    /// Gets the rendering primitive flag
-    /// </summary>
-    /// <returns>The state flag</returns>
-    internal bgfx.StateFlags PrimitiveFlag()
-    {
-        return (bgfx.StateFlags)meshTopology;
-    }
-
-    /// <summary>
     /// Destroys this mesh's resources
     /// </summary>
     public void Destroy()
@@ -479,7 +469,6 @@ public sealed partial class Mesh
         vertexBuffer = null;
         indexBuffer = null;
     }
-
 
     /// <summary>
     /// Generates a vertex layout for a mesh
@@ -602,93 +591,93 @@ public sealed partial class Mesh
             return layout;
         }
 
-        var builder = new VertexLayoutBuilder();
+        var builder = VertexLayoutBuilder.CreateNew();
 
-        builder.Add(VertexAttribute.Position, 3, VertexAttributeType.Float);
+        builder.Add(VertexAttribute.Position, VertexAttributeType.Float3);
 
         if(mesh.HasNormals)
         {
-            builder.Add(VertexAttribute.Normal, 3, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Normal, VertexAttributeType.Float3);
         }
 
         if (mesh.HasTangents)
         {
-            builder.Add(VertexAttribute.Tangent, 3, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Tangent, VertexAttributeType.Float3);
         }
 
         if (mesh.HasBitangents)
         {
-            builder.Add(VertexAttribute.Bitangent, 3, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Bitangent, VertexAttributeType.Float3);
         }
 
         if (mesh.HasColors || mesh.HasColors32)
         {
-            builder.Add(VertexAttribute.Color0, 4, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Color0, VertexAttributeType.Float4);
         }
 
         if (mesh.HasColors2 || mesh.HasColors322)
         {
-            builder.Add(VertexAttribute.Color1, 4, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Color1, VertexAttributeType.Float4);
         }
 
         if (mesh.HasColors3 || mesh.HasColors323)
         {
-            builder.Add(VertexAttribute.Color2, 4, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Color2, VertexAttributeType.Float4);
         }
 
         if (mesh.HasColors4 || mesh.HasColors324)
         {
-            builder.Add(VertexAttribute.Color3, 4, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Color3, VertexAttributeType.Float4);
         }
 
         if (mesh.HasUV)
         {
-            builder.Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV2)
         {
-            builder.Add(VertexAttribute.TexCoord1, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord1, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV3)
         {
-            builder.Add(VertexAttribute.TexCoord2, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord2, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV4)
         {
-            builder.Add(VertexAttribute.TexCoord3, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord3, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV5)
         {
-            builder.Add(VertexAttribute.TexCoord4, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord4, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV6)
         {
-            builder.Add(VertexAttribute.TexCoord5, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord5, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV7)
         {
-            builder.Add(VertexAttribute.TexCoord6, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord6, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV8)
         {
-            builder.Add(VertexAttribute.TexCoord7, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord7, VertexAttributeType.Float2);
         }
 
         if(mesh.HasBoneIndices)
         {
-            builder.Add(VertexAttribute.BoneIndices, 4, VertexAttributeType.Float, false, false);
+            builder.Add(VertexAttribute.BoneIndices, VertexAttributeType.Float4);
         }
 
         if(mesh.HasBoneWeights)
         {
-            builder.Add(VertexAttribute.BoneWeight, 4, VertexAttributeType.Float, false, false);
+            builder.Add(VertexAttribute.BoneWeight, VertexAttributeType.Float4);
         }
 
         layout = builder.Build();
@@ -709,7 +698,7 @@ public sealed partial class Mesh
     /// <exception cref="InvalidOperationException">Thrown if the mesh data is invalid</exception>
     internal byte[] MakeVertexDataBlob(VertexLayout layout)
     {
-        var size = layout.layout.stride * vertices.Length;
+        var size = layout.Stride * vertices.Length;
 
         var buffer = new byte[size];
 
@@ -735,7 +724,7 @@ public sealed partial class Mesh
 
         for (int i = 0, index = 0; i < vertices.Length; i++)
         {
-            if(index % layout.layout.stride != 0)
+            if(index % layout.Stride != 0)
             {
                 throw new InvalidOperationException("[Mesh] Exceeded expected byte count while generating vertex data blob");
             }
@@ -858,9 +847,10 @@ public sealed partial class Mesh
     /// <summary>
     /// Makes this mesh active for rendering
     /// </summary>
+    /// <param name="state">The render state</param>
     /// <param name="submeshIndex">A submesh index, or 0</param>
     /// <returns>Whether it was set active</returns>
-    internal bool SetActive(int submeshIndex = 0)
+    internal bool SetActive(ref RenderState state, int submeshIndex = 0)
     {
         UploadMeshData();
 
@@ -871,15 +861,17 @@ public sealed partial class Mesh
 
         if(submeshes.Count == 0)
         {
-            vertexBuffer.SetActive(0, 0, (uint)VertexCount);
-            indexBuffer.SetActive(0, (uint)indices.Length);
+            state.vertexCount = VertexCount;
+            state.indexCount = indices.Length;
         }
         else if(submeshIndex >= 0 && submeshIndex < submeshes.Count)
         {
             var submesh = submeshes[submeshIndex];
 
-            vertexBuffer.SetActive(0, (uint)submesh.startVertex, (uint)submesh.vertexCount);
-            indexBuffer.SetActive((uint)submesh.startIndex, (uint)submesh.indexCount);
+            state.startVertex = submesh.startVertex;
+            state.startIndex = submesh.startIndex;
+            state.vertexCount = submesh.vertexCount;
+            state.indexCount = submesh.indexCount;
         }
         else
         {
