@@ -1,4 +1,6 @@
-﻿namespace Staple.Internal;
+﻿using System;
+
+namespace Staple.Internal;
 
 internal struct RenderState
 {
@@ -19,4 +21,22 @@ internal struct RenderState
     public RenderTarget renderTarget;
     public BlendMode sourceBlend;
     public BlendMode destinationBlend;
+
+    internal readonly int StateKey()
+    {
+        var hashCode = new HashCode();
+
+        hashCode.Add(program);
+        hashCode.Add(primitiveType);
+        hashCode.Add(cull);
+        hashCode.Add(wireframe);
+        hashCode.Add(enableDepth);
+        hashCode.Add(depthWrite);
+        hashCode.Add(vertexLayout);
+        hashCode.Add(renderTarget);
+        hashCode.Add(sourceBlend);
+        hashCode.Add(destinationBlend);
+
+        return hashCode.ToHashCode();
+    }
 }

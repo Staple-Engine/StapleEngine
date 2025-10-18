@@ -13,20 +13,20 @@ namespace Baker;
 
 static partial class Program
 {
-    private static string shadercBinName
+    private static string shaderCompilerBinName
     {
         get
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return "shadercRelease.exe";
+                return "shadercross.exe";
             }
 
-            return "shadercRelease";
+            return "shadercross";
         }
     }
     
-    private static string texturecBinName
+    private static string textureCompilerBinName
     {
         get
         {
@@ -156,7 +156,9 @@ static partial class Program
             string baseDir = AppContext.BaseDirectory;
 #endif
 
-            var toolPath = Path.GetFullPath(Path.Combine(baseDir, executable));
+            var toolPath = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "Dependencies", "SDL_shadercross",
+                Platform.CurrentPlatform.Value.ToString(), executable));
+
             var toolValid = false;
 
             try
@@ -179,8 +181,8 @@ static partial class Program
             return toolPath;
         }
 
-        var shadercPath = ValidateTool("shaderc", shadercBinName);
-        var texturecPath = ValidateTool("texturec", texturecBinName);
+        var shaderCompilerPath = ValidateTool("shadercross", shaderCompilerBinName);
+        var textureCompilerPath = "asdf"; //ValidateTool("texturec", textureCompilerBinName);
 
         var outputPath = "out";
         var inputPaths = new List<string>();
@@ -386,7 +388,7 @@ static partial class Program
             {
                 var outPath = Path.Combine(outputPath, Path.GetFileName(path));
 
-                ProcessShaders(platform, shadercPath, path, outPath, shaderDefines, renderers);
+                ProcessShaders(platform, shaderCompilerPath, path, outPath, shaderDefines, renderers);
             }
 
             lock(l)
@@ -415,7 +417,7 @@ static partial class Program
         {
             var outPath = Path.Combine(outputPath, Path.GetFileName(path));
 
-            ProcessTextures(platform, texturecPath, path, outPath);
+            ProcessTextures(platform, textureCompilerPath, path, outPath);
         }
 
         WorkScheduler.Main.WaitForTasks();
@@ -434,7 +436,7 @@ static partial class Program
         {
             var outPath = Path.Combine(outputPath, Path.GetFileName(path));
 
-            ProcessTextures(platform, texturecPath, path, outPath);
+            ProcessTextures(platform, textureCompilerPath, path, outPath);
         }
 
         WorkScheduler.Main.WaitForTasks();

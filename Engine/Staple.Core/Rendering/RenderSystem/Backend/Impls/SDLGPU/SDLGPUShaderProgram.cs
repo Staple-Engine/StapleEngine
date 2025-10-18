@@ -1,4 +1,5 @@
 ﻿using SDL3;
+using System;
 
 namespace Staple.Internal;
 
@@ -27,6 +28,11 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
         this.device = device;
         this.compute = compute;
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(device, vertex, fragment, compute, disposed);
     }
 
     public void Destroy()

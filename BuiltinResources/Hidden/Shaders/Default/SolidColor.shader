@@ -2,7 +2,6 @@ Type VertexFragment
 
 Begin Parameters
 
-varying vec3 a_position : POSITION
 uniform color mainColor
 
 End Parameters
@@ -11,30 +10,37 @@ Begin Instancing
 End Instancing
 
 Begin Vertex
-$input a_position
 
-void main()
+struct Input
 {
-	mat4 model = StapleModelMatrix;
+	float3 Position : TEXCOORD0;
+};
 
-	#ifdef SKINNING
-	model = StapleGetSkinningMatrix(model, a_indices, a_weight);
-	#endif
+struct Output
+{
+	float4 Position : SV_Position;
+}
 
-	mat4 projViewWorld = mul(mul(u_proj, u_view), model);
+Output main(Input input)
+{
+	Output output;
+	
+	float4x4 model = StapleModelMatrix;
 
-	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));
+	float4x4 projViewWorld = mul(mul(u_proj, u_view), model);
 
-	gl_Position = v_pos;
+	float4 v_pos = mul(projViewWorld, float4(a_position, 1.0));
+
+	output.position = v_pos;
 }
 
 End Vertex
 
 Begin Fragment
 
-void main()
+float4 main() : SV_Target0
 {
-	gl_FragColor = mainColor;
+	return mainColor;
 }
 
 End Fragment

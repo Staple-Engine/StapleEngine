@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using Newtonsoft.Json;
 using Staple;
 using Staple.Internal;
 using Staple.Tooling;
@@ -13,9 +14,30 @@ namespace Baker;
 
 static partial class Program
 {
-    private static void ProcessShaders(AppPlatform platform, string shadercPath, string inputPath, string outputPath,
+    private static void ProcessShaders(AppPlatform platform, string shaderCompilerPath, string inputPath, string outputPath,
         List<string> shaderDefines, List<Renderer> renderers)
     {
+        var commonUniformsDataVertexStart = $$"""
+cbuffer UniformBlock : register(b0, space1)
+{
+    float4x4 world : packoffset(c0);
+    float4x4 projection : packoffset(c1);
+    float time : packoffset(c2);
+""";
+
+        var commonUniformsDataVertexEnd = $$"""
+};
+""";
+
+        var commonUniformsDataFragmentStart = $$""""
+cbuffer UniformBlock : register(b0, space3)
+{
+"""";
+
+        var commonUniformsDataFragmentEnd = $$"""
+}
+""";
+
         var pieces = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
 
         while(pieces.Count > 0 && pieces.LastOrDefault() != "StapleEngine")
@@ -25,7 +47,7 @@ static partial class Program
 
         var stapleBase = Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces));
 
-        var bgfxShaderInclude = $"-i \"{Path.GetFullPath(Path.Combine(stapleBase, "Tools", "ShaderIncludes"))}\"";
+        var shaderInclude = $"--include \"{Path.GetFullPath(Path.Combine(stapleBase, "Tools", "ShaderIncludes"))}\"";
 
         var shaderFiles = new List<string>();
 
@@ -40,11 +62,11 @@ static partial class Program
 
         Console.WriteLine($"Processing {shaderFiles.Count} shaders...");
 
-        var shaderDefineString = string.Join(",", shaderDefines);
-
-        if (shaderDefineString.Length > 0)
+        var shaderDefineString = "";
+        
+        foreach(var define in shaderDefines)
         {
-            shaderDefineString = $"--define {shaderDefineString}";
+            shaderDefineString += $"-D{define} ";
         }
 
         for (var i = 0; i < shaderFiles.Count; i++)
@@ -333,79 +355,31 @@ static partial class Program
                     },
                     entries);
 
-                    byte[] ProcessShader(string varyingFileName, string shaderFileName, List<string> extraDefines, ShaderCompilerType shaderType, Renderer renderer)
+                    byte[] ProcessShader(string shaderFileName, List<string> extraDefines,
+                        ShaderCompilerType shaderType, Renderer renderer, out Dictionary<string, object> shaderInfo)
                     {
-                        var shaderPlatform = "";
+                        var destinationFormat = "";
                         var outShaderFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
-
-                        switch(shaderType)
-                        {
-                            case ShaderCompilerType.vertex:
-
-                                outShaderFileName += ".vert";
-
-                                break;
-
-                            case ShaderCompilerType.fragment:
-
-                                outShaderFileName += ".frag";
-
-                                break;
-
-                            case ShaderCompilerType.compute:
-
-                                outShaderFileName += ".comp";
-
-                                break;
-                        }
 
                         switch (renderer)
                         {
                             case Renderer.d3d12:
 
-                                shaderPlatform = "--platform windows -O 3 ";
-
-                                switch (shaderType)
-                                {
-                                    case ShaderCompilerType.vertex:
-
-                                        shaderPlatform += "-p s_5_0";
-
-                                        break;
-
-                                    case ShaderCompilerType.fragment:
-
-                                        shaderPlatform += "-p s_5_0";
-
-                                        break;
-
-                                    case ShaderCompilerType.compute:
-
-                                        shaderPlatform += "-p s_5_0";
-
-                                        break;
-                                }
+                                destinationFormat = "-d dxbc";
 
                                 break;
 
                             case Renderer.metal:
 
-                                shaderPlatform = "--platform osx -p metal";
+                                destinationFormat = "-d msl";
 
                                 break;
 
                             case Renderer.spirv:
 
-                                shaderPlatform = "--platform linux -p spirv";
+                                destinationFormat = "-d spirv";
 
                                 break;
-                        }
-
-                        var varyingParameter = "";
-
-                        if (shaderType == ShaderCompilerType.vertex || shaderType == ShaderCompilerType.fragment)
-                        {
-                            varyingParameter = $" --varyingdef {varyingFileName}";
                         }
 
                         try
@@ -420,13 +394,9 @@ static partial class Program
 
                         if (extraDefines.Count > 0)
                         {
-                            if (defineString.Length > 0)
+                            foreach(var define in extraDefines)
                             {
-                                defineString += $";{string.Join(";", extraDefines)}";
-                            }
-                            else
-                            {
-                                defineString = $"--define {string.Join(";", extraDefines)}";
+                                defineString += $" -D{define}";
                             }
                         }
 
@@ -434,8 +404,8 @@ static partial class Program
                         {
                             StartInfo = new ProcessStartInfo
                             {
-                                FileName = shadercPath,
-                                Arguments = $"-f \"{shaderFileName}\" -o \"{outShaderFileName}\" {defineString} --type {shaderType} {bgfxShaderInclude} {shaderPlatform} {varyingParameter}",
+                                FileName = shaderCompilerPath,
+                                Arguments = $"\"{shaderFileName}\" -o \"{outShaderFileName}\" {defineString} {shaderInclude} {destinationFormat}",
                                 UseShellExecute = false,
                                 RedirectStandardOutput = true,
                                 CreateNoWindow = true,
@@ -446,6 +416,56 @@ static partial class Program
 
                         if (process.ExitCode != 0)
                         {
+                            shaderInfo = default;
+
+                            Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
+
+                            try
+                            {
+                                File.Delete(outShaderFileName);
+                            }
+                            catch (Exception)
+                            {
+                            }
+
+                            return null;
+                        }
+
+                        process.Close();
+
+                        var shaderData = Array.Empty<byte>();
+
+                        try
+                        {
+                            shaderData = File.ReadAllBytes(outShaderFileName);
+
+                            File.Delete(outShaderFileName);
+                        }
+                        catch (Exception e)
+                        {
+                            shaderInfo = default;
+
+                            return null;
+                        }
+
+                        process = new Process
+                        {
+                            StartInfo = new ProcessStartInfo
+                            {
+                                FileName = shaderCompilerPath,
+                                Arguments = $"\"{shaderFileName}\" -o \"{outShaderFileName}\" {defineString} {shaderInclude} -d ",
+                                UseShellExecute = false,
+                                RedirectStandardOutput = true,
+                                CreateNoWindow = true,
+                            }
+                        };
+
+                        Utilities.ExecuteAndCollectProcess(process, null);
+
+                        if (process.ExitCode != 0)
+                        {
+                            shaderInfo = default;
+
                             Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
 
                             try
@@ -463,14 +483,18 @@ static partial class Program
 
                         try
                         {
-                            var data = File.ReadAllBytes(outShaderFileName);
+                            var text = File.ReadAllText(outShaderFileName);
 
                             File.Delete(outShaderFileName);
 
-                            return data;
+                            shaderInfo = JsonConvert.DeserializeObject<Dictionary<string, object>>(text);
+
+                            return shaderData;
                         }
                         catch (Exception e)
                         {
+                            shaderInfo = default;
+
                             return null;
                         }
                     }
@@ -515,39 +539,59 @@ static partial class Program
                     {
                         string code;
 
-                        var varyingFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
                         var shaderFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
 
                         var shaderObject = new SerializableShaderData();
 
-                        byte[] Compile(ShaderPiece piece, ShaderCompilerType type, Renderer renderer, ref string code)
+                        byte[] Compile(ShaderPiece piece, ShaderCompilerType type, Renderer renderer, ref string code,
+                            out Dictionary<string, object> shaderInfo)
                         {
+                            var fileName = shaderFileName + type switch
+                            {
+                                ShaderCompilerType.vertex => ".vert.hlsl",
+                                ShaderCompilerType.fragment => ".frag.hlsl",
+                                ShaderCompilerType.compute => ".comp.hlsl",
+                                _ => "",
+                            };
+
                             code = "";
 
                             var instancing = variantKey.Contains(Shader.InstancingKeyword);
 
                             if (type == ShaderCompilerType.vertex)
                             {
+                                code += commonUniformsDataVertex;
+
+                                /*
                                 code += $"$input a_weight, a_indices";
 
                                 if (instancing)
                                 {
                                     code += ", i_data0, i_data1, i_data2, i_data3, i_data4";
                                 }
+                                */
 
                                 if ((piece.inputs?.Count ?? 0) > 0)
                                 {
-                                    code += $", {string.Join(", ", piece.inputs)}";
+                                    foreach(var input in piece.inputs)
+                                    {
+                                        //TODO
+                                    }
                                 }
                             }
                             else if (type == ShaderCompilerType.fragment)
                             {
+                                code += commonUniformsDataFragmentStart;
+
+                                code += commonUniformsDataFragmentEnd;
+                                /*
                                 code += $"$input ";
 
                                 if ((piece.inputs?.Count ?? 0) > 0)
                                 {
                                     code += $"{string.Join(", ", piece.inputs)}";
                                 }
+                                */
                             }
 
                             code += "\n";
@@ -854,18 +898,20 @@ static partial class Program
 
                             try
                             {
-                                File.WriteAllText(shaderFileName, code);
+                                File.WriteAllText(fileName, code);
                             }
                             catch (Exception)
                             {
+                                shaderInfo = default;
+
                                 return null;
                             }
 
-                            var data = ProcessShader(varyingFileName, shaderFileName, extraDefines, type, renderer);
+                            var data = ProcessShader(fileName, extraDefines, type, renderer, out shaderInfo);
 
                             try
                             {
-                                File.Delete(shaderFileName);
+                                File.Delete(fileName);
                             }
                             catch (Exception)
                             {
@@ -902,7 +948,8 @@ static partial class Program
 
                                 string computeCode = "";
 
-                                shaderObject.computeShader = Compile(shader.compute, ShaderCompilerType.compute, renderer, ref computeCode);
+                                shaderObject.computeShader = Compile(shader.compute, ShaderCompilerType.compute, renderer, ref computeCode,
+                                    out var shaderInfo);
 
                                 if (shaderObject.computeShader == null)
                                 {
@@ -911,7 +958,7 @@ static partial class Program
                                     return;
                                 }
 
-                                lock(entryLock)
+                                lock (entryLock)
                                 {
                                     entries.data.AddOrSetKey(variantKey, shaderObject);
                                 }
@@ -927,8 +974,6 @@ static partial class Program
 
                                     return;
                                 }
-
-                                var varying = DefaultVaryingData;
 
                                 if (shader.parameters != null)
                                 {
@@ -956,6 +1001,7 @@ static partial class Program
 
                                             counters.AddOrSetKey(parameter.type, counter + 1);
 
+                                            /*
                                             varying += $"\n{GetNativeShaderType(parameter, counter, false)}";
 
                                             if ((parameter.vertexAttribute?.Length ?? 0) > 0)
@@ -969,6 +1015,7 @@ static partial class Program
                                             }
 
                                             varying += ";";
+                                            */
                                         }
                                     }
 
@@ -978,36 +1025,19 @@ static partial class Program
 
                                         return;
                                     }
-
-                                    try
-                                    {
-                                        File.WriteAllText(varyingFileName, varying);
-                                    }
-                                    catch (Exception)
-                                    {
-                                        Console.WriteLine("\t\tError: Failed to write parameter data");
-
-                                        return;
-                                    }
                                 }
 
                                 string vertexCode = "";
                                 string fragmentCode = "";
 
-                                shaderObject.vertexShader = Compile(shader.vertex, ShaderCompilerType.vertex, renderer, ref vertexCode);
-                                shaderObject.fragmentShader = Compile(shader.fragment, ShaderCompilerType.fragment, renderer, ref fragmentCode);
-
-                                try
-                                {
-                                    File.Delete(varyingFileName);
-                                }
-                                catch (Exception)
-                                {
-                                }
+                                shaderObject.vertexShader = Compile(shader.vertex, ShaderCompilerType.vertex, renderer, ref vertexCode,
+                                    out var vertexInfo);
+                                shaderObject.fragmentShader = Compile(shader.fragment, ShaderCompilerType.fragment, renderer, ref fragmentCode,
+                                    out var fragmentInfo);
 
                                 if (shaderObject.vertexShader == null || shaderObject.fragmentShader == null)
                                 {
-                                    Console.WriteLine($"Failed to build shader.\nGenerated code:\nVarying:\n{varying}\nVertex:\n{vertexCode}\nFragment:\n{fragmentCode}\n");
+                                    Console.WriteLine($"Failed to build shader.\nGenerated code:\nVertex:\n{vertexCode}\nFragment:\n{fragmentCode}\n");
 
                                     return;
                                 }

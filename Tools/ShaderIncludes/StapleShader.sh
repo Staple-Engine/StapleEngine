@@ -1,27 +1,17 @@
 #ifndef STAPLE_SHADER_GUARD
 #define STAPLE_SHADER_GUARD
 
-#include <bgfx_compute.sh>
-#include <bgfx_shader.sh>
+#define STAPLE_DECLARE_TEX2D(type, name, index) \
+	type##<float4>##name : register(t##index, space2); \
+	SamplerState name##Sampler : register(s##index, space2);
 
-#define STAPLE_SKINNING_STAGE_INDEX 15
-#define STAPLE_LIGHTING_NORMAL_MATRIX_STAGE_INDEX 14
+#define STAPLE_DECLARE_TEX2D_NOSAMPLER(type, name, index) type##<float4>##name : register(t##index, space2);
+	
+#define STAPLE_SAMPLE_TEX2D(name, coordinate) name.Sample(name##Sampler, cooordinate)
+#define STAPLE_SAMPLE_TEX2D_LOD(name, coordinate, lod) name.Sample(name##Sampler, cooordinate, lod)
 
-#ifdef INSTANCING
-#define StapleInstanceID float(gl_InstanceID)
-#else
-#define StapleInstanceID 0.0
-#endif
-
-#ifdef INSTANCING
-#define StapleModelMatrix mtxFromCols(i_data0, i_data1, i_data2, i_data3)
-#else
-#define StapleModelMatrix u_model[0]
-#endif
-
-#if !BGFX_SHADER_LANGUAGE_GLSL
 //From https://gist.github.com/mattatz/86fff4b32d198d0928d0fa4ff32cf6fa
-mat4 inverse(mat4 m)
+float4x4 inverse(float4x4 m)
 {
     float n11 = m[0][0], n12 = m[1][0], n13 = m[2][0], n14 = m[3][0];
     float n21 = m[0][1], n22 = m[1][1], n23 = m[2][1], n24 = m[3][1];
@@ -36,7 +26,7 @@ mat4 inverse(mat4 m)
     float det = n11 * t11 + n21 * t12 + n31 * t13 + n41 * t14;
     float idet = 1.0f / det;
 
-    mat4 ret;
+    float4x4 ret;
 
     ret[0][0] = t11 * idet;
     ret[0][1] = (n24 * n33 * n41 - n23 * n34 * n41 - n24 * n31 * n43 + n21 * n34 * n43 + n23 * n31 * n44 - n21 * n33 * n44) * idet;
@@ -60,26 +50,5 @@ mat4 inverse(mat4 m)
 
     return ret;
 }
-#endif
-
-#ifdef SKINNING
-BUFFER_RO(StapleBoneMatrices, vec4, STAPLE_SKINNING_STAGE_INDEX);
-
-mat4 StapleGetBoneMatrix(int index)
-{
-	return mtxFromCols(StapleBoneMatrices[index * 4],
-		StapleBoneMatrices[index * 4 + 1],
-		StapleBoneMatrices[index * 4 + 2],
-		StapleBoneMatrices[index * 4 + 3]);
-}
-
-mat4 StapleGetSkinningMatrix(mat4 model, vec4 indices, vec4 weights)
-{
-	return mul(model, weights.x * StapleGetBoneMatrix(int(indices.x)) +
-			weights.y * StapleGetBoneMatrix(int(indices.y)) +
-			weights.z * StapleGetBoneMatrix(int(indices.z)) + 
-			weights.w * StapleGetBoneMatrix(int(indices.w)));
-}
-#endif
 
 #endif
