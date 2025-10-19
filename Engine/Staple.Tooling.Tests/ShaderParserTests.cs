@@ -35,8 +35,8 @@ compute B
 End Compute
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
-            out var vertex, out var fragment, out var compute));
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
+            out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variants.Count, Is.EqualTo(3));
 
@@ -120,8 +120,8 @@ compute B
 End Compute
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
-            out var vertex, out var fragment, out var compute));
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
+            out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variants.Count, Is.EqualTo(3));
 
@@ -215,8 +215,8 @@ compute B
 End Compute
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, ShaderType.Compute, out var blend, out var parameters, out var variants, out var instanceParameters,
-            out var vertex, out var fragment, out var compute));
+        Assert.That(ShaderParser.Parse(shader, ShaderType.Compute, out var blend, out var parameters, out var variants, out var instanceParameters,
+            out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variants.Count, Is.EqualTo(0));
 
@@ -275,8 +275,8 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
-            out var vertex, out var fragment, out var compute));
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
+            out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(blend, Is.Null);
 
@@ -305,8 +305,8 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.IsTrue(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
-            out var vertex, out var fragment, out var compute));
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
+            out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(parameters.Length, Is.EqualTo(1));
 

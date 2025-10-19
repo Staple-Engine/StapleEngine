@@ -20,6 +20,8 @@ public partial class ComputeShader : IGuidAsset
 
     private byte[] shaderSource = [];
 
+    private ComputeShaderMetrics metrics;
+
     private IShaderProgram program;
 
     private int usedTextureStages = 0;
@@ -48,6 +50,7 @@ public partial class ComputeShader : IGuidAsset
         metadata = shader.metadata;
 
         shaderSource = entries.FirstOrDefault().Value.computeShader ?? [];
+        metrics = entries.FirstOrDefault().Value.computeMetrics ?? new();
     }
 
     ~ComputeShader()
@@ -93,7 +96,7 @@ public partial class ComputeShader : IGuidAsset
             return false;
         }
 
-        program = RenderSystem.Backend.CreateShaderCompute(shaderSource);
+        program = RenderSystem.Backend.CreateShaderCompute(shaderSource, metrics);
 
         if (program == null)
         {

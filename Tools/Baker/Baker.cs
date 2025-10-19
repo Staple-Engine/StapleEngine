@@ -25,7 +25,20 @@ static partial class Program
             return "shadercross";
         }
     }
-    
+
+    private static string shaderTranspilerBinName
+    {
+        get
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return "slangc.exe";
+            }
+
+            return "slangc";
+        }
+    }
+
     private static string textureCompilerBinName
     {
         get
@@ -156,8 +169,7 @@ static partial class Program
             string baseDir = AppContext.BaseDirectory;
 #endif
 
-            var toolPath = Path.GetFullPath(Path.Combine(baseDir, "..", "..", "Dependencies", "SDL_shadercross",
-                Platform.CurrentPlatform.Value.ToString(), executable));
+            var toolPath = Path.GetFullPath(Path.Combine(baseDir, executable));
 
             var toolValid = false;
 
@@ -182,6 +194,7 @@ static partial class Program
         }
 
         var shaderCompilerPath = ValidateTool("shadercross", shaderCompilerBinName);
+        var shaderTranspilerPath = ValidateTool("slang", shaderTranspilerBinName);
         var textureCompilerPath = "asdf"; //ValidateTool("texturec", textureCompilerBinName);
 
         var outputPath = "out";
@@ -388,7 +401,7 @@ static partial class Program
             {
                 var outPath = Path.Combine(outputPath, Path.GetFileName(path));
 
-                ProcessShaders(platform, shaderCompilerPath, path, outPath, shaderDefines, renderers);
+                ProcessShaders(platform, shaderCompilerPath, shaderTranspilerPath, path, outPath, shaderDefines, renderers);
             }
 
             lock(l)

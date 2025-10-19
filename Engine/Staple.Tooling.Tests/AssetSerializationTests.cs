@@ -404,7 +404,7 @@ public class AssetSerializationTests
     {
         var asset = JsonConvert.DeserializeObject<SerializableStapleAsset>(AssetData);
 
-        Assert.IsNotNull(asset);
+        Assert.That(asset, Is.Not.Null);
 
         Utilities.ExpandSerializedAsset(asset);
 

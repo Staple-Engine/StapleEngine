@@ -9,20 +9,20 @@ internal class ColorTests
     {
         var color = new Color(1, 2, 3, 4);
 
-        Assert.AreEqual(color, color);
-        Assert.AreNotEqual(new Color(1, 2, 3, 0), color);
-        Assert.AreNotEqual(new Color(1, 2, 0, 4), color);
-        Assert.AreNotEqual(new Color(1, 0, 3, 4), color);
-        Assert.AreNotEqual(new Color(0, 2, 3, 4), color);
+        Assert.That(color, Is.EqualTo(color));
+        Assert.That(color, Is.Not.EqualTo(new Color(1, 2, 3, 0)));
+        Assert.That(color, Is.Not.EqualTo(new Color(1, 2, 0, 4)));
+        Assert.That(color, Is.Not.EqualTo(new Color(1, 0, 3, 4)));
+        Assert.That(color, Is.Not.EqualTo(new Color(0, 2, 3, 4)));
 
         var color2 = new Color32(1, 2, 3, 4);
 
-        Assert.AreEqual(color2, color2);
+        Assert.That(color2, Is.EqualTo(color2));
 
-        Assert.AreNotEqual(new Color32(1, 2, 3, 0), color2);
-        Assert.AreNotEqual(new Color32(1, 2, 0, 4), color2);
-        Assert.AreNotEqual(new Color32(1, 0, 3, 4), color2);
-        Assert.AreNotEqual(new Color32(0, 2, 3, 4), color2);
+        Assert.That(color2, Is.Not.EqualTo(new Color32(1, 2, 3, 0)));
+        Assert.That(color2, Is.Not.EqualTo(new Color32(1, 2, 0, 4)));
+        Assert.That(color2, Is.Not.EqualTo(new Color32(1, 0, 3, 4)));
+        Assert.That(color2, Is.Not.EqualTo(new Color32(0, 2, 3, 4)));
     }
 
     [Test]
@@ -32,17 +32,17 @@ internal class ColorTests
 
         var b = (Color32)a;
 
-        Assert.AreEqual(127, b.r);
-        Assert.AreEqual(63, b.g);
-        Assert.AreEqual(255, b.b);
-        Assert.AreEqual(0, b.a);
+        Assert.That(b.r, Is.EqualTo(127));
+        Assert.That(b.g, Is.EqualTo(63));
+        Assert.That(b.b, Is.EqualTo(255));
+        Assert.That(b.a, Is.EqualTo(0));
 
         a = (Color)b;
 
-        Assert.AreEqual(498, (int)(a.r * 1000));
-        Assert.AreEqual(247, (int)(a.g * 1000));
-        Assert.AreEqual(1, a.b);
-        Assert.AreEqual(0, a.a);
+        Assert.That(498, Is.EqualTo((int)(a.r * 1000)));
+        Assert.That(247, Is.EqualTo((int)(a.g * 1000)));
+        Assert.That(1, Is.EqualTo(a.b));
+        Assert.That(0, Is.EqualTo(a.a));
     }
 
     [Test]
@@ -52,12 +52,12 @@ internal class ColorTests
 
         var uintValue = a.UIntValue;
 
-        Assert.AreEqual(0x7F3FFF00, uintValue);
+        Assert.That(uintValue, Is.EqualTo(0x7F3FFF00));
 
         var b = new Color32(255, 128, 64, 0);
 
         uintValue = b.UIntValue;
 
-        Assert.AreEqual(0xFF804000, uintValue);
+        Assert.That(uintValue, Is.EqualTo(0xFF804000));
     }
 }

@@ -31,9 +31,10 @@ internal interface IRendererBackend
 
     VertexLayoutBuilder CreateVertexLayoutBuilder();
 
-    IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment);
+    IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
+        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics);
 
-    IShaderProgram CreateShaderCompute(byte[] compute);
+    IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics computeMetrics);
 
     void Render(IRenderPass pass, RenderState state);
 }

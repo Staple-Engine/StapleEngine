@@ -1,3 +1,0 @@
-#ifndef STAPLE_LIGHTING_GUARD
-#define STAPLE_LIGHTING_GUARD
-#endif

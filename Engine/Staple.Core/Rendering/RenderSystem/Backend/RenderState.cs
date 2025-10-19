@@ -22,21 +22,24 @@ internal struct RenderState
     public BlendMode sourceBlend;
     public BlendMode destinationBlend;
 
-    internal readonly int StateKey()
+    internal readonly int StateKey
     {
-        var hashCode = new HashCode();
+        get
+        {
+            var hashCode = new HashCode();
 
-        hashCode.Add(program);
-        hashCode.Add(primitiveType);
-        hashCode.Add(cull);
-        hashCode.Add(wireframe);
-        hashCode.Add(enableDepth);
-        hashCode.Add(depthWrite);
-        hashCode.Add(vertexLayout);
-        hashCode.Add(renderTarget);
-        hashCode.Add(sourceBlend);
-        hashCode.Add(destinationBlend);
+            hashCode.Add(program);
+            hashCode.Add(primitiveType);
+            hashCode.Add(cull);
+            hashCode.Add(wireframe);
+            hashCode.Add(enableDepth);
+            hashCode.Add(depthWrite);
+            hashCode.Add(vertexLayout);
+            hashCode.Add(renderTarget);
+            hashCode.Add(sourceBlend);
+            hashCode.Add(destinationBlend);
 
-        return hashCode.ToHashCode();
+            return hashCode.ToHashCode();
+        }
     }
 }

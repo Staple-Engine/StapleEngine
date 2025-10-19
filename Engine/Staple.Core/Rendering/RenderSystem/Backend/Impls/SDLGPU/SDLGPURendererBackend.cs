@@ -343,7 +343,8 @@ internal class SDLGPURendererBackend : IRendererBackend
         return new SDLGPUVertexLayoutBuilder();
     }
 
-    public IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment)
+    public IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
+        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics)
     {
         unsafe
         {
@@ -363,6 +364,10 @@ internal class SDLGPURendererBackend : IRendererBackend
                         entrypoint = e,
                         format = SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
                         stage = SDL.SDL_GPUShaderStage.SDL_GPU_SHADERSTAGE_VERTEX,
+                        num_samplers = (uint)vertexMetrics.samplerCount,
+                        num_storage_buffers = (uint)vertexMetrics.storageBufferCount,
+                        num_storage_textures = (uint)vertexMetrics.storageTextureCount,
+                        num_uniform_buffers = (uint)vertexMetrics.uniformBufferCount,
                     };
 
                     vertexShader = SDL.SDL_CreateGPUShader(device, in info);
@@ -399,7 +404,7 @@ internal class SDLGPURendererBackend : IRendererBackend
         }
     }
 
-    public IShaderProgram CreateShaderCompute(byte[] compute)
+    public IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics metrics)
     {
         unsafe
         {
@@ -417,6 +422,15 @@ internal class SDLGPURendererBackend : IRendererBackend
                         code_size = (uint)compute.Length,
                         entrypoint = e,
                         format = SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
+                        num_samplers = (uint)metrics.samplerCount,
+                        num_uniform_buffers = (uint)metrics.uniformBufferCount,
+                        num_readonly_storage_buffers = (uint)metrics.readOnlyStorageBufferCount,
+                        num_readonly_storage_textures = (uint)metrics.readOnlyStorageTextureCount,
+                        num_readwrite_storage_buffers = (uint)metrics.readWriteStorageBufferCount,
+                        num_readwrite_storage_textures = (uint)metrics.readWriteStorageTextureCount,
+                        threadcount_x = (uint)metrics.threadCountX,
+                        threadcount_y = (uint)metrics.threadCountY,
+                        threadcount_z = (uint)metrics.threadCountZ,
                     };
 
                     computeShader = SDL.SDL_CreateGPUComputePipeline(device, in info);
@@ -444,7 +458,7 @@ internal class SDLGPURendererBackend : IRendererBackend
             return;
         }
 
-        var hash = state.GetHashCode();
+        var hash = state.StateKey;
 
         if(graphicsPipelines.TryGetValue(hash, out var pipeline) == false)
         {

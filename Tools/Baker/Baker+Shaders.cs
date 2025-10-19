@@ -14,30 +14,9 @@ namespace Baker;
 
 static partial class Program
 {
-    private static void ProcessShaders(AppPlatform platform, string shaderCompilerPath, string inputPath, string outputPath,
-        List<string> shaderDefines, List<Renderer> renderers)
+    private static void ProcessShaders(AppPlatform platform, string shaderCompilerPath, string shaderTranspilerPath,
+        string inputPath, string outputPath, List<string> shaderDefines, List<Renderer> renderers)
     {
-        var commonUniformsDataVertexStart = $$"""
-cbuffer UniformBlock : register(b0, space1)
-{
-    float4x4 world : packoffset(c0);
-    float4x4 projection : packoffset(c1);
-    float time : packoffset(c2);
-""";
-
-        var commonUniformsDataVertexEnd = $$"""
-};
-""";
-
-        var commonUniformsDataFragmentStart = $$""""
-cbuffer UniformBlock : register(b0, space3)
-{
-"""";
-
-        var commonUniformsDataFragmentEnd = $$"""
-}
-""";
-
         var pieces = AppContext.BaseDirectory.Split(Path.DirectorySeparatorChar).ToList();
 
         while(pieces.Count > 0 && pieces.LastOrDefault() != "StapleEngine")
@@ -47,7 +26,7 @@ cbuffer UniformBlock : register(b0, space3)
 
         var stapleBase = Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces));
 
-        var shaderInclude = $"--include \"{Path.GetFullPath(Path.Combine(stapleBase, "Tools", "ShaderIncludes"))}\"";
+        var shaderInclude = $"-I \"{Path.GetFullPath(Path.Combine(stapleBase, "Tools", "ShaderIncludes"))}\"";
 
         var shaderFiles = new List<string>();
 
@@ -98,6 +77,8 @@ cbuffer UniformBlock : register(b0, space3)
             WorkScheduler.Main.Dispatch(Path.GetFileName(currentShader), () =>
             {
                 //Console.WriteLine($"\t\t -> {outputFile}");
+
+                var success = true;
 
                 try
                 {
@@ -342,6 +323,11 @@ cbuffer UniformBlock : register(b0, space3)
 
                 foreach (var renderer in renderers)
                 {
+                    if(success == false)
+                    {
+                        break;
+                    }
+
                     var entries = new SerializableShaderEntry();
 
                     Lock entryLock = new();
@@ -356,10 +342,21 @@ cbuffer UniformBlock : register(b0, space3)
                     entries);
 
                     byte[] ProcessShader(string shaderFileName, List<string> extraDefines,
-                        ShaderCompilerType shaderType, Renderer renderer, out Dictionary<string, object> shaderInfo)
+                        ShaderCompilerType shaderType, Renderer renderer, out object shaderMetrics)
                     {
+                        var shaderExtension = shaderType switch
+                        {
+                            ShaderCompilerType.vertex => ".vert.spv",
+                            ShaderCompilerType.fragment => ".frag.spv",
+                            ShaderCompilerType.compute => ".comp.spv",
+                            _ => "",
+                        };
+
                         var destinationFormat = "";
                         var outShaderFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+                        var outShaderFileNameTranspiled = $"{Path.Combine(Path.GetTempPath(), Path.GetTempFileName())}{shaderExtension}";
+
+                        var skip = false;
 
                         switch (renderer)
                         {
@@ -377,7 +374,8 @@ cbuffer UniformBlock : register(b0, space3)
 
                             case Renderer.spirv:
 
-                                destinationFormat = "-d spirv";
+                                skip = true;
+                                outShaderFileName = outShaderFileNameTranspiled;
 
                                 break;
                         }
@@ -400,102 +398,239 @@ cbuffer UniformBlock : register(b0, space3)
                             }
                         }
 
-                        var process = new Process
                         {
-                            StartInfo = new ProcessStartInfo
+                            var stage = shaderType switch
                             {
-                                FileName = shaderCompilerPath,
-                                Arguments = $"\"{shaderFileName}\" -o \"{outShaderFileName}\" {defineString} {shaderInclude} {destinationFormat}",
-                                UseShellExecute = false,
-                                RedirectStandardOutput = true,
-                                CreateNoWindow = true,
+                                ShaderCompilerType.vertex => "-stage vertex",
+                                ShaderCompilerType.fragment => "-stage fragment",
+                                ShaderCompilerType.compute => "-stage compute",
+                                _ => ""
+                            };
+
+                            var entry = shaderType switch
+                            {
+                                ShaderCompilerType.vertex => "-entry VertexMain",
+                                ShaderCompilerType.fragment => "-entry FragmentMain",
+                                _ => "",
+                            };
+
+                            var process = new Process
+                            {
+                                StartInfo = new ProcessStartInfo
+                                {
+                                    FileName = shaderTranspilerPath,
+                                    Arguments = $"-o \"{outShaderFileNameTranspiled}\" -profile sm_6_0 -target spirv {stage} {entry} {defineString} {shaderInclude} \"{shaderFileName}\"",
+                                    UseShellExecute = false,
+                                    RedirectStandardOutput = true,
+                                    CreateNoWindow = true,
+                                }
+                            };
+
+                            Utilities.ExecuteAndCollectProcess(process, null);
+
+                            if (process.ExitCode != 0)
+                            {
+                                shaderMetrics = null;
+
+                                Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
+
+                                try
+                                {
+                                    File.Delete(outShaderFileName);
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                return null;
                             }
-                        };
 
-                        Utilities.ExecuteAndCollectProcess(process, null);
+                            process.Close();
+                        }
 
-                        if (process.ExitCode != 0)
+                        if (skip == false)
                         {
-                            shaderInfo = default;
+                            var process = new Process
+                            {
+                                StartInfo = new ProcessStartInfo
+                                {
+                                    FileName = shaderCompilerPath,
+                                    Arguments = $"\"{outShaderFileNameTranspiled}\" -o \"{outShaderFileName}\" {defineString} {shaderInclude} {destinationFormat}",
+                                    UseShellExecute = false,
+                                    RedirectStandardOutput = true,
+                                    CreateNoWindow = true,
+                                }
+                            };
 
-                            Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
+                            Utilities.ExecuteAndCollectProcess(process, null);
+
+                            if (process.ExitCode != 0)
+                            {
+                                shaderMetrics = null;
+
+                                Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
+
+                                try
+                                {
+                                    File.Delete(outShaderFileNameTranspiled);
+                                    File.Delete(outShaderFileName);
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                return null;
+                            }
+
+                            process.Close();
+                        }
+
+                        {
+                            var shaderData = Array.Empty<byte>();
 
                             try
                             {
-                                File.Delete(outShaderFileName);
+                                shaderData = File.ReadAllBytes(outShaderFileName);
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
+                                shaderMetrics = null;
+
+                                return null;
                             }
 
-                            return null;
-                        }
-
-                        process.Close();
-
-                        var shaderData = Array.Empty<byte>();
-
-                        try
-                        {
-                            shaderData = File.ReadAllBytes(outShaderFileName);
-
-                            File.Delete(outShaderFileName);
-                        }
-                        catch (Exception e)
-                        {
-                            shaderInfo = default;
-
-                            return null;
-                        }
-
-                        process = new Process
-                        {
-                            StartInfo = new ProcessStartInfo
+                            var process = new Process
                             {
-                                FileName = shaderCompilerPath,
-                                Arguments = $"\"{shaderFileName}\" -o \"{outShaderFileName}\" {defineString} {shaderInclude} -d ",
-                                UseShellExecute = false,
-                                RedirectStandardOutput = true,
-                                CreateNoWindow = true,
+                                StartInfo = new ProcessStartInfo
+                                {
+                                    FileName = shaderCompilerPath,
+                                    Arguments = $"\"{outShaderFileNameTranspiled}\" -o \"{outShaderFileName}.json\" {defineString} {shaderInclude} -d json",
+                                    UseShellExecute = false,
+                                    RedirectStandardOutput = true,
+                                    CreateNoWindow = true,
+                                }
+                            };
+
+                            Utilities.ExecuteAndCollectProcess(process, null);
+
+                            if (process.ExitCode != 0)
+                            {
+                                shaderMetrics = null;
+
+                                Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
+
+                                try
+                                {
+                                    File.Delete(outShaderFileName);
+                                    File.Delete(outShaderFileNameTranspiled);
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                return null;
                             }
-                        };
 
-                        Utilities.ExecuteAndCollectProcess(process, null);
-
-                        if (process.ExitCode != 0)
-                        {
-                            shaderInfo = default;
-
-                            Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
+                            process.Close();
 
                             try
                             {
+                                var text = File.ReadAllText($"{outShaderFileName}.json");
+
+                                File.Delete($"{outShaderFileName}.json");
                                 File.Delete(outShaderFileName);
+                                File.Delete(outShaderFileNameTranspiled);
+
+                                var stats = JsonConvert.DeserializeObject<Dictionary<string, object>>(text);
+
+                                switch(shaderType)
+                                {
+                                    case ShaderCompilerType.vertex:
+                                    case ShaderCompilerType.fragment:
+
+                                        {
+                                            if (stats.TryGetValue("samplers", out var samplersObject) &&
+                                                samplersObject is long samplerCount &&
+                                                stats.TryGetValue("storage_textures", out var storageTexturesObject) &&
+                                                storageTexturesObject is long storageTextureCount &&
+                                                stats.TryGetValue("storage_buffers", out var storageBuffersObject) &&
+                                                storageBuffersObject is long storageBufferCount &&
+                                                stats.TryGetValue("uniform_buffers", out var uniformBuffersObject) &&
+                                                uniformBuffersObject is long uniformBufferCount)
+                                            {
+                                                var metrics = new VertexFragmentShaderMetrics()
+                                                {
+                                                    samplerCount = (int)samplerCount,
+                                                    storageBufferCount = (int)storageBufferCount,
+                                                    storageTextureCount = (int)storageTextureCount,
+                                                    uniformBufferCount = (int)uniformBufferCount,
+                                                };
+
+                                                shaderMetrics = metrics;
+
+                                                return shaderData;
+                                            }
+                                        }
+
+                                        break;
+
+                                    case ShaderCompilerType.compute:
+
+                                        {
+                                            if (stats.TryGetValue("samplers", out var samplersObject) &&
+                                                samplersObject is long samplerCount &&
+                                                stats.TryGetValue("read_only_storage_textures", out var readOnlyStorageTexturesObject) &&
+                                                readOnlyStorageTexturesObject is long readOnlyStorageTextureCount &&
+                                                stats.TryGetValue("read_only_storage_buffers", out var readOnlyStorageBuffersObject) &&
+                                                readOnlyStorageBuffersObject is long readOnlyStorageBufferCount &&
+                                                stats.TryGetValue("read_write_storage_textures", out var readWriteStorageTexturesObject) &&
+                                                readWriteStorageTexturesObject is long readWriteStorageTextureCount &&
+                                                stats.TryGetValue("read_write_storage_buffers", out var readWriteStorageBuffersObject) &&
+                                                readWriteStorageBuffersObject is long readWriteStorageBufferCount &&
+                                                stats.TryGetValue("uniform_buffers", out var uniformBuffersObject) &&
+                                                uniformBuffersObject is long uniformBufferCount &&
+                                                stats.TryGetValue("thread_count_x", out var threadCountXObject) &&
+                                                threadCountXObject is long threadCountX &&
+                                                stats.TryGetValue("thread_count_y", out var threadCountYObject) &&
+                                                threadCountYObject is long threadCountY &&
+                                                stats.TryGetValue("thread_count_z", out var threadCountZObject) &&
+                                                threadCountZObject is long threadCountZ)
+                                            {
+                                                var metrics = new ComputeShaderMetrics()
+                                                {
+                                                    samplerCount = (int)samplerCount,
+                                                    readOnlyStorageBufferCount = (int)readOnlyStorageBufferCount,
+                                                    readOnlyStorageTextureCount = (int)readOnlyStorageTextureCount,
+                                                    readWriteStorageBufferCount = (int)readWriteStorageBufferCount,
+                                                    readWriteStorageTextureCount = (int)readWriteStorageTextureCount,
+                                                    threadCountX = (int)threadCountX,
+                                                    threadCountY = (int)threadCountY,
+                                                    threadCountZ = (int)threadCountZ,
+                                                    uniformBufferCount = (int)uniformBufferCount,
+                                                };
+
+                                                shaderMetrics = metrics;
+
+                                                return shaderData;
+                                            }
+                                        }
+
+                                        break;
+                                }
+
+                                shaderMetrics = null;
+
+                                return null;
                             }
-                            catch (Exception)
+                            catch (Exception e)
                             {
+                                shaderMetrics = null;
+
+                                File.Delete(outShaderFileName);
+                                File.Delete(outShaderFileNameTranspiled);
+
+                                return null;
                             }
-
-                            return null;
-                        }
-
-                        process.Close();
-
-                        try
-                        {
-                            var text = File.ReadAllText(outShaderFileName);
-
-                            File.Delete(outShaderFileName);
-
-                            shaderInfo = JsonConvert.DeserializeObject<Dictionary<string, object>>(text);
-
-                            return shaderData;
-                        }
-                        catch (Exception e)
-                        {
-                            shaderInfo = default;
-
-                            return null;
                         }
                     }
 
@@ -535,383 +670,39 @@ cbuffer UniformBlock : register(b0, space3)
                         };
                     }
 
-                    void Build(string variantKey, List<string> extraDefines)
+                    bool Build(string variantKey, List<string> extraDefines)
                     {
                         string code;
 
-                        var shaderFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
+                        var shaderFileName = $"{Path.Combine(Path.GetTempPath(), Path.GetTempFileName())}.slang";
 
                         var shaderObject = new SerializableShaderData();
 
                         byte[] Compile(ShaderPiece piece, ShaderCompilerType type, Renderer renderer, ref string code,
-                            out Dictionary<string, object> shaderInfo)
+                            out object shaderMetrics)
                         {
-                            var fileName = shaderFileName + type switch
-                            {
-                                ShaderCompilerType.vertex => ".vert.hlsl",
-                                ShaderCompilerType.fragment => ".frag.hlsl",
-                                ShaderCompilerType.compute => ".comp.hlsl",
-                                _ => "",
-                            };
-
-                            code = "";
+                            code = "import Staple;\n";
 
                             var instancing = variantKey.Contains(Shader.InstancingKeyword);
-
-                            if (type == ShaderCompilerType.vertex)
-                            {
-                                code += commonUniformsDataVertex;
-
-                                /*
-                                code += $"$input a_weight, a_indices";
-
-                                if (instancing)
-                                {
-                                    code += ", i_data0, i_data1, i_data2, i_data3, i_data4";
-                                }
-                                */
-
-                                if ((piece.inputs?.Count ?? 0) > 0)
-                                {
-                                    foreach(var input in piece.inputs)
-                                    {
-                                        //TODO
-                                    }
-                                }
-                            }
-                            else if (type == ShaderCompilerType.fragment)
-                            {
-                                code += commonUniformsDataFragmentStart;
-
-                                code += commonUniformsDataFragmentEnd;
-                                /*
-                                code += $"$input ";
-
-                                if ((piece.inputs?.Count ?? 0) > 0)
-                                {
-                                    code += $"{string.Join(", ", piece.inputs)}";
-                                }
-                                */
-                            }
-
-                            code += "\n";
-
-                            if (type != ShaderCompilerType.compute &&
-                                (piece.outputs?.Count ?? 0) > 0)
-                            {
-                                code += $"$output  {string.Join(", ", piece.outputs)}\n";
-                            }
-
-                            if (type == ShaderCompilerType.compute)
-                            {
-                                code += "#include <StapleCompute.sh>\n";
-                            }
-                            else
-                            {
-                                if (type == ShaderCompilerType.vertex && instancing)
-                                {
-                                    var fieldIndex = 0;
-
-                                    foreach (var instanceParameter in shader.instancingParameters)
-                                    {
-                                        var dataIndex = fieldIndex / 4;
-                                        var componentIndex = fieldIndex % 4;
-
-                                        code += $"#define {instanceParameter.name} ";
-
-                                        switch (instanceParameter.dataType)
-                                        {
-                                            case ShaderUniformType.Int:
-
-                                                code += $"int(i_data{dataIndex}";
-
-                                                switch (componentIndex)
-                                                {
-                                                    case 0:
-                                                        code += ".x)\n";
-
-                                                        break;
-
-                                                    case 1:
-                                                        code += ".y)\n";
-
-                                                        break;
-
-                                                    case 2:
-                                                        code += ".z)\n";
-
-                                                        break;
-
-                                                    case 3:
-                                                        code += ".w)\n";
-
-                                                        break;
-                                                }
-
-                                                fieldIndex++;
-
-                                                break;
-
-                                            case ShaderUniformType.Float:
-
-                                                code += $"i_data{dataIndex}";
-
-                                                switch (componentIndex)
-                                                {
-                                                    case 0:
-                                                        code += ".x\n";
-
-                                                        break;
-
-                                                    case 1:
-                                                        code += ".y\n";
-
-                                                        break;
-
-                                                    case 2:
-                                                        code += ".z\n";
-
-                                                        break;
-
-                                                    case 3:
-                                                        code += ".w\n";
-
-                                                        break;
-                                                }
-
-                                                fieldIndex++;
-
-                                                break;
-
-                                            case ShaderUniformType.Color:
-                                            case ShaderUniformType.Vector4:
-
-                                                switch (componentIndex)
-                                                {
-                                                    case 0:
-
-                                                        code += $"i_data{dataIndex}\n";
-
-                                                        break;
-
-                                                    case 1:
-
-                                                        code += $"vec4(i_data{dataIndex}.y, i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x)\n";
-
-                                                        break;
-
-                                                    case 2:
-
-                                                        code += $"vec4(i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y)\n";
-
-                                                        break;
-
-                                                    case 3:
-
-                                                        code += $"vec4(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z)\n";
-
-                                                        break;
-                                                }
-
-                                                fieldIndex += 4;
-
-                                                break;
-
-                                            case ShaderUniformType.Vector2:
-
-                                                switch (componentIndex)
-                                                {
-                                                    case 0:
-
-                                                        code += $"i_data{dataIndex}.xy\n";
-
-                                                        break;
-
-                                                    case 1:
-
-                                                        code += $"i_data{dataIndex}.yz\n";
-
-                                                        break;
-
-                                                    case 2:
-
-                                                        code += $"i_data{dataIndex}.zw\n";
-
-                                                        break;
-
-                                                    case 3:
-
-                                                        code += $"vec2(i_data{dataIndex}.w, i_data{dataIndex + 1}.x)\n";
-
-                                                        break;
-                                                }
-
-                                                fieldIndex += 2;
-
-                                                break;
-
-                                            case ShaderUniformType.Vector3:
-
-                                                switch (componentIndex)
-                                                {
-                                                    case 0:
-
-                                                        code += $"i_data{dataIndex}.xyz\n";
-
-                                                        break;
-
-                                                    case 1:
-
-                                                        code += $"i_data{dataIndex}.yzw\n";
-
-                                                        break;
-
-                                                    case 2:
-
-                                                        code += $"vec3(i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x)\n";
-
-                                                        break;
-
-                                                    case 3:
-
-                                                        code += $"vec3(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y)\n";
-
-                                                        break;
-                                                }
-
-                                                fieldIndex += 3;
-
-                                                break;
-
-                                            case ShaderUniformType.Matrix3x3:
-
-                                                switch (componentIndex)
-                                                {
-                                                    case 0:
-
-                                                        code += $"mtxFromCols(i_data{dataIndex}.xyz, vec3(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y), " +
-                                                            $"vec3(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x))\n";
-
-                                                        break;
-
-                                                    case 1:
-
-                                                        code += $"mtxFromCols(i_data{dataIndex}.y, i_data{dataIndex}.z, i_data{dataIndex}.w), " +
-                                                            $"vec3(i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z), " +
-                                                            $"vec3(i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y))\n";
-
-                                                        break;
-
-                                                    case 2:
-
-                                                        code += $"mtxFromCols(i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x), " +
-                                                            $"vec3(i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w), " +
-                                                            $"vec3(i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z))\n";
-
-                                                        break;
-
-                                                    case 3:
-
-                                                        code += $"mtxFromCols(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y), " +
-                                                            $"vec3(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x), " +
-                                                            $"vec3(i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z, i_data{dataIndex + 2}.w))\n";
-
-                                                        break;
-                                                }
-
-                                                fieldIndex += 9;
-
-                                                break;
-
-                                            case ShaderUniformType.Matrix4x4:
-
-                                                switch (componentIndex)
-                                                {
-                                                    case 0:
-
-                                                        code += $"mtxFromCols(i_data{dataIndex}, i_data{dataIndex + 1}, i_data{dataIndex + 2}, i_data{dataIndex + 3})\n";
-
-                                                        break;
-
-                                                    case 1:
-
-                                                        code += $"mtxFromCols(vec4(i_data{dataIndex}.y, i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x), " +
-                                                            $"vec4(i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x), " +
-                                                            $"vec4(i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z, i_data{dataIndex + 2}.w, i_data{dataIndex + 3}.x))\n";
-
-                                                        break;
-
-                                                    case 2:
-
-                                                        code += $"mtxFromCols(vec4(i_data{dataIndex}.z, i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y), " +
-                                                            $"vec4(i_data{dataIndex + 1}.z, i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y), " +
-                                                            $"vec4(i_data{dataIndex + 2}.z, i_data{dataIndex + 2}.w, i_data{dataIndex + 3}.x, i_data{dataIndex + 3}.y))\n";
-
-                                                        break;
-
-                                                    case 3:
-
-                                                        code += $"mtxFromCols(vec4(i_data{dataIndex}.w, i_data{dataIndex + 1}.x, i_data{dataIndex + 1}.y, i_data{dataIndex + 1}.z), " +
-                                                            $"vec4(i_data{dataIndex + 1}.w, i_data{dataIndex + 2}.x, i_data{dataIndex + 2}.y, i_data{dataIndex + 2}.z), " +
-                                                            $"vec4(i_data{dataIndex + 2}.w, i_data{dataIndex + 3}.x, i_data{dataIndex + 3}.y, i_data{dataIndex + 3}.z))\n";
-
-                                                        break;
-                                                }
-
-                                                fieldIndex += 16;
-
-                                                break;
-                                        }
-                                    }
-                                }
-
-                                code += "#include <StapleShader.sh>\n";
-                            }
-
-                            var counters = new Dictionary<ShaderUniformType, int>();
-
-                            foreach (var parameter in shader.parameters)
-                            {
-                                if (parameter.semantic == ShaderParameterSemantic.Uniform)
-                                {
-                                    var counter = 0;
-
-                                    if (counters.ContainsKey(parameter.type))
-                                    {
-                                        counter = counters[parameter.type];
-                                    }
-
-                                    counters.AddOrSetKey(parameter.type, counter + 1);
-
-                                    code += $"{GetNativeShaderType(parameter, counter, true)}";
-
-                                    if (ShaderTypeHasEndTerminator(parameter.type))
-                                    {
-                                        code += ";";
-                                    }
-
-                                    code += "\n";
-                                }
-                            }
 
                             code += piece.code;
 
                             try
                             {
-                                File.WriteAllText(fileName, code);
+                                File.WriteAllText(shaderFileName, code);
                             }
                             catch (Exception)
                             {
-                                shaderInfo = default;
+                                shaderMetrics = null;
 
                                 return null;
                             }
 
-                            var data = ProcessShader(fileName, extraDefines, type, renderer, out shaderInfo);
+                            var data = ProcessShader(shaderFileName, extraDefines, type, renderer, out shaderMetrics);
 
                             try
                             {
-                                File.Delete(fileName);
+                                File.Delete(shaderFileName);
                             }
                             catch (Exception)
                             {
@@ -928,7 +719,7 @@ cbuffer UniformBlock : register(b0, space3)
                                 {
                                     Console.WriteLine("\t\tError: Compute Shader missing Compute section");
 
-                                    return;
+                                    return false;
                                 }
 
                                 code = shader.compute.code;
@@ -941,7 +732,7 @@ cbuffer UniformBlock : register(b0, space3)
                                 {
                                     Console.WriteLine("\t\tError: Failed to write shader data");
 
-                                    return;
+                                    return false;
                                 }
 
                                 generatedShader.metadata.type = ShaderType.Compute;
@@ -949,13 +740,18 @@ cbuffer UniformBlock : register(b0, space3)
                                 string computeCode = "";
 
                                 shaderObject.computeShader = Compile(shader.compute, ShaderCompilerType.compute, renderer, ref computeCode,
-                                    out var shaderInfo);
+                                    out var computeMetrics);
 
                                 if (shaderObject.computeShader == null)
                                 {
                                     Console.WriteLine($"\t\tError: Compute Shader failed to compile\nGenerated code:\n{computeCode}");
 
-                                    return;
+                                    return false;
+                                }
+
+                                if (computeMetrics is ComputeShaderMetrics c)
+                                {
+                                    shaderObject.computeMetrics = c;
                                 }
 
                                 lock (entryLock)
@@ -963,7 +759,7 @@ cbuffer UniformBlock : register(b0, space3)
                                     entries.data.AddOrSetKey(variantKey, shaderObject);
                                 }
 
-                                break;
+                                return true;
 
                             case ShaderType.VertexFragment:
 
@@ -972,7 +768,7 @@ cbuffer UniformBlock : register(b0, space3)
                                 {
                                     Console.WriteLine("\t\tError: Shader missing vertex or fragment section");
 
-                                    return;
+                                    return false;
                                 }
 
                                 if (shader.parameters != null)
@@ -1023,7 +819,7 @@ cbuffer UniformBlock : register(b0, space3)
                                     {
                                         Console.WriteLine("\t\tError: Invalid parameter detected");
 
-                                        return;
+                                        return false;
                                     }
                                 }
 
@@ -1031,15 +827,26 @@ cbuffer UniformBlock : register(b0, space3)
                                 string fragmentCode = "";
 
                                 shaderObject.vertexShader = Compile(shader.vertex, ShaderCompilerType.vertex, renderer, ref vertexCode,
-                                    out var vertexInfo);
+                                    out var vertexMetrics);
+
                                 shaderObject.fragmentShader = Compile(shader.fragment, ShaderCompilerType.fragment, renderer, ref fragmentCode,
-                                    out var fragmentInfo);
+                                    out var fragmentMetrics);
 
                                 if (shaderObject.vertexShader == null || shaderObject.fragmentShader == null)
                                 {
                                     Console.WriteLine($"Failed to build shader.\nGenerated code:\nVertex:\n{vertexCode}\nFragment:\n{fragmentCode}\n");
 
-                                    return;
+                                    return false;
+                                }
+
+                                if (vertexMetrics is VertexFragmentShaderMetrics v)
+                                {
+                                    shaderObject.vertexMetrics = v;
+                                }
+
+                                if (fragmentMetrics is VertexFragmentShaderMetrics f)
+                                {
+                                    shaderObject.fragmentMetrics = f;
                                 }
 
                                 lock (entryLock)
@@ -1047,13 +854,15 @@ cbuffer UniformBlock : register(b0, space3)
                                     entries.data.AddOrSetKey(variantKey, shaderObject);
                                 }
 
-                                break;
+                                return true;
                         }
+
+                        return false;
                     }
 
                     if (shader.type == ShaderType.Compute)
                     {
-                        Build("", []);
+                        success = success && Build("", []);
                     }
                     else
                     {
@@ -1068,12 +877,17 @@ cbuffer UniformBlock : register(b0, space3)
 
                             workScheduler.Dispatch(variantKey, () =>
                             {
-                                Build(variantKey, pair);
+                                success = success && Build(variantKey, pair);
                             });
                         }
 
                         workScheduler.WaitForTasks();
                     }
+                }
+
+                if(success == false)
+                {
+                    return;
                 }
 
                 var header = new SerializableShaderHeader();

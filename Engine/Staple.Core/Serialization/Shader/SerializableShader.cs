@@ -23,6 +23,53 @@ public class SerializableShaderHeader
 }
 
 [MessagePackObject]
+public class VertexFragmentShaderMetrics
+{
+    [Key(0)]
+    public int samplerCount;
+
+    [Key(1)]
+    public int storageTextureCount;
+
+    [Key(2)]
+    public int storageBufferCount;
+
+    [Key(3)]
+    public int uniformBufferCount;
+}
+
+[MessagePackObject]
+public class ComputeShaderMetrics
+{
+    [Key(0)]
+    public int samplerCount;
+
+    [Key(1)]
+    public int readOnlyStorageTextureCount;
+
+    [Key(2)]
+    public int readOnlyStorageBufferCount;
+
+    [Key(3)]
+    public int readWriteStorageTextureCount;
+
+    [Key(4)]
+    public int readWriteStorageBufferCount;
+
+    [Key(5)]
+    public int uniformBufferCount;
+
+    [Key(6)]
+    public int threadCountX;
+
+    [Key(7)]
+    public int threadCountY;
+
+    [Key(8)]
+    public int threadCountZ;
+}
+
+[MessagePackObject]
 public class SerializableShaderData
 {
     [Key(0)]
@@ -33,6 +80,15 @@ public class SerializableShaderData
 
     [Key(2)]
     public byte[] computeShader;
+
+    [Key(3)]
+    public VertexFragmentShaderMetrics vertexMetrics = new();
+
+    [Key(4)]
+    public VertexFragmentShaderMetrics fragmentMetrics = new();
+
+    [Key(5)]
+    public ComputeShaderMetrics computeMetrics = new();
 }
 
 [MessagePackObject]

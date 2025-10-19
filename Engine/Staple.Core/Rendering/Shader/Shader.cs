@@ -123,6 +123,9 @@ public partial class Shader : IGuidAsset
         public byte[] vertexShaderSource;
         public byte[] fragmentShaderSource;
         public byte[] computeShaderSource;
+        public VertexFragmentShaderMetrics vertexShaderMetrics;
+        public VertexFragmentShaderMetrics fragmentShaderMetrics;
+        public ComputeShaderMetrics computeShaderMetrics;
     }
 
     internal readonly ShaderMetadata metadata;
@@ -202,9 +205,12 @@ public partial class Shader : IGuidAsset
             instances.AddOrSetKey(pair.Key, new()
             {
                 keyPieces = pair.Key.Split(' ').Select(x => x.GetHashCode()).ToArray(),
-                fragmentShaderSource = pair.Value.fragmentShader,
                 vertexShaderSource = pair.Value.vertexShader,
+                fragmentShaderSource = pair.Value.fragmentShader,
                 computeShaderSource = pair.Value.computeShader,
+                vertexShaderMetrics = pair.Value.vertexMetrics,
+                fragmentShaderMetrics = pair.Value.fragmentMetrics,
+                computeShaderMetrics = pair.Value.computeMetrics,
             });
         }
 
@@ -252,7 +258,8 @@ public partial class Shader : IGuidAsset
     {
         foreach(var pair in instances)
         {
-            pair.Value.program = RenderSystem.Backend.CreateShaderVertexFragment(pair.Value.vertexShaderSource, pair.Value.fragmentShaderSource);
+            pair.Value.program = RenderSystem.Backend.CreateShaderVertexFragment(pair.Value.vertexShaderSource, pair.Value.fragmentShaderSource,
+                pair.Value.vertexShaderMetrics, pair.Value.fragmentShaderMetrics);
 
             if(pair.Value.program == null)
             {

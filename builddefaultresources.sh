@@ -1,9 +1,9 @@
 #!/bin/sh
 
-./Tools/bin/Baker -i "BuiltinResources" -o "DefaultResources/Windows" -platform Windows -r opengl -r spirv
-./Tools/bin/Baker -i "BuiltinResources" -o "DefaultResources/Linux" -platform Linux -r opengl -r spirv
+./Tools/bin/Baker -i "BuiltinResources" -o "DefaultResources/Windows" -platform Windows -r spirv
+./Tools/bin/Baker -i "BuiltinResources" -o "DefaultResources/Linux" -platform Linux -r spirv
 ./Tools/bin/Baker -i "BuiltinResources" -o "DefaultResources/MacOSX" -platform MacOSX -r metal
-./Tools/bin/Baker -i "BuiltinResources" -o "DefaultResources/Android" -platform Android -r opengles -r spirv
+./Tools/bin/Baker -i "BuiltinResources" -o "DefaultResources/Android" -platform Android -r spirv
 ./Tools/bin/Baker -i "BuiltinResources" -o "DefaultResources/iOS" -platform iOS -r metal
 
 ./Tools/bin/Packer -p -r -i "DefaultResources/Windows" -o DefaultResources/DefaultResources-Windows.pak

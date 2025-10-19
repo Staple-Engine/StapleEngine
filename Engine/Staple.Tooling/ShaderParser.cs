@@ -36,6 +36,7 @@ public static partial class ShaderParser
     private static Regex vertexRegex = VertexRegex();
     private static Regex fragmentRegex = FragmentRegex();
     private static Regex computeRegex = ComputeRegex();
+    private static Regex commonRegex = CommonRegex();
     private static Regex parameterRegex = ParameterRegex();
     private static Regex inputRegex = InputRegex();
     private static Regex outputRegex = OutputRegex();
@@ -59,6 +60,9 @@ public static partial class ShaderParser
 
     [GeneratedRegex("Begin Compute((.|\\n)*)End Compute")]
     private static partial Regex ComputeRegex();
+
+    [GeneratedRegex("Begin Common((.|\\n)*)End Common")]
+    private static partial Regex CommonRegex();
 
     [GeneratedRegex("Begin Parameters((.|\\n)*)End Parameters")]
     private static partial Regex ParametersRegex();
@@ -247,8 +251,15 @@ public static partial class ShaderParser
 
         if(type == ShaderType.VertexFragment)
         {
+            HandleContent(commonRegex, out var common);
             HandleContent(vertexRegex, out vertex);
             HandleContent(fragmentRegex, out fragment);
+
+            if(common != null)
+            {
+                vertex?.content = $"{common.content}\n\n{vertex.content}";
+                fragment?.content = $"{common.content}\n\n{fragment.content}";
+            }
 
             compute = default;
 
@@ -282,7 +293,13 @@ public static partial class ShaderParser
         }
         else
         {
+            HandleContent(commonRegex, out var common);
             HandleContent(computeRegex, out compute);
+
+            if (common != null)
+            {
+                compute?.content = $"{common.content}\n\n{compute.content}";
+            }
 
             vertex = default;
             fragment = default;

@@ -9,38 +9,49 @@ End Parameters
 Begin Instancing
 End Instancing
 
+Begin Common
+
+cbuffer Uniforms
+{
+    float4 mainColor;
+};
+
+struct VertexOutput
+{
+    float4 position : SV_Position;
+    float4 color;
+};
+
+End Common
+
 Begin Vertex
 
 struct Input
 {
-	float3 Position : TEXCOORD0;
+    float3 position : POSITION;
 };
 
-struct Output
+[shader("vertex")]
+VertexOutput VertexMain(Input input)
 {
-	float4 Position : SV_Position;
+    VertexOutput output;
+
+    float3 position = input.position;
+    float4 color = mainColor;
+
+    output.color = color;
+    output.position = mul(mul(mul(projection, view), world), float4(position, 1.0));
+
+    return output;
 }
-
-Output main(Input input)
-{
-	Output output;
-	
-	float4x4 model = StapleModelMatrix;
-
-	float4x4 projViewWorld = mul(mul(u_proj, u_view), model);
-
-	float4 v_pos = mul(projViewWorld, float4(a_position, 1.0));
-
-	output.position = v_pos;
-}
-
 End Vertex
 
 Begin Fragment
 
-float4 main() : SV_Target0
+[shader("fragment")]
+float4 FragmentMain(VertexOutput input) : SV_Target
 {
-	return mainColor;
+    return input.color;
 }
 
 End Fragment
