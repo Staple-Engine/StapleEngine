@@ -20,7 +20,6 @@ internal class ImGuiProxy
     public ImNodesContextPtr ImNodesContext;
     public ImPlotContextPtr ImPlotContext;
     public Shader program;
-    public Shader imageProgram;
     public VertexLayout layout;
     /*
     public bgfx.UniformHandle textureUniform;
@@ -137,16 +136,13 @@ internal class ImGuiProxy
             io.FontDefault = editorFont;
         }
 
-        var programPath = $"Hidden/Shaders/UI/ocornut_imgui.{AssetSerialization.ShaderExtension}";
-        var imageProgramPath = $"Hidden/Shaders/UI/imgui_image.{AssetSerialization.ShaderExtension}";
+        var programPath = $"Hidden/Shaders/UI/imgui.{AssetSerialization.ShaderExtension}";
 
         program = ResourceManager.instance.LoadShader(programPath);
-        imageProgram = ResourceManager.instance.LoadShader(imageProgramPath);
 
         ResourceManager.instance.LockAsset(programPath);
-        ResourceManager.instance.LockAsset(imageProgramPath);
 
-        if (program == null || imageProgram == null)
+        if (program == null)
         {
             Log.Error("Failed to load imgui shaders");
 
@@ -181,7 +177,6 @@ internal class ImGuiProxy
         */
 
         program?.Destroy();
-        imageProgram?.Destroy();
 
         foreach(var texture in textures)
         {

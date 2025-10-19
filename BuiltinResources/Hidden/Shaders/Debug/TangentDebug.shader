@@ -12,43 +12,50 @@ End Parameters
 Begin Instancing
 End Instancing
 
+Begin Common
+
+struct VertexOutput
+{
+    float4 position : SV_Position;
+    float3 tangent;
+};
+
+End Common
+
 Begin Vertex
 
-$input a_position, a_tangent, a_bitangent
-$output v_tangent, v_bitangent
-
-void main()
+struct Input
 {
-	mat4 model = StapleModelMatrix;
+    float3 position : POSITION;
 
-	#ifdef SKINNING
-	model = StapleGetSkinningMatrix(model, a_indices, a_weight);
-	#endif
+#ifdef BITANGENT
+	float3 tangent : BITANGENT;
+#else
+	float3 tangent : TANGENT;
+#endif
+};
 
-	mat4 projViewWorld = mul(mul(u_proj, u_view), model);
-	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));
+[shader("vertex")]
+VertexOutput VertexMain(Input input)
+{
+    VertexOutput output;
 
-	v_tangent = a_tangent;
-	v_bitangent = a_bitangent;
+    float3 position = input.position;
 
-	gl_Position = v_pos;
+    output.tangent = input.tangent;
+    output.position = mul(mul(mul(projection, view), world), float4(position, 1.0));
+
+    return output;
 }
 
 End Vertex
 
 Begin Fragment
 
-$input v_tangent, v_bitangent
-
-void main()
+[shader("fragment")]
+float4 FragmentMain(VertexOutput input) : SV_Target
 {
-#if BITANGENT
-	vec3 color = v_bitangent;
-#else
-	vec3 color = v_tangent;
-#endif
-	
-	gl_FragColor = vec4(color * 0.5 + 0.5, 1);
+    return float4(normalize(input.tangent) * 0.5 + 0.5, 1);
 }
 
 End Fragment

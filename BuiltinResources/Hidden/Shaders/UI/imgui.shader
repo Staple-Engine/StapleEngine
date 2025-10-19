@@ -1,16 +1,24 @@
+Type VertexFragment
+Blend SrcAlpha OneMinusSrcAlpha
+
 Begin Parameters
+
+uniform texture mainTexture
 
 End Parameters
 
-Begin Instancing
-End Instancing
-
 Begin Common
+
+cbuffer Uniforms
+{
+	Sampler2D mainTexture;
+};
 
 struct VertexOutput
 {
     float4 position : SV_Position;
-    float3 normal;
+	float2 coord;
+    float4 color;
 };
 
 End Common
@@ -20,7 +28,8 @@ Begin Vertex
 struct Input
 {
     float3 position : POSITION;
-	float3 normal : NORMAL;
+	float2 coord : TEXCOORD0;
+	float4 color : COLOR0;
 };
 
 [shader("vertex")]
@@ -30,7 +39,8 @@ VertexOutput VertexMain(Input input)
 
     float3 position = input.position;
 
-    output.normal = input.normal;
+    output.color = input.color;
+	output.coord = input.coord;
     output.position = mul(mul(mul(projection, view), world), float4(position, 1.0));
 
     return output;
@@ -43,7 +53,7 @@ Begin Fragment
 [shader("fragment")]
 float4 FragmentMain(VertexOutput input) : SV_Target
 {
-    return float4(normalize(input.normal) * 0.5 + 0.5, 1);
+    return mainTexture.Sample(input.coord) * input.color;
 }
 
 End Fragment
