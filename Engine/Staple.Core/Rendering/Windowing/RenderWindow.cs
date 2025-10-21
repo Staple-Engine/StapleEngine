@@ -542,6 +542,8 @@ internal class RenderWindow
                         Log.Info($"[RenderWindow] {renderer} OK!");
 
                         CurrentRenderer = renderer;
+
+                        break;
                     }
                 }
             }

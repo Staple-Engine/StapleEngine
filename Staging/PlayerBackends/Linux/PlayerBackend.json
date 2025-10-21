@@ -8,7 +8,6 @@
 	"publish": true,
 	"dataDirIsOutput": true,
 	"renderers": [
-		"OpenGL",
 		"Vulkan"
 	]
 }

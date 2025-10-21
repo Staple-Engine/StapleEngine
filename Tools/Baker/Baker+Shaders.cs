@@ -362,7 +362,7 @@ static partial class Program
                         {
                             case Renderer.d3d12:
 
-                                destinationFormat = "-d dxbc";
+                                destinationFormat = "-d dxil";
 
                                 break;
 

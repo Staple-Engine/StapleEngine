@@ -9,8 +9,7 @@
 	"dataDirIsOutput": true,
 	"appIconExtension": "ico",
 	"renderers": [
-		"Direct3D11",
-		"OpenGL",
+		"Direct3D12",
 		"Vulkan"
 	]
 }
