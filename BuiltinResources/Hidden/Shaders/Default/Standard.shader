@@ -6,15 +6,7 @@ Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING, NORMALMAP, CUTOU
 
 Begin Parameters
 
-varying vec2 v_texcoord0 : TEXCOORD0 = vec2(0.0, 0.0)
-varying vec3 v_worldPos : TEXCOORD1
-varying vec3 v_normal : NORMAL
-varying vec3 v_lightNormal : TEXCOORD3
-varying vec4 v_color : COLOR
-varying float v_instanceID : TEXCOORD2
-varying vec3 v_tangent : TANGENT
-varying vec3 v_bitangent : BITANGENT
-
+uniform vec3 viewPosition;
 uniform texture ambientOcclusionTexture
 uniform color diffuseColor = #FFFFFFFF
 uniform texture diffuseTexture = WHITE
@@ -33,93 +25,130 @@ End Parameters
 Begin Instancing
 End Instancing
 
+Begin Common
+
+cbuffer Uniforms
+{
+	float3 viewPosition;
+	Sampler2D ambientOcclusionTexture;
+	float4 diffuseColor;
+	Sampler2D diffuseTexture;
+	Sampler2D displacementTexture;
+	float4 emissiveColor;
+	Sampler2D emissiveTexture;
+	Sampler2D heightTexture;
+	Sampler2D normalTexture;
+	float4 specularColor;
+	Sampler2D specularTexture;
+	float cutout;
+	float alphaThreshold;
+};
+
+struct VertexOutput
+{
+	float3 position : SV_Position;
+	float3 worldPosition;
+	float3 lightNormal;
+	float2 coords;
+	float3 normal;
+	float3 tangent;
+	float3 bitangent;
+	float4 color;
+	uint instanceID;
+};
+
+End Common
+
 Begin Vertex
 
-$input a_position, a_texcoord0, a_normal, a_color0, a_tangent, a_bitangent
-$output v_texcoord0, v_worldPos, v_normal, v_color, v_instanceID, v_tangent, v_bitangent, v_lightNormal
+//TODO: Get slang to handle multiple preprocessor conditions
 
-#include "StapleLighting.sh"
-
-void main()
+struct Input
 {
-	mat4 model = StapleModelMatrix;
+	float3 position : POSITION;
+	float2 coords : TEXCOORD0;
+	float3 normal : NORMAL;
+	float3 tangent : TANGENT;
+	float3 bitangent : BITANGENT;
+	float4 color : COLOR0;
+	uint instanceID : SV_InstanceID;
+};
 
-	#ifdef SKINNING
-	model = StapleGetSkinningMatrix(model, a_indices, a_weight);
-	#endif
+[shader("vertex")]
+VertexOutput VertexMain(Input input)
+{
+	VertexOutput output;
 
-	mat4 projViewWorld = mul(mul(u_proj, u_view), model);
-	mat4 viewWorld = mul(u_view, model);
+	float4x4 model = world;
 
-	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));
+	float4x4 projectionViewWorld = mul(mul(projection, view), model);
+	float4x4 viewWorld = mul(view, model);
 
-	gl_Position = v_pos;
+	float4 vertexPosition = mul(projectionViewWorld, float4(input.position, 1.0));
 
-	v_worldPos = mul(model, vec4(a_position, 1.0)).xyz;
+	output.position = vertexPosition.xyz;
 
-	v_texcoord0 = a_texcoord0;
-	v_normal = a_normal;
+	output.worldPosition = mul(model, float4(input.position, 1.0)).xyz;
+
+	output.coords = input.coords;
+	output.normal = input.normal;
+	output.tangent = input.tangent;
+	output.bitangent = input.bitangent;
+	output.lightNormal = StapleLightNormal(input.normal, model);
+	output.instanceID = input.instanceID;
 	
-	v_lightNormal = StapleLightNormal(a_normal, model);
+//#if LIT && PER_VERTEX_LIGHTING
+	//output.color = float4x4(diffuseColor.rgb * StapleProcessLights(viewPosition, output.worldPosition, input.normal), diffuseColor.a);
 	
-	v_tangent = a_tangent;
-	v_bitangent = a_bitangent;
-	
-	v_instanceID = StapleInstanceID;
-	
-#if LIT && PER_VERTEX_LIGHTING
-	v_color = vec4(diffuseColor.rgb * StapleProcessLights(int(v_instanceID), u_viewPos, v_worldPos, v_normal), diffuseColor.a);
-	
-	#if VERTEX_COLORS
-		v_color = a_color0 * v_color;
-	#endif
-#else
-	v_color = a_color0;
-#endif
+	//#ifdef VERTEX_COLORS
+//		output.color = input.color * output.color;
+//	#endif
+//#else
+	output.color = input.color;
+//#endif
+
+	return output;
 }
 End Vertex
 
 Begin Fragment
 
-$input v_texcoord0, v_worldPos, v_normal, v_color, v_instanceID, v_tangent, v_bitangent, v_lightNormal
-
-#include "StapleLighting.sh"
-
-void main()
+[shader("fragment")]
+float4 FragmentMain(VertexOutput input) : SV_Target
 {
-#if VERTEX_COLORS || PER_VERTEX_LIGHTING
-	vec4 diffuse = v_color * diffuseColor;
-#else
-	vec4 diffuse = texture2D(diffuseTexture, v_texcoord0) * diffuseColor;
-#endif
+//#if VERTEX_COLORS || PER_VERTEX_LIGHTING
+//	float4 diffuse = input.color * diffuseColor;
+//#else
+	float4 diffuse = diffuseTexture.Sample(input.coords) * diffuseColor;
+//#endif
 	
-#if CUTOUT
+#ifdef CUTOUT
 	if(diffuse.a < alphaThreshold)
 	{
 		discard;
-		
-		return;
 	}
 #endif
 	
-#if LIT && PER_VERTEX_LIGHTING
-	gl_FragColor = diffuse;
+//#if LIT && PER_VERTEX_LIGHTING
+	return diffuse;
+/*
 #elif LIT
 
 #if NORMALMAP
-	mat3 tbn = mtxFromCols(normalize(v_tangent), normalize(v_bitangent), normalize(v_normal));
+	float3x3 tbn = float3x3(normalize(input.tangent), normalize(input.bitangent), normalize(input.normal));
 
-	vec3 normalMapNormal = normalize(texture2D(normalTexture, v_texcoord0).xyz * 2.0 - 1.0);
+	float3 normalMapNormal = normalize(normalTexture.Sample(v_texcoord0).xyz * 2.0 - 1.0);
 
-	vec3 light = StapleProcessLightsTangent(int(v_instanceID), u_viewPos, v_worldPos, normalMapNormal, tbn);
+	float3 light = StapleProcessLightsTangent(viewPosition, input.worldPosition, normalMapNormal, tbn);
 #else
-	vec3 light = StapleProcessLights(int(v_instanceID), u_viewPos, v_worldPos, v_lightNormal);
+	float3 light = StapleProcessLights(viewPosition, input.world, input.lightNormal);
 #endif
 
-	gl_FragColor = vec4(light, 1) * diffuse;
-#else
-	gl_FragColor = diffuse;
-#endif
+	return float4(light, 1) * diffuse;
+*/
+//#else
+	//return diffuse;
+//#endif
 }
 
 End Fragment

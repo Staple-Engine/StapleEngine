@@ -1,6 +1,7 @@
 module Staple;
 
 __include StapleMath;
+__include StapleLighting;
 
 #define STAPLE_SKINNING_STAGE_INDEX 15
 #define STAPLE_LIGHTING_NORMAL_MATRIX_STAGE_INDEX 14
