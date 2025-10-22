@@ -398,6 +398,27 @@ static partial class Program
                             }
                         }
 
+                        switch(shaderType)
+                        {
+                            case ShaderCompilerType.vertex:
+
+                                defineString += " -DSTAPLE_VERTEX_SHADER";
+
+                                break;
+
+                            case ShaderCompilerType.fragment:
+
+                                defineString += " -DSTAPLE_FRAGMENT_SHADER";
+
+                                break;
+
+                            case ShaderCompilerType.compute:
+
+                                defineString += " -DSTAPLE_COMPUTE_SHADER";
+
+                                break;
+                        }
+
                         {
                             var stage = shaderType switch
                             {

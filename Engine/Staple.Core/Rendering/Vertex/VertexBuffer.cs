@@ -35,20 +35,6 @@ public abstract class VertexBuffer
     }
 
     /// <summary>
-    /// Sets the buffer active
-    /// </summary>
-    /// <param name="start">Vertex index to start at</param>
-    /// <param name="count">Vertex count to use</param>
-    public abstract void SetActive(uint start, uint count);
-
-    /// <summary>
-    /// Sets this buffer as a compute buffer
-    /// </summary>
-    /// <param name="stage">The buffer stage</param>
-    /// <param name="access">The access mode</param>
-    public abstract void SetBufferActive(byte stage, Access access);
-
-    /// <summary>
     /// Updates the vertex buffer's data (if it's dynamic)
     /// </summary>
     /// <param name="data">An array of new data</param>

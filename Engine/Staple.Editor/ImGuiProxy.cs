@@ -21,6 +21,10 @@ internal class ImGuiProxy
     public ImPlotContextPtr ImPlotContext;
     public Shader program;
     public VertexLayout layout;
+    public VertexBuffer vertexBuffer;
+    public IndexBuffer indexBuffer;
+    public ImDrawVert[] vertices = [];
+    public ushort[] indices = [];
     /*
     public bgfx.UniformHandle textureUniform;
     public bgfx.TextureHandle activeTexture;
@@ -521,50 +525,73 @@ internal class ImGuiProxy
                 }
             }
 
-            /*
-            bgfx.set_view_name(viewID, "ImGui", int.MaxValue);
-            bgfx.set_view_mode(viewID, bgfx.ViewMode.Sequential);
-            */
-
             var ortho = Matrix4x4.CreateOrthographicOffCenter(drawData.DisplayPos.X, drawData.DisplayPos.X + drawData.DisplaySize.X,
                 drawData.DisplayPos.Y + drawData.DisplaySize.Y, drawData.DisplayPos.Y, 0, 1000);
 
-            /*
-            bgfx.set_view_transform(viewID, null, &ortho);
-            bgfx.set_view_rect(viewID, 0, 0, (ushort)drawData.DisplaySize.X, (ushort)drawData.DisplaySize.Y);
-            */
+            var command = RenderSystem.Backend.BeginCommand();
+
+            var pass = command.BeginRenderPass(null, CameraClearMode.None, Color.Clear, new(0, 0, 1, 1), Matrix4x4.Identity, ortho);
 
             var clipPos = drawData.DisplayPos;
             var clipScale = drawData.FramebufferScale;
 
+            if(vertices.Length < drawData.TotalVtxCount)
+            {
+                Array.Resize(ref vertices, drawData.TotalVtxCount);
+            }
+
+            if(indices.Length < drawData.TotalIdxCount)
+            {
+                Array.Resize(ref indices, drawData.TotalIdxCount);
+            }
+
+            var currentVertex = 0;
+            var currentIndex = 0;
+
             for (int i = 0; i < drawData.CmdListsCount; i++)
             {
-                /*
-                bgfx.TransientVertexBuffer tvb;
-                bgfx.TransientIndexBuffer tib;
-                */
+                var cmdList = drawData.CmdLists.Data[i];
 
+                var vertexData = new Span<ImDrawVert>(cmdList.VtxBuffer.Data, cmdList.VtxBuffer.Size);
+                var targetVertexData = new Span<ImDrawVert>(vertices, currentVertex, cmdList.VtxBuffer.Size);
+
+                vertexData.CopyTo(targetVertexData);
+
+                currentVertex += cmdList.VtxBuffer.Size;
+
+                var indexData = new Span<ushort>(cmdList.IdxBuffer.Data, cmdList.IdxBuffer.Size);
+                var targetIndexData = new Span<ushort>(indices, currentIndex, cmdList.IdxBuffer.Size);
+
+                currentIndex += cmdList.IdxBuffer.Size;
+            }
+
+            var needsUpdate = true;
+
+            if((vertexBuffer?.Disposed ?? true) == true)
+            {
+                needsUpdate = false;
+            }
+
+            if(needsUpdate == false)
+            {
+                vertexBuffer = RenderSystem.Backend.CreateVertexBuffer<ImDrawVert>(vertices, layout, RenderBufferFlags.None);
+                indexBuffer = RenderSystem.Backend.CreateIndexBuffer(indices, RenderBufferFlags.None);
+            }
+            else
+            {
+                vertexBuffer.Update(vertices);
+                indexBuffer.Update(indices);
+            }
+
+            currentVertex = 0;
+            currentIndex = 0;
+
+            for (int i = 0; i < drawData.CmdListsCount; i++)
+            {
                 var cmdList = drawData.CmdLists.Data[i];
 
                 var numVertices = cmdList.VtxBuffer.Size;
                 var numIndices = cmdList.IdxBuffer.Size;
-
-                /*
-                fixed(bgfx.VertexLayout *layout = &this.layout.layout)
-                {
-                    bgfx.alloc_transient_vertex_buffer(&tvb, (uint)numVertices, layout);
-                }
-
-                bgfx.alloc_transient_index_buffer(&tib, (uint)numIndices, false);
-
-                var size = numVertices * sizeof(ImDrawVert);
-
-                Buffer.MemoryCopy((void *)cmdList.VtxBuffer.Data, tvb.data, size, size);
-
-                size = numIndices * sizeof(ushort);
-
-                Buffer.MemoryCopy((void *)cmdList.IdxBuffer.Data, tib.data, size, size);
-                */
 
                 for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
                 {
@@ -576,9 +603,6 @@ internal class ImGuiProxy
                     }
 
                     /*
-                    var state = (ulong)(bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA) |
-                        RenderSystem.BlendFunction(bgfx.StateFlags.BlendSrcAlpha, bgfx.StateFlags.BlendInvSrcAlpha);
-
                     bgfx.ProgramHandle program = this.program.instances.First().Value.program;
 
                     if (drawCmd.GetTexID().IsNull == false)
@@ -606,23 +630,36 @@ internal class ImGuiProxy
                         var x = (ushort)Math.Max(clipRect.X, 0);
                         var y = (ushort)Math.Max(clipRect.Y, 0);
 
-                        /*
-                        bgfx.set_texture(0, textureUniform, activeTexture, uint.MaxValue);
+                        var state = new RenderState()
+                        {
+                            sourceBlend = BlendMode.SrcAlpha,
+                            destinationBlend = BlendMode.OneMinusSrcAlpha,
+                            cull = CullingMode.None,
+                            depthWrite = false,
+                            enableDepth = false,
+                            primitiveType = MeshTopology.Triangles,
+                            scissor = new(x, (int)(Math.Min(clipRect.Z, 65535.0f) - x), y, (int)(Math.Min(clipRect.W, 65535.0f) - y)),
+                            indexBuffer = indexBuffer,
+                            vertexBuffer = vertexBuffer,
+                            vertexLayout = layout,
+                            startVertex = currentVertex,
+                            vertexCount = numVertices,
+                            startIndex = currentIndex,
+                            indexCount = numIndices,
+                            program = program.instances.FirstOrDefault().Value.program,
+                        };
 
-                        bgfx.set_scissor(x, y,
-                            (ushort)(Math.Min(clipRect.Z, 65535.0f) - x),
-                            (ushort)(Math.Min(clipRect.W, 65535.0f) - y));
-
-                        bgfx.set_state(state, 0);
-
-                        bgfx.set_transient_vertex_buffer(0, &tvb, drawCmd.VtxOffset, (uint)numVertices);
-                        bgfx.set_transient_index_buffer(&tib, drawCmd.IdxOffset, drawCmd.ElemCount);
-
-                        RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, (int)drawCmd.ElemCount / 3, 1);
-                        */
+                        RenderSystem.Submit(pass, state, (int)drawCmd.ElemCount / 3, 1);
                     }
+
+                    currentVertex += numVertices;
+                    currentIndex += numIndices;
                 }
             }
+
+            pass.Finish();
+
+            command.Submit();
         }
     }
 

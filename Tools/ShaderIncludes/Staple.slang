@@ -6,6 +6,13 @@ __include StapleLighting;
 #define STAPLE_SKINNING_STAGE_INDEX 15
 #define STAPLE_LIGHTING_NORMAL_MATRIX_STAGE_INDEX 14
 
+#ifdef STAPLE_VERTEX_SHADER
+[[vk::binding(0, 1)]]
+#endif
+
+#ifdef STAPLE_FRAGMENT_SHADER
+[[vk::binding(0, 3)]]
+#endif
 public cbuffer StapleRenderData
 {
     public float4x4 world;
@@ -15,5 +22,12 @@ public cbuffer StapleRenderData
 };
 
 #ifdef SKINNING
-public layout(binding = STAPLE_SKINNING_STAGE_INDEX) StructuredBuffer<float4> StapleBoneMatrices;
+#   ifdef STAPLE_VERTEX_SHADER
+[[vk::binding(STAPLE_SKINNING_STAGE_INDEX, 1)]]
+#   endif
+
+#   ifdef STAPLE_FRAGMENT_SHADER
+[[vk::binding(STAPLE_SKINNING_STAGE_INDEX, 3)]]
+#   endif
+public StructuredBuffer<float4> StapleBoneMatrices;
 #endif

@@ -1,4 +1,5 @@
 ﻿using SDL3;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Staple.Internal;
@@ -33,7 +34,8 @@ internal class SDLGPURenderCommand(nint commandBuffer, nint window) : IRenderCom
         commandBuffer = nint.Zero;
     }
 
-    public IRenderPass BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor)
+    public IRenderPass BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
+        Matrix4x4 view, Matrix4x4 projection)
     {
         if(commandBuffer == nint.Zero)
         {
@@ -94,6 +96,18 @@ internal class SDLGPURenderCommand(nint commandBuffer, nint window) : IRenderCom
             return null;
         }
 
-        return new SDLGPURenderPass(renderPass);
+        var viewportData = new SDL.SDL_GPUViewport()
+        {
+            x = (int)(viewport.X * width),
+            y = (int)(viewport.Y * height),
+            w = (int)(viewport.Z * width),
+            h = (int)(viewport.W * height),
+            min_depth = 0,
+            max_depth = 1,
+        };
+
+        SDL.SDL_SetGPUViewport(renderPass, in viewportData);
+
+        return new SDLGPURenderPass(renderPass, view, projection);
     }
 }

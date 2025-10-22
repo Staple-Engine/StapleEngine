@@ -1,10 +1,14 @@
 ﻿using SDL3;
+using System.Numerics;
 
 namespace Staple.Internal;
 
-internal class SDLGPURenderPass(nint renderPass) : IRenderPass
+internal class SDLGPURenderPass(nint renderPass, Matrix4x4 view, Matrix4x4 projection) : IRenderPass
 {
     public nint renderPass = renderPass;
+
+    public readonly Matrix4x4 view = view;
+    public readonly Matrix4x4 projection = projection;
 
     public void Finish()
     {

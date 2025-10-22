@@ -83,7 +83,7 @@ namespace Staple
 
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                RenderSystem.Submit(viewID, renderState, Mesh.TriangleCount(topology, indexCount), 1);
+                RenderSystem.Submit(RenderSystem.GetViewPass(viewID), renderState, Mesh.TriangleCount(topology, indexCount), 1);
             }
         }
 

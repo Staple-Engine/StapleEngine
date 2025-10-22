@@ -1,7 +1,6 @@
 ﻿using SDL3;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Staple.Internal;
@@ -11,6 +10,7 @@ internal class SDLGPURendererBackend : IRendererBackend
     private nint device;
     private SDL3RenderWindow window;
     private readonly Dictionary<int, nint> graphicsPipelines = [];
+    private Vector2Int renderSize;
 
     public bool SupportsTripleBuffering => SDL.SDL_WindowSupportsGPUPresentMode(device, window.window,
         SDL.SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_MAILBOX);
@@ -29,6 +29,10 @@ internal class SDLGPURendererBackend : IRendererBackend
         {
             return false;
         }
+
+#if DEBUG
+        SDL.SDL_SetLogPriority((int)SDL.SDL_LogCategory.SDL_LOG_CATEGORY_GPU, SDL.SDL_LogPriority.SDL_LOG_PRIORITY_VERBOSE);
+#endif
 
         this.window = w;
 
@@ -137,10 +141,17 @@ internal class SDLGPURendererBackend : IRendererBackend
         }
 
         SDL.SDL_SetGPUSwapchainParameters(device, window.window, swapchainComposition, presentMode);
+
+        SDL.SDL_GetWindowSizeInPixels(window.window, out var w, out var h);
+
+        renderSize.X = w;
+        renderSize.Y = h;
     }
 
     public void UpdateViewport(int width, int height)
     {
+        renderSize.X = width;
+        renderSize.Y = height;
     }
 
     public void Destroy()
@@ -179,41 +190,11 @@ internal class SDLGPURendererBackend : IRendererBackend
             return null;
         }
 
-        var usageFlags = SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_VERTEX;
-
-        if(flags.HasFlag(RenderBufferFlags.GraphicsRead))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
-        }
-
-        if (flags.HasFlag(RenderBufferFlags.ComputeRead))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
-        }
-
-        if (flags.HasFlag(RenderBufferFlags.ComputeWrite))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
-        }
-
-        var createInfo = new SDL.SDL_GPUBufferCreateInfo()
-        {
-            size = (uint)data.Length,
-            usage = usageFlags,
-        };
-
-        var buffer = SDL.SDL_CreateGPUBuffer(device, in createInfo);
-
-        if(buffer == nint.Zero)
-        {
-            return null;
-        }
-
-        var outValue = new SDLGPUVertexBuffer(device, buffer, layout, () => BeginCommand() as SDLGPURenderCommand);
+        var outValue = new SDLGPUVertexBuffer(device, flags, layout, () => BeginCommand() as SDLGPURenderCommand);
 
         outValue.Update(data);
 
-        return outValue;
+        return outValue.Valid ? outValue : null;
     }
 
     public VertexBuffer CreateVertexBuffer<T>(Span<T> data, VertexLayout layout, RenderBufferFlags flags) where T: unmanaged
@@ -223,119 +204,29 @@ internal class SDLGPURendererBackend : IRendererBackend
             return null;
         }
 
-        var usageFlags = SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_VERTEX;
-
-        if (flags.HasFlag(RenderBufferFlags.GraphicsRead))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
-        }
-
-        if (flags.HasFlag(RenderBufferFlags.ComputeRead))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
-        }
-
-        if (flags.HasFlag(RenderBufferFlags.ComputeWrite))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
-        }
-
-        var createInfo = new SDL.SDL_GPUBufferCreateInfo()
-        {
-            size = (uint)(data.Length * Marshal.SizeOf<T>()),
-            usage = usageFlags,
-        };
-
-        var buffer = SDL.SDL_CreateGPUBuffer(device, in createInfo);
-
-        if (buffer == nint.Zero)
-        {
-            return null;
-        }
-
-        var outValue = new SDLGPUVertexBuffer(device, buffer, layout, () => BeginCommand() as SDLGPURenderCommand);
+        var outValue = new SDLGPUVertexBuffer(device, flags, layout, () => BeginCommand() as SDLGPURenderCommand);
 
         outValue.Update(data);
 
-        return outValue;
+        return outValue.Valid ? outValue : null;
     }
 
     public IndexBuffer CreateIndexBuffer(Span<ushort> data, RenderBufferFlags flags)
     {
-        var usageFlags = SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDEX;
-
-        if (flags.HasFlag(RenderBufferFlags.GraphicsRead))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
-        }
-
-        if (flags.HasFlag(RenderBufferFlags.ComputeRead))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
-        }
-
-        if (flags.HasFlag(RenderBufferFlags.ComputeWrite))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
-        }
-
-        var createInfo = new SDL.SDL_GPUBufferCreateInfo()
-        {
-            size = (uint)(data.Length * sizeof(ushort)),
-            usage = usageFlags,
-        };
-
-        var buffer = SDL.SDL_CreateGPUBuffer(device, in createInfo);
-
-        if (buffer == nint.Zero)
-        {
-            return null;
-        }
-
-        var outValue = new SDLGPUIndexBuffer(device, buffer, () => BeginCommand() as SDLGPURenderCommand);
+        var outValue = new SDLGPUIndexBuffer(device, flags, () => BeginCommand() as SDLGPURenderCommand);
 
         outValue.Update(data);
 
-        return outValue;
+        return outValue.Valid ? outValue : null;
     }
 
     public IndexBuffer CreateIndexBuffer(Span<uint> data, RenderBufferFlags flags)
     {
-        var usageFlags = SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDEX;
-
-        if (flags.HasFlag(RenderBufferFlags.GraphicsRead))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
-        }
-
-        if (flags.HasFlag(RenderBufferFlags.ComputeRead))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
-        }
-
-        if (flags.HasFlag(RenderBufferFlags.ComputeWrite))
-        {
-            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
-        }
-
-        var createInfo = new SDL.SDL_GPUBufferCreateInfo()
-        {
-            size = (uint)(data.Length * sizeof(uint)),
-            usage = usageFlags,
-        };
-
-        var buffer = SDL.SDL_CreateGPUBuffer(device, in createInfo);
-
-        if (buffer == nint.Zero)
-        {
-            return null;
-        }
-
-        var outValue = new SDLGPUIndexBuffer(device, buffer, () => BeginCommand() as SDLGPURenderCommand);
+        var outValue = new SDLGPUIndexBuffer(device, flags, () => BeginCommand() as SDLGPURenderCommand);
 
         outValue.Update(data);
 
-        return outValue;
+        return outValue.Valid ? outValue : null;
     }
 
     public VertexLayoutBuilder CreateVertexLayoutBuilder()
@@ -534,7 +425,7 @@ internal class SDLGPURendererBackend : IRendererBackend
                                 MeshTopology.Triangles => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
                                 MeshTopology.Lines => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINELIST,
                                 MeshTopology.LineStrip => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINESTRIP,
-                                _ => throw new ArgumentOutOfRangeException(nameof(state.primitiveType), "Invalid value for primitive type"),
+                                _ => throw new ArgumentOutOfRangeException("Invalid value for primitive type", nameof(state.primitiveType)),
                             },
                             vertex_shader = shader.vertex,
                             fragment_shader = shader.fragment,
@@ -545,7 +436,7 @@ internal class SDLGPURendererBackend : IRendererBackend
                                     CullingMode.None => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_NONE,
                                     CullingMode.Front => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_FRONT,
                                     CullingMode.Back => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_BACK,
-                                    _ => throw new ArgumentOutOfRangeException(nameof(state.cull), "Invalid value for cull"),
+                                    _ => throw new ArgumentOutOfRangeException("Invalid value for cull", nameof(state.cull)),
                                 },
                                 fill_mode = state.wireframe ? SDL.SDL_GPUFillMode.SDL_GPU_FILLMODE_LINE : SDL.SDL_GPUFillMode.SDL_GPU_FILLMODE_FILL,
                                 front_face = SDL.SDL_GPUFrontFace.SDL_GPU_FRONTFACE_CLOCKWISE,
@@ -592,6 +483,29 @@ internal class SDLGPURendererBackend : IRendererBackend
         {
             buffer = index.buffer,
         };
+
+        var scissor = new SDL.SDL_Rect();
+
+        if(state.scissor != default)
+        {
+            scissor = new()
+            {
+                x = state.scissor.left,
+                y = state.scissor.top,
+                w = state.scissor.Width,
+                h = state.scissor.Height,
+            };
+        }
+        else
+        {
+            scissor = new()
+            {
+                w = renderSize.X,
+                h = renderSize.Y,
+            };
+        }
+
+        SDL.SDL_SetGPUScissor(renderPass.renderPass, in scissor);
 
         SDL.SDL_BindGPUVertexBuffers(renderPass.renderPass, 0, [vertexBinding], 1);
 

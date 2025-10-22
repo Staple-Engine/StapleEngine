@@ -221,7 +221,7 @@ public sealed class Camera : IComponent
 
             default:
 
-                throw new System.ArgumentException("Camera Type is invalid", "cameraType");
+                throw new System.ArgumentException("Camera Type is invalid", nameof(cameraType));
         }
     }
 

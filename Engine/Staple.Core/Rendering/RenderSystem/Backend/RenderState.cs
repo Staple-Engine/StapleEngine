@@ -21,6 +21,7 @@ internal struct RenderState
     public RenderTarget renderTarget;
     public BlendMode sourceBlend;
     public BlendMode destinationBlend;
+    public Rect scissor;
 
     internal readonly int StateKey
     {

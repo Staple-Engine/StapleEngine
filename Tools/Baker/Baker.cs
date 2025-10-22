@@ -78,7 +78,7 @@ static partial class Program
                 }
 
                 var files = Directory.GetFiles(Path.GetFullPath(Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces), "Tools", "ShaderIncludes")),
-                    "*.sh", SearchOption.AllDirectories);
+                    "*.slang", SearchOption.AllDirectories);
 
                 foreach(var file in files)
                 {

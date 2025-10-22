@@ -9,12 +9,17 @@ internal class SDLGPUVertexBuffer : VertexBuffer
     public nint buffer;
 
     private readonly nint device;
+    private readonly RenderBufferFlags flags;
     private readonly Func<SDLGPURenderCommand> commandSupplier;
+    private int length;
+    private nint transferBuffer;
 
-    public SDLGPUVertexBuffer(nint device, nint buffer, VertexLayout layout, Func<SDLGPURenderCommand> commandSupplier)
+    public bool Valid => buffer != nint.Zero && transferBuffer != nint.Zero;
+
+    public SDLGPUVertexBuffer(nint device, RenderBufferFlags flags, VertexLayout layout, Func<SDLGPURenderCommand> commandSupplier)
     {
         this.device = device;
-        this.buffer = buffer;
+        this.flags = flags;
         this.layout = layout;
         this.commandSupplier = commandSupplier;
 
@@ -31,23 +36,58 @@ internal class SDLGPUVertexBuffer : VertexBuffer
 
             buffer = nint.Zero;
         }
+
+        if (transferBuffer != nint.Zero)
+        {
+            SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
+
+            transferBuffer = nint.Zero;
+        }
     }
 
-    public override void SetActive(uint start, uint count)
+    public void ResizeIfNeeded(int lengthInBytes)
     {
-    }
+        if (length == lengthInBytes)
+        {
+            return;
+        }
 
-    public override void SetBufferActive(byte stage, Access access)
-    {
-    }
+        if (buffer != nint.Zero)
+        {
+            SDL.SDL_WaitForGPUIdle(device);
+            SDL.SDL_ReleaseGPUBuffer(device, buffer);
+            SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
 
-    public override void Update(nint data, int lengthInBytes)
-    {
-        if (Disposed ||
-            buffer == nint.Zero ||
-            data == nint.Zero ||
-            lengthInBytes == 0 ||
-            lengthInBytes % layout.Stride != 0)
+            transferBuffer = nint.Zero;
+            buffer = nint.Zero;
+        }
+
+        var usageFlags = SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDEX;
+
+        if (flags.HasFlag(RenderBufferFlags.GraphicsRead))
+        {
+            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.ComputeRead))
+        {
+            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
+        }
+
+        if (flags.HasFlag(RenderBufferFlags.ComputeWrite))
+        {
+            usageFlags |= SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
+        }
+
+        var createInfo = new SDL.SDL_GPUBufferCreateInfo()
+        {
+            size = (uint)lengthInBytes,
+            usage = usageFlags,
+        };
+
+        buffer = SDL.SDL_CreateGPUBuffer(device, in createInfo);
+
+        if (buffer == nint.Zero)
         {
             return;
         }
@@ -58,9 +98,34 @@ internal class SDLGPUVertexBuffer : VertexBuffer
             usage = SDL.SDL_GPUTransferBufferUsage.SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
         };
 
-        var transferBuffer = SDL.SDL_CreateGPUTransferBuffer(device, in transferInfo);
+        transferBuffer = SDL.SDL_CreateGPUTransferBuffer(device, in transferInfo);
 
-        if(transferBuffer == nint.Zero)
+        if (transferBuffer == nint.Zero)
+        {
+            SDL.SDL_WaitForGPUIdle(device);
+            SDL.SDL_ReleaseGPUBuffer(device, buffer);
+
+            buffer = nint.Zero;
+
+            return;
+        }
+
+        length = lengthInBytes;
+    }
+
+    public override void Update(nint data, int lengthInBytes)
+    {
+        if (Disposed ||
+            data == nint.Zero ||
+            lengthInBytes == 0 ||
+            lengthInBytes % layout.Stride != 0)
+        {
+            return;
+        }
+
+        ResizeIfNeeded(lengthInBytes);
+
+        if (Valid == false)
         {
             return;
         }
@@ -69,12 +134,10 @@ internal class SDLGPUVertexBuffer : VertexBuffer
 
         if (command == null)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
-
             return;
         }
 
-        var mapData = SDL.SDL_MapGPUTransferBuffer(device, transferBuffer, false);
+        var mapData = SDL.SDL_MapGPUTransferBuffer(device, transferBuffer, true);
 
         unsafe
         {
@@ -90,8 +153,6 @@ internal class SDLGPUVertexBuffer : VertexBuffer
 
         if(copyPass == nint.Zero)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
-
             command.Discard();
 
             return;
@@ -114,8 +175,6 @@ internal class SDLGPUVertexBuffer : VertexBuffer
         SDL.SDL_EndGPUCopyPass(copyPass);
 
         command.Submit();
-
-        SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
     }
 
     public override void Update<T>(Span<T> data)
@@ -123,7 +182,6 @@ internal class SDLGPUVertexBuffer : VertexBuffer
         var size = Marshal.SizeOf<T>();
 
         if (Disposed ||
-            buffer == nint.Zero ||
             data.Length == 0 ||
             size % layout.Stride != 0)
         {
@@ -132,15 +190,9 @@ internal class SDLGPUVertexBuffer : VertexBuffer
 
         var byteSize = data.Length * size;
 
-        var transferInfo = new SDL.SDL_GPUTransferBufferCreateInfo()
-        {
-            size = (uint)byteSize,
-            usage = SDL.SDL_GPUTransferBufferUsage.SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        };
+        ResizeIfNeeded(byteSize);
 
-        var transferBuffer = SDL.SDL_CreateGPUTransferBuffer(device, in transferInfo);
-
-        if (transferBuffer == nint.Zero)
+        if (Valid == false)
         {
             return;
         }
@@ -149,12 +201,10 @@ internal class SDLGPUVertexBuffer : VertexBuffer
 
         if (command == null)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
-
             return;
         }
 
-        var mapData = SDL.SDL_MapGPUTransferBuffer(device, transferBuffer, false);
+        var mapData = SDL.SDL_MapGPUTransferBuffer(device, transferBuffer, true);
 
         unsafe
         {
@@ -169,8 +219,6 @@ internal class SDLGPUVertexBuffer : VertexBuffer
 
         if (copyPass == nint.Zero)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
-
             command.Discard();
 
             return;
@@ -193,29 +241,20 @@ internal class SDLGPUVertexBuffer : VertexBuffer
         SDL.SDL_EndGPUCopyPass(copyPass);
 
         command.Submit();
-
-        SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
     }
 
     public override void Update(Span<byte> data)
     {
         if (Disposed ||
-            buffer == nint.Zero ||
             data.Length == 0 ||
             data.Length % layout.Stride != 0)
         {
             return;
         }
 
-        var transferInfo = new SDL.SDL_GPUTransferBufferCreateInfo()
-        {
-            size = (uint)data.Length,
-            usage = SDL.SDL_GPUTransferBufferUsage.SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD,
-        };
+        ResizeIfNeeded(data.Length);
 
-        var transferBuffer = SDL.SDL_CreateGPUTransferBuffer(device, in transferInfo);
-
-        if (transferBuffer == nint.Zero)
+        if (Valid == false)
         {
             return;
         }
@@ -224,12 +263,10 @@ internal class SDLGPUVertexBuffer : VertexBuffer
 
         if (command == null)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
-
             return;
         }
 
-        var mapData = SDL.SDL_MapGPUTransferBuffer(device, transferBuffer, false);
+        var mapData = SDL.SDL_MapGPUTransferBuffer(device, transferBuffer, true);
 
         unsafe
         {
@@ -244,8 +281,6 @@ internal class SDLGPUVertexBuffer : VertexBuffer
 
         if (copyPass == nint.Zero)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
-
             command.Discard();
 
             return;
@@ -268,7 +303,5 @@ internal class SDLGPUVertexBuffer : VertexBuffer
         SDL.SDL_EndGPUCopyPass(copyPass);
 
         command.Submit();
-
-        SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
     }
 }

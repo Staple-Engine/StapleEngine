@@ -401,7 +401,7 @@ public sealed class MeshCombineSystem : IRenderSystem
                     vertexLayout = mesh.vertexBuffer.layout,
                 };
 
-                RenderSystem.Submit(viewID, renderState, mesh.SubmeshTriangleCount(0), 1);
+                RenderSystem.Submit(RenderSystem.GetViewPass(viewID), renderState, mesh.SubmeshTriangleCount(0), 1);
             }
         }
     }

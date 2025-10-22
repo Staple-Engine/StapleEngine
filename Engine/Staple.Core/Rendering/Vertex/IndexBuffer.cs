@@ -37,20 +37,6 @@ public abstract class IndexBuffer
     }
 
     /// <summary>
-    /// Sets this index buffer active
-    /// </summary>
-    /// <param name="start">The starting index</param>
-    /// <param name="count">The amount of indices to use</param>
-    public abstract void SetActive(uint start, uint count);
-
-    /// <summary>
-    /// Sets this buffer as a compute buffer
-    /// </summary>
-    /// <param name="stage">The buffer stage</param>
-    /// <param name="access">The access mode</param>
-    public abstract void SetBufferActive(byte stage, Access access);
-
-    /// <summary>
     /// Updates the index buffer's data (if it's dynamic)
     /// </summary>
     /// <param name="indices">An array of new data</param>

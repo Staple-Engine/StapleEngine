@@ -9,11 +9,6 @@ End Parameters
 
 Begin Common
 
-cbuffer Uniforms
-{
-	Sampler2D mainTexture;
-};
-
 struct VertexOutput
 {
     float4 position : SV_Position;
@@ -29,7 +24,7 @@ struct Input
 {
     float3 position : POSITION;
 	float2 coord : TEXCOORD0;
-	float4 color : COLOR0;
+	int color : COLOR0;
 };
 
 [shader("vertex")]
@@ -39,7 +34,13 @@ VertexOutput VertexMain(Input input)
 
     float3 position = input.position;
 
-    output.color = input.color;
+    output.color = float4(
+        (input.color & int(0xFF000000)) / 255.0,
+        (input.color & int(0x00FF0000)) / 255.0,
+        (input.color & int(0x0000FF00)) / 255.0,
+        (input.color & int(0x000000FF)) / 255.0,
+    );
+
 	output.coord = input.coord;
     output.position = mul(mul(mul(projection, view), world), float4(position, 1.0));
 
@@ -49,6 +50,12 @@ VertexOutput VertexMain(Input input)
 End Vertex
 
 Begin Fragment
+
+[[vk::binding(0, 2)]]
+cbuffer Uniforms
+{
+	Sampler2D mainTexture;
+};
 
 [shader("fragment")]
 float4 FragmentMain(VertexOutput input) : SV_Target

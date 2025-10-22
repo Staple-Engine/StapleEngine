@@ -893,50 +893,11 @@ public sealed partial class RenderSystem
 
             Matrix4x4.Invert(view, out view);
 
-            //bgfx.set_view_transform(viewID, &view, &projection);
-
             camera.UpdateFrustum(view, projection);
+
+            return command.BeginRenderPass(null, camera.clearMode, camera.clearColor, camera.viewport,
+                view, projection);
         }
-
-        return command.BeginRenderPass(null, camera.clearMode, camera.clearColor);
-
-        /*
-        switch (camera.clearMode)
-        {
-            case CameraClearMode.Depth:
-                //bgfx.set_view_clear(viewID, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
-
-                break;
-
-            case CameraClearMode.None:
-                //bgfx.set_view_clear(viewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
-
-                break;
-
-            case CameraClearMode.SolidColor:
-                //bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
-
-                break;
-        }
-        */
-
-        /*
-        var viewMode = camera.viewMode switch
-        {
-            CameraViewMode.Default => bgfx.ViewMode.Default,
-            CameraViewMode.Sequential => bgfx.ViewMode.Sequential,
-            CameraViewMode.DepthAscending => bgfx.ViewMode.DepthAscending,
-            CameraViewMode.DepthDescending => bgfx.ViewMode.DepthDescending,
-            _ => bgfx.ViewMode.Default,
-        };
-
-        bgfx.set_view_mode(viewID, viewMode);
-
-        bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
-            (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
-
-        bgfx.touch(viewID);
-        */
     }
 
     /// <summary>
@@ -970,17 +931,25 @@ public sealed partial class RenderSystem
         }
     }
 
-    internal static void Submit(ushort viewID, RenderState state, int triangles, int instances)
+    internal static IRenderPass GetViewPass(ushort viewID)
     {
-        if(Instance.renderCommands.TryGetValue(viewID, out var c) == false ||
+        if (Instance.renderCommands.TryGetValue(viewID, out var c) == false ||
             c.Count == 0)
         {
-            return;
+            return null;
         }
 
-        var command = c.Peek();
+        return c.Peek().pass;
+    }
 
-        Backend.Render(command.pass, state);
+    internal static void Submit(IRenderPass pass, RenderState state, int triangles, int instances)
+    {
+        if(pass == null)
+        {
+            throw new ArgumentException("Pass can't be null", nameof(pass));
+        }
+
+        Backend.Render(pass, state);
 
         RenderStats.drawCalls++;
         RenderStats.triangleCount += triangles * instances;
