@@ -11,10 +11,10 @@ End Parameters
 
 Begin Common
 
+[[vk::binding(1, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
 	float4 mainColor;
-	Sampler2D mainTexture;
 };
 
 struct VertexOutput
@@ -52,6 +52,12 @@ VertexOutput VertexMain(Input input)
 End Vertex
 
 Begin Fragment
+
+[[vk::binding(0, StapleSamplerBufferSet)]]
+cbuffer Textures
+{
+	Sampler2D mainTexture;
+};
 
 [shader("fragment")]
 float4 FragmentMain(VertexOutput input) : SV_Target

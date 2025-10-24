@@ -27,19 +27,13 @@ End Instancing
 
 Begin Common
 
+[[vk::binding(1, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
 	float3 viewPosition;
-	Sampler2D ambientOcclusionTexture;
 	float4 diffuseColor;
-	Sampler2D diffuseTexture;
-	Sampler2D displacementTexture;
 	float4 emissiveColor;
-	Sampler2D emissiveTexture;
-	Sampler2D heightTexture;
-	Sampler2D normalTexture;
 	float4 specularColor;
-	Sampler2D specularTexture;
 	float cutout;
 	float alphaThreshold;
 };
@@ -60,8 +54,6 @@ struct VertexOutput
 End Common
 
 Begin Vertex
-
-//TODO: Get slang to handle multiple preprocessor conditions
 
 struct Input
 {
@@ -97,15 +89,19 @@ VertexOutput VertexMain(Input input)
 	output.lightNormal = StapleLightNormal(input.normal, model);
 	output.instanceID = input.instanceID;
 	
-//#if LIT && PER_VERTEX_LIGHTING
-	//output.color = float4x4(diffuseColor.rgb * StapleProcessLights(viewPosition, output.worldPosition, input.normal), diffuseColor.a);
+//TODO: handle light array
+/*
+#if defined(LIT) && defined(PER_VERTEX_LIGHTING)
+	output.color = float4x4(diffuseColor.rgb * StapleProcessLights(viewPosition, output.worldPosition, input.normal), diffuseColor.a);
 	
-	//#ifdef VERTEX_COLORS
-//		output.color = input.color * output.color;
-//	#endif
-//#else
+	#ifdef VERTEX_COLORS
+		output.color = input.color * output.color;
+	#endif
+#else
 	output.color = input.color;
-//#endif
+#endif
+*/
+	output.color = input.color;
 
 	return output;
 }
@@ -113,14 +109,23 @@ End Vertex
 
 Begin Fragment
 
+[[vk::binding(0, StapleSamplerBufferSet)]]
+cbuffer Textures
+{
+	Sampler2D diffuseTexture;
+#ifdef NORMALMAP
+	Sampler2D normalTexture;
+#endif
+};
+
 [shader("fragment")]
 float4 FragmentMain(VertexOutput input) : SV_Target
 {
-//#if VERTEX_COLORS || PER_VERTEX_LIGHTING
-//	float4 diffuse = input.color * diffuseColor;
-//#else
+#if defined(VERTEX_COLORS) || defined(PER_VERTEX_LIGHTING)
+	float4 diffuse = input.color * diffuseColor;
+#else
 	float4 diffuse = diffuseTexture.Sample(input.coords) * diffuseColor;
-//#endif
+#endif
 	
 #ifdef CUTOUT
 	if(diffuse.a < alphaThreshold)
@@ -129,26 +134,28 @@ float4 FragmentMain(VertexOutput input) : SV_Target
 	}
 #endif
 	
-//#if LIT && PER_VERTEX_LIGHTING
-	return diffuse;
+//TODO: handle light array
 /*
-#elif LIT
+#if defined(LIT) && defined(PER_VERTEX_LIGHTING)
+	return diffuse;
+#elif defined(LIT)
 
-#if NORMALMAP
+#ifdef NORMALMAP
 	float3x3 tbn = float3x3(normalize(input.tangent), normalize(input.bitangent), normalize(input.normal));
 
 	float3 normalMapNormal = normalize(normalTexture.Sample(v_texcoord0).xyz * 2.0 - 1.0);
 
 	float3 light = StapleProcessLightsTangent(viewPosition, input.worldPosition, normalMapNormal, tbn);
 #else
-	float3 light = StapleProcessLights(viewPosition, input.world, input.lightNormal);
+	float3 light = StapleProcessLights(viewPosition, input.worldPosition, input.lightNormal);
 #endif
 
 	return float4(light, 1) * diffuse;
+#else
+	return diffuse;
+#endif
 */
-//#else
-	//return diffuse;
-//#endif
+	return diffuse;
 }
 
 End Fragment

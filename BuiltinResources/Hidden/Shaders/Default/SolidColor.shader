@@ -11,11 +11,6 @@ End Instancing
 
 Begin Common
 
-cbuffer Uniforms
-{
-    float4 mainColor;
-};
-
 struct VertexOutput
 {
     float4 position : SV_Position;
@@ -25,6 +20,12 @@ struct VertexOutput
 End Common
 
 Begin Vertex
+
+[[vk::binding(1, StapleUniformBufferSet)]]
+cbuffer Uniforms
+{
+    float4 mainColor;
+};
 
 struct Input
 {
