@@ -278,6 +278,10 @@ internal class SDLGPURendererBackend : IRendererBackend
                         entrypoint = e,
                         format = SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
                         stage = SDL.SDL_GPUShaderStage.SDL_GPU_SHADERSTAGE_FRAGMENT,
+                        num_samplers = (uint)fragmentMetrics.samplerCount,
+                        num_storage_buffers = (uint)fragmentMetrics.storageBufferCount,
+                        num_storage_textures = (uint)fragmentMetrics.storageTextureCount,
+                        num_uniform_buffers = (uint)fragmentMetrics.uniformBufferCount,
                     };
 
                     fragmentShader = SDL.SDL_CreateGPUShader(device, in info);
