@@ -259,12 +259,13 @@ internal class SDLGPURendererBackend : IRendererBackend
     {
         unsafe
         {
-            var entryPointBytes = Encoding.UTF8.GetBytes("main");
+            var vertexEntryPointBytes = Encoding.UTF8.GetBytes("main");
+            var fragmentEntryPointBytes = Encoding.UTF8.GetBytes("main");
 
             var vertexShader = nint.Zero;
             var fragmentShader = nint.Zero;
 
-            fixed (byte* e = entryPointBytes)
+            fixed (byte* entry = vertexEntryPointBytes)
             {
                 fixed (byte* v = vertex)
                 {
@@ -272,8 +273,13 @@ internal class SDLGPURendererBackend : IRendererBackend
                     {
                         code = v,
                         code_size = (uint)vertex.Length,
-                        entrypoint = e,
-                        format = SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
+                        entrypoint = entry,
+                        format = RenderWindow.CurrentRenderer switch
+                        {
+                            RendererType.Direct3D12 => SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_DXIL,
+                            RendererType.Metal => SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_MSL,
+                            _ => SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
+                        },
                         stage = SDL.SDL_GPUShaderStage.SDL_GPU_SHADERSTAGE_VERTEX,
                         num_samplers = (uint)vertexMetrics.samplerCount,
                         num_storage_buffers = (uint)vertexMetrics.storageBufferCount,
@@ -283,20 +289,28 @@ internal class SDLGPURendererBackend : IRendererBackend
 
                     vertexShader = SDL.SDL_CreateGPUShader(device, in info);
 
-                    if(vertexShader == nint.Zero)
+                    if (vertexShader == nint.Zero)
                     {
                         return null;
                     }
                 }
+            }
 
+            fixed (byte* entry = fragmentEntryPointBytes)
+            {
                 fixed (byte* f = fragment)
                 {
                     var info = new SDL.SDL_GPUShaderCreateInfo()
                     {
                         code = f,
                         code_size = (uint)fragment.Length,
-                        entrypoint = e,
-                        format = SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
+                        entrypoint = entry,
+                        format = RenderWindow.CurrentRenderer switch
+                        {
+                            RendererType.Direct3D12 => SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_DXIL,
+                            RendererType.Metal => SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_MSL,
+                            _ => SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
+                        },
                         stage = SDL.SDL_GPUShaderStage.SDL_GPU_SHADERSTAGE_FRAGMENT,
                         num_samplers = (uint)fragmentMetrics.samplerCount,
                         num_storage_buffers = (uint)fragmentMetrics.storageBufferCount,
@@ -336,7 +350,12 @@ internal class SDLGPURendererBackend : IRendererBackend
                         code = c,
                         code_size = (uint)compute.Length,
                         entrypoint = e,
-                        format = SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
+                        format = RenderWindow.CurrentRenderer switch
+                        {
+                            RendererType.Direct3D12 => SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_DXIL,
+                            RendererType.Metal => SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_MSL,
+                            _ => SDL.SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
+                        },
                         num_samplers = (uint)metrics.samplerCount,
                         num_uniform_buffers = (uint)metrics.uniformBufferCount,
                         num_readonly_storage_buffers = (uint)metrics.readOnlyStorageBufferCount,

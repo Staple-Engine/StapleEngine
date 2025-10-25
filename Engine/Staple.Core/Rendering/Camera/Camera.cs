@@ -59,7 +59,7 @@ public sealed class Camera : IComponent
     /// <summary>
     /// The clear color for the camera
     /// </summary>
-    public Color32 clearColor;
+    public Color32 clearColor = Color32.LightBlue;
 
     /// <summary>
     /// The layers this camera handles

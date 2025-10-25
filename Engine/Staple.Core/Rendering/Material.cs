@@ -129,7 +129,7 @@ public sealed class Material : IGuidAsset
                 textures[0] = MainTexture;
             }
 
-            var counter = 1;
+            var counter = hasMainTexture ? 1 : 0;
 
             foreach (var pair in parameters)
             {
