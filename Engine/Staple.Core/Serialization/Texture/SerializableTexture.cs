@@ -47,5 +47,11 @@ public class SerializableTexture
     public byte[] data;
 
     [Key(2)]
+    public int width;
+
+    [Key(3)]
+    public int height;
+
+    [Key(4)]
     public SerializableTextureCPUData cpuData;
 }

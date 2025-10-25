@@ -41,7 +41,7 @@ internal static class ResourceUtils
                 return null;
             }
 
-            var texture = Texture.Create(path, textureData.data, textureData.metadata);
+            var texture = Texture.Create(path, textureData);
 
             if (texture == null)
             {

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Staple.Internal;
+﻿namespace Staple.Internal;
 
 internal class PixelTextureCreateMethod(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata, TextureFormat format, TextureFlags flags) :
     ITextureCreateMethod
@@ -19,37 +17,19 @@ internal class PixelTextureCreateMethod(string path, byte[] data, ushort width, 
         {
             Texture.ProcessFlags(ref flags, metadata);
 
-            /*
-            bgfx.Memory* memory = bgfx.alloc((uint)data.Length);
+            texture.impl?.Destroy();
 
-            var source = new Span<byte>(data);
+            texture.impl = RenderSystem.Backend.CreatePixelTexture(data, width, height, format, flags);
 
-            var target = new Span<byte>(memory->data, data.Length);
-
-            source.CopyTo(target);
-
-            texture.handle = bgfx.create_texture_2d(width, height, false, 1, BGFXUtils.GetTextureFormat(format), (ulong)flags, memory);
-
-            if (texture.handle.Valid == false)
+            if(texture.impl == null)
             {
                 return false;
             }
 
             texture.Guid.Guid = path;
             texture.metadata = metadata;
-            texture.info = new bgfx.TextureInfo()
-            {
-                bitsPerPixel = 24,
-                format = BGFXUtils.GetTextureFormat(format),
-                height = height,
-                width = width,
-                numLayers = 1,
-            };
 
             return true;
-            */
-
-            return false;
         }
     }
 }

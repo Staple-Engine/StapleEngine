@@ -456,8 +456,7 @@ public partial class ComputeShader : IGuidAsset
     /// </summary>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    /// <param name="overrideFlags">Flags to override texture state</param>
-    public void SetTexture(ShaderHandle handle, Texture value, TextureFlags overrideFlags = (TextureFlags)uint.MaxValue)
+    public void SetTexture(ShaderHandle handle, Texture value)
     {
         if (Disposed ||
             value == null ||

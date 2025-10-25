@@ -1472,10 +1472,9 @@ internal class ResourceManager
     /// </summary>
     /// <param name="path">The path to load</param>
     /// <param name="flags">Any additional texture flags</param>
-    /// <param name="skip">Skip top level mips</param>
     /// <param name="ignoreCache">Whether to ignore the cache</param>
     /// <returns>The texture, or null</returns>
-    public Texture LoadTexture(string path, TextureFlags flags = TextureFlags.None, byte skip = 0, bool ignoreCache = false)
+    public Texture LoadTexture(string path, TextureFlags flags = TextureFlags.None, bool ignoreCache = false)
     {
         if((path?.Length ?? 0) == 0)
         {
@@ -1527,7 +1526,7 @@ internal class ResourceManager
                 return null;
             }
 
-            texture = Texture.Create(path, textureData.data, textureData.metadata, flags, skip);
+            texture = Texture.Create(path, textureData, flags);
 
             if (texture == null)
             {

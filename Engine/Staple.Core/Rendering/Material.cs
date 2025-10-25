@@ -1050,13 +1050,7 @@ public sealed class Material : IGuidAsset
                                 return;
                             }
 
-                            var overrideFlags = (TextureFlags)uint.MaxValue;
-
                             var texture = parameter.textureValue;
-
-                            overrideFlags = 0;
-
-                            Texture.ProcessFlags(ref overrideFlags, texture.metadata, true);
 
                             if (parameter.relatedParameters.Length == 0)
                             {
@@ -1097,7 +1091,7 @@ public sealed class Material : IGuidAsset
                                 EnableShaderKeyword(parameter.shaderHandle.Variant);
                             }
 
-                            shader.SetTexture(parameter.shaderHandle, texture, overrideFlags);
+                            shader.SetTexture(parameter.shaderHandle, texture);
                         };
 
                         break;

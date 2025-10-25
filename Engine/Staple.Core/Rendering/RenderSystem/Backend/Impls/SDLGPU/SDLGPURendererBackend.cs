@@ -520,4 +520,99 @@ internal class SDLGPURendererBackend : IRendererBackend
         SDL.SDL_DrawGPUIndexedPrimitives(renderPass.renderPass, (uint)state.indexCount, 1,
             (uint)state.startIndex, state.startVertex, 0);
     }
+
+    public ITexture CreateTextureAssetTexture(SerializableTexture asset, TextureFlags flags)
+    {
+        var format = asset.metadata.Format;
+
+        if (SDLGPUTexture.TryGetTextureFormat(format, flags, out var textureFormat) == false)
+        {
+            return null;
+        }
+
+        var info = new SDL.SDL_GPUTextureCreateInfo()
+        {
+            format = textureFormat,
+            width = (uint)asset.width,
+            height = (uint)asset.height,
+            type = SDLGPUTexture.GetTextureType(flags),
+            usage = SDLGPUTexture.GetTextureUsage(flags),
+            layer_count_or_depth = 1,
+            num_levels = 1,
+        };
+
+        var texture = SDL.SDL_CreateGPUTexture(device, in info);
+
+        if (texture == nint.Zero)
+        {
+            return null;
+        }
+
+        var outValue = new SDLGPUTexture(device, texture, asset.width, asset.height, format, flags,
+            () => (SDLGPURenderCommand)BeginCommand());
+
+        outValue.Update(asset.data);
+
+        return outValue;
+    }
+
+    public ITexture CreatePixelTexture(byte[] data, int width, int height, TextureFormat format, TextureFlags flags)
+    {
+        if (SDLGPUTexture.TryGetTextureFormat(format, flags, out var textureFormat) == false)
+        {
+            return null;
+        }
+
+        var info = new SDL.SDL_GPUTextureCreateInfo()
+        {
+            format = textureFormat,
+            width = (uint)width,
+            height = (uint)height,
+            type = SDLGPUTexture.GetTextureType(flags),
+            usage = SDLGPUTexture.GetTextureUsage(flags),
+            layer_count_or_depth = 1,
+            num_levels = 1, //TODO: Support multiple levels
+        };
+
+        var texture = SDL.SDL_CreateGPUTexture(device, in info);
+
+        if (texture == nint.Zero)
+        {
+            return null;
+        }
+
+        var outValue = new SDLGPUTexture(device, texture, width, height, format, flags, () => (SDLGPURenderCommand)BeginCommand());
+
+        outValue.Update(data);
+
+        return outValue;
+    }
+
+    public ITexture CreateEmptyTexture(int width, int height, TextureFormat format, TextureFlags flags)
+    {
+        if(SDLGPUTexture.TryGetTextureFormat(format, flags, out var textureFormat) == false)
+        {
+            return null;
+        }
+
+        var info = new SDL.SDL_GPUTextureCreateInfo()
+        {
+            format = textureFormat,
+            width = (uint)width,
+            height = (uint)height,
+            type = SDLGPUTexture.GetTextureType(flags),
+            usage = SDLGPUTexture.GetTextureUsage(flags),
+            layer_count_or_depth = 1,
+            num_levels = 1,
+        };
+
+        var texture = SDL.SDL_CreateGPUTexture(device, in info);
+
+        if(texture == nint.Zero)
+        {
+            return null;
+        }
+
+        return new SDLGPUTexture(device, texture, width, height, format, flags, () => (SDLGPURenderCommand)BeginCommand());
+    }
 }

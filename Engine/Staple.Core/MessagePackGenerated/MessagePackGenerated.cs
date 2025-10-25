@@ -4372,9 +4372,11 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(3);
+            writer.WriteArrayHeader(5);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.TextureMetadata>().Serialize(ref writer, value.metadata, options);
             writer.Write(value.data);
+            writer.Write(value.width);
+            writer.Write(value.height);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SerializableTextureCPUData>().Serialize(ref writer, value.cpuData, options);
         }
 
@@ -4401,6 +4403,12 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.data = reader.ReadBytes()?.ToArray();
                         break;
                     case 2:
+                        ____result.width = reader.ReadInt32();
+                        break;
+                    case 3:
+                        ____result.height = reader.ReadInt32();
+                        break;
+                    case 4:
                         ____result.cpuData = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.SerializableTextureCPUData>().Deserialize(ref reader, options);
                         break;
                     default:

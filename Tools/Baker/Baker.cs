@@ -45,10 +45,10 @@ static partial class Program
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return "texturecRelease.exe";
+                return "cuttlefish.exe";
             }
 
-            return "texturecRelease";
+            return "cuttlefish";
         }
     }
 
@@ -147,11 +147,8 @@ static partial class Program
                 $"\t-platform [platform]: specify the platform to build for ({string.Join(", ", Enum.GetValues<AppPlatform>().Select(x => x.ToString()))}\n" +
                 "\t-r [name]: set the renderer to compile for (can be repeated for multiple exports)\n" +
                 "\t\tValid values are:\n" +
-                "\t\t\td3d11\n" +
+                "\t\t\td3d12\n" +
                 "\t\t\tmetal\n" +
-                "\t\t\topengl\n" +
-                "\t\t\topengles\n" +
-                "\t\t\tpssl\n" +
                 "\t\t\tspirv\n");
 
             Environment.Exit(1);
@@ -195,7 +192,7 @@ static partial class Program
 
         var shaderCompilerPath = ValidateTool("shadercross", shaderCompilerBinName);
         var shaderTranspilerPath = ValidateTool("slang", shaderTranspilerBinName);
-        var textureCompilerPath = "asdf"; //ValidateTool("texturec", textureCompilerBinName);
+        var textureCompilerPath = ValidateTool("cuttlefish", textureCompilerBinName);
 
         var outputPath = "out";
         var inputPaths = new List<string>();

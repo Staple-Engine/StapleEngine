@@ -200,6 +200,7 @@
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURendererBackend.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURenderPass.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUShaderProgram.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUTexture.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexBuffer.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexLayout.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexLayoutBuilder.cs" />
@@ -214,7 +215,7 @@
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
 		<Compile Include="Rendering\Sprites\Sprite.cs" />
 		<Compile Include="Rendering\Sprites\SpriteUtils.cs" />
-		<Compile Include="Rendering\Texture\RenderTargetBackbufferRatio.cs" />
+		<Compile Include="Rendering\Texture\ITexture.cs" />
 		<Compile Include="Rendering\Texture\TextureFormat.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />
 		<Compile Include="Rendering\Text\Impls\FreeTypeFontSource.cs" />
@@ -356,7 +357,7 @@
 		<Compile Include="Physics\ColliderMask.cs" />
 		<Compile Include="Physics\Physics.cs" />
 		<Compile Include="Rendering\BlendMode.cs" />
-		<Compile Include="Rendering\Texture\BGFXTextureCreateMethod.cs" />
+		<Compile Include="Rendering\Texture\TextureAssetCreateMethod.cs" />
 		<Compile Include="Rendering\Texture\EmptyTextureCreateMethod.cs" />
 		<Compile Include="Rendering\Texture\ITextureCreateMethod.cs" />
 		<Compile Include="Rendering\Texture\PixelTextureCreateMethod.cs" />

@@ -36,5 +36,11 @@ internal interface IRendererBackend
 
     IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics computeMetrics);
 
+    ITexture CreateTextureAssetTexture(SerializableTexture asset, TextureFlags flags);
+
+    ITexture CreatePixelTexture(byte[] data, int width, int height, TextureFormat format, TextureFlags flags);
+
+    ITexture CreateEmptyTexture(int width, int height, TextureFormat format, TextureFlags flags);
+
     void Render(IRenderPass pass, RenderState state);
 }

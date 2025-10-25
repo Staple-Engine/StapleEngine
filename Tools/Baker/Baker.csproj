@@ -84,6 +84,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <PackageReference Include="Alimer.Bindings.MeshOptimizer" Version="1.1.1" />
+	  <PackageReference Include="Evergine.Bindings.KTX" Version="2025.10.14.32" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Staple.Assimp\Staple.Assimp.csproj" />
@@ -101,18 +102,21 @@
 			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/StapleToolingSupport.[DLL] $(SolutionDir)bin\
 			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/SDL_shadercross/Windows/* $(SolutionDir)bin\
 			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/slang/Windows/* $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/cuttlefish/Windows/* $(SolutionDir)bin\
 		</PostBuildEvent>
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
 		<PostBuildEvent>
 			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/SDL_shadercross/Linux/* $(SolutionDir)bin\
 			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/slang/Linux/* $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/cuttlefish/Linux/* $(SolutionDir)bin\
 		</PostBuildEvent>
 	</PropertyGroup>
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('macOS'))">
 		<PostBuildEvent>
 			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/SDL_shadercross/MacOSX/* $(SolutionDir)bin\
 			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/slang/MacOSX/* $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/cuttlefish/MacOSX/* $(SolutionDir)bin\
 		</PostBuildEvent>
 	</PropertyGroup>
 	<PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">

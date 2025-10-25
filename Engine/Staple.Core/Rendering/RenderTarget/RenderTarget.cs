@@ -18,7 +18,6 @@ public sealed class RenderTarget
     internal ushort height;
     internal TextureFormat format;
     internal TextureFlags flags;
-    internal RenderTargetBackbufferRatio ratio;
     internal List<Texture> textures = [];
 
     private bool destroyed = false;
@@ -254,99 +253,6 @@ public sealed class RenderTarget
         }
 
         return outValue;
-        */
-
-        return null;
-    }
-
-    /// <summary>
-    /// Creates a render target based on a backbuffer ratio
-    /// </summary>
-    /// <param name="ratio">The ratio to use</param>
-    /// <param name="format">The texture format</param>
-    /// <param name="flags">Additional texture lags</param>
-    /// <returns>The render target, or null</returns>
-    public static RenderTarget Create(RenderTargetBackbufferRatio ratio, TextureFormat format,
-        TextureFlags flags = TextureFlags.None)// TextureFlags.SamplerUClamp | TextureFlags.SamplerVClamp)
-    {
-        /*
-        var handle = bgfx.create_frame_buffer_scaled(BGFXUtils.GetBackbufferRatio(ratio), BGFXUtils.GetTextureFormat(format), (ulong)flags);
-
-        if (handle.Valid == false)
-        {
-            return null;
-        }
-
-        var name = $"RenderTarget {++counter}";
-
-        bgfx.set_frame_buffer_name(handle, name, name.Length);
-
-        var textureHandle = bgfx.get_texture(handle, 0);
-
-        if (textureHandle.Valid == false)
-        {
-            bgfx.destroy_frame_buffer(handle);
-
-            return null;
-        }
-
-        name = $"RenderTarget {counter} Texture 0";
-
-        bgfx.set_texture_name(textureHandle, name, name.Length);
-
-        var factor = 1.0f;
-
-        switch(ratio)
-        {
-            case RenderTargetBackbufferRatio.Sixteenth:
-
-                factor = 1 / 16.0f;
-
-                break;
-
-            case RenderTargetBackbufferRatio.Eighth:
-
-                factor = 1 / 8.0f;
-
-                break;
-
-            case RenderTargetBackbufferRatio.Quarter:
-
-                factor = 0.25f;
-
-                break;
-
-            case RenderTargetBackbufferRatio.Double:
-
-                factor = 2;
-
-                break;
-
-            case RenderTargetBackbufferRatio.Equal:
-
-                //Default
-
-                break;
-
-            case RenderTargetBackbufferRatio.Half:
-
-                factor = 0.5f;
-
-                break;
-        }
-
-        var width = (byte)(Screen.Width * factor);
-        var height = (byte)(Screen.Height * factor);
-
-        var texture = new Texture(textureHandle, width, height, flags.HasFlag(TextureFlags.ReadBack));
-
-        return new RenderTarget()
-        {
-            handle = handle,
-            format = format,
-            flags = flags,
-            textures = [ texture ],
-        };
         */
 
         return null;
