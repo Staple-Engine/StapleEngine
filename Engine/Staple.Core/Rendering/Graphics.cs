@@ -56,6 +56,7 @@ namespace Staple
                 vertexCount = vertexCount,
                 indexCount = indexCount,
                 vertexLayout = vertex.layout,
+                world = transform,
             };
 
             if(materialSetupCallback != null)
@@ -64,7 +65,7 @@ namespace Staple
             }
             else
             {
-                material.ApplyProperties(Material.ApplyMode.All);
+                material.ApplyProperties(Material.ApplyMode.All, ref renderState);
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 

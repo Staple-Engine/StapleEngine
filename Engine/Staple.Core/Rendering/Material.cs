@@ -101,6 +101,50 @@ public sealed class Material : IGuidAsset
     internal Shader shader;
     internal MaterialMetadata metadata;
 
+    internal Texture[] textures;
+
+    internal Texture[] Textures
+    {
+        get
+        {
+            var textureCount = hasMainTexture ? 1 : 0;
+
+            foreach(var pair in parameters)
+            {
+                if(pair.Value?.textureValue?.Disposed ?? true)
+                {
+                    continue;
+                }
+
+                textureCount++;
+            }
+
+            if(textures == null || textures.Length != textureCount)
+            {
+                Array.Resize(ref textures, textureCount);
+            }
+
+            if(hasMainTexture)
+            {
+                textures[0] = MainTexture;
+            }
+
+            var counter = 1;
+
+            foreach (var pair in parameters)
+            {
+                if (pair.Value?.textureValue?.Disposed ?? true)
+                {
+                    continue;
+                }
+
+                textures[counter++] = pair.Value.textureValue;
+            }
+
+            return textures;
+        }
+    }
+
     internal Dictionary<int, ParameterInfo> parameters = [];
 
     internal Dictionary<int, ParameterInfo> instanceParameters = [];
@@ -989,23 +1033,17 @@ public sealed class Material : IGuidAsset
     /// Applies the default properties of this material to the shader
     /// </summary>
     /// <param name="applyMode">How to apply the properties</param>
-    internal void ApplyProperties(ApplyMode applyMode)
+    /// <param name="state">The render state to apply to</param>
+    internal void ApplyProperties(ApplyMode applyMode, ref RenderState state)
     {
         if(shader == null)
         {
             return;
         }
 
-        if(hasMainTexture && applyMode != ApplyMode.IgnoreTextures)
+        if(applyMode != ApplyMode.IgnoreTextures)
         {
-            var t = mainTexture;
-
-            if (t?.Disposed ?? true)
-            {
-                MainTexture = WhiteTexture;
-            }
-
-            shader.SetTexture(mainTextureHandle, mainTexture);
+            state.textures = Textures;
         }
 
         if(hasMainColor)
@@ -1031,71 +1069,6 @@ public sealed class Material : IGuidAsset
 
                 switch (parameter.type)
                 {
-                    case MaterialParameterType.Texture:
-
-                        if(applyMode == ApplyMode.IgnoreTextures)
-                        {
-                            continue;
-                        }
-
-                        applyPropertiesCallbacks[counter++] = () =>
-                        {
-                            if (parameter.hasTexture == false)
-                            {
-                                if (parameter.shaderHandle.Variant != null)
-                                {
-                                    DisableShaderKeyword(parameter.shaderHandle.Variant);
-                                }
-
-                                return;
-                            }
-
-                            var texture = parameter.textureValue;
-
-                            if (parameter.relatedParameters.Length == 0)
-                            {
-                                parameter.relatedParameters =
-                                [
-                                    parameters.TryGetValue($"{key}_UMapping".GetHashCode(), out var p) &&
-                                        p.type == MaterialParameterType.TextureWrap ? p : null,
-
-                                    parameters.TryGetValue($"{key}_VMapping".GetHashCode(), out p) &&
-                                        p.type == MaterialParameterType.TextureWrap ? p : null,
-                                ];
-                            }
-
-                            if (parameter.relatedParameters[0] != null &&
-                                parameter.relatedParameters[1] != null)
-                            {
-                                /*
-                                overrideFlags |=
-                                    parameter.relatedParameters[0].textureWrapValue switch
-                                    {
-                                        TextureWrap.Mirror => TextureFlags.SamplerUMirror,
-                                        TextureWrap.Repeat => 0,
-                                        _ => TextureFlags.SamplerUClamp,
-                                    };
-
-                                overrideFlags |=
-                                    parameter.relatedParameters[1].textureWrapValue switch
-                                    {
-                                        TextureWrap.Mirror => TextureFlags.SamplerVMirror,
-                                        TextureWrap.Repeat => 0,
-                                        _ => TextureFlags.SamplerVClamp,
-                                    };
-                                */
-                            }
-
-                            if (parameter.shaderHandle.Variant != null)
-                            {
-                                EnableShaderKeyword(parameter.shaderHandle.Variant);
-                            }
-
-                            shader.SetTexture(parameter.shaderHandle, texture);
-                        };
-
-                        break;
-
                     case MaterialParameterType.Matrix3x3:
 
                         applyPropertiesCallbacks[counter++] = () =>

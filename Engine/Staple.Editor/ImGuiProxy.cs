@@ -25,11 +25,11 @@ internal class ImGuiProxy
     public IndexBuffer indexBuffer;
     public ImDrawVert[] vertices = [];
     public ushort[] indices = [];
-    /*
-    public bgfx.UniformHandle textureUniform;
-    public bgfx.TextureHandle activeTexture;
-    */
-    public readonly List<(Texture, byte[], int)> textures = [];
+    public readonly Dictionary<int, (Texture, byte[], int)> textures = [];
+    private int textureCounter = 1;
+
+    private Texture[] emptyTexture = [];
+    private Texture[] singleTexture = new Texture[1];
 
     public ImFontPtr editorFont;
 
@@ -173,18 +173,11 @@ internal class ImGuiProxy
 
         destroyed = true;
 
-        /*
-        if (textureUniform.Valid)
-        {
-            bgfx.destroy_uniform(textureUniform);
-        }
-        */
-
         program?.Destroy();
 
         foreach(var texture in textures)
         {
-            texture.Item1.Destroy();
+            texture.Value.Item1.Destroy();
         }
 
         textures.Clear();
@@ -426,9 +419,11 @@ internal class ImGuiProxy
                                 {
                                     ResourceManager.instance.LockAsset($"ImGui {texture.UniqueID}");
 
-                                    textures.Add((outTexture, pixels, bytesPerPixel));
+                                    textures.Add(textureCounter, (outTexture, pixels, bytesPerPixel));
 
-                                    //texture.SetTexID(new ImTextureID((ulong)outTexture.handle.idx));
+                                    texture.SetTexID(new ImTextureID(textureCounter));
+
+                                    textureCounter++;
                                 }
                                 else
                                 {
@@ -443,12 +438,11 @@ internal class ImGuiProxy
                         case ImTextureStatus.WantUpdates:
 
                             {
-                                /*
-                                var index = textures.FindIndex(x => x.Item1.handle.idx == texture.TexID.Handle);
+                                var index = (int)texture.TexID.Handle;
 
-                                if(index >= 0)
+                                if (textures.TryGetValue(index, out var item))
                                 {
-                                    var (target, pixels, bytesPerPixel) = textures[index];
+                                    var (target, pixels, bytesPerPixel) = item;
 
                                     var updates = texture.Updates;
 
@@ -485,7 +479,7 @@ internal class ImGuiProxy
                                     {
                                         textures[index] = (target, pixels, bytesPerPixel);
 
-                                        //texture.SetTexID(new ImTextureID((ulong)target.handle.idx));
+                                        texture.SetTexID(new ImTextureID(index));
                                     }
                                     else
                                     {
@@ -494,7 +488,6 @@ internal class ImGuiProxy
 
                                     texture.SetStatus(ImTextureStatus.Ok);
                                 }
-                                */
                             }
 
                             break;
@@ -503,18 +496,15 @@ internal class ImGuiProxy
 
                             if(texture.UnusedFrames > 0)
                             {
-                                for (var i = 0; i < textures.Count; i++)
+                                var index = (int)texture.TexID.Handle;
+
+                                if (textures.TryGetValue(index, out var item))
                                 {
-                                    /*
-                                    if (textures[i].Item1.handle.idx == texture.TexID.Handle)
-                                    {
-                                        textures[i].Item1.Destroy();
+                                    item.Item1.Destroy();
 
-                                        textures.RemoveAt(i);
+                                    textures.Remove(index);
 
-                                        break;
-                                    }
-                                    */
+                                    break;
                                 }
 
                                 texture.SetStatus(ImTextureStatus.Destroyed);
@@ -530,7 +520,7 @@ internal class ImGuiProxy
 
             var command = RenderSystem.Backend.BeginCommand();
 
-            var pass = command.BeginRenderPass(null, CameraClearMode.None, Color.Clear, new(0, 0, 1, 1), Matrix4x4.Identity, ortho);
+            var pass = command.BeginRenderPass(null, CameraClearMode.SolidColor, Color.LightBlue, new(0, 0, 1, 1), Matrix4x4.Identity, ortho);
 
             var clipPos = drawData.DisplayPos;
             var clipScale = drawData.FramebufferScale;
@@ -602,22 +592,25 @@ internal class ImGuiProxy
                         continue;
                     }
 
-                    /*
-                    bgfx.ProgramHandle program = this.program.instances.First().Value.program;
+                    var program = this.program.instances.FirstOrDefault().Value.program;
+
+                    Texture[] textures;
 
                     if (drawCmd.GetTexID().IsNull == false)
                     {
-                        program = imageProgram.instances.First().Value.program;
+                        var index = (int)drawCmd.GetTexID().Handle;
 
-                        var index = (ushort)drawCmd.GetTexID().Handle;
+                        if(this.textures.TryGetValue(index, out var item))
+                        {
+                            singleTexture[0] = item.Item1;
+                        }
 
-                        activeTexture.idx = index;
+                        textures = singleTexture;
                     }
                     else
                     {
-                        activeTexture.idx = ushort.MaxValue;
+                        textures = emptyTexture;
                     }
-                    */
 
                     var clipRect = new Vector4((drawCmd.ClipRect.X - clipPos.X) * clipScale.X,
                         (drawCmd.ClipRect.Y - clipPos.Y) * clipScale.Y,
@@ -646,7 +639,9 @@ internal class ImGuiProxy
                             vertexCount = numVertices,
                             startIndex = currentIndex,
                             indexCount = numIndices,
-                            program = program.instances.FirstOrDefault().Value.program,
+                            program = program,
+                            textures = textures,
+                            world = Matrix4x4.Identity,
                         };
 
                         RenderSystem.Submit(pass, state, (int)drawCmd.ElemCount / 3, 1);

@@ -551,7 +551,7 @@ static partial class Program
                     _ => "normal",
                 };
 
-                var parameters = $"--format {formatString} --type {formatType} --quality {qualityString} --file-format ktx ";
+                var parameters = $"--format {formatString} --type {formatType} --quality {qualityString} --file-format ktx -q ";
 
                 if (premultiplyAlpha)
                 {

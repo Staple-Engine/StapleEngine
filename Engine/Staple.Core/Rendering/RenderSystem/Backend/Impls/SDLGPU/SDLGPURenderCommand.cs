@@ -108,6 +108,6 @@ internal class SDLGPURenderCommand(nint commandBuffer, nint window) : IRenderCom
 
         SDL.SDL_SetGPUViewport(renderPass, in viewportData);
 
-        return new SDLGPURenderPass(renderPass, view, projection);
+        return new SDLGPURenderPass(commandBuffer, renderPass, view, projection);
     }
 }

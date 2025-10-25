@@ -351,6 +351,20 @@ public sealed class MeshCombineSystem : IRenderSystem
                     lightSystem?.ApplyMaterialLighting(material, lighting);
                 }
 
+                var renderState = new RenderState()
+                {
+                    cull = material.CullingMode,
+                    primitiveType = mesh.MeshTopology,
+                    depthWrite = true,
+                    enableDepth = true,
+                    indexBuffer = mesh.indexBuffer,
+                    vertexBuffer = mesh.vertexBuffer,
+                    indexCount = mesh.IndexCount,
+                    vertexCount = mesh.VertexCount,
+                    vertexLayout = mesh.vertexBuffer.layout,
+                    world = item.transform.Matrix,
+                };
+
                 if (needsChange)
                 {
                     lastMaterial = material;
@@ -364,7 +378,7 @@ public sealed class MeshCombineSystem : IRenderSystem
                         continue;
                     }
 
-                    material.ApplyProperties(Material.ApplyMode.All);
+                    material.ApplyProperties(Material.ApplyMode.All, ref renderState);
                 }
 
                 SetupMaterial();
@@ -374,32 +388,11 @@ public sealed class MeshCombineSystem : IRenderSystem
                     continue;
                 }
 
-                unsafe
-                {
-                    var transform = item.transform.Matrix;
-
-                    //_ = bgfx.set_transform(&transform, 1);
-                }
-
-                //mesh.SetActive(0);
-
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
                 var program = material.ShaderProgram;
 
-                var renderState = new RenderState()
-                {
-                    cull = material.CullingMode,
-                    primitiveType = mesh.MeshTopology,
-                    depthWrite = true,
-                    enableDepth = true,
-                    indexBuffer = mesh.indexBuffer,
-                    vertexBuffer = mesh.vertexBuffer,
-                    indexCount = mesh.IndexCount,
-                    vertexCount = mesh.VertexCount,
-                    program = program,
-                    vertexLayout = mesh.vertexBuffer.layout,
-                };
+                renderState.program = program;
 
                 RenderSystem.Submit(RenderSystem.GetViewPass(viewID), renderState, mesh.SubmeshTriangleCount(0), 1);
             }

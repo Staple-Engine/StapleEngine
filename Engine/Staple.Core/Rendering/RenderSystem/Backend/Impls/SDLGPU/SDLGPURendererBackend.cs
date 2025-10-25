@@ -1,6 +1,8 @@
 ﻿using SDL3;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 
 namespace Staple.Internal;
@@ -10,7 +12,16 @@ internal class SDLGPURendererBackend : IRendererBackend
     private nint device;
     private SDL3RenderWindow window;
     private readonly Dictionary<int, nint> graphicsPipelines = [];
+    private readonly Dictionary<TextureFlags, nint> textureSamplers = [];
     private Vector2Int renderSize;
+
+    public struct StapleRenderData
+    {
+        public Matrix4x4 world;
+        public Matrix4x4 view;
+        public Matrix4x4 projection;
+        public float time;
+    }
 
     public bool SupportsTripleBuffering => SDL.SDL_WindowSupportsGPUPresentMode(device, window.window,
         SDL.SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_MAILBOX);
@@ -158,12 +169,21 @@ internal class SDLGPURendererBackend : IRendererBackend
     {
         if(device != nint.Zero)
         {
+            SDL.SDL_WaitForGPUIdle(device);
+
             foreach(var pair in graphicsPipelines)
             {
                 SDL.SDL_ReleaseGPUGraphicsPipeline(device, pair.Value);
             }
 
             graphicsPipelines.Clear();
+
+            foreach(var pair in textureSamplers)
+            {
+                SDL.SDL_ReleaseGPUSampler(device, pair.Value);
+            }
+
+            textureSamplers.Clear();
 
             SDL.SDL_DestroyGPUDevice(device);
 
@@ -341,6 +361,132 @@ internal class SDLGPURendererBackend : IRendererBackend
         }
     }
 
+    public nint GetSampler(TextureFlags flags)
+    {
+        var cleanFlags = TextureFlags.None;
+
+        SDL.SDL_GPUSamplerAddressMode GetAddressModeU()
+        {
+            if(flags.HasFlag(TextureFlags.RepeatU))
+            {
+                cleanFlags |= TextureFlags.RepeatU;
+
+                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+            }
+
+            if(flags.HasFlag(TextureFlags.MirrorU))
+            {
+                cleanFlags |= TextureFlags.MirrorU;
+
+                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+            }
+
+            if(flags.HasFlag(TextureFlags.ClampU))
+            {
+                cleanFlags |= TextureFlags.ClampU;
+
+                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+            }
+
+            return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        }
+
+        SDL.SDL_GPUSamplerAddressMode GetAddressModeV()
+        {
+            if (flags.HasFlag(TextureFlags.RepeatV))
+            {
+                cleanFlags |= TextureFlags.RepeatV;
+
+                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+            }
+
+            if (flags.HasFlag(TextureFlags.MirrorV))
+            {
+                cleanFlags |= TextureFlags.MirrorV;
+
+                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+            }
+
+            if (flags.HasFlag(TextureFlags.ClampV))
+            {
+                cleanFlags |= TextureFlags.ClampV;
+
+                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+            }
+
+            return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        }
+
+        SDL.SDL_GPUSamplerAddressMode GetAddressModeW()
+        {
+            if (flags.HasFlag(TextureFlags.RepeatW))
+            {
+                cleanFlags |= TextureFlags.RepeatW;
+
+                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+            }
+
+            if (flags.HasFlag(TextureFlags.MirrorW))
+            {
+                cleanFlags |= TextureFlags.MirrorW;
+
+                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+            }
+
+            if (flags.HasFlag(TextureFlags.ClampW))
+            {
+                cleanFlags |= TextureFlags.ClampW;
+
+                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+            }
+
+            return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        }
+
+        var anisotropy = false;
+
+        if(flags.HasFlag(TextureFlags.AnisotropicFilter))
+        {
+            cleanFlags |= TextureFlags.AnisotropicFilter;
+
+            anisotropy = true;
+        }
+
+        var uMode = GetAddressModeU();
+        var vMode = GetAddressModeV();
+        var wMode = GetAddressModeW();
+
+        if (textureSamplers.TryGetValue(cleanFlags, out var sampler) == false)
+        {
+            var magFilter = flags.HasFlag(TextureFlags.LinearFilter) ? SDL.SDL_GPUFilter.SDL_GPU_FILTER_LINEAR :
+                SDL.SDL_GPUFilter.SDL_GPU_FILTER_NEAREST;
+
+            var mipmapMode = flags.HasFlag(TextureFlags.LinearFilter) ? SDL.SDL_GPUSamplerMipmapMode.SDL_GPU_SAMPLERMIPMAPMODE_LINEAR :
+                SDL.SDL_GPUSamplerMipmapMode.SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
+
+            var info = new SDL.SDL_GPUSamplerCreateInfo()
+            {
+                address_mode_u = uMode,
+                address_mode_v = vMode,
+                address_mode_w = wMode,
+                enable_anisotropy = anisotropy,
+                mag_filter = magFilter,
+                min_filter = magFilter,
+                mipmap_mode = mipmapMode,
+                max_anisotropy = 16,
+            };
+
+            sampler = SDL.SDL_CreateGPUSampler(device, in info);
+
+            if (sampler != nint.Zero)
+            {
+                textureSamplers.Add(cleanFlags, sampler);
+            }
+        }
+
+        return sampler;
+    }
+
     public void Render(IRenderPass pass, RenderState state)
     {
         if(pass is not SDLGPURenderPass renderPass ||
@@ -351,6 +497,34 @@ internal class SDLGPURendererBackend : IRendererBackend
             state.indexBuffer is not SDLGPUIndexBuffer index)
         {
             return;
+        }
+
+        var samplerCount = state.textures?.Length ?? 0;
+
+        for (var i = 0; i < samplerCount; i++)
+        {
+            if (state.textures[i]?.impl is not SDLGPUTexture texture ||
+                texture.Disposed)
+            {
+                return;
+            }
+        }
+
+        var samplers = samplerCount > 0 ? new SDL.SDL_GPUTextureSamplerBinding[samplerCount] : null;
+
+        if(samplers != null)
+        {
+            for (var i = 0; i < samplers.Length; i++)
+            {
+                if (state.textures[i]?.impl is not SDLGPUTexture texture ||
+                    texture.Disposed)
+                {
+                    return;
+                }
+
+                samplers[i].texture = texture.texture;
+                samplers[i].sampler = GetSampler(texture.flags);
+            }
         }
 
         var hash = state.StateKey;
@@ -516,6 +690,26 @@ internal class SDLGPURendererBackend : IRendererBackend
         SDL.SDL_BindGPUIndexBuffer(renderPass.renderPass, in indexBinding, index.Is32Bit ?
             SDL.SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_32BIT :
             SDL.SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_16BIT);
+
+        if(samplers != null)
+        {
+            SDL.SDL_BindGPUFragmentSamplers(renderPass.renderPass, 0, samplers.AsSpan(), (uint)samplers.Length);
+        }
+
+        unsafe
+        {
+            var renderData = new StapleRenderData()
+            {
+                projection = renderPass.projection,
+                view = renderPass.view,
+                time = Time.time,
+                world = state.world,
+            };
+
+            void* ptr = &renderData;
+
+            SDL.SDL_PushGPUVertexUniformData(renderPass.commandBuffer, 0, (nint)ptr, (uint)Marshal.SizeOf<StapleRenderData>());
+        }
 
         SDL.SDL_DrawGPUIndexedPrimitives(renderPass.renderPass, (uint)state.indexCount, 1,
             (uint)state.startIndex, state.startVertex, 0);

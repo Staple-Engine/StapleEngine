@@ -326,7 +326,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                         continue;
                     }
 
-                    material.ApplyProperties(Material.ApplyMode.All);
+                    //material.ApplyProperties(Material.ApplyMode.All, ref renderState);
                 }
 
                 SetupMaterial();

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -22,6 +24,8 @@ internal struct RenderState
     public BlendMode sourceBlend;
     public BlendMode destinationBlend;
     public Rect scissor;
+    public Texture[] textures;
+    public Matrix4x4 world;
 
     internal readonly int StateKey
     {
@@ -39,6 +43,14 @@ internal struct RenderState
             hashCode.Add(renderTarget);
             hashCode.Add(sourceBlend);
             hashCode.Add(destinationBlend);
+
+            if(textures != null)
+            {
+                foreach(var t in textures)
+                {
+                    hashCode.Add(t.GetHashCode());
+                }
+            }
 
             return hashCode.ToHashCode();
         }

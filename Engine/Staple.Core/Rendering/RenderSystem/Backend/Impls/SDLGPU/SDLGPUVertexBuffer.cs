@@ -62,7 +62,7 @@ internal class SDLGPUVertexBuffer : VertexBuffer
             buffer = nint.Zero;
         }
 
-        var usageFlags = SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDEX;
+        var usageFlags = SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_VERTEX;
 
         if (flags.HasFlag(RenderBufferFlags.GraphicsRead))
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
@@ -72,19 +73,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         var matrix = Matrix4x4.TRS(position, scale, rotation);
 
-        /*
-        bgfx.StateFlags state = material.shader.StateFlags |
-            mesh.PrimitiveFlag() |
-            material.CullingFlag;
-
-        unsafe
-        {
-            _ = bgfx.set_transform(&matrix, 1);
-        }
-
-        bgfx.set_state((ulong)state, 0);
-        */
-
         var renderState = new RenderState()
         {
             enableDepth = true,
@@ -96,6 +84,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             vertexLayout = mesh.vertexBuffer.layout,
             indexCount = mesh.IndexCount,
             vertexCount = mesh.VertexCount,
+            world = matrix,
         };
 
         mesh.SetActive(ref renderState);
@@ -104,7 +93,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         material.DisableShaderKeyword(Shader.InstancingKeyword);
 
-        material.ApplyProperties(Material.ApplyMode.All);
+        material.ApplyProperties(Material.ApplyMode.All, ref renderState);
 
         var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
@@ -309,6 +298,13 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
+            var renderState = new RenderState()
+            {
+                cull = material.CullingMode,
+                depthWrite = true,
+                enableDepth = true,
+            };
+
             if (needsDiscard)
             {
                 lastMaterial = material;
@@ -325,7 +321,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                     continue;
                 }
 
-                material.ApplyProperties(Material.ApplyMode.All);
+                material.ApplyProperties(Material.ApplyMode.All, ref renderState);
 
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
                     contents.instanceInfos.Contents[0].lighting);
@@ -386,25 +382,11 @@ public sealed class MeshRenderSystem : IRenderSystem
                 {
                     var content = contents.instanceInfos.Contents[i];
 
-                    /*
-                    unsafe
-                    {
-                        var transform = content.transform.Matrix;
-
-                        _ = bgfx.set_transform(&transform, 1);
-                    }
-                    */
-
-                    var renderState = new RenderState()
-                    {
-                        cull = material.CullingMode,
-                        depthWrite = true,
-                        enableDepth = true,
-                        vertexBuffer = content.mesh.vertexBuffer,
-                        indexBuffer = content.mesh.indexBuffer,
-                        vertexLayout = content.mesh.vertexBuffer.layout,
-                        primitiveType = content.mesh.MeshTopology,
-                    };
+                    renderState.vertexBuffer = content.mesh.vertexBuffer;
+                    renderState.indexBuffer = content.mesh.indexBuffer;
+                    renderState.vertexLayout = content.mesh.vertexBuffer.layout;
+                    renderState.primitiveType = content.mesh.MeshTopology;
+                    renderState.world = content.transform.Matrix;
 
                     content.mesh.SetActive(ref renderState, content.submeshIndex);
 
@@ -412,6 +394,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     if(program != null)
                     {
+                        renderState.program = program;
+
                         RenderSystem.Submit(RenderSystem.GetViewPass(viewID), renderState, renderData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
                     }
                 }
