@@ -537,7 +537,7 @@ internal class RenderWindow
 
                 unsafe
                 {
-                    ok = RenderSystem.Backend.Initialize(renderer, true, window, renderFlags);
+                    ok = RenderSystem.Backend.Initialize(renderer, false, window, renderFlags);
 
                     if (ok)
                     {

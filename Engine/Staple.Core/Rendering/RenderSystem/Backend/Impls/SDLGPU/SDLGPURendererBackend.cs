@@ -693,6 +693,8 @@ internal class SDLGPURendererBackend : IRendererBackend
                         };
 
                         pipeline = SDL.SDL_CreateGPUGraphicsPipeline(device, in info);
+
+                        graphicsPipelines.Add(hash, pipeline);
                     }
                 }
             }
