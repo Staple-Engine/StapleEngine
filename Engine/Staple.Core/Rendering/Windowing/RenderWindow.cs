@@ -124,6 +124,7 @@ internal class RenderWindow
         while (window.ShouldClose == false && shouldStop == false)
         {
             PerformanceProfilerSystem.StartFrame();
+            RenderSystem.Backend.BeginFrame();
 
             Input.UpdateState();
 
@@ -311,6 +312,7 @@ internal class RenderWindow
         while (window.ShouldClose == false && shouldStop == false)
         {
             PerformanceProfilerSystem.StartFrame();
+            RenderSystem.Backend.BeginFrame();
 
             Input.UpdateState();
 
@@ -660,6 +662,8 @@ internal class RenderWindow
         {
             lastTime = current;
 
+            RenderSystem.Backend.EndFrame();
+
             return;
         }
 
@@ -685,6 +689,8 @@ internal class RenderWindow
         frameCounter++;
 
         RenderSystem.Instance.OnFrame(frameCounter);
+
+        RenderSystem.Backend.EndFrame();
 
         PerformanceProfilerSystem.FinishFrame();
     }

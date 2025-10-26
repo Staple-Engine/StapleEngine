@@ -15,6 +15,10 @@ internal interface IRendererBackend
 
     void Destroy();
 
+    void BeginFrame();
+
+    void EndFrame();
+
     void UpdateRenderMode(RenderModeFlags flags);
 
     void UpdateViewport(int width, int height);

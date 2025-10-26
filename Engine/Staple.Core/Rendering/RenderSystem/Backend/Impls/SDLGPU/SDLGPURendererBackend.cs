@@ -192,6 +192,14 @@ internal class SDLGPURendererBackend : IRendererBackend
         }
     }
 
+    public void BeginFrame()
+    {
+    }
+
+    public void EndFrame()
+    {
+    }
+
     public IRenderCommand BeginCommand()
     {
         var commandBuffer = SDL.SDL_AcquireGPUCommandBuffer(device);
