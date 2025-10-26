@@ -632,7 +632,7 @@ internal class ImGuiProxy
                             depthWrite = false,
                             enableDepth = false,
                             primitiveType = MeshTopology.Triangles,
-                            scissor = new(x, (int)(Math.Min(clipRect.Z, 65535.0f) - x), y, (int)(Math.Min(clipRect.W, 65535.0f) - y)),
+                            scissor = new(x, (int)clipRect.Z, y, (int)clipRect.W),
                             indexBuffer = indexBuffer,
                             vertexBuffer = vertexBuffer,
                             startVertex = currentVertex + (int)drawCmd.VtxOffset,
