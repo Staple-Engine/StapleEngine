@@ -156,10 +156,8 @@ internal class ImGuiProxy
         layout = VertexLayoutBuilder.CreateNew()
             .Add(VertexAttribute.Position, VertexAttributeType.Float2)
             .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2)
-            .Add(VertexAttribute.Color0, VertexAttributeType.Byte4)
+            .Add(VertexAttribute.Color0, VertexAttributeType.UInt)
             .Build();
-
-        //textureUniform = bgfx.create_uniform("s_tex", bgfx.UniformType.Sampler, 1);
 
         return true;
     }
@@ -515,8 +513,9 @@ internal class ImGuiProxy
                 }
             }
 
-            var ortho = Matrix4x4.CreateOrthographicOffCenter(drawData.DisplayPos.X, drawData.DisplayPos.X + drawData.DisplaySize.X,
-                drawData.DisplayPos.Y + drawData.DisplaySize.Y, drawData.DisplayPos.Y, 0, 1000);
+            var rect = new RectFloat(drawData.DisplayPos, drawData.DisplaySize);
+
+            var ortho = Matrix4x4.CreateOrthographicOffCenter(rect.Position.X, rect.Size.X, rect.Size.Y, rect.Position.Y, -1, 1);
 
             var command = RenderSystem.Backend.BeginCommand();
 
@@ -552,6 +551,8 @@ internal class ImGuiProxy
                 var indexData = new Span<ushort>(cmdList.IdxBuffer.Data, cmdList.IdxBuffer.Size);
                 var targetIndexData = new Span<ushort>(indices, currentIndex, cmdList.IdxBuffer.Size);
 
+                indexData.CopyTo(targetIndexData);
+
                 currentIndex += cmdList.IdxBuffer.Size;
             }
 
@@ -564,7 +565,7 @@ internal class ImGuiProxy
 
             if(needsUpdate == false)
             {
-                vertexBuffer = RenderSystem.Backend.CreateVertexBuffer<ImDrawVert>(vertices, layout, RenderBufferFlags.None);
+                vertexBuffer = RenderSystem.Backend.CreateVertexBuffer(vertices, layout, RenderBufferFlags.None);
                 indexBuffer = RenderSystem.Backend.CreateIndexBuffer(indices, RenderBufferFlags.None);
             }
             else
@@ -663,17 +664,16 @@ internal class ImGuiProxy
     {
         unsafe
         {
-            /*
             if (texture == null ||
-                texture.handle.Valid == false ||
                 texture.Disposed ||
                 texture.metadata.readBack)
-            */
             {
                 return new ImTextureRef(texId: ImTextureID.Null);
             }
 
             //return new ImTextureRef(texId: new ImTextureID((ulong)texture.handle.idx));
+
+            return new ImTextureRef(texId: ImTextureID.Null);
         }
     }
 

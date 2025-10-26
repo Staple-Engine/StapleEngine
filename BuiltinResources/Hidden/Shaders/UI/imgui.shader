@@ -30,7 +30,7 @@ struct Input
 {
     float3 position : POSITION;
 	float2 coord : TEXCOORD0;
-	int color : COLOR0;
+	uint color : COLOR0;
 };
 
 [shader("vertex")]
@@ -41,10 +41,10 @@ VertexOutput VertexMain(Input input)
     float3 position = input.position;
 
     output.color = float4(
-        (input.color & int(0xFF000000)) / 255.0,
-        (input.color & int(0x00FF0000)) / 255.0,
-        (input.color & int(0x0000FF00)) / 255.0,
-        (input.color & int(0x000000FF)) / 255.0,
+        (input.color & uint(0xFF000000)) / 255.0,
+        (input.color & uint(0x00FF0000)) / 255.0,
+        (input.color & uint(0x0000FF00)) / 255.0,
+        (input.color & uint(0x000000FF)) / 255.0,
     );
 
 	output.coord = input.coord;

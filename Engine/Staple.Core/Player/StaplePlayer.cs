@@ -19,6 +19,13 @@ public static class StaplePlayer
         baseDirectory = Environment.CurrentDirectory;
 #endif
 
+        var skipFlow =
+#if _DEBUG
+            args.Any(x => x == "-skip-flow");
+#else
+            false;
+#endif
+
         try
         {
             var pakFiles = Directory.GetFiles(Path.Combine(baseDirectory, "Data"), "*.pak");
@@ -40,38 +47,49 @@ public static class StaplePlayer
             Environment.Exit(1);
         }
 
-        try
+        if(skipFlow == false)
         {
-            var data = ResourceManager.instance.LoadFile("AppSettings");
-
-            using var stream = new MemoryStream(data);
-
-            var header = MessagePackSerializer.Deserialize<AppSettingsHeader>(stream);
-
-            if (header == null || header.header.SequenceEqual(AppSettingsHeader.ValidHeader) == false ||
-                header.version != AppSettingsHeader.ValidVersion)
+            try
             {
-                throw new Exception($"Invalid app settings header");
+                var data = ResourceManager.instance.LoadFile("AppSettings");
+
+                using var stream = new MemoryStream(data);
+
+                var header = MessagePackSerializer.Deserialize<AppSettingsHeader>(stream);
+
+                if (header == null || header.header.SequenceEqual(AppSettingsHeader.ValidHeader) == false ||
+                    header.version != AppSettingsHeader.ValidVersion)
+                {
+                    throw new Exception($"Invalid app settings header");
+                }
+
+                AppSettings.Current = MessagePackSerializer.Deserialize<AppSettings>(stream);
+
+                if (AppSettings.Current == null)
+                {
+                    throw new Exception("Failed to deserialize app settings");
+                }
+
+                LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Current.layers),
+                    CollectionsMarshal.AsSpan(AppSettings.Current.sortingLayers));
             }
-
-            AppSettings.Current = MessagePackSerializer.Deserialize<AppSettings>(stream);
-
-            if(AppSettings.Current == null)
+            catch (Exception e)
             {
-                throw new Exception("Failed to deserialize app settings");
-            }
+                Platform.platformProvider.ConsoleLog($"Failed to load appsettings: {e}");
 
-            LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Current.layers), CollectionsMarshal.AsSpan(AppSettings.Current.sortingLayers));
+                Environment.Exit(1);
+
+                return;
+            }
         }
-        catch (Exception e)
+        else
         {
-            Platform.platformProvider.ConsoleLog($"Failed to load appsettings: {e}");
+            AppSettings.Current = AppSettings.Default;
 
-            Environment.Exit(1);
-
-            return;
+            LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Current.layers),
+                CollectionsMarshal.AsSpan(AppSettings.Current.sortingLayers));
         }
 
-        new AppPlayer(args, true).Run();
+        new AppPlayer(args, true, skipFlow).Run();
     }
 }

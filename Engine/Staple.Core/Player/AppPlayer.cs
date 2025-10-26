@@ -17,9 +17,15 @@ internal class AppPlayer
 
     private bool initialized = false;
 
-    public AppPlayer(string[] args, bool shouldConsoleLog)
+    private readonly bool skipFlow;
+
+    public AppPlayer(string[] args, bool shouldConsoleLog, bool skipFlow)
     {
         instance = this;
+
+#if _DEBUG
+        this.skipFlow = skipFlow;
+#endif
 
         Storage.Update(AppSettings.Current.appName, AppSettings.Current.companyName);
 
@@ -120,18 +126,21 @@ internal class AppPlayer
                     ResetRendering(hasFocus);
                 }
 
-                Scene.sceneList = ResourceManager.instance.LoadSceneList();
-
-                if (Scene.sceneList == null || Scene.sceneList.Count == 0)
+                if(skipFlow == false)
                 {
-                    Log.Error($"Failed to load scene list");
+                    Scene.sceneList = ResourceManager.instance.LoadSceneList();
 
-                    renderWindow.shouldStop = true;
+                    if (Scene.sceneList == null || Scene.sceneList.Count == 0)
+                    {
+                        Log.Error($"Failed to load scene list");
 
-                    throw new Exception("Failed to load scene list");
+                        renderWindow.shouldStop = true;
+
+                        throw new Exception("Failed to load scene list");
+                    }
+
+                    Log.Info("Loaded scene list");
                 }
-
-                Log.Info("Loaded scene list");
 
                 if (Physics3D.ImplType != null && Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)) == false)
                 {
@@ -207,20 +216,23 @@ internal class AppPlayer
                         (typeof(IEntitySystemFixedUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemFixedUpdate))),
                     (instance => EntitySystemManager.Instance.RegisterSystem(instance)));
 
-                var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
-
-                if (scene == null)
+                if (skipFlow == false)
                 {
-                    Log.Error($"Failed to load main scene");
+                    var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
 
-                    renderWindow.shouldStop = true;
+                    if (scene == null)
+                    {
+                        Log.Error($"Failed to load main scene");
 
-                    throw new Exception("Failed to load main scene");
+                        renderWindow.shouldStop = true;
+
+                        throw new Exception("Failed to load main scene");
+                    }
+
+                    Scene.SetActiveScene(scene);
+
+                    Log.Info("Loaded first scene");
                 }
-
-                Scene.SetActiveScene(scene);
-
-                Log.Info("Loaded first scene");
 
                 Log.Info("Finished initializing");
 
