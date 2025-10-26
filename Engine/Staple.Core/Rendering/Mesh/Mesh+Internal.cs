@@ -877,7 +877,6 @@ public sealed partial class Mesh
 
         if(submeshes.Count == 0)
         {
-            state.vertexCount = VertexCount;
             state.indexCount = indices.Length;
         }
         else if(submeshIndex >= 0 && submeshIndex < submeshes.Count)
@@ -886,7 +885,6 @@ public sealed partial class Mesh
 
             state.startVertex = submesh.startVertex;
             state.startIndex = submesh.startIndex;
-            state.vertexCount = submesh.vertexCount;
             state.indexCount = submesh.indexCount;
         }
         else

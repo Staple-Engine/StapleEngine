@@ -360,8 +360,6 @@ public sealed class MeshCombineSystem : IRenderSystem
                     indexBuffer = mesh.indexBuffer,
                     vertexBuffer = mesh.vertexBuffer,
                     indexCount = mesh.IndexCount,
-                    vertexCount = mesh.VertexCount,
-                    vertexLayout = mesh.vertexBuffer.layout,
                     world = item.transform.Matrix,
                 };
 

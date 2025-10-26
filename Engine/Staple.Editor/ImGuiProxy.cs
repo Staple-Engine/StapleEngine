@@ -635,11 +635,9 @@ internal class ImGuiProxy
                             scissor = new(x, (int)(Math.Min(clipRect.Z, 65535.0f) - x), y, (int)(Math.Min(clipRect.W, 65535.0f) - y)),
                             indexBuffer = indexBuffer,
                             vertexBuffer = vertexBuffer,
-                            vertexLayout = layout,
-                            startVertex = currentVertex,
-                            vertexCount = numVertices,
-                            startIndex = currentIndex,
-                            indexCount = numIndices,
+                            startVertex = currentVertex + (int)drawCmd.VtxOffset,
+                            startIndex = currentIndex + (int)drawCmd.IdxOffset,
+                            indexCount = (int)drawCmd.ElemCount,
                             program = program,
                             textures = textures,
                             world = Matrix4x4.Identity,
@@ -647,10 +645,10 @@ internal class ImGuiProxy
 
                         RenderSystem.Submit(pass, state, (int)drawCmd.ElemCount / 3, 1);
                     }
-
-                    currentVertex += numVertices;
-                    currentIndex += numIndices;
                 }
+
+                currentVertex += numVertices;
+                currentIndex += numIndices;
             }
 
             pass.Finish();

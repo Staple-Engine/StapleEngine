@@ -513,8 +513,8 @@ internal class SDLGPURendererBackend : IRendererBackend
         if(pass is not SDLGPURenderPass renderPass ||
             state.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment ||
-            state.vertexLayout is not SDLGPUVertexLayout vertexLayout ||
             state.vertexBuffer is not SDLGPUVertexBuffer vertex ||
+            vertex.layout is not SDLGPUVertexLayout vertexLayout ||
             state.indexBuffer is not SDLGPUIndexBuffer index)
         {
             return;

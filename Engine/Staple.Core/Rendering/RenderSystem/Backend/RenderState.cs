@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple.Internal;
@@ -15,10 +14,8 @@ internal struct RenderState
     public VertexBuffer vertexBuffer;
     public IndexBuffer indexBuffer;
     public InstanceBuffer instanceBuffer;
-    public VertexLayout vertexLayout;
     public int startVertex;
     public int startIndex;
-    public int vertexCount;
     public int indexCount;
     public RenderTarget renderTarget;
     public BlendMode sourceBlend;
@@ -39,7 +36,7 @@ internal struct RenderState
             hashCode.Add(wireframe);
             hashCode.Add(enableDepth);
             hashCode.Add(depthWrite);
-            hashCode.Add(vertexLayout);
+            hashCode.Add(vertexBuffer?.layout);
             hashCode.Add(renderTarget);
             hashCode.Add(sourceBlend);
             hashCode.Add(destinationBlend);

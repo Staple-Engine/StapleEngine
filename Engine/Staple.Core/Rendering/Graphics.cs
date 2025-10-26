@@ -15,7 +15,6 @@ namespace Staple
         /// <param name="vertex">The vertex buffer</param>
         /// <param name="index">The index buffer</param>
         /// <param name="startVertex">The starting vertex</param>
-        /// <param name="vertexCount">The amount of vertexes to draw</param>
         /// <param name="startIndex">The start index</param>
         /// <param name="indexCount">The amount of indices to draw</param>
         /// <param name="material">The material to use</param>
@@ -25,7 +24,7 @@ namespace Staple
         /// <param name="viewID">The bgfx view ID to render to</param>
         /// <param name="materialSetupCallback">A callback to setup the material. If it's not set, the default behaviour will be used</param>
         public static void RenderGeometry(VertexBuffer vertex, IndexBuffer index,
-            int startVertex, int vertexCount, int startIndex, int indexCount, Material material,
+            int startVertex, int startIndex, int indexCount, Material material,
             Vector3 position, Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, ushort viewID,
             Action materialSetupCallback = null)
         {
@@ -35,7 +34,6 @@ namespace Staple
                 index.Disposed ||
                 startVertex < 0 || 
                 startIndex < 0 ||
-                vertexCount <= 0 ||
                 indexCount <= 0 ||
                 material == null ||
                 material.IsValid == false)
@@ -53,9 +51,7 @@ namespace Staple
                 vertexBuffer = vertex,
                 startVertex = startVertex,
                 startIndex = startIndex,
-                vertexCount = vertexCount,
                 indexCount = indexCount,
-                vertexLayout = vertex.layout,
                 world = transform,
             };
 

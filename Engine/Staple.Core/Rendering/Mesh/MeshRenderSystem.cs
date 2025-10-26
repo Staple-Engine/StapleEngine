@@ -81,9 +81,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             cull = material.CullingMode,
             indexBuffer = mesh.indexBuffer,
             vertexBuffer = mesh.vertexBuffer,
-            vertexLayout = mesh.vertexBuffer.layout,
             indexCount = mesh.IndexCount,
-            vertexCount = mesh.VertexCount,
             world = matrix,
         };
 
@@ -384,7 +382,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     renderState.vertexBuffer = content.mesh.vertexBuffer;
                     renderState.indexBuffer = content.mesh.indexBuffer;
-                    renderState.vertexLayout = content.mesh.vertexBuffer.layout;
                     renderState.primitiveType = content.mesh.MeshTopology;
                     renderState.world = content.transform.Matrix;
 
