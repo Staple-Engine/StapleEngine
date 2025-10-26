@@ -16,14 +16,6 @@ internal class SDLGPURendererBackend : IRendererBackend
     private readonly Dictionary<TextureFlags, nint> textureSamplers = [];
     private Vector2Int renderSize;
 
-    public struct StapleRenderData
-    {
-        public Matrix4x4 world;
-        public Matrix4x4 view;
-        public Matrix4x4 projection;
-        public float time;
-    }
-
     public bool SupportsTripleBuffering => SDL.SDL_WindowSupportsGPUPresentMode(device, window.window,
         SDL.SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_MAILBOX);
 
@@ -705,7 +697,7 @@ internal class SDLGPURendererBackend : IRendererBackend
             return;
         }
 
-        SDL.SDL_BindGPUGraphicsPipeline(renderPass.renderPass, pipeline);
+        renderPass.BindPipeline(pipeline);
 
         var vertexBinding = new SDL.SDL_GPUBufferBinding()
         {
@@ -751,20 +743,7 @@ internal class SDLGPURendererBackend : IRendererBackend
             SDL.SDL_BindGPUFragmentSamplers(renderPass.renderPass, 0, samplers.AsSpan(), (uint)samplers.Length);
         }
 
-        unsafe
-        {
-            var renderData = new StapleRenderData()
-            {
-                projection = renderPass.projection,
-                view = renderPass.view,
-                time = Time.time,
-                world = state.world,
-            };
-
-            void* ptr = &renderData;
-
-            SDL.SDL_PushGPUVertexUniformData(renderPass.commandBuffer, 0, (nint)ptr, (uint)Marshal.SizeOf<StapleRenderData>());
-        }
+        renderPass.ApplyBuiltinUniforms(in state.world);
 
         SDL.SDL_DrawGPUIndexedPrimitives(renderPass.renderPass, (uint)state.indexCount, 1,
             (uint)state.startIndex, state.startVertex, 0);

@@ -854,15 +854,6 @@ internal partial class StapleEditor
             io.DisplaySize = new Vector2(window.width, window.height);
             io.DisplayFramebufferScale = new Vector2(1, 1);
 
-            var clearCommand = RenderSystem.Backend.BeginCommand();
-
-            var clearPass = clearCommand.BeginRenderPass(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
-                Matrix4x4.Identity, Matrix4x4.Identity);
-
-            clearPass.Finish();
-
-            clearCommand.Submit();
-
             ThumbnailCache.OnFrameStart();
             EditorGUI.OnFrameStart();
             ImGuiProxy.instance.BeginFrame();
