@@ -26,10 +26,12 @@ internal class ImGuiProxy
     public ImDrawVert[] vertices = [];
     public ushort[] indices = [];
     public readonly Dictionary<int, (Texture, byte[], int)> textures = [];
+    public readonly Dictionary<int, Texture> registeredTextures = [];
+    public readonly Dictionary<Texture, int> registeredTexturesInverse = [];
     private int textureCounter = 1;
 
-    private Texture[] emptyTexture = [];
-    private Texture[] singleTexture = new Texture[1];
+    private readonly Texture[] emptyTexture = [];
+    private readonly Texture[] singleTexture = new Texture[1];
 
     public ImFontPtr editorFont;
 
@@ -605,6 +607,10 @@ internal class ImGuiProxy
                         {
                             singleTexture[0] = item.Item1;
                         }
+                        else if(registeredTextures.TryGetValue(index, out var t))
+                        {
+                            singleTexture[0] = t;
+                        }
 
                         textures = singleTexture;
                     }
@@ -657,6 +663,21 @@ internal class ImGuiProxy
         }
     }
 
+    public int RegisterTexture(Texture texture)
+    {
+        if(registeredTexturesInverse.TryGetValue(texture, out var ID))
+        {
+            return ID;
+        }
+
+        var index = textureCounter++;
+
+        registeredTextures.Add(index, texture);
+        registeredTexturesInverse.Add(texture, index);
+
+        return index;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ImTextureRef GetImGuiTexture(Texture texture)
     {
@@ -664,14 +685,13 @@ internal class ImGuiProxy
         {
             if (texture == null ||
                 texture.Disposed ||
-                texture.metadata.readBack)
+                texture.metadata.readBack ||
+                instance == null)
             {
                 return new ImTextureRef(texId: ImTextureID.Null);
             }
 
-            //return new ImTextureRef(texId: new ImTextureID((ulong)texture.handle.idx));
-
-            return new ImTextureRef(texId: ImTextureID.Null);
+            return new ImTextureRef(texId: new ImTextureID(instance.RegisterTexture(texture)));
         }
     }
 
