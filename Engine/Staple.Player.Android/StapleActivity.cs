@@ -316,7 +316,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
     {
         if (AppPlayer.instance?.renderWindow == null)
         {
-            new AppPlayer(Array.Empty<string>(), false);
+            new AppPlayer(Array.Empty<string>(), false, false);
 
             Log.Instance.onLog += (type, message) =>
             {

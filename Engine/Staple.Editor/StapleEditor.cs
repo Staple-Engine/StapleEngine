@@ -280,7 +280,7 @@ internal partial class StapleEditor
 
     private const int TargetFramerate = 30;
 
-    private Color32 clearColor = new("#7393B3");
+    public static readonly Color32 ClearColor = new("#7393B3");
 
     private ViewportType viewportType = ViewportType.Scene;
 
@@ -467,6 +467,7 @@ internal partial class StapleEditor
         editorAppSettings.runInBackground = true;
         editorAppSettings.appName = "Staple Editor";
         editorAppSettings.companyName = "Staple Engine";
+        editorAppSettings.renderers[AppPlatform.Windows] = [ RendererType.Vulkan ];
 
         LayerMask.SetLayers(CollectionsMarshal.AsSpan(editorAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
 
@@ -763,17 +764,6 @@ internal partial class StapleEditor
                 var style = ImGui.GetStyle();
 
                 style.WindowPadding = Vector2.Zero;
-
-                /*
-                bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
-
-                bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
-
-                bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
-                bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
-                */
 
                 Physics3D.Instance = new Physics3D(new JoltPhysics3D());
 
@@ -1281,19 +1271,6 @@ internal partial class StapleEditor
             playerSettings.maximized = window.Maximized;
 
             PlayerSettings.Save(playerSettings);
-
-            /*
-            bgfx.reset((uint)window.width, (uint)window.height, (uint)flags, bgfx.TextureFormat.RGBA8);
-
-            bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-            bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
-
-            bgfx.set_view_rect_ratio(SceneView, 0, 0, bgfx.BackbufferRatio.Equal);
-            bgfx.set_view_clear(SceneView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), clearColor.UIntValue, 1, 0);
-
-            bgfx.set_view_rect_ratio(WireframeView, 0, 0, bgfx.BackbufferRatio.Equal);
-            bgfx.set_view_clear(WireframeView, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
-            */
 
             if (hadFocus != hasFocus && hasFocus)
             {

@@ -111,55 +111,6 @@ public sealed partial class RenderSystem
 
     #region Helpers
     /// <summary>
-    /// Calculates the blending function for blending flags
-    /// </summary>
-    /// <param name="source">The blending source flag</param>
-    /// <param name="destination">The blending destination flag</param>
-    /// <returns>The combined function</returns>
-    /*
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static ulong BlendFunction(bgfx.StateFlags source, bgfx.StateFlags destination)
-    {
-        return BlendFunction(source, destination, source, destination);
-    }
-    */
-
-    /// <summary>
-    /// Calculates the blending function for blending flags
-    /// </summary>
-    /// <param name="sourceColor">The source color flag</param>
-    /// <param name="destinationColor">The destination color flag</param>
-    /// <param name="sourceAlpha">The source alpha blending flag</param>
-    /// <param name="destinationAlpha">The destination alpha blending flag</param>
-    /// <returns>The combined function</returns>
-    /*
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static ulong BlendFunction(bgfx.StateFlags sourceColor, bgfx.StateFlags destinationColor, bgfx.StateFlags sourceAlpha, bgfx.StateFlags destinationAlpha)
-    {
-        return (ulong)sourceColor | (ulong)destinationColor << 4 | ((ulong)sourceAlpha | (ulong)destinationAlpha << 4) << 8;
-    }
-    */
-
-    /// <summary>
-    /// Checks if we have an available transient buffer
-    /// </summary>
-    /// <param name="numVertices">The amount of vertices to check</param>
-    /// <param name="layout">The vertex layout to use</param>
-    /// <param name="numIndices">The amount of indices to check</param>
-    /// <returns></returns>
-    /*
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool CheckAvailableTransientBuffers(uint numVertices, bgfx.VertexLayout layout, uint numIndices)
-    {
-        unsafe
-        {
-            return numVertices == bgfx.get_avail_transient_vertex_buffer(numVertices, &layout)
-                && (0 == numIndices || numIndices == bgfx.get_avail_transient_index_buffer(numIndices, false));
-        }
-    }
-    */
-
-    /// <summary>
     /// Gets the reset flags for specific video flags
     /// </summary>
     /// <param name="videoFlags">The video flags to use</param>

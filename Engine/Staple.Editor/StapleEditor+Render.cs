@@ -15,11 +15,6 @@ internal partial class StapleEditor
     /// </summary>
     public void RenderScene()
     {
-        /*
-        bgfx.touch(SceneView);
-        bgfx.touch(WireframeView);
-        */
-
         ImGuizmo.SetDrawlist();
         ImGuizmo.SetOrthographic(false);
         ImGuizmo.SetRect(0, 0, window.width, window.height);

@@ -41,10 +41,10 @@ VertexOutput VertexMain(Input input)
     float3 position = input.position;
 
     output.color = float4(
-        (input.color & uint(0xFF000000)) / 255.0,
-        (input.color & uint(0x00FF0000)) / 255.0,
-        (input.color & uint(0x0000FF00)) / 255.0,
-        (input.color & uint(0x000000FF)) / 255.0,
+        (input.color & 0xFF) / 255.0,
+        (input.color >> 8 & 0xFF) / 255.0,
+        (input.color >> 16 & 0xFF) / 255.0,
+        (input.color >> 24 & 0xFF) / 255.0
     );
 
 	output.coord = input.coord;

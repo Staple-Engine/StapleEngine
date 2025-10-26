@@ -113,7 +113,7 @@ internal class ImGuiProxy
             var setPtr = Marshal.GetFunctionPointerForDelegate(SetClipboardText);
             var getPtr = Marshal.GetFunctionPointerForDelegate(GetClipboardText);
 
-            platformIO.RendererTextureMaxWidth = platformIO.RendererTextureMaxHeight = 0;//(int)bgfx.get_caps()->limits.maxTextureSize;
+            platformIO.RendererTextureMaxWidth = platformIO.RendererTextureMaxHeight = 8192;
             platformIO.PlatformSetClipboardTextFn = (void*)setPtr;
             platformIO.PlatformGetClipboardTextFn = (void*)getPtr;
             platformIO.PlatformClipboardUserData = (void *)nint.Zero;
@@ -519,7 +519,7 @@ internal class ImGuiProxy
 
             var command = RenderSystem.Backend.BeginCommand();
 
-            var pass = command.BeginRenderPass(null, CameraClearMode.SolidColor, Color.LightBlue, new(0, 0, 1, 1), Matrix4x4.Identity, ortho);
+            var pass = command.BeginRenderPass(null, CameraClearMode.SolidColor, StapleEditor.ClearColor, new(0, 0, 1, 1), Matrix4x4.Identity, ortho);
 
             var clipPos = drawData.DisplayPos;
             var clipScale = drawData.FramebufferScale;
