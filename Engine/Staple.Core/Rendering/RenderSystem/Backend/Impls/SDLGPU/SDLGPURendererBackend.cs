@@ -1,6 +1,7 @@
 ﻿using SDL3;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -255,7 +256,8 @@ internal class SDLGPURendererBackend : IRendererBackend
     }
 
     public IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
-        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics)
+        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
+        VertexAttribute[] vertexAttributes)
     {
         unsafe
         {
@@ -329,7 +331,7 @@ internal class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            return new SDLGPUShaderProgram(device, vertexShader, fragmentShader);
+            return new SDLGPUShaderProgram(device, vertexShader, fragmentShader, vertexAttributes);
         }
     }
 
@@ -552,7 +554,31 @@ internal class SDLGPURendererBackend : IRendererBackend
         {
             unsafe
             {
-                fixed (SDL.SDL_GPUVertexAttribute* attributes = vertexLayout.attributes)
+                var shaderAttributes = new SDL.SDL_GPUVertexAttribute[vertexLayout.attributes.Length];
+
+                for(var i = 0; i < vertexLayout.attributes.Length; i++)
+                {
+                    var attribute = vertexLayout.attributes[i];
+
+                    var attributeIndex = shader.vertexAttributes.IndexOf(vertexLayout.vertexAttributes[i]);
+
+                    if(attributeIndex < 0)
+                    {
+                        Log.Error($"Failed to render: vertex attribute {shader.vertexAttributes[i]} was not declared in the vertex layout!");
+
+                        return;
+                    }
+
+                    shaderAttributes[i] = new()
+                    {
+                        buffer_slot = 0,
+                        format = attribute.format,
+                        offset = attribute.offset,
+                        location = (uint)attributeIndex,
+                    };
+                }
+
+                fixed (SDL.SDL_GPUVertexAttribute* attributes = shaderAttributes)
                 {
                     var vertexDescription = new SDL.SDL_GPUVertexBufferDescription()
                     {

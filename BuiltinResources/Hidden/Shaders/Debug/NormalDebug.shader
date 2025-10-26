@@ -2,6 +2,11 @@ Begin Parameters
 
 End Parameters
 
+Begin Input
+POSITION
+NORMAL
+End Input
+
 Begin Instancing
 End Instancing
 
@@ -31,7 +36,7 @@ VertexOutput VertexMain(Input input)
     float3 position = input.position;
 
     output.normal = input.normal;
-    output.position = mul(mul(mul(projection, view), world), float4(position, 1.0));
+    output.position = mul(ProjectionViewWorld(world), float4(position, 1.0));
 
     return output;
 }

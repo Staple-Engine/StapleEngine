@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Numerics;
+using System.Collections.Generic;
 
 namespace Staple.Internal;
 
@@ -32,7 +32,8 @@ internal interface IRendererBackend
     VertexLayoutBuilder CreateVertexLayoutBuilder();
 
     IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
-        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics);
+        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
+        VertexAttribute[] vertexAttributes);
 
     IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics computeMetrics);
 

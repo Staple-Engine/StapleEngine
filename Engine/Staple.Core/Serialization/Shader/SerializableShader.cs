@@ -89,6 +89,9 @@ public class SerializableShaderData
 
     [Key(5)]
     public ComputeShaderMetrics computeMetrics = new();
+
+    [Key(6)]
+    public VertexAttribute[] vertexAttributes = [];
 }
 
 [MessagePackObject]

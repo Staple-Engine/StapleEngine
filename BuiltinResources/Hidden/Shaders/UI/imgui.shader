@@ -7,13 +7,19 @@ uniform texture mainTexture
 
 End Parameters
 
+Begin Input
+POSITION
+TEXCOORD0
+COLOR0
+End Input
+
 Begin Common
 
 struct VertexOutput
 {
     float4 position : SV_Position;
-	float2 coord;
-    float4 color;
+	float2 coord : TEXCOORD0;
+    float4 color : COLOR0;
 };
 
 End Common
@@ -42,7 +48,7 @@ VertexOutput VertexMain(Input input)
     );
 
 	output.coord = input.coord;
-    output.position = mul(mul(mul(projection, view), world), float4(position, 1.0));
+    output.position = mul(ProjectionViewWorld(world), float4(position, 1.0));
 
     return output;
 }

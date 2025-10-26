@@ -115,7 +115,7 @@ static partial class Program
                 }
 
                 if (ShaderParser.Parse(text, shader.type, out var blendMode, out var shaderParameters, out shader.variants,
-                    out var instancingParameters, out var vertex, out var fragment, out var compute) == false)
+                    out var instancingParameters, out var vertexInputs, out var vertex, out var fragment, out var compute) == false)
                 {
                     Console.WriteLine("\t\tError: File has invalid format");
 
@@ -245,8 +245,6 @@ static partial class Program
                         shader.compute = new()
                         {
                             code = compute.content,
-                            inputs = compute.inputs,
-                            outputs = compute.outputs,
                         };
 
                         break;
@@ -256,15 +254,11 @@ static partial class Program
                         shader.vertex = new()
                         {
                             code = vertex.content,
-                            inputs = vertex.inputs,
-                            outputs = vertex.outputs,
                         };
 
                         shader.fragment = new()
                         {
                             code = fragment.content,
-                            inputs = fragment.inputs,
-                            outputs = fragment.outputs,
                         };
 
                         break;
@@ -290,7 +284,7 @@ static partial class Program
                         sourceBlend = shader.sourceBlend,
                         destinationBlend = shader.destinationBlend,
                         variants = shader.variants,
-                    }
+                    },
                 };
 
                 if (shader.parameters != null)
@@ -697,7 +691,10 @@ static partial class Program
 
                         var shaderFileName = $"{Path.Combine(Path.GetTempPath(), Path.GetTempFileName())}.slang";
 
-                        var shaderObject = new SerializableShaderData();
+                        var shaderObject = new SerializableShaderData()
+                        {
+                            vertexAttributes = vertexInputs.ToArray(),
+                        };
 
                         byte[] Compile(ShaderPiece piece, ShaderCompilerType type, Renderer renderer, ref string code,
                             out object shaderMetrics)

@@ -6,6 +6,10 @@ uniform color mainColor
 
 End Parameters
 
+Begin Input
+POSITION
+End Input
+
 Begin Instancing
 End Instancing
 
@@ -21,11 +25,13 @@ End Common
 
 Begin Vertex
 
+/*
 [[vk::binding(1, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
     float4 mainColor;
 };
+*/
 
 struct Input
 {
@@ -38,10 +44,10 @@ VertexOutput VertexMain(Input input)
     VertexOutput output;
 
     float3 position = input.position;
-    float4 color = mainColor;
+    float4 color = float4(1, 0, 0, 1);//mainColor;
 
     output.color = color;
-    output.position = mul(mul(mul(projection, view), world), float4(position, 1.0));
+    output.position = mul(ProjectionViewWorld(world), float4(position, 1.0));
 
     return output;
 }

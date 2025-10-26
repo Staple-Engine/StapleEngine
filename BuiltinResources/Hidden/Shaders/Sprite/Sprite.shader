@@ -9,13 +9,20 @@ uniform texture mainTexture
 
 End Parameters
 
+Begin Input
+POSITION
+TEXCOORD0
+End Input
+
 Begin Common
 
+/*
 [[vk::binding(1, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
 	float4 mainColor;
 };
+*/
 
 struct VertexOutput
 {
@@ -40,11 +47,11 @@ VertexOutput VertexMain(Input input)
     VertexOutput output;
 
     float3 position = input.position;
-    float4 color = mainColor;
+    float4 color = float4(1, 1, 1, 1);//mainColor;
 
     output.color = color;
 	output.coord = input.coord;
-    output.position = mul(mul(mul(projection, view), world), float4(position, 1.0));
+    output.position = mul(ProjectionViewWorld(world), float4(position, 1.0));
 
     return output;
 }

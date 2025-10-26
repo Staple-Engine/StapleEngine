@@ -12,14 +12,16 @@ internal class SDLGPUShaderProgram : IShaderProgram
     public nint fragment;
     public nint compute;
     public bool disposed = false;
+    public VertexAttribute[] vertexAttributes;
 
-    public SDLGPUShaderProgram(nint device, nint vertex, nint fragment)
+    public SDLGPUShaderProgram(nint device, nint vertex, nint fragment, VertexAttribute[] vertexAttributes)
     {
         Type = ShaderType.VertexFragment;
 
         this.device = device;
         this.vertex = vertex;
         this.fragment = fragment;
+        this.vertexAttributes = vertexAttributes;
     }
 
     public SDLGPUShaderProgram(nint device, nint compute)

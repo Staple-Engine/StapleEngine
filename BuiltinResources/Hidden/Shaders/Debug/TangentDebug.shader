@@ -2,12 +2,14 @@ Variants BITANGENT_COLOR
 
 Begin Parameters
 
-varying vec3 v_tangent : TANGENT
-varying vec3 v_bitangent : BITANGENT
-
 variant: BITANGENT_COLOR uniform float tangentOrBitangent
 
 End Parameters
+
+Begin Input
+POSITION
+TANGENT
+End Input
 
 Begin Instancing
 End Instancing
@@ -43,7 +45,7 @@ VertexOutput VertexMain(Input input)
     float3 position = input.position;
 
     output.tangent = input.tangent;
-    output.position = mul(mul(mul(projection, view), world), float4(position, 1.0));
+    output.position = mul(ProjectionViewWorld(world), float4(position, 1.0));
 
     return output;
 }

@@ -1491,6 +1491,168 @@ public sealed partial class Mesh : IGuidAsset
     }
 
     /// <summary>
+    /// Generates tangents and bitangents from a few components
+    /// </summary>
+    /// <param name="positions">The vertex positions</param>
+    /// <param name="UVs">The vertex UVs</param>
+    /// <param name="normals">The vertex normals</param>
+    /// <param name="indices">The vertex indices</param>
+    /// <param name="outTangents">The generated tangents</param>
+    /// <param name="outBitangents">The generated bitangents</param>
+    /// <remarks>Requires the data to be for triangle primitives</remarks>
+    public static void GenerateTangents(ReadOnlySpan<Vector3> positions, ReadOnlySpan<Vector2> UVs,
+        ReadOnlySpan<Vector3> normals, ReadOnlySpan<ushort> indices, out Vector3[] outTangents, out Vector3[] outBitangents)
+    {
+        if(positions.Length != UVs.Length ||
+            positions.Length != normals.Length ||
+            indices.Length % 3 != 0)
+        {
+            outTangents = default;
+            outBitangents = default;
+
+            return;
+        }
+
+        var tangents = new Vector3[positions.Length];
+        var bitangents = new Vector3[positions.Length];
+
+        outTangents = new Vector3[positions.Length];
+        outBitangents = new Vector3[positions.Length];
+
+        for (var i = 0; i < indices.Length; i += 3)
+        {
+            var vertexIndices = (indices[i], indices[i + 1], indices[i + 2]);
+
+            var vectors = (positions[vertexIndices.Item1],
+                positions[vertexIndices.Item2],
+                positions[vertexIndices.Item3]);
+
+            var uvs = (UVs[vertexIndices.Item1],
+                UVs[vertexIndices.Item2],
+                UVs[vertexIndices.Item3]);
+
+            var edge1 = vectors.Item2 - vectors.Item1;
+            var edge2 = vectors.Item3 - vectors.Item1;
+
+            var uvDelta1 = uvs.Item2 - uvs.Item1;
+            var uvDelta2 = uvs.Item3 - uvs.Item1;
+
+            var f = 1.0f / (uvDelta1.X * uvDelta2.Y - uvDelta2.X * uvDelta1.Y);
+
+            var tangent = Vector3.Normalize(f * (uvDelta2.Y * edge1 - uvDelta1.Y * edge2));
+            var bitangent = Vector3.Normalize(f * (-uvDelta2.X * edge1 + uvDelta1.X * edge2));
+
+            tangents[vertexIndices.Item1] += tangent;
+            tangents[vertexIndices.Item2] += tangent;
+            tangents[vertexIndices.Item3] += tangent;
+
+            bitangents[vertexIndices.Item1] += bitangent;
+            bitangents[vertexIndices.Item2] += bitangent;
+            bitangents[vertexIndices.Item3] += bitangent;
+        }
+
+        for (var i = 0; i < positions.Length; i++)
+        {
+            var normal = normals[i];
+            var t = Vector3.Normalize(tangents[i]);
+            var b = Vector3.Normalize(bitangents[i]);
+
+            var tangent = Vector3.Normalize(t - normal * Vector3.Dot(normal, t));
+
+            var bitangent = Vector3.Cross(normal, Vector3.Normalize(tangent));
+
+            if (Vector3.Dot(bitangent, b) < 0)
+            {
+                bitangent = -bitangent;
+            }
+
+            outTangents[i] = tangent;
+            outBitangents[i] = bitangent;
+        }
+    }
+
+    /// <summary>
+    /// Generates tangents and bitangents from a few components
+    /// </summary>
+    /// <param name="positions">The vertex positions</param>
+    /// <param name="UVs">The vertex UVs</param>
+    /// <param name="normals">The vertex normals</param>
+    /// <param name="indices">The vertex indices</param>
+    /// <param name="outTangents">The generated tangents</param>
+    /// <param name="outBitangents">The generated bitangents</param>
+    /// <remarks>Requires the data to be for triangle primitives</remarks>
+    public static void GenerateTangents(ReadOnlySpan<Vector3> positions, ReadOnlySpan<Vector2> UVs,
+        ReadOnlySpan<Vector3> normals, ReadOnlySpan<int> indices, out Vector3[] outTangents, out Vector3[] outBitangents)
+    {
+        if (positions.Length != UVs.Length ||
+            positions.Length != normals.Length ||
+            indices.Length % 3 != 0)
+        {
+            outTangents = default;
+            outBitangents = default;
+
+            return;
+        }
+
+        var tangents = new Vector3[positions.Length];
+        var bitangents = new Vector3[positions.Length];
+
+        outTangents = new Vector3[positions.Length];
+        outBitangents = new Vector3[positions.Length];
+
+        for (var i = 0; i < indices.Length; i += 3)
+        {
+            var vertexIndices = (indices[i], indices[i + 1], indices[i + 2]);
+
+            var vectors = (positions[vertexIndices.Item1],
+                positions[vertexIndices.Item2],
+                positions[vertexIndices.Item3]);
+
+            var uvs = (UVs[vertexIndices.Item1],
+                UVs[vertexIndices.Item2],
+                UVs[vertexIndices.Item3]);
+
+            var edge1 = vectors.Item2 - vectors.Item1;
+            var edge2 = vectors.Item3 - vectors.Item1;
+
+            var uvDelta1 = uvs.Item2 - uvs.Item1;
+            var uvDelta2 = uvs.Item3 - uvs.Item1;
+
+            var f = 1.0f / (uvDelta1.X * uvDelta2.Y - uvDelta2.X * uvDelta1.Y);
+
+            var tangent = Vector3.Normalize(f * (uvDelta2.Y * edge1 - uvDelta1.Y * edge2));
+            var bitangent = Vector3.Normalize(f * (-uvDelta2.X * edge1 + uvDelta1.X * edge2));
+
+            tangents[vertexIndices.Item1] += tangent;
+            tangents[vertexIndices.Item2] += tangent;
+            tangents[vertexIndices.Item3] += tangent;
+
+            bitangents[vertexIndices.Item1] += bitangent;
+            bitangents[vertexIndices.Item2] += bitangent;
+            bitangents[vertexIndices.Item3] += bitangent;
+        }
+
+        for (var i = 0; i < positions.Length; i++)
+        {
+            var normal = normals[i];
+            var t = Vector3.Normalize(tangents[i]);
+            var b = Vector3.Normalize(bitangents[i]);
+
+            var tangent = Vector3.Normalize(t - normal * Vector3.Dot(normal, t));
+
+            var bitangent = Vector3.Cross(normal, Vector3.Normalize(tangent));
+
+            if (Vector3.Dot(bitangent, b) < 0)
+            {
+                bitangent = -bitangent;
+            }
+
+            outTangents[i] = tangent;
+            outBitangents[i] = bitangent;
+        }
+    }
+
+    /// <summary>
     /// Creates an instance of a specific mesh. This will only create an object with the mesh itself.
     /// </summary>
     /// <param name="name">The new entity name</param>

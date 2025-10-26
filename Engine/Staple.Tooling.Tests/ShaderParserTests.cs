@@ -1,4 +1,5 @@
-﻿using Staple.Internal;
+﻿using Staple;
+using Staple.Internal;
 using Staple.Tooling;
 
 namespace StapleToolingTests;
@@ -18,8 +19,6 @@ uniform vec2 v_texcoord2
 End Parameters
 
 Begin Vertex
-$input v_texcoord0
-$output v_texcoord1, v_texcoord2
 vertex A
 vertex B
 End Vertex
@@ -35,8 +34,8 @@ compute B
 End Compute
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
+            out var instanceParameters, out var vertexAttributes, out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variants.Count, Is.EqualTo(3));
 
@@ -70,13 +69,6 @@ End Compute
         Assert.That(vertex, Is.Not.Null);
         Assert.That(vertex.content, Is.EqualTo("vertex A\nvertex B"));
 
-        Assert.That(vertex.inputs.Count, Is.EqualTo(1));
-        Assert.That(vertex.inputs[0], Is.EqualTo("v_texcoord0"));
-
-        Assert.That(vertex.outputs.Count, Is.EqualTo(2));
-        Assert.That(vertex.outputs[0], Is.EqualTo("v_texcoord1"));
-        Assert.That(vertex.outputs[1], Is.EqualTo("v_texcoord2"));
-
         Assert.That(fragment, Is.Not.Null);
         Assert.That(fragment.content, Is.EqualTo("fragment A\nfragment B"));
 
@@ -103,8 +95,6 @@ vec4 color
 End Instancing
 
 Begin Vertex
-$input v_texcoord0
-$output v_texcoord1, v_texcoord2
 vertex A
 vertex B
 End Vertex
@@ -120,8 +110,8 @@ compute B
 End Compute
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
+            out var instanceParameters, out var vertexAttributes, out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variants.Count, Is.EqualTo(3));
 
@@ -164,13 +154,6 @@ End Compute
         Assert.That(vertex, Is.Not.Null);
         Assert.That(vertex.content, Is.EqualTo("vertex A\nvertex B"));
 
-        Assert.That(vertex.inputs.Count, Is.EqualTo(1));
-        Assert.That(vertex.inputs[0], Is.EqualTo("v_texcoord0"));
-
-        Assert.That(vertex.outputs.Count, Is.EqualTo(2));
-        Assert.That(vertex.outputs[0], Is.EqualTo("v_texcoord1"));
-        Assert.That(vertex.outputs[1], Is.EqualTo("v_texcoord2"));
-
         Assert.That(fragment, Is.Not.Null);
         Assert.That(fragment.content, Is.EqualTo("fragment A\nfragment B"));
 
@@ -198,8 +181,6 @@ vec4 color
 End Instancing
 
 Begin Vertex
-$input v_texcoord0
-$output v_texcoord1, v_texcoord2
 vertex A
 vertex B
 End Vertex
@@ -215,8 +196,8 @@ compute B
 End Compute
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.Compute, out var blend, out var parameters, out var variants, out var instanceParameters,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.Compute, out var blend, out var parameters, out var variants,
+            out var instanceParameters, out var vertexAttributes, out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variants.Count, Is.EqualTo(0));
 
@@ -275,8 +256,8 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
+            out var instanceParameters, out var vertexAttributes, out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(blend, Is.Null);
 
@@ -305,13 +286,82 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants, out var instanceParameters,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
+            out var instanceParameters, out var vertexAttributes, out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(parameters.Length, Is.EqualTo(1));
 
         Assert.That(parameters[0].attribute, Is.EqualTo("Attribute"));
 
         Assert.That(parameters[0].variant, Is.EqualTo("ATTRIBUTE"));
+    }
+
+    [Test]
+    public void TestParseVertexAttributes()
+    {
+        var shader = $$"""
+Type VertexFragment
+
+Begin Parameters
+uniform texture myTexture
+End Parameters
+
+Begin Input
+POSITION
+COLOR0
+TEXCOORD0
+End Input
+
+Begin Instancing
+End Instancing
+
+Begin Vertex
+End Vertex
+
+Begin Fragment
+End Fragment
+""";
+
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
+            out var instanceParameters, out var vertexAttributes, out var vertex, out var fragment, out var compute), Is.True);
+
+        Assert.That(vertexAttributes, Is.Not.Null);
+
+        Assert.That(vertexAttributes.Count, Is.EqualTo(3));
+
+        Assert.That(vertexAttributes[0], Is.EqualTo(VertexAttribute.Position));
+
+        Assert.That(vertexAttributes[1], Is.EqualTo(VertexAttribute.Color0));
+
+        Assert.That(vertexAttributes[2], Is.EqualTo(VertexAttribute.TexCoord0));
+    }
+
+    [Test]
+    public void TestFailParseVertexAttributes()
+    {
+        var shader = $$"""
+Type VertexFragment
+
+Begin Parameters
+uniform texture myTexture
+End Parameters
+
+Begin Input
+POSITION
+asdf
+End Input
+
+Begin Instancing
+End Instancing
+
+Begin Vertex
+End Vertex
+
+Begin Fragment
+End Fragment
+""";
+
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
+            out var instanceParameters, out var vertexAttributes, out var vertex, out var fragment, out var compute), Is.False);
     }
 }

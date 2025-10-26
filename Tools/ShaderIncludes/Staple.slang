@@ -31,5 +31,17 @@ public cbuffer StapleRenderData
     public float time;
 };
 
+#ifdef SKINNING
 [[vk::binding(STAPLE_SKINNING_STAGE_INDEX, StapleUniformBufferSet)]]
 public StructuredBuffer<float4> StapleBoneMatrices;
+#endif
+
+public float4x4 ProjectionViewWorld(float4x4 world)
+{
+    return mul(projection, mul(view, world));
+}
+
+public float4x4 ViewWorld(float4x4 world)
+{
+    return mul(view, world);
+}

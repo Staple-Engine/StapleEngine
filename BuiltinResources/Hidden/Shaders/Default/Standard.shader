@@ -22,11 +22,21 @@ uniform float alphaThreshold = 0.25
 
 End Parameters
 
+Begin Input
+POSITION
+TEXCOORD0
+NORMAL
+TANGENT
+BITANGENT
+COLOR0
+End Input
+
 Begin Instancing
 End Instancing
 
 Begin Common
 
+/*
 [[vk::binding(1, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
@@ -37,10 +47,11 @@ cbuffer Uniforms
 	float cutout;
 	float alphaThreshold;
 };
+*/
 
 struct VertexOutput
 {
-	float3 position : SV_Position;
+	float4 position : SV_Position;
 	float3 worldPosition;
 	float3 lightNormal;
 	float2 coords;
@@ -73,12 +84,12 @@ VertexOutput VertexMain(Input input)
 
 	float4x4 model = world;
 
-	float4x4 projectionViewWorld = mul(mul(projection, view), model);
-	float4x4 viewWorld = mul(view, model);
+	float4x4 projectionViewWorld = ProjectionViewWorld(model);
+	float4x4 viewWorld = ViewWorld(model);
 
 	float4 vertexPosition = mul(projectionViewWorld, float4(input.position, 1.0));
 
-	output.position = vertexPosition.xyz;
+	output.position = vertexPosition;
 
 	output.worldPosition = mul(model, float4(input.position, 1.0)).xyz;
 
@@ -122,17 +133,19 @@ cbuffer Textures
 float4 FragmentMain(VertexOutput input) : SV_Target
 {
 #if defined(VERTEX_COLORS) || defined(PER_VERTEX_LIGHTING)
-	float4 diffuse = input.color * diffuseColor;
+	float4 diffuse = input.color;// * diffuseColor;
 #else
-	float4 diffuse = diffuseTexture.Sample(input.coords) * diffuseColor;
+	float4 diffuse = diffuseTexture.Sample(input.coords);// * diffuseColor;
 #endif
-	
+
+/*	
 #ifdef CUTOUT
 	if(diffuse.a < alphaThreshold)
 	{
 		discard;
 	}
 #endif
+*/
 	
 //TODO: handle light array
 /*

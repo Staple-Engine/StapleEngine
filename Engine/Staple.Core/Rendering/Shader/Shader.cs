@@ -126,6 +126,7 @@ public partial class Shader : IGuidAsset
         public VertexFragmentShaderMetrics vertexShaderMetrics;
         public VertexFragmentShaderMetrics fragmentShaderMetrics;
         public ComputeShaderMetrics computeShaderMetrics;
+        public VertexAttribute[] attributes = [];
     }
 
     internal readonly ShaderMetadata metadata;
@@ -149,21 +150,6 @@ public partial class Shader : IGuidAsset
 
     public GuidHasher Guid => guidHasher;
 
-    /*
-    internal bgfx.StateFlags BlendingFlag
-    {
-        get
-        {
-            if (sourceBlend != BlendMode.Off && destinationBlend != BlendMode.Off)
-            {
-                return (bgfx.StateFlags)RenderSystem.BlendFunction((bgfx.StateFlags)sourceBlend, (bgfx.StateFlags)destinationBlend);
-            }
-
-            return 0;
-        }
-    }
-    */
-
     internal bool IsTransparent
     {
         get
@@ -173,18 +159,6 @@ public partial class Shader : IGuidAsset
                 (sourceBlend == BlendMode.Zero && destinationBlend == BlendMode.One)) == false;
         }
     }
-
-    /*
-    internal bgfx.StateFlags StateFlags
-    {
-        get
-        {
-            var baseFlags = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.WriteZ | bgfx.StateFlags.DepthTestLequal;
-
-            return baseFlags | BlendingFlag;
-        }
-    }
-    */
 
     /// <summary>
     /// Whether this shader has been disposed
@@ -211,6 +185,7 @@ public partial class Shader : IGuidAsset
                 vertexShaderMetrics = pair.Value.vertexMetrics,
                 fragmentShaderMetrics = pair.Value.fragmentMetrics,
                 computeShaderMetrics = pair.Value.computeMetrics,
+                attributes = pair.Value.vertexAttributes,
             });
         }
 
@@ -259,7 +234,7 @@ public partial class Shader : IGuidAsset
         foreach(var pair in instances)
         {
             pair.Value.program = RenderSystem.Backend.CreateShaderVertexFragment(pair.Value.vertexShaderSource, pair.Value.fragmentShaderSource,
-                pair.Value.vertexShaderMetrics, pair.Value.fragmentShaderMetrics);
+                pair.Value.vertexShaderMetrics, pair.Value.fragmentShaderMetrics, pair.Value.attributes);
 
             if(pair.Value.program == null)
             {

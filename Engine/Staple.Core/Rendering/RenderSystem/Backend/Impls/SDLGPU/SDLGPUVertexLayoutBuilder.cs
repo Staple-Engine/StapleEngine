@@ -7,6 +7,7 @@ namespace Staple.Internal;
 internal class SDLGPUVertexLayoutBuilder : VertexLayoutBuilder
 {
     private readonly List<SDL.SDL_GPUVertexAttribute> attributes = [];
+    private readonly List<VertexAttribute> vertexAttributes = [];
     private int offset = 0;
     private SDLGPUVertexLayout layout;
 
@@ -19,9 +20,10 @@ internal class SDLGPUVertexLayoutBuilder : VertexLayoutBuilder
 
         base.Add(name, type);
 
+        vertexAttributes.Add(name);
+
         attributes.Add(new SDL.SDL_GPUVertexAttribute()
         {
-            location = (uint)attributes.Count,
             format = type switch
             {
                 VertexAttributeType.Byte2 => SDL.SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_BYTE2,
@@ -134,7 +136,7 @@ internal class SDLGPUVertexLayoutBuilder : VertexLayoutBuilder
 
         completed = true;
 
-        layout = new SDLGPUVertexLayout(CollectionsMarshal.AsSpan(attributes), components, offset);
+        layout = new SDLGPUVertexLayout(CollectionsMarshal.AsSpan(attributes), vertexAttributes, components, offset);
 
         return layout;
     }
