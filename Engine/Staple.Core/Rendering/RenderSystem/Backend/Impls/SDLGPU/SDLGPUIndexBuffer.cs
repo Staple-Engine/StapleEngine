@@ -10,17 +10,17 @@ internal class SDLGPUIndexBuffer : IndexBuffer
 
     private readonly nint device;
     private readonly RenderBufferFlags flags;
-    private readonly Func<SDLGPURenderCommand> commandSupplier;
+    private readonly SDLGPURendererBackend backend;
     private nint transferBuffer;
     private int length;
 
     public bool Valid => buffer != nint.Zero && transferBuffer != nint.Zero;
 
-    public SDLGPUIndexBuffer(nint device, RenderBufferFlags flags, Func<SDLGPURenderCommand> commandSupplier)
+    public SDLGPUIndexBuffer(nint device, RenderBufferFlags flags, SDLGPURendererBackend backend)
     {
         this.device = device;
         this.flags = flags;
-        this.commandSupplier = commandSupplier;
+        this.backend = backend;
 
         ResourceManager.instance.userCreatedIndexBuffers.Add(new(this));
     }
@@ -130,14 +130,14 @@ internal class SDLGPUIndexBuffer : IndexBuffer
 
         ResizeIfNeeded(data.Length * byteSize);
 
-        if (Valid == false)
+        if (Valid == false || backend.TryGetCommandBuffer(out var command) == false)
         {
             return;
         }
 
-        var command = commandSupplier();
+        var copyPass = SDL.SDL_BeginGPUCopyPass(command);
 
-        if (command == null)
+        if (copyPass == nint.Zero)
         {
             return;
         }
@@ -152,15 +152,6 @@ internal class SDLGPUIndexBuffer : IndexBuffer
         }
 
         SDL.SDL_UnmapGPUTransferBuffer(device, transferBuffer);
-
-        var copyPass = SDL.SDL_BeginGPUCopyPass(command.commandBuffer);
-
-        if (copyPass == nint.Zero)
-        {
-            command.Discard();
-
-            return;
-        }
 
         var location = new SDL.SDL_GPUTransferBufferLocation()
         {
@@ -177,8 +168,6 @@ internal class SDLGPUIndexBuffer : IndexBuffer
         SDL.SDL_UploadToGPUBuffer(copyPass, in location, in region, true);
 
         SDL.SDL_EndGPUCopyPass(copyPass);
-
-        command.Submit();
 
         Is32Bit = false;
     }
@@ -197,14 +186,7 @@ internal class SDLGPUIndexBuffer : IndexBuffer
 
         ResizeIfNeeded(byteSize);
 
-        if (Valid == false)
-        {
-            return;
-        }
-
-        var command = commandSupplier();
-
-        if (command == null)
+        if (Valid == false || backend.TryGetCommandBuffer(out var command) == false)
         {
             return;
         }
@@ -220,12 +202,10 @@ internal class SDLGPUIndexBuffer : IndexBuffer
 
         SDL.SDL_UnmapGPUTransferBuffer(device, transferBuffer);
 
-        var copyPass = SDL.SDL_BeginGPUCopyPass(command.commandBuffer);
+        var copyPass = SDL.SDL_BeginGPUCopyPass(command);
 
         if (copyPass == nint.Zero)
         {
-            command.Discard();
-
             return;
         }
 
@@ -244,8 +224,6 @@ internal class SDLGPUIndexBuffer : IndexBuffer
         SDL.SDL_UploadToGPUBuffer(copyPass, in location, in region, true);
 
         SDL.SDL_EndGPUCopyPass(copyPass);
-
-        command.Submit();
 
         Is32Bit = true;
     }

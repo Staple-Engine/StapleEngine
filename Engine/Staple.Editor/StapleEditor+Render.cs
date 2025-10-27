@@ -21,6 +21,8 @@ internal partial class StapleEditor
 
         var hasGizmos = cachedGizmoEditors.Count > 0;
 
+        IRenderPass pass;
+
         unsafe
         {
             var projection = Camera.Projection(default, camera);
@@ -30,10 +32,8 @@ internal partial class StapleEditor
 
             camera.UpdateFrustum(view, projection);
 
-            /*
-            bgfx.set_view_transform(SceneView, &view, &projection);
-            bgfx.set_view_transform(WireframeView, &view, &projection);
-            */
+            pass = RenderSystem.Backend.BeginRenderPass(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
+                view, projection);
 
             if (selectedEntity.IsValid &&
                 selectedEntity.TryGetComponent<Transform>(out var selectedTransform))
@@ -239,5 +239,7 @@ internal partial class StapleEditor
                 });
             }
         }
+
+        pass.Finish();
     }
 }

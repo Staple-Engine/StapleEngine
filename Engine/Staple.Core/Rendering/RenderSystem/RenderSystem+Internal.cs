@@ -33,11 +33,10 @@ public sealed partial class RenderSystem
     }
 
     /// <summary>
-    /// Contains information on a render command
+    /// Contains information on a render pass
     /// </summary>
-    internal class RenderCommand
+    internal class RenderPass
     {
-        public IRenderCommand command;
         public IRenderPass pass;
     }
 
@@ -99,9 +98,9 @@ public sealed partial class RenderSystem
     private HashSet<ushort> previousUsedViewIDs = [];
 
     /// <summary>
-    /// Contains all render commands
+    /// Contains all render passes
     /// </summary>
-    private readonly Dictionary<ushort, Stack<RenderCommand>> renderCommands = [];
+    private readonly Dictionary<ushort, Stack<RenderPass>> renderPasses = [];
 
     /// <summary>
     /// The renderer backend
@@ -404,23 +403,14 @@ public sealed partial class RenderSystem
     {
         usedViewIDs.Add(viewID);
 
-        var command = Backend.BeginCommand();
-
-        if(command == null)
-        {
-            return;
-        }
-
-        var pass = PrepareCamera(cameraEntity, camera, cameraTransform, command);
+        var pass = PrepareCamera(cameraEntity, camera, cameraTransform);
 
         if (pass == null)
         {
-            command.Discard();
-
             return;
         }
 
-        PushRenderCommand(viewID, command, pass);
+        PushRenderPass(viewID, pass);
 
         CurrentCamera = (camera, cameraTransform);
 
@@ -473,9 +463,7 @@ public sealed partial class RenderSystem
 
         pass.Finish();
 
-        command.Submit();
-
-        PopRenderCommand(viewID);
+        PopRenderPass(viewID);
     }
 
     /// <summary>
@@ -493,23 +481,14 @@ public sealed partial class RenderSystem
     {
         usedViewIDs.Add(viewID);
 
-        var command = Backend.BeginCommand();
-
-        if (command == null)
-        {
-            return;
-        }
-
-        var pass = PrepareCamera(cameraEntity, camera, cameraTransform, command);
+        var pass = PrepareCamera(cameraEntity, camera, cameraTransform);
 
         if (pass == null)
         {
-            command.Discard();
-
             return;
         }
 
-        PushRenderCommand(viewID, command, pass);
+        PushRenderPass(viewID, pass);
 
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
@@ -593,11 +572,9 @@ public sealed partial class RenderSystem
 
         pass.Finish();
 
-        command.Submit();
-
         CurrentCamera = (c.Item1, c.Item2);
 
-        PopRenderCommand(viewID);
+        PopRenderPass(viewID);
     }
 
     /// <summary>
@@ -611,23 +588,14 @@ public sealed partial class RenderSystem
     {
         usedViewIDs.Add(viewID);
 
-        var command = Backend.BeginCommand();
-
-        if (command == null)
-        {
-            return;
-        }
-
-        var pass = PrepareCamera(cameraEntity, camera, cameraTransform, command);
+        var pass = PrepareCamera(cameraEntity, camera, cameraTransform);
 
         if (pass == null)
         {
-            command.Discard();
-
             return;
         }
 
-        PushRenderCommand(viewID, command, pass);
+        PushRenderPass(viewID, pass);
 
         CurrentCamera = (camera, cameraTransform);
 
@@ -701,9 +669,7 @@ public sealed partial class RenderSystem
 
         pass.Finish();
 
-        command.Submit();
-
-        PopRenderCommand(viewID);
+        PopRenderPass(viewID);
     }
 
     /// <summary>
@@ -835,7 +801,7 @@ public sealed partial class RenderSystem
     /// <param name="entity">The camera's entity</param>
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
-    private static IRenderPass PrepareCamera(Entity entity, Camera camera, Transform cameraTransform, IRenderCommand command)
+    private static IRenderPass PrepareCamera(Entity entity, Camera camera, Transform cameraTransform)
     {
         unsafe
         {
@@ -846,7 +812,7 @@ public sealed partial class RenderSystem
 
             camera.UpdateFrustum(view, projection);
 
-            return command.BeginRenderPass(null, camera.clearMode, camera.clearColor, camera.viewport,
+            return Backend.BeginRenderPass(null, camera.clearMode, camera.clearColor, camera.viewport,
                 view, projection);
         }
     }
@@ -884,7 +850,7 @@ public sealed partial class RenderSystem
 
     internal static IRenderPass GetViewPass(ushort viewID)
     {
-        if (Instance.renderCommands.TryGetValue(viewID, out var c) == false ||
+        if (Instance.renderPasses.TryGetValue(viewID, out var c) == false ||
             c.Count == 0)
         {
             return null;
@@ -911,25 +877,24 @@ public sealed partial class RenderSystem
         }
     }
 
-    internal void PushRenderCommand(ushort viewID, IRenderCommand command, IRenderPass pass)
+    internal void PushRenderPass(ushort viewID, IRenderPass pass)
     {
-        if(renderCommands.TryGetValue(viewID, out var c) == false)
+        if(renderPasses.TryGetValue(viewID, out var c) == false)
         {
             c = new();
 
-            renderCommands.Add(viewID, c);
+            renderPasses.Add(viewID, c);
         }
 
         c.Push(new()
         {
-            command = command,
             pass = pass,
         });
     }
 
-    internal RenderCommand PopRenderCommand(ushort viewID)
+    internal RenderPass PopRenderPass(ushort viewID)
     {
-        if(renderCommands.TryGetValue(viewID, out var c) == false ||
+        if(renderPasses.TryGetValue(viewID, out var c) == false ||
             c.Count == 0)
         {
             return null;

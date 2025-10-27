@@ -196,7 +196,6 @@
 		<Compile Include="Rendering\Mesh\MeshCombineSystem.cs" />
 		<Compile Include="Rendering\Mesh\MeshInstanceOptions.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUIndexBuffer.cs" />
-		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURenderCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURendererBackend.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURenderPass.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUShaderProgram.cs" />
@@ -204,7 +203,6 @@
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexBuffer.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexLayout.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexLayoutBuilder.cs" />
-		<Compile Include="Rendering\RenderSystem\Backend\IRenderCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\IRendererBackend.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\IRenderPass.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\RenderState.cs" />

@@ -519,9 +519,8 @@ internal class ImGuiProxy
 
             var ortho = Matrix4x4.CreateOrthographicOffCenter(rect.Position.X, rect.Size.X, rect.Size.Y, rect.Position.Y, -1, 1);
 
-            var command = RenderSystem.Backend.BeginCommand();
-
-            var pass = command.BeginRenderPass(null, CameraClearMode.SolidColor, StapleEditor.ClearColor, new(0, 0, 1, 1), Matrix4x4.Identity, ortho);
+            var pass = RenderSystem.Backend.BeginRenderPass(null, CameraClearMode.None, StapleEditor.ClearColor, new(0, 0, 1, 1),
+                Matrix4x4.Identity, ortho);
 
             var clipPos = drawData.DisplayPos;
             var clipScale = drawData.FramebufferScale;
@@ -658,8 +657,6 @@ internal class ImGuiProxy
             }
 
             pass.Finish();
-
-            command.Submit();
         }
     }
 

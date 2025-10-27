@@ -4,7 +4,7 @@ using System;
 namespace Staple.Internal;
 
 internal class SDLGPUTexture(nint device, nint texture, int width, int height, TextureFormat format, TextureFlags flags,
-    Func<SDLGPURenderCommand> commandSupplier) : ITexture
+    SDLGPURendererBackend backend) : ITexture
 {
     public readonly nint device = device;
 
@@ -16,7 +16,7 @@ internal class SDLGPUTexture(nint device, nint texture, int width, int height, T
 
     public readonly TextureFlags flags = flags;
 
-    private readonly Func<SDLGPURenderCommand> commandSupplier = commandSupplier;
+    private readonly SDLGPURendererBackend backend = backend;
 
     public int Width { get; private set; } = width;
 
@@ -646,9 +646,14 @@ internal class SDLGPUTexture(nint device, nint texture, int width, int height, T
             return;
         }
 
-        var command = commandSupplier();
+        if (backend.TryGetCommandBuffer(out var command) == false)
+        {
+            return;
+        }
 
-        if (command == null)
+        var copyPass = SDL.SDL_BeginGPUCopyPass(command);
+
+        if (copyPass == nint.Zero)
         {
             return;
         }
@@ -665,19 +670,8 @@ internal class SDLGPUTexture(nint device, nint texture, int width, int height, T
 
             if(transferBuffer == nint.Zero)
             {
-                command.Discard();
-
                 return;
             }
-        }
-
-        var copyPass = SDL.SDL_BeginGPUCopyPass(command.commandBuffer);
-
-        if (copyPass == nint.Zero)
-        {
-            command.Discard();
-
-            return;
         }
 
         var mapData = SDL.SDL_MapGPUTransferBuffer(device, transferBuffer, true);
@@ -710,7 +704,5 @@ internal class SDLGPUTexture(nint device, nint texture, int width, int height, T
         SDL.SDL_UploadToGPUTexture(copyPass, in textureInfo, in destination, true);
 
         SDL.SDL_EndGPUCopyPass(copyPass);
-
-        command.Submit();
     }
 }

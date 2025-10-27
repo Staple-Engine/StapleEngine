@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -22,7 +23,8 @@ internal interface IRendererBackend
 
     void UpdateViewport(int width, int height);
 
-    IRenderCommand BeginCommand();
+    IRenderPass BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
+        Matrix4x4 view, Matrix4x4 projection);
 
     VertexBuffer CreateVertexBuffer(Span<byte> data, VertexLayout layout, RenderBufferFlags flags);
 

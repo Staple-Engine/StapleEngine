@@ -1,9 +1,8 @@
 ﻿using SDL3;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Staple.Internal;
@@ -15,6 +14,18 @@ internal class SDLGPURendererBackend : IRendererBackend
     private readonly Dictionary<int, nint> graphicsPipelines = [];
     private readonly Dictionary<TextureFlags, nint> textureSamplers = [];
     private Vector2Int renderSize;
+
+    private nint commandBuffer;
+    private nint swapchainTexture;
+    private int swapchainWidth;
+    private int swapchainHeight;
+
+    public bool TryGetCommandBuffer(out nint buffer)
+    {
+        buffer = commandBuffer;
+
+        return commandBuffer != nint.Zero;
+    }
 
     public bool SupportsTripleBuffering => SDL.SDL_WindowSupportsGPUPresentMode(device, window.window,
         SDL.SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_MAILBOX);
@@ -88,6 +99,8 @@ internal class SDLGPURendererBackend : IRendererBackend
         }
 
         UpdateRenderMode(renderFlags);
+
+        BeginFrame();
 
         return true;
     }
@@ -186,22 +199,120 @@ internal class SDLGPURendererBackend : IRendererBackend
 
     public void BeginFrame()
     {
+        if(commandBuffer != nint.Zero)
+        {
+            SDL.SDL_CancelGPUCommandBuffer(commandBuffer);
+
+            commandBuffer = nint.Zero;
+        }
+
+        if(window.window == nint.Zero)
+        {
+            return;
+        }
+
+        commandBuffer = SDL.SDL_AcquireGPUCommandBuffer(device);
+
+        if (commandBuffer == nint.Zero)
+        {
+            return;
+        }
+
+        if (SDL.SDL_WaitAndAcquireGPUSwapchainTexture(commandBuffer, window.window, out swapchainTexture,
+            out var w, out var h) == false)
+        {
+            SDL.SDL_CancelGPUCommandBuffer(commandBuffer);
+
+            commandBuffer = nint.Zero;
+
+            return;
+        }
+
+        swapchainWidth = (int)w;
+        swapchainHeight = (int)h;
     }
 
     public void EndFrame()
     {
+        if(commandBuffer != nint.Zero)
+        {
+            SDL.SDL_SubmitGPUCommandBuffer(commandBuffer);
+
+            commandBuffer = nint.Zero;
+        }
     }
 
-    public IRenderCommand BeginCommand()
+    public IRenderPass BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
+        Matrix4x4 view, Matrix4x4 projection)
     {
-        var commandBuffer = SDL.SDL_AcquireGPUCommandBuffer(device);
-
-        if(commandBuffer == nint.Zero || window.window == nint.Zero)
+        if (commandBuffer == nint.Zero)
         {
             return null;
         }
 
-        return new SDLGPURenderCommand(commandBuffer, window.window);
+        var texture = nint.Zero;
+        var width = 0;
+        var height = 0;
+
+        if (target == null)
+        {
+            texture = swapchainTexture;
+            width = swapchainWidth;
+            height = swapchainHeight;
+        }
+        else
+        {
+            //TODO: texture
+
+            width = target.width;
+            height = target.height;
+
+            return null;
+        }
+
+        if (texture == nint.Zero)
+        {
+            return null;
+        }
+
+        var colorTarget = new SDL.SDL_GPUColorTargetInfo()
+        {
+            clear_color = new()
+            {
+                r = clearColor.r,
+                g = clearColor.g,
+                b = clearColor.b,
+                a = clearColor.a,
+            },
+            load_op = clear switch
+            {
+                CameraClearMode.None or CameraClearMode.Depth => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+                _ => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
+            },
+            store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
+            texture = texture,
+        };
+
+        var renderPass = SDL.SDL_BeginGPURenderPass(commandBuffer, [colorTarget], 1, in Unsafe.NullRef<SDL.SDL_GPUDepthStencilTargetInfo>());
+
+        if (renderPass == nint.Zero)
+        {
+            return null;
+        }
+
+        var viewportData = new SDL.SDL_GPUViewport()
+        {
+            x = (int)(viewport.X * width),
+            y = (int)(viewport.Y * height),
+            w = (int)(viewport.Z * width),
+            h = (int)(viewport.W * height),
+            min_depth = 0,
+            max_depth = 1,
+        };
+
+        SDL.SDL_SetGPUViewport(renderPass, in viewportData);
+
+        return new SDLGPURenderPass(commandBuffer, renderPass, view, projection);
     }
 
     public VertexBuffer CreateVertexBuffer(Span<byte> data, VertexLayout layout, RenderBufferFlags flags)
@@ -211,7 +322,7 @@ internal class SDLGPURendererBackend : IRendererBackend
             return null;
         }
 
-        var outValue = new SDLGPUVertexBuffer(device, flags, layout, () => BeginCommand() as SDLGPURenderCommand);
+        var outValue = new SDLGPUVertexBuffer(device, flags, layout, this);
 
         outValue.Update(data);
 
@@ -225,7 +336,7 @@ internal class SDLGPURendererBackend : IRendererBackend
             return null;
         }
 
-        var outValue = new SDLGPUVertexBuffer(device, flags, layout, () => BeginCommand() as SDLGPURenderCommand);
+        var outValue = new SDLGPUVertexBuffer(device, flags, layout, this);
 
         outValue.Update(data);
 
@@ -234,7 +345,7 @@ internal class SDLGPURendererBackend : IRendererBackend
 
     public IndexBuffer CreateIndexBuffer(Span<ushort> data, RenderBufferFlags flags)
     {
-        var outValue = new SDLGPUIndexBuffer(device, flags, () => BeginCommand() as SDLGPURenderCommand);
+        var outValue = new SDLGPUIndexBuffer(device, flags, this);
 
         outValue.Update(data);
 
@@ -243,7 +354,7 @@ internal class SDLGPURendererBackend : IRendererBackend
 
     public IndexBuffer CreateIndexBuffer(Span<uint> data, RenderBufferFlags flags)
     {
-        var outValue = new SDLGPUIndexBuffer(device, flags, () => BeginCommand() as SDLGPURenderCommand);
+        var outValue = new SDLGPUIndexBuffer(device, flags, this);
 
         outValue.Update(data);
 
@@ -776,8 +887,7 @@ internal class SDLGPURendererBackend : IRendererBackend
             return null;
         }
 
-        var outValue = new SDLGPUTexture(device, texture, asset.width, asset.height, format, flags,
-            () => (SDLGPURenderCommand)BeginCommand());
+        var outValue = new SDLGPUTexture(device, texture, asset.width, asset.height, format, flags, this);
 
         outValue.Update(asset.data);
 
@@ -809,7 +919,7 @@ internal class SDLGPURendererBackend : IRendererBackend
             return null;
         }
 
-        var outValue = new SDLGPUTexture(device, texture, width, height, format, flags, () => (SDLGPURenderCommand)BeginCommand());
+        var outValue = new SDLGPUTexture(device, texture, width, height, format, flags, this);
 
         outValue.Update(data);
 
@@ -841,6 +951,6 @@ internal class SDLGPURendererBackend : IRendererBackend
             return null;
         }
 
-        return new SDLGPUTexture(device, texture, width, height, format, flags, () => (SDLGPURenderCommand)BeginCommand());
+        return new SDLGPUTexture(device, texture, width, height, format, flags, this);
     }
 }
