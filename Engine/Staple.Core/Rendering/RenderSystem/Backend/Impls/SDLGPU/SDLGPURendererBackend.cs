@@ -462,7 +462,7 @@ internal class SDLGPURendererBackend : IRendererBackend
 
         var depthTarget = new SDL.SDL_GPUDepthStencilTargetInfo()
         {
-            clear_depth = 0,
+            clear_depth = 1,
             load_op = clear switch
             {
                 CameraClearMode.None => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
@@ -687,101 +687,79 @@ internal class SDLGPURendererBackend : IRendererBackend
 
     public nint GetSampler(TextureFlags flags)
     {
-        var cleanFlags = TextureFlags.None;
-
-        SDL.SDL_GPUSamplerAddressMode GetAddressModeU()
+        if (textureSamplers.TryGetValue(flags, out var sampler) == false)
         {
-            if(flags.HasFlag(TextureFlags.RepeatU))
+            SDL.SDL_GPUSamplerAddressMode GetAddressModeU()
             {
-                cleanFlags |= TextureFlags.RepeatU;
+                if (flags.HasFlag(TextureFlags.RepeatU))
+                {
+                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                }
 
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
-            }
+                if (flags.HasFlag(TextureFlags.MirrorU))
+                {
+                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                }
 
-            if(flags.HasFlag(TextureFlags.MirrorU))
-            {
-                cleanFlags |= TextureFlags.MirrorU;
-
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-            }
-
-            if(flags.HasFlag(TextureFlags.ClampU))
-            {
-                cleanFlags |= TextureFlags.ClampU;
+                if (flags.HasFlag(TextureFlags.ClampU))
+                {
+                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                }
 
                 return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
             }
 
-            return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-        }
-
-        SDL.SDL_GPUSamplerAddressMode GetAddressModeV()
-        {
-            if (flags.HasFlag(TextureFlags.RepeatV))
+            SDL.SDL_GPUSamplerAddressMode GetAddressModeV()
             {
-                cleanFlags |= TextureFlags.RepeatV;
+                if (flags.HasFlag(TextureFlags.RepeatV))
+                {
+                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                }
 
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
-            }
+                if (flags.HasFlag(TextureFlags.MirrorV))
+                {
+                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                }
 
-            if (flags.HasFlag(TextureFlags.MirrorV))
-            {
-                cleanFlags |= TextureFlags.MirrorV;
-
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-            }
-
-            if (flags.HasFlag(TextureFlags.ClampV))
-            {
-                cleanFlags |= TextureFlags.ClampV;
+                if (flags.HasFlag(TextureFlags.ClampV))
+                {
+                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                }
 
                 return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
             }
 
-            return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-        }
-
-        SDL.SDL_GPUSamplerAddressMode GetAddressModeW()
-        {
-            if (flags.HasFlag(TextureFlags.RepeatW))
+            SDL.SDL_GPUSamplerAddressMode GetAddressModeW()
             {
-                cleanFlags |= TextureFlags.RepeatW;
+                if (flags.HasFlag(TextureFlags.RepeatW))
+                {
+                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                }
 
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
-            }
+                if (flags.HasFlag(TextureFlags.MirrorW))
+                {
+                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                }
 
-            if (flags.HasFlag(TextureFlags.MirrorW))
-            {
-                cleanFlags |= TextureFlags.MirrorW;
-
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-            }
-
-            if (flags.HasFlag(TextureFlags.ClampW))
-            {
-                cleanFlags |= TextureFlags.ClampW;
+                if (flags.HasFlag(TextureFlags.ClampW))
+                {
+                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                }
 
                 return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
             }
 
-            return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-        }
+            var anisotropy = false;
 
-        var anisotropy = false;
+            if (flags.HasFlag(TextureFlags.AnisotropicFilter))
+            {
+                anisotropy = true;
+            }
 
-        if(flags.HasFlag(TextureFlags.AnisotropicFilter))
-        {
-            cleanFlags |= TextureFlags.AnisotropicFilter;
+            var uMode = GetAddressModeU();
+            var vMode = GetAddressModeV();
+            var wMode = GetAddressModeW();
 
-            anisotropy = true;
-        }
-
-        var uMode = GetAddressModeU();
-        var vMode = GetAddressModeV();
-        var wMode = GetAddressModeW();
-
-        if (textureSamplers.TryGetValue(cleanFlags, out var sampler) == false)
-        {
             var magFilter = flags.HasFlag(TextureFlags.LinearFilter) ? SDL.SDL_GPUFilter.SDL_GPU_FILTER_LINEAR :
                 SDL.SDL_GPUFilter.SDL_GPU_FILTER_NEAREST;
 
@@ -804,7 +782,7 @@ internal class SDLGPURendererBackend : IRendererBackend
 
             if (sampler != nint.Zero)
             {
-                textureSamplers.Add(cleanFlags, sampler);
+                textureSamplers.Add(flags, sampler);
             }
         }
 
@@ -849,6 +827,15 @@ internal class SDLGPURendererBackend : IRendererBackend
                 samplers[i].texture = texture.texture;
                 samplers[i].sampler = GetSampler(texture.flags);
             }
+        }
+
+        var depthStencilFormat = DepthStencilFormat;
+
+        if(depthStencilFormat.HasValue == false ||
+            SDLGPUTexture.TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
+            out var sdlDepthFormat) == false)
+        {
+            sdlDepthFormat = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D24_UNORM;
         }
 
         var hash = state.StateKey;
@@ -984,6 +971,8 @@ internal class SDLGPURendererBackend : IRendererBackend
                             {
                                 num_color_targets = 1,
                                 color_target_descriptions = &colorTargetDescription,
+                                has_depth_stencil_target = depthStencilFormat.HasValue,
+                                depth_stencil_format = sdlDepthFormat,
                             }
                         };
 
