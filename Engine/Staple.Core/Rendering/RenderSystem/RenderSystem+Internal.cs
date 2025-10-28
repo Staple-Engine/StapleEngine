@@ -623,6 +623,8 @@ public sealed partial class RenderSystem
 
         if (pass == null)
         {
+            Log.Debug($"Rendering: View ID {viewID} not set up - are you rendering at the right time?\n{Environment.StackTrace}");
+
             return;
         }
 

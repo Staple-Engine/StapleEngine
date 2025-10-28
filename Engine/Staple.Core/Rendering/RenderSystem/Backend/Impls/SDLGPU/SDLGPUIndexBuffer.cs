@@ -29,25 +29,48 @@ internal class SDLGPUIndexBuffer : IndexBuffer
     {
         base.Destroy();
 
-        if (buffer != nint.Zero)
+        void Finish()
         {
-            SDL.SDL_ReleaseGPUBuffer(device, buffer);
+            SDL.SDL_WaitForGPUIdle(device);
 
-            buffer = nint.Zero;
+            if (buffer != nint.Zero)
+            {
+                SDL.SDL_ReleaseGPUBuffer(device, buffer);
+
+                buffer = nint.Zero;
+            }
+
+            if (transferBuffer != nint.Zero)
+            {
+                SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
+
+                transferBuffer = nint.Zero;
+            }
         }
 
-        if (transferBuffer != nint.Zero)
+        if (backend.CanUpdateResources == false)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
+            SDLGPURendererBackend.ReportResourceUnavailability();
 
-            transferBuffer = nint.Zero;
+            backend.QueueRenderUpdate(Finish);
+
+            return;
         }
+
+        Finish();
     }
 
     public void ResizeIfNeeded(int lengthInBytes)
     {
         if (length == lengthInBytes)
         {
+            return;
+        }
+
+        if (backend.CanUpdateResources == false)
+        {
+            SDLGPURendererBackend.ReportResourceUnavailability();
+
             return;
         }
 
@@ -126,6 +149,13 @@ internal class SDLGPUIndexBuffer : IndexBuffer
             return;
         }
 
+        if (backend.CanUpdateResources == false)
+        {
+            SDLGPURendererBackend.ReportResourceUnavailability();
+
+            return;
+        }
+
         var byteSize = data.Length * size;
 
         ResizeIfNeeded(data.Length * byteSize);
@@ -179,6 +209,13 @@ internal class SDLGPUIndexBuffer : IndexBuffer
         if (Disposed ||
             data.Length == 0)
         {
+            return;
+        }
+
+        if (backend.CanUpdateResources == false)
+        {
+            SDLGPURendererBackend.ReportResourceUnavailability();
+
             return;
         }
 

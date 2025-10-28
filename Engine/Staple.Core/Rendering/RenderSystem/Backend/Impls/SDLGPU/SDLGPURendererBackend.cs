@@ -3,11 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Text;
+using System.Threading;
 
 namespace Staple.Internal;
 
 internal class SDLGPURendererBackend : IRendererBackend
 {
+    private int renderPassReferences;
+    private readonly Lock renderPassReferenceLock = new();
+
     private nint device;
     private SDL3RenderWindow window;
     private readonly Dictionary<int, nint> graphicsPipelines = [];
@@ -20,6 +24,19 @@ internal class SDLGPURendererBackend : IRendererBackend
     private nint swapchainTexture;
     private int swapchainWidth;
     private int swapchainHeight;
+
+    private readonly List<Action> pendingResourceUpdates = [];
+
+    public bool CanUpdateResources
+    {
+        get
+        {
+            lock(renderPassReferenceLock)
+            {
+                return renderPassReferences == 0;
+            }
+        }
+    }
 
     public bool TryGetCommandBuffer(out nint buffer)
     {
@@ -282,6 +299,18 @@ internal class SDLGPURendererBackend : IRendererBackend
 
     public void EndFrame()
     {
+        lock(renderPassReferenceLock)
+        {
+            while(pendingResourceUpdates.Count > 0)
+            {
+                var first = pendingResourceUpdates[0];
+
+                pendingResourceUpdates.RemoveAt(0);
+
+                first?.Invoke();
+            }
+        }
+
         if(commandBuffer != nint.Zero)
         {
             SDL.SDL_SubmitGPUCommandBuffer(commandBuffer);
@@ -307,9 +336,58 @@ internal class SDLGPURendererBackend : IRendererBackend
         depthTexture = CreateEmptyTexture(swapchainWidth, swapchainHeight, DepthStencilFormat.Value, TextureFlags.DepthStencilTarget);
     }
 
+    public void PushRenderPassReference()
+    {
+        lock(renderPassReferenceLock)
+        {
+            renderPassReferences++;
+        }
+    }
+
+    public void PopRenderPassReference()
+    {
+        lock (renderPassReferenceLock)
+        {
+            renderPassReferences--;
+
+            if (renderPassReferences < 0)
+            {
+                Log.Error($"[Rendering] Render pass references reached a negative value! Are you ensuring you're pushing the same amount as you pop?");
+
+                renderPassReferences = 0;
+            }
+        }
+    }
+
+    public void QueueRenderUpdate(Action update)
+    {
+        lock(renderPassReferenceLock)
+        {
+            pendingResourceUpdates.Add(update);
+        }
+    }
+
+    public static void ReportResourceUnavailability()
+    {
+        Log.Error($"Unable to update a resource. Resources can only be updated outside of a rendering phase!\n{Environment.StackTrace}");
+    }
+
     public IRenderPass BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
         Matrix4x4 view, Matrix4x4 projection)
     {
+        if(CanUpdateResources)
+        {
+            foreach(var pair in ResourceManager.instance.userCreatedMeshes)
+            {
+                if(pair.TryGetTarget(out var mesh) == false)
+                {
+                    continue;
+                }
+
+                mesh.UploadMeshData();
+            }
+        }
+
         if (commandBuffer == nint.Zero)
         {
             return null;
@@ -413,7 +491,9 @@ internal class SDLGPURendererBackend : IRendererBackend
 
         SDL.SDL_SetGPUViewport(renderPass, in viewportData);
 
-        return new SDLGPURenderPass(commandBuffer, renderPass, view, projection);
+        PushRenderPassReference();
+
+        return new SDLGPURenderPass(commandBuffer, renderPass, view, projection, this);
     }
 
     public VertexBuffer CreateVertexBuffer(Span<byte> data, VertexLayout layout, RenderBufferFlags flags)

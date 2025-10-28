@@ -472,6 +472,8 @@ public sealed partial class Mesh
     {
         isReadable = readable;
         isWritable = writable;
+
+        ResourceManager.instance.userCreatedMeshes.Add(new(this));
     }
 
     /// <summary>
@@ -868,8 +870,6 @@ public sealed partial class Mesh
     /// <returns>Whether it was set active</returns>
     internal bool SetActive(ref RenderState state, int submeshIndex = 0)
     {
-        UploadMeshData();
-
         if(vertexBuffer == null || indexBuffer == null)
         {
             return false;

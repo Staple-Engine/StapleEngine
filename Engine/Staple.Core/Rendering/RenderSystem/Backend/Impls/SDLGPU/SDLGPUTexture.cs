@@ -622,27 +622,48 @@ internal class SDLGPUTexture(nint device, nint texture, int width, int height, T
 
         Disposed = true;
 
-        SDL.SDL_WaitForGPUIdle(device);
-
-        if (texture != nint.Zero)
+        void Finish()
         {
-            SDL.SDL_ReleaseGPUTexture(device, texture);
+            SDL.SDL_WaitForGPUIdle(device);
 
-            texture = nint.Zero;
+            if (texture != nint.Zero)
+            {
+                SDL.SDL_ReleaseGPUTexture(device, texture);
+
+                texture = nint.Zero;
+            }
+
+            if (transferBuffer != nint.Zero)
+            {
+                SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
+
+                transferBuffer = nint.Zero;
+            }
         }
 
-        if(transferBuffer != nint.Zero)
+        if (backend.CanUpdateResources == false)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(device, transferBuffer);
+            SDLGPURendererBackend.ReportResourceUnavailability();
 
-            transferBuffer = nint.Zero;
+            backend.QueueRenderUpdate(Finish);
+
+            return;
         }
+
+        Finish();
     }
 
     public void Update(Span<byte> data)
     {
         if(Disposed)
         {
+            return;
+        }
+
+        if (backend.CanUpdateResources == false)
+        {
+            SDLGPURendererBackend.ReportResourceUnavailability();
+
             return;
         }
 

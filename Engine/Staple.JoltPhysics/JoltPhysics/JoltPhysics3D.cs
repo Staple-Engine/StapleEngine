@@ -228,7 +228,7 @@ public class JoltPhysics3D : IPhysics3D
         return false;
     }
 
-    private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, in ContactSettings settings)
+    private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, ref ContactSettings settings)
     {
         lock (threadLock)
         {
@@ -249,7 +249,7 @@ public class JoltPhysics3D : IPhysics3D
         }
     }
 
-    private void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, in ContactSettings settings)
+    private void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, ref ContactSettings settings)
     {
         lock (threadLock)
         {

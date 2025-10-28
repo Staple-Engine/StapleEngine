@@ -37,7 +37,7 @@ internal partial class StapleEditor
     internal const int ClearView = 0;
     internal const int MeshRenderView = 252;
     internal const int SceneView = 253;
-    internal const int WireframeView = 254;
+    internal const int WireframeView = 253; //Can't use its own view
 
     #region Classes
     enum ViewportType
@@ -769,7 +769,11 @@ internal partial class StapleEditor
 
                 Physics3D.Instance.Startup();
 
-                wireframeMaterial = SpriteUtils.DefaultMaterial.Value;
+                wireframeMaterial = Resources.Load<Material>("Hidden/Materials/SolidColor.material");
+
+                ResourceManager.instance.LockAsset(wireframeMaterial.shader.Guid.Guid);
+
+                ResourceManager.instance.LockAsset(wireframeMaterial.Guid.Guid);
 
                 wireframeMesh = new Mesh(true, true)
                 {

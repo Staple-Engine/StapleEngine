@@ -41,6 +41,7 @@ internal class ResourceManager
     internal readonly List<WeakReference<Texture>> userCreatedTextures = [];
     internal readonly List<WeakReference<VertexBuffer>> userCreatedVertexBuffers = [];
     internal readonly List<WeakReference<IndexBuffer>> userCreatedIndexBuffers = [];
+    internal readonly List<WeakReference<Mesh>> userCreatedMeshes = [];
 
     /// <summary>
     /// Assets that must not be destroyed when using UserOnly mode
@@ -399,8 +400,6 @@ internal class ResourceManager
             {
                 pair.Value.changed = true;
 
-                pair.Value.UploadMeshData();
-
                 Log.Debug($"Recreated mesh {pair.Key}");
             }
             catch (Exception e)
@@ -419,8 +418,6 @@ internal class ResourceManager
             try
             {
                 pair.Value.changed = true;
-
-                pair.Value.UploadMeshData();
 
                 Log.Debug($"Recreated mesh {pair.Key}");
             }

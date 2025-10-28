@@ -69,8 +69,6 @@ public sealed class MeshRenderSystem : IRenderSystem
             return;
         }
 
-        mesh.UploadMeshData();
-
         var matrix = Matrix4x4.TRS(position, scale, rotation);
 
         var renderState = new RenderState()
@@ -143,8 +141,6 @@ public sealed class MeshRenderSystem : IRenderSystem
             {
                 continue;
             }
-
-            renderer.mesh.UploadMeshData();
 
             if(transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
             {

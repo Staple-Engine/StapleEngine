@@ -1001,6 +1001,7 @@ public sealed partial class Mesh : IGuidAsset
 
     public Mesh()
     {
+        ResourceManager.instance.userCreatedMeshes.Add(new(this));
     }
 
     /// <summary>
@@ -1125,7 +1126,7 @@ public sealed partial class Mesh : IGuidAsset
     /// <summary>
     /// Uploads the mesh data to the GPU
     /// </summary>
-    public void UploadMeshData()
+    internal void UploadMeshData()
     {
         if (changed == false &&
             (vertexBuffer?.Disposed ?? true) == false &&
