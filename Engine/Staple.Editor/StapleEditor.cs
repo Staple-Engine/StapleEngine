@@ -851,6 +851,9 @@ internal partial class StapleEditor
                 return;
             }
 
+            RenderSystem.Instance.Render(ClearView, null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1), Matrix4x4.Identity,
+                Matrix4x4.Identity, null);
+
             io.DisplaySize = new Vector2(window.width, window.height);
             io.DisplayFramebufferScale = new Vector2(1, 1);
 

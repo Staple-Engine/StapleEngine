@@ -137,6 +137,8 @@ internal class RenderWindow
 
             if (window.Unavailable)
             {
+                RenderSystem.Backend.EndFrame();
+
                 continue;
             }
 
@@ -182,11 +184,6 @@ internal class RenderWindow
                 }
                 catch (Exception)
                 {
-                }
-
-                if (hasFocus == false)
-                {
-                    continue;
                 }
             }
 
@@ -312,7 +309,6 @@ internal class RenderWindow
         while (window.ShouldClose == false && shouldStop == false)
         {
             PerformanceProfilerSystem.StartFrame();
-            RenderSystem.Backend.BeginFrame();
 
             Input.UpdateState();
 
@@ -325,6 +321,8 @@ internal class RenderWindow
 
             if (window.Unavailable)
             {
+                RenderSystem.Backend.EndFrame();
+
                 continue;
             }
 
@@ -356,11 +354,6 @@ internal class RenderWindow
                 }
                 catch (Exception)
                 {
-                }
-
-                if (hasFocus == false)
-                {
-                    continue;
                 }
             }
 
@@ -537,7 +530,7 @@ internal class RenderWindow
 
                 unsafe
                 {
-                    ok = RenderSystem.Backend.Initialize(renderer, false, window, renderFlags);
+                    ok = RenderSystem.Backend.Initialize(renderer, true, window, renderFlags);
 
                     if (ok)
                     {
@@ -728,6 +721,8 @@ internal class RenderWindow
 
                 continue;
             }
+
+            RenderSystem.Backend.BeginFrame();
 
             RenderFrame(ref last);
         }

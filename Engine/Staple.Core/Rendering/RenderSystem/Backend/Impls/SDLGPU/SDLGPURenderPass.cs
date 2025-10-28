@@ -30,7 +30,7 @@ internal class SDLGPURenderPass(nint commandBuffer, nint renderPass, Matrix4x4 v
 
     public void BindPipeline(nint pipeline)
     {
-        if (pipeline != lastGraphicsPipeline)
+        //if (pipeline != lastGraphicsPipeline)
         {
             lastGraphicsPipeline = pipeline;
 

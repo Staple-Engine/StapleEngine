@@ -519,18 +519,15 @@ internal class ImGuiProxy
 
             var ortho = Matrix4x4.CreateOrthographicOffCenter(rect.Position.X, rect.Size.X, rect.Size.Y, rect.Position.Y, -1, 1);
 
-            var pass = RenderSystem.Backend.BeginRenderPass(null, CameraClearMode.None, StapleEditor.ClearColor, new(0, 0, 1, 1),
-                Matrix4x4.Identity, ortho);
-
             var clipPos = drawData.DisplayPos;
             var clipScale = drawData.FramebufferScale;
 
-            if(vertices.Length < drawData.TotalVtxCount)
+            if (vertices.Length < drawData.TotalVtxCount)
             {
                 Array.Resize(ref vertices, drawData.TotalVtxCount);
             }
 
-            if(indices.Length < drawData.TotalIdxCount)
+            if (indices.Length < drawData.TotalIdxCount)
             {
                 Array.Resize(ref indices, drawData.TotalIdxCount);
             }
@@ -559,12 +556,12 @@ internal class ImGuiProxy
 
             var needsUpdate = true;
 
-            if((vertexBuffer?.Disposed ?? true) == true)
+            if ((vertexBuffer?.Disposed ?? true) == true)
             {
                 needsUpdate = false;
             }
 
-            if(needsUpdate == false)
+            if (needsUpdate == false)
             {
                 vertexBuffer = RenderSystem.Backend.CreateVertexBuffer(vertices, layout, RenderBufferFlags.None);
                 indexBuffer = RenderSystem.Backend.CreateIndexBuffer(indices, RenderBufferFlags.None);
@@ -575,88 +572,91 @@ internal class ImGuiProxy
                 indexBuffer.Update(indices);
             }
 
-            currentVertex = 0;
-            currentIndex = 0;
-
-            for (int i = 0; i < drawData.CmdListsCount; i++)
-            {
-                var cmdList = drawData.CmdLists.Data[i];
-
-                var numVertices = cmdList.VtxBuffer.Size;
-                var numIndices = cmdList.IdxBuffer.Size;
-
-                for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
+            RenderSystem.Instance.Render(viewID, null, CameraClearMode.None, StapleEditor.ClearColor, new(0, 0, 1, 1),
+                Matrix4x4.Identity, ortho,
+                () =>
                 {
-                    var drawCmd = cmdList.CmdBuffer.Data[j];
+                    currentVertex = 0;
+                    currentIndex = 0;
 
-                    if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != null)
+                    for (int i = 0; i < drawData.CmdListsCount; i++)
                     {
-                        continue;
-                    }
+                        var cmdList = drawData.CmdLists.Data[i];
 
-                    var program = this.program.instances.FirstOrDefault().Value.program;
+                        var numVertices = cmdList.VtxBuffer.Size;
+                        var numIndices = cmdList.IdxBuffer.Size;
 
-                    Texture[] textures;
-
-                    if (drawCmd.GetTexID().IsNull == false)
-                    {
-                        var index = (int)drawCmd.GetTexID().Handle;
-
-                        if(this.textures.TryGetValue(index, out var item))
+                        for (var j = 0; j < cmdList.CmdBuffer.Size; j++)
                         {
-                            singleTexture[0] = item.Item1;
+                            var drawCmd = cmdList.CmdBuffer.Data[j];
+
+                            if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != null)
+                            {
+                                continue;
+                            }
+
+                            var program = this.program.instances.FirstOrDefault().Value.program;
+
+                            Texture[] textures;
+
+                            if (drawCmd.GetTexID().IsNull == false)
+                            {
+                                var index = (int)drawCmd.GetTexID().Handle;
+
+                                if (this.textures.TryGetValue(index, out var item))
+                                {
+                                    singleTexture[0] = item.Item1;
+                                }
+                                else if (registeredTextures.TryGetValue(index, out var t))
+                                {
+                                    singleTexture[0] = t;
+                                }
+
+                                textures = singleTexture;
+                            }
+                            else
+                            {
+                                textures = emptyTexture;
+                            }
+
+                            var clipRect = new Vector4((drawCmd.ClipRect.X - clipPos.X) * clipScale.X,
+                                (drawCmd.ClipRect.Y - clipPos.Y) * clipScale.Y,
+                                (drawCmd.ClipRect.Z - clipPos.X) * clipScale.X,
+                                (drawCmd.ClipRect.W - clipPos.Y) * clipScale.Y);
+
+                            if (clipRect.X < fbWidth && clipRect.Y < fbHeight &&
+                                clipRect.Z >= 0 && clipRect.W >= 0)
+                            {
+                                var x = (ushort)Math.Max(clipRect.X, 0);
+                                var y = (ushort)Math.Max(clipRect.Y, 0);
+
+                                var state = new RenderState()
+                                {
+                                    sourceBlend = BlendMode.SrcAlpha,
+                                    destinationBlend = BlendMode.OneMinusSrcAlpha,
+                                    cull = CullingMode.None,
+                                    depthWrite = false,
+                                    enableDepth = false,
+                                    primitiveType = MeshTopology.Triangles,
+                                    scissor = new(x, (int)clipRect.Z, y, (int)clipRect.W),
+                                    indexBuffer = indexBuffer,
+                                    vertexBuffer = vertexBuffer,
+                                    startVertex = currentVertex + (int)drawCmd.VtxOffset,
+                                    startIndex = currentIndex + (int)drawCmd.IdxOffset,
+                                    indexCount = (int)drawCmd.ElemCount,
+                                    program = program,
+                                    textures = textures,
+                                    world = Matrix4x4.Identity,
+                                };
+
+                                RenderSystem.Submit(viewID, state, (int)drawCmd.ElemCount / 3, 1);
+                            }
                         }
-                        else if(registeredTextures.TryGetValue(index, out var t))
-                        {
-                            singleTexture[0] = t;
-                        }
 
-                        textures = singleTexture;
+                        currentVertex += numVertices;
+                        currentIndex += numIndices;
                     }
-                    else
-                    {
-                        textures = emptyTexture;
-                    }
-
-                    var clipRect = new Vector4((drawCmd.ClipRect.X - clipPos.X) * clipScale.X,
-                        (drawCmd.ClipRect.Y - clipPos.Y) * clipScale.Y,
-                        (drawCmd.ClipRect.Z - clipPos.X) * clipScale.X,
-                        (drawCmd.ClipRect.W - clipPos.Y) * clipScale.Y);
-
-                    if (clipRect.X < fbWidth && clipRect.Y < fbHeight &&
-                        clipRect.Z >= 0 && clipRect.W >= 0)
-                    {
-                        var x = (ushort)Math.Max(clipRect.X, 0);
-                        var y = (ushort)Math.Max(clipRect.Y, 0);
-
-                        var state = new RenderState()
-                        {
-                            sourceBlend = BlendMode.SrcAlpha,
-                            destinationBlend = BlendMode.OneMinusSrcAlpha,
-                            cull = CullingMode.None,
-                            depthWrite = false,
-                            enableDepth = false,
-                            primitiveType = MeshTopology.Triangles,
-                            scissor = new(x, (int)clipRect.Z, y, (int)clipRect.W),
-                            indexBuffer = indexBuffer,
-                            vertexBuffer = vertexBuffer,
-                            startVertex = currentVertex + (int)drawCmd.VtxOffset,
-                            startIndex = currentIndex + (int)drawCmd.IdxOffset,
-                            indexCount = (int)drawCmd.ElemCount,
-                            program = program,
-                            textures = textures,
-                            world = Matrix4x4.Identity,
-                        };
-
-                        RenderSystem.Submit(pass, state, (int)drawCmd.ElemCount / 3, 1);
-                    }
-                }
-
-                currentVertex += numVertices;
-                currentIndex += numIndices;
-            }
-
-            pass.Finish();
+                });
         }
     }
 

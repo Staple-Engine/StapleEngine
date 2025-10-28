@@ -651,13 +651,6 @@ internal class SDLGPUTexture(nint device, nint texture, int width, int height, T
             return;
         }
 
-        var copyPass = SDL.SDL_BeginGPUCopyPass(command);
-
-        if (copyPass == nint.Zero)
-        {
-            return;
-        }
-
         if (transferBuffer == nint.Zero)
         {
             var info = new SDL.SDL_GPUTransferBufferCreateInfo()
@@ -668,10 +661,17 @@ internal class SDLGPUTexture(nint device, nint texture, int width, int height, T
 
             transferBuffer = SDL.SDL_CreateGPUTransferBuffer(device, in info);
 
-            if(transferBuffer == nint.Zero)
+            if (transferBuffer == nint.Zero)
             {
                 return;
             }
+        }
+
+        var copyPass = SDL.SDL_BeginGPUCopyPass(command);
+
+        if (copyPass == nint.Zero)
+        {
+            return;
         }
 
         var mapData = SDL.SDL_MapGPUTransferBuffer(device, transferBuffer, true);

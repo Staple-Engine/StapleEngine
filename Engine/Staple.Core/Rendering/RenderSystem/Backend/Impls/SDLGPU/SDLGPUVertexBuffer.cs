@@ -130,6 +130,13 @@ internal class SDLGPUVertexBuffer : VertexBuffer
             return;
         }
 
+        var copyPass = SDL.SDL_BeginGPUCopyPass(command);
+
+        if (copyPass == nint.Zero)
+        {
+            return;
+        }
+
         var mapData = SDL.SDL_MapGPUTransferBuffer(device, transferBuffer, true);
 
         unsafe
@@ -141,13 +148,6 @@ internal class SDLGPUVertexBuffer : VertexBuffer
         }
 
         SDL.SDL_UnmapGPUTransferBuffer(device, transferBuffer);
-
-        var copyPass = SDL.SDL_BeginGPUCopyPass(command);
-
-        if(copyPass == nint.Zero)
-        {
-            return;
-        }
 
         var location = new SDL.SDL_GPUTransferBufferLocation()
         {

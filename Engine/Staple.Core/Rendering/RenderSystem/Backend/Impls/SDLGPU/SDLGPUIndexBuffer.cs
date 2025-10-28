@@ -191,6 +191,13 @@ internal class SDLGPUIndexBuffer : IndexBuffer
             return;
         }
 
+        var copyPass = SDL.SDL_BeginGPUCopyPass(command);
+
+        if (copyPass == nint.Zero)
+        {
+            return;
+        }
+
         var mapData = SDL.SDL_MapGPUTransferBuffer(device, transferBuffer, true);
 
         unsafe
@@ -201,13 +208,6 @@ internal class SDLGPUIndexBuffer : IndexBuffer
         }
 
         SDL.SDL_UnmapGPUTransferBuffer(device, transferBuffer);
-
-        var copyPass = SDL.SDL_BeginGPUCopyPass(command);
-
-        if (copyPass == nint.Zero)
-        {
-            return;
-        }
 
         var location = new SDL.SDL_GPUTransferBufferLocation()
         {

@@ -105,7 +105,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-            RenderSystem.Submit(RenderSystem.GetViewPass(viewID), renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
+            RenderSystem.Submit(viewID, renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
         }
     }
 
@@ -393,7 +393,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                     {
                         renderState.program = program;
 
-                        RenderSystem.Submit(RenderSystem.GetViewPass(viewID), renderState, renderData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
+                        RenderSystem.Submit(viewID, renderState, renderData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
                     }
                 }
             }

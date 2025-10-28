@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Staple.Internal;
@@ -14,6 +13,8 @@ internal class SDLGPURendererBackend : IRendererBackend
     private readonly Dictionary<int, nint> graphicsPipelines = [];
     private readonly Dictionary<TextureFlags, nint> textureSamplers = [];
     private Vector2Int renderSize;
+    private ITexture depthTexture;
+    private bool needsDepthTextureUpdate = false;
 
     private nint commandBuffer;
     private nint swapchainTexture;
@@ -37,6 +38,34 @@ internal class SDLGPURendererBackend : IRendererBackend
 
     public bool SupportsLinearColorSpace => SDL.SDL_WindowSupportsGPUSwapchainComposition(device, window.window,
             SDL.SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR);
+
+    public TextureFormat? DepthStencilFormat
+    {
+        get
+        {
+            if(SupportsTextureFormat(TextureFormat.D32S8, TextureFlags.DepthStencilTarget))
+            {
+                return TextureFormat.D32S8;
+            }
+
+            if(SupportsTextureFormat(TextureFormat.D24S8, TextureFlags.DepthStencilTarget))
+            {
+                return TextureFormat.D24S8;
+            }
+
+            if (SupportsTextureFormat(TextureFormat.D24, TextureFlags.DepthStencilTarget))
+            {
+                return TextureFormat.D24;
+            }
+
+            if (SupportsTextureFormat(TextureFormat.D16, TextureFlags.DepthStencilTarget))
+            {
+                return TextureFormat.D16;
+            }
+
+            return null;
+        }
+    }
 
     public bool Initialize(RendererType renderer, bool debug, IRenderWindow window, RenderModeFlags renderFlags)
     {
@@ -86,6 +115,15 @@ internal class SDLGPURendererBackend : IRendererBackend
 
         if(device == nint.Zero)
         {
+            return false;
+        }
+
+        if(DepthStencilFormat.HasValue == false)
+        {
+            SDL.SDL_DestroyGPUDevice(device);
+
+            device = nint.Zero;
+
             return false;
         }
 
@@ -163,6 +201,8 @@ internal class SDLGPURendererBackend : IRendererBackend
 
         renderSize.X = w;
         renderSize.Y = h;
+
+        needsDepthTextureUpdate = true;
     }
 
     public void UpdateViewport(int width, int height)
@@ -191,6 +231,12 @@ internal class SDLGPURendererBackend : IRendererBackend
 
             textureSamplers.Clear();
 
+            depthTexture?.Destroy();
+
+            depthTexture = null;
+
+            needsDepthTextureUpdate = true;
+
             SDL.SDL_DestroyGPUDevice(device);
 
             device = nint.Zero;
@@ -201,7 +247,7 @@ internal class SDLGPURendererBackend : IRendererBackend
     {
         if(commandBuffer != nint.Zero)
         {
-            SDL.SDL_CancelGPUCommandBuffer(commandBuffer);
+            SDL.SDL_SubmitGPUCommandBuffer(commandBuffer);
 
             commandBuffer = nint.Zero;
         }
@@ -230,6 +276,8 @@ internal class SDLGPURendererBackend : IRendererBackend
 
         swapchainWidth = (int)w;
         swapchainHeight = (int)h;
+
+        UpdateDepthTextureIfNeeded();
     }
 
     public void EndFrame()
@@ -240,6 +288,23 @@ internal class SDLGPURendererBackend : IRendererBackend
 
             commandBuffer = nint.Zero;
         }
+    }
+
+    private void UpdateDepthTextureIfNeeded()
+    {
+        if(needsDepthTextureUpdate == false ||
+            swapchainWidth == 0 ||
+            swapchainHeight == 0 ||
+            DepthStencilFormat.HasValue == false)
+        {
+            return;
+        }
+
+        needsDepthTextureUpdate = false;
+
+        depthTexture?.Destroy();
+
+        depthTexture = CreateEmptyTexture(swapchainWidth, swapchainHeight, DepthStencilFormat.Value, TextureFlags.DepthStencilTarget);
     }
 
     public IRenderPass BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
@@ -254,11 +319,34 @@ internal class SDLGPURendererBackend : IRendererBackend
         var width = 0;
         var height = 0;
 
+        SDLGPUTexture depthTexture = null;
+
         if (target == null)
         {
             texture = swapchainTexture;
             width = swapchainWidth;
             height = swapchainHeight;
+
+            depthTexture = this.depthTexture as SDLGPUTexture;
+
+            if (depthTexture is not SDLGPUTexture)
+            {
+                needsDepthTextureUpdate = true;
+
+                UpdateDepthTextureIfNeeded();
+
+                if (this.depthTexture is not SDLGPUTexture depth)
+                {
+                    return null;
+                }
+
+                depthTexture = depth;
+            }
+
+            if (depthTexture?.Disposed ?? true)
+            {
+                return null;
+            }
         }
         else
         {
@@ -270,7 +358,8 @@ internal class SDLGPURendererBackend : IRendererBackend
             return null;
         }
 
-        if (texture == nint.Zero)
+        if (texture == nint.Zero ||
+            (depthTexture?.Disposed ?? true))
         {
             return null;
         }
@@ -293,7 +382,19 @@ internal class SDLGPURendererBackend : IRendererBackend
             texture = texture,
         };
 
-        var renderPass = SDL.SDL_BeginGPURenderPass(commandBuffer, [colorTarget], 1, in Unsafe.NullRef<SDL.SDL_GPUDepthStencilTargetInfo>());
+        var depthTarget = new SDL.SDL_GPUDepthStencilTargetInfo()
+        {
+            clear_depth = 0,
+            load_op = clear switch
+            {
+                CameraClearMode.None => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+                _ => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
+            },
+            store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
+            texture = depthTexture.texture,
+        };
+
+        var renderPass = SDL.SDL_BeginGPURenderPass(commandBuffer, [colorTarget], 1, in depthTarget);
 
         if (renderPass == nint.Zero)
         {
@@ -491,6 +592,17 @@ internal class SDLGPURendererBackend : IRendererBackend
 
             return new SDLGPUShaderProgram(device, computeShader);
         }
+    }
+
+    public bool SupportsTextureFormat(TextureFormat format, TextureFlags flags)
+    {
+        if(SDLGPUTexture.TryGetTextureFormat(format, flags, out var f) == false)
+        {
+            return false;
+        }
+
+        return SDL.SDL_GPUTextureSupportsFormat(device, f, SDLGPUTexture.GetTextureType(flags),
+            SDLGPUTexture.GetTextureUsage(flags));
     }
 
     public nint GetSampler(TextureFlags flags)

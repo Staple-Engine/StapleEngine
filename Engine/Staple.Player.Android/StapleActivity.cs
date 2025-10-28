@@ -498,6 +498,8 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
             }
         }
 
+        RenderSystem.Backend.BeginFrame();
+
         renderWindow.RenderFrame(ref lastTime);
 
         ThreadHelper.Update();
