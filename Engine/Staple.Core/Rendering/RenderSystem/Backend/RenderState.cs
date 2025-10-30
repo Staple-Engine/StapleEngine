@@ -14,6 +14,8 @@ internal struct RenderState
     public VertexBuffer vertexBuffer;
     public IndexBuffer indexBuffer;
     public InstanceBuffer instanceBuffer;
+    public (int, VertexBuffer)[] readOnlyBuffers;
+    public (int, VertexBuffer)[] readWriteBuffers;
     public int startVertex;
     public int startIndex;
     public int indexCount;
@@ -41,7 +43,23 @@ internal struct RenderState
             hashCode.Add(sourceBlend);
             hashCode.Add(destinationBlend);
 
-            if(textures != null)
+            if(readOnlyBuffers != null)
+            {
+                foreach(var t in readOnlyBuffers)
+                {
+                    hashCode.Add(t);
+                }
+            }
+
+            if (readWriteBuffers != null)
+            {
+                foreach (var t in readWriteBuffers)
+                {
+                    hashCode.Add(t);
+                }
+            }
+
+            if (textures != null)
             {
                 foreach(var t in textures)
                 {

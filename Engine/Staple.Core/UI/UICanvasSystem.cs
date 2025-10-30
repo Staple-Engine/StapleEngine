@@ -51,27 +51,20 @@ public class UICanvasSystem : IRenderSystem
     {
         var projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1);
 
-        unsafe
-        {
-            var view = Matrix4x4.Identity;
+        RenderSystem.Instance.Render(UIViewID, null, CameraClearMode.None, Color.White, new(0, 0, 1, 1),
+            Matrix4x4.Identity, projection, () =>
+            {
+                IsPointerOverUI = false;
 
-            /*
-            bgfx.set_view_transform(UIViewID, &view, &projection);
-            bgfx.set_view_clear(UIViewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
-            bgfx.set_view_rect(UIViewID, 0, 0, (ushort)Screen.Width, (ushort)Screen.Height);
-            */
-        }
+                foreach (var (_, canvas) in canvases.Contents)
+                {
+                    canvas.CheckLayoutChanges();
 
-        IsPointerOverUI = false;
+                    canvas.manager.Update();
+                    canvas.manager.Draw();
 
-        foreach(var (_, canvas) in canvases.Contents)
-        {
-            canvas.CheckLayoutChanges();
-
-            canvas.manager.Update();
-            canvas.manager.Draw();
-
-            IsPointerOverUI |= canvas.manager.MouseOverElement != null;
-        }
+                    IsPointerOverUI |= canvas.manager.MouseOverElement != null;
+                }
+            });
     }
 }

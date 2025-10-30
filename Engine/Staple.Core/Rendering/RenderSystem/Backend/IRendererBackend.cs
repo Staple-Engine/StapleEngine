@@ -23,8 +23,14 @@ internal interface IRendererBackend
 
     void UpdateViewport(int width, int height);
 
-    IRenderPass BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
-        Matrix4x4 view, Matrix4x4 projection);
+    void BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
+        in Matrix4x4 view, in Matrix4x4 projection);
+
+    VertexLayoutBuilder CreateVertexLayoutBuilder();
+
+    IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
+        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
+        VertexAttribute[] vertexAttributes);
 
     VertexBuffer CreateVertexBuffer(Span<byte> data, VertexLayout layout, RenderBufferFlags flags);
 
@@ -34,11 +40,15 @@ internal interface IRendererBackend
 
     IndexBuffer CreateIndexBuffer(Span<uint> data, RenderBufferFlags flags);
 
-    VertexLayoutBuilder CreateVertexLayoutBuilder();
+    void UpdateVertexBuffer(ResourceHandle<VertexBuffer> buffer, Span<byte> data);
 
-    IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
-        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
-        VertexAttribute[] vertexAttributes);
+    void UpdateIndexBuffer(ResourceHandle<IndexBuffer> buffer, Span<ushort> data);
+
+    void UpdateIndexBuffer(ResourceHandle<IndexBuffer> buffer, Span<uint> data);
+
+    void DestroyVertexBuffer(ResourceHandle<VertexBuffer> buffer);
+
+    void DestroyIndexBuffer(ResourceHandle<IndexBuffer> buffer);
 
     IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics computeMetrics);
 
@@ -50,5 +60,5 @@ internal interface IRendererBackend
 
     ITexture CreateEmptyTexture(int width, int height, TextureFormat format, TextureFlags flags);
 
-    void Render(IRenderPass pass, RenderState state);
+    void Render(RenderState state);
 }

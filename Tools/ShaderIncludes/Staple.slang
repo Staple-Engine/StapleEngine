@@ -3,8 +3,13 @@ module Staple;
 __include StapleMath;
 __include StapleLighting;
 
-#define STAPLE_SKINNING_STAGE_INDEX 14
-#define STAPLE_LIGHTING_NORMAL_MATRIX_STAGE_INDEX 13
+#define STAPLE_SKINNING_STAGE_INDEX 1
+
+#ifdef SKINNING
+public static const int StapleBufferIndexCount = 2;
+#else
+public static const int StapleBufferIndexCount = 1;
+#endif
 
 #ifdef STAPLE_VERTEX_SHADER
 public static const int StapleSamplerBufferSet = 0;

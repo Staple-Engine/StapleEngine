@@ -1,4 +1,5 @@
-﻿using SDL3;
+﻿/*
+using SDL3;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -6,26 +7,11 @@ namespace Staple.Internal;
 
 internal class SDLGPURenderPass(nint commandBuffer, nint renderPass, Matrix4x4 view, Matrix4x4 projection, SDLGPURendererBackend backend) : IRenderPass
 {
-    public struct StapleRenderData
-    {
-        public Matrix4x4 world;
-        public Matrix4x4 view;
-        public Matrix4x4 projection;
-        public float time;
-    }
-
     public nint renderPass = renderPass;
 
     public readonly nint commandBuffer = commandBuffer;
 
     public readonly SDLGPURendererBackend backend = backend;
-
-    public StapleRenderData renderData = new()
-    {
-        projection = projection,
-        view = view,
-        time = Time.time,
-    };
 
     private bool appliedUniforms;
 
@@ -68,3 +54,4 @@ internal class SDLGPURenderPass(nint commandBuffer, nint renderPass, Matrix4x4 v
         backend.PopRenderPassReference();
     }
 }
+*/

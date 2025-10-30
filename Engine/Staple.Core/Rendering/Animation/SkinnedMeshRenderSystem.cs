@@ -10,7 +10,7 @@ namespace Staple.Internal;
 /// </summary>
 public class SkinnedMeshRenderSystem : IRenderSystem
 {
-    private const int SkinningBufferIndex = 15;
+    private const int SkinningBufferIndex = 1;
 
     /// <summary>
     /// Info for rendering
@@ -159,45 +159,29 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 transform = transform,
             });
         }
-    }
 
-    public void Submit(ushort viewID)
-    {
-        if (renderers.TryGetValue(viewID, out var content) == false)
+        foreach (var (entity, instance, transform) in instances.Contents)
         {
-            return;
-        }
-
-        Material lastMaterial = null;
-
-        var lastMeshAsset = 0;
-        var lastLighting = MaterialLighting.Unlit;
-        var lastTopology = MeshTopology.Triangles;
-
-        //bgfx.discard((byte)bgfx.DiscardFlags.All);
-
-        foreach(var (entity, instance, transform) in instances.Contents)
-        {
-            if(instance.mesh?.MeshAssetMesh is null)
+            if (instance.mesh?.MeshAssetMesh is null)
             {
                 var animator = entity.GetComponent<SkinnedMeshAnimator>();
 
-                if(animator?.mesh is not null)
+                if (animator?.mesh is not null)
                 {
                     instance.mesh = animator.mesh;
                 }
 
                 var renderers = entity.GetComponentsInChildren<SkinnedMeshRenderer>();
 
-                foreach(var renderer in renderers)
+                foreach (var renderer in renderers)
                 {
-                    if(renderer.mesh is not null)
+                    if (renderer.mesh is not null)
                     {
                         instance.mesh = renderer.mesh;
                     }
                 }
 
-                if(instance.mesh is null)
+                if (instance.mesh is null)
                 {
                     continue;
                 }
@@ -221,19 +205,15 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 boneMatrices = instance.boneMatrices;
             }
 
-            /*
             if ((instance.boneBuffer?.Disposed ?? true))
             {
-                instance.boneBuffer = VertexBuffer.Create(VertexLayoutBuilder.CreateNew()
+                instance.boneBuffer = VertexBuffer.Create(boneMatrices.AsSpan(), VertexLayoutBuilder.CreateNew()
                     .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float4)
                     .Add(VertexAttribute.TexCoord1, VertexAttributeType.Float4)
                     .Add(VertexAttribute.TexCoord2, VertexAttributeType.Float4)
                     .Add(VertexAttribute.TexCoord3, VertexAttributeType.Float4)
-                    .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
-
-                instance.boneBuffer.Update(boneMatrices.AsSpan(), 0, true);
+                    .Build(), RenderBufferFlags.ComputeRead);
             }
-            */
 
             instance.transformUpdateTimer += Time.deltaTime;
 
@@ -247,9 +227,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 instance.animator ??= new(entity, EntityQueryMode.Self, false);
 
-                foreach(var (t, modifier) in instance.modifiers.Contents)
+                foreach (var (t, modifier) in instance.modifiers.Contents)
                 {
-                    if(instance.animator.Content?.evaluator != null)
+                    if (instance.animator.Content?.evaluator != null)
                     {
                         continue;
                     }
@@ -259,9 +239,25 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 UpdateBoneMatrices(instance.mesh.meshAsset, instance.boneMatrices, instance.transformCache);
 
-                //instance.boneBuffer.Update(instance.boneMatrices.AsSpan(), 0, true);
+                instance.boneBuffer.Update(instance.boneMatrices.AsSpan());
             }
         }
+    }
+
+    public void Submit(ushort viewID)
+    {
+        if (renderers.TryGetValue(viewID, out var content) == false)
+        {
+            return;
+        }
+
+        Material lastMaterial = null;
+
+        var lastMeshAsset = 0;
+        var lastLighting = MaterialLighting.Unlit;
+        var lastTopology = MeshTopology.Triangles;
+
+        var renderState = new RenderState();
 
         var l = content.Length;
 
@@ -315,59 +311,40 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     lastLighting = lighting;
                     lastTopology = renderer.mesh.MeshTopology;
 
-                    //bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                     SetupMaterial();
 
-                    //if (material.ShaderProgram.Valid == false)
+                    if (material.ShaderProgram == null)
                     {
-                        //bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                         continue;
                     }
 
-                    //material.ApplyProperties(Material.ApplyMode.All, ref renderState);
+                    material.ApplyProperties(Material.ApplyMode.All, ref renderState);
                 }
 
                 SetupMaterial();
 
-                //if (material.ShaderProgram.Valid == false)
+                if (material.ShaderProgram == null)
                 {
-                    //bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                     continue;
                 }
 
-                unsafe
-                {
-                    var transform = item.transform.Matrix;
+                renderState.world = item.transform.Matrix;
 
-                    //_ = bgfx.set_transform(&transform, 1);
-                }
-
-                //renderer.mesh.SetActive(j);
+                renderer.mesh.SetActive(ref renderState, j);
 
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                //var program = material.ShaderProgram;
-
-                /*
-                bgfx.set_state((ulong)(material.shader.StateFlags |
-                    renderer.mesh.PrimitiveFlag() |
-                    material.CullingFlag), 0);
-
-                var flags = bgfx.DiscardFlags.State;
+                var program = material.ShaderProgram;
 
                 var buffer = instance.boneBuffer;
 
-                buffer?.SetBufferActive(SkinningBufferIndex, Access.Read);
+                renderState.program = program;
 
-                RenderSystem.Submit(viewID, program, flags, renderer.mesh.SubmeshTriangleCount(j), 1);
-                */
+                renderState.readOnlyBuffers = [(SkinningBufferIndex, buffer)];
+
+                RenderSystem.Submit(viewID, renderState, renderer.mesh.SubmeshTriangleCount(j), 1);
             }
         }
-
-        //bgfx.discard((byte)bgfx.DiscardFlags.All);
     }
 
     /// <summary>

@@ -24,6 +24,50 @@ public sealed partial class RenderSystem
         public IComponent relatedComponent;
     }
 
+    internal class TransientEntry
+    {
+        public readonly List<byte> vertices = [];
+
+        public readonly List<ushort> indices = [];
+
+        public readonly List<uint> uintIndices = [];
+
+        public VertexBuffer vertexBuffer;
+
+        public IndexBuffer indexBuffer;
+
+        public IndexBuffer uintIndexBuffer;
+
+        public readonly List<RenderState> drawCalls = [];
+
+        public readonly List<RenderState> uintDrawCalls = [];
+
+        public int startVertex;
+
+        public int startIndex;
+
+        public int startIndexUInt;
+
+        public void Clear()
+        {
+            vertexBuffer?.Destroy();
+            indexBuffer?.Destroy();
+            uintIndexBuffer?.Destroy();
+
+            vertexBuffer = null;
+            indexBuffer = null;
+            uintIndexBuffer = null;
+
+            startVertex = startIndex = startIndexUInt = 0;
+
+            vertices.Clear();
+            indices.Clear();
+            uintIndices.Clear();
+            drawCalls.Clear();
+            uintDrawCalls.Clear();
+        }
+    }
+
     /// <summary>
     /// Contains lists of drawcalls per view ID
     /// </summary>
@@ -106,6 +150,12 @@ public sealed partial class RenderSystem
     /// The renderer backend
     /// </summary>
     internal static readonly IRendererBackend Backend = new SDLGPURendererBackend();
+
+    /// <summary>
+    /// Transient buffers allow per-frame rendering without the book-keeping of resource management
+    /// </summary>
+    /// <remarks>ViewID to Vertex Layout-specific sets</remarks>
+    private readonly Dictionary<ushort, Dictionary<VertexLayout, TransientEntry>> transientBuffers = [];
     #endregion
 
     #region Helpers
@@ -567,6 +617,14 @@ public sealed partial class RenderSystem
     private static IRenderPass PrepareRender(ushort viewID, RenderTarget target, CameraClearMode clearMode,
         Color clearColor, Vector4 viewport, Matrix4x4 cameraTransform, Matrix4x4 projection)
     {
+        if(Instance.transientBuffers.TryGetValue(viewID, out var entries))
+        {
+            foreach(var item in entries)
+            {
+                item.Value.Clear();
+            }
+        }
+
         unsafe
         {
             Matrix4x4.Invert(cameraTransform, out var view);
@@ -663,6 +721,116 @@ public sealed partial class RenderSystem
         }
 
         return c.Pop();
+    }
+
+    internal void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, ushort viewID, RenderState state)
+        where T : unmanaged
+    {
+        if(layout == null)
+        {
+            return;
+        }
+
+        var size = Marshal.SizeOf<T>();
+
+        if(size % layout.Stride != 0)
+        {
+            return;
+        }
+
+        if (transientBuffers.TryGetValue(viewID, out var transientData) == false)
+        {
+            transientData = [];
+
+            transientBuffers.Add(viewID, transientData);
+        }
+
+        if(transientData.TryGetValue(layout, out var entry) == false)
+        {
+            entry = new();
+
+            transientData.Add(layout, entry);
+        }
+
+        var vertexArray = new byte[size * vertices.Length];
+
+        unsafe
+        {
+            fixed(void *ptr = vertexArray)
+            {
+                var target = new Span<T>(ptr, vertices.Length);
+
+                vertices.CopyTo(target);
+            }
+        }
+
+        entry.vertices.AddRange(vertexArray);
+
+        entry.indices.AddRange(indices);
+
+        state.startVertex = entry.startVertex;
+        state.startIndex = entry.startIndex;
+        state.indexCount = indices.Length;
+
+        entry.drawCalls.Add(state);
+
+        entry.startVertex += vertices.Length;
+        entry.startIndex += indices.Length;
+    }
+
+    internal void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, ushort viewID, RenderState state)
+        where T : unmanaged
+    {
+        if (layout == null)
+        {
+            return;
+        }
+
+        var size = Marshal.SizeOf<T>();
+
+        if (size % layout.Stride != 0)
+        {
+            return;
+        }
+
+        if (transientBuffers.TryGetValue(viewID, out var transientData) == false)
+        {
+            transientData = [];
+
+            transientBuffers.Add(viewID, transientData);
+        }
+
+        if (transientData.TryGetValue(layout, out var entry) == false)
+        {
+            entry = new();
+
+            transientData.Add(layout, entry);
+        }
+
+        var vertexArray = new byte[size * vertices.Length];
+
+        unsafe
+        {
+            fixed (void* ptr = vertexArray)
+            {
+                var target = new Span<T>(ptr, vertices.Length);
+
+                vertices.CopyTo(target);
+            }
+        }
+
+        entry.vertices.AddRange(vertexArray);
+
+        entry.uintIndices.AddRange(indices);
+
+        state.startVertex = entry.startVertex;
+        state.startIndex = entry.startIndexUInt;
+        state.indexCount = indices.Length;
+
+        entry.uintDrawCalls.Add(state);
+
+        entry.startVertex += vertices.Length;
+        entry.startIndexUInt += indices.Length;
     }
 
     #endregion

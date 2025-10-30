@@ -37,7 +37,7 @@ End Instancing
 Begin Common
 
 /*
-[[vk::binding(1, StapleUniformBufferSet)]]
+[[vk::binding(StapleBufferIndexCount, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
 	float3 viewPosition;

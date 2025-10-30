@@ -2,48 +2,67 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 
 namespace Staple.Internal;
 
-internal class SDLGPURendererBackend : IRendererBackend
+internal partial class SDLGPURendererBackend : IRendererBackend
 {
-    private int renderPassReferences;
-    private readonly Lock renderPassReferenceLock = new();
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    internal struct StapleRenderData
+    {
+        public Matrix4x4 world;
+        public Matrix4x4 view;
+        public Matrix4x4 projection;
+        public float time;
+    }
 
-    private nint device;
+    internal class BufferResource
+    {
+        public nint buffer;
+        public nint transferBuffer;
+
+        public RenderBufferFlags flags;
+
+        public int length;
+
+        public bool used = false;
+    }
+
+    internal class ViewData
+    {
+        public RenderTarget renderTarget;
+        public CameraClearMode clearMode;
+        public Color clearColor;
+        public Vector4 viewport;
+
+        public StapleRenderData renderData;
+    }
+
+    internal Vector2Int renderSize;
+
+    internal nint device;
+    internal nint commandBuffer;
+    internal nint renderPass;
+    internal nint copyPass;
+
+    internal nint swapchainTexture;
+    internal int swapchainWidth;
+    internal int swapchainHeight;
+    internal ITexture depthTexture;
+
+    internal readonly ViewData viewData = new();
+
     private SDL3RenderWindow window;
     private readonly Dictionary<int, nint> graphicsPipelines = [];
     private readonly Dictionary<TextureFlags, nint> textureSamplers = [];
-    private Vector2Int renderSize;
-    private ITexture depthTexture;
     private bool needsDepthTextureUpdate = false;
+    private readonly List<IRenderCommand> commands = [];
 
-    private nint commandBuffer;
-    private nint swapchainTexture;
-    private int swapchainWidth;
-    private int swapchainHeight;
-
-    private readonly List<Action> pendingResourceUpdates = [];
-
-    public bool CanUpdateResources
-    {
-        get
-        {
-            lock(renderPassReferenceLock)
-            {
-                return renderPassReferences == 0;
-            }
-        }
-    }
-
-    public bool TryGetCommandBuffer(out nint buffer)
-    {
-        buffer = commandBuffer;
-
-        return commandBuffer != nint.Zero;
-    }
+    private readonly BufferResource[] vertexBuffers = new BufferResource[ushort.MaxValue - 1];
+    private readonly BufferResource[] indexBuffers = new BufferResource[ushort.MaxValue - 1];
 
     public bool SupportsTripleBuffering => SDL.SDL_WindowSupportsGPUPresentMode(device, window.window,
         SDL.SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_MAILBOX);
@@ -248,11 +267,23 @@ internal class SDLGPURendererBackend : IRendererBackend
 
             textureSamplers.Clear();
 
+            foreach(var resource in vertexBuffers)
+            {
+                ReleaseBufferResource(resource);
+            }
+
+            foreach (var resource in indexBuffers)
+            {
+                ReleaseBufferResource(resource);
+            }
+
             depthTexture?.Destroy();
 
             depthTexture = null;
 
             needsDepthTextureUpdate = true;
+
+            SDL.SDL_ReleaseWindowFromGPUDevice(device, window.window);
 
             SDL.SDL_DestroyGPUDevice(device);
 
@@ -262,13 +293,6 @@ internal class SDLGPURendererBackend : IRendererBackend
 
     public void BeginFrame()
     {
-        if(commandBuffer != nint.Zero)
-        {
-            SDL.SDL_SubmitGPUCommandBuffer(commandBuffer);
-
-            commandBuffer = nint.Zero;
-        }
-
         if(window.window == nint.Zero)
         {
             return;
@@ -294,24 +318,21 @@ internal class SDLGPURendererBackend : IRendererBackend
         swapchainWidth = (int)w;
         swapchainHeight = (int)h;
 
-        UpdateDepthTextureIfNeeded();
+        UpdateDepthTextureIfNeeded(false);
     }
 
     public void EndFrame()
     {
-        lock(renderPassReferenceLock)
+        foreach(var command in commands)
         {
-            while(pendingResourceUpdates.Count > 0)
-            {
-                var first = pendingResourceUpdates[0];
-
-                pendingResourceUpdates.RemoveAt(0);
-
-                first?.Invoke();
-            }
+            command.Update(this);
         }
 
-        if(commandBuffer != nint.Zero)
+        FinishPasses();
+
+        commands.Clear();
+
+        if (commandBuffer != nint.Zero)
         {
             SDL.SDL_SubmitGPUCommandBuffer(commandBuffer);
 
@@ -319,9 +340,9 @@ internal class SDLGPURendererBackend : IRendererBackend
         }
     }
 
-    private void UpdateDepthTextureIfNeeded()
+    internal void UpdateDepthTextureIfNeeded(bool force)
     {
-        if(needsDepthTextureUpdate == false ||
+        if((needsDepthTextureUpdate == false && force == false) ||
             swapchainWidth == 0 ||
             swapchainHeight == 0 ||
             DepthStencilFormat.HasValue == false)
@@ -336,215 +357,27 @@ internal class SDLGPURendererBackend : IRendererBackend
         depthTexture = CreateEmptyTexture(swapchainWidth, swapchainHeight, DepthStencilFormat.Value, TextureFlags.DepthStencilTarget);
     }
 
-    public void PushRenderPassReference()
+    public void FinishPasses()
     {
-        lock(renderPassReferenceLock)
+        if(copyPass != nint.Zero)
         {
-            renderPassReferences++;
+            SDL.SDL_EndGPUCopyPass(copyPass);
+
+            copyPass = nint.Zero;
+        }
+
+        if(renderPass != nint.Zero)
+        {
+            SDL.SDL_EndGPURenderPass(renderPass);
+
+            renderPass = nint.Zero;
         }
     }
 
-    public void PopRenderPassReference()
+    public void BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
+        in Matrix4x4 view, in Matrix4x4 projection)
     {
-        lock (renderPassReferenceLock)
-        {
-            renderPassReferences--;
-
-            if (renderPassReferences < 0)
-            {
-                Log.Error($"[Rendering] Render pass references reached a negative value! Are you ensuring you're pushing the same amount as you pop?");
-
-                renderPassReferences = 0;
-            }
-        }
-    }
-
-    public void QueueRenderUpdate(Action update)
-    {
-        lock(renderPassReferenceLock)
-        {
-            pendingResourceUpdates.Add(update);
-        }
-    }
-
-    public static void ReportResourceUnavailability()
-    {
-        Log.Error($"Unable to update a resource. Resources can only be updated outside of a rendering phase!\n{Environment.StackTrace}");
-    }
-
-    public IRenderPass BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
-        Matrix4x4 view, Matrix4x4 projection)
-    {
-        if(CanUpdateResources)
-        {
-            foreach(var pair in ResourceManager.instance.userCreatedMeshes)
-            {
-                if(pair.TryGetTarget(out var mesh) == false)
-                {
-                    continue;
-                }
-
-                mesh.UploadMeshData();
-            }
-        }
-
-        if (commandBuffer == nint.Zero)
-        {
-            return null;
-        }
-
-        var texture = nint.Zero;
-        var width = 0;
-        var height = 0;
-
-        SDLGPUTexture depthTexture = null;
-
-        if (target == null)
-        {
-            texture = swapchainTexture;
-            width = swapchainWidth;
-            height = swapchainHeight;
-
-            depthTexture = this.depthTexture as SDLGPUTexture;
-
-            if (depthTexture is not SDLGPUTexture)
-            {
-                needsDepthTextureUpdate = true;
-
-                UpdateDepthTextureIfNeeded();
-
-                if (this.depthTexture is not SDLGPUTexture depth)
-                {
-                    return null;
-                }
-
-                depthTexture = depth;
-            }
-
-            if (depthTexture?.Disposed ?? true)
-            {
-                return null;
-            }
-        }
-        else
-        {
-            //TODO: texture
-
-            width = target.width;
-            height = target.height;
-
-            return null;
-        }
-
-        if (texture == nint.Zero ||
-            (depthTexture?.Disposed ?? true))
-        {
-            return null;
-        }
-
-        var colorTarget = new SDL.SDL_GPUColorTargetInfo()
-        {
-            clear_color = new()
-            {
-                r = clearColor.r,
-                g = clearColor.g,
-                b = clearColor.b,
-                a = clearColor.a,
-            },
-            load_op = clear switch
-            {
-                CameraClearMode.None or CameraClearMode.Depth => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
-                _ => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
-            },
-            store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
-            texture = texture,
-        };
-
-        var depthTarget = new SDL.SDL_GPUDepthStencilTargetInfo()
-        {
-            clear_depth = 1,
-            load_op = clear switch
-            {
-                CameraClearMode.None => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
-                _ => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
-            },
-            store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
-            texture = depthTexture.texture,
-        };
-
-        var renderPass = SDL.SDL_BeginGPURenderPass(commandBuffer, [colorTarget], 1, in depthTarget);
-
-        if (renderPass == nint.Zero)
-        {
-            return null;
-        }
-
-        var viewportData = new SDL.SDL_GPUViewport()
-        {
-            x = (int)(viewport.X * width),
-            y = (int)(viewport.Y * height),
-            w = (int)(viewport.Z * width),
-            h = (int)(viewport.W * height),
-            min_depth = 0,
-            max_depth = 1,
-        };
-
-        SDL.SDL_SetGPUViewport(renderPass, in viewportData);
-
-        PushRenderPassReference();
-
-        return new SDLGPURenderPass(commandBuffer, renderPass, view, projection, this);
-    }
-
-    public VertexBuffer CreateVertexBuffer(Span<byte> data, VertexLayout layout, RenderBufferFlags flags)
-    {
-        if(layout == null || data.Length == 0)
-        {
-            return null;
-        }
-
-        var outValue = new SDLGPUVertexBuffer(device, flags, layout, this);
-
-        outValue.Update(data);
-
-        return outValue.Valid ? outValue : null;
-    }
-
-    public VertexBuffer CreateVertexBuffer<T>(Span<T> data, VertexLayout layout, RenderBufferFlags flags) where T: unmanaged
-    {
-        if (layout == null || data.Length == 0)
-        {
-            return null;
-        }
-
-        var outValue = new SDLGPUVertexBuffer(device, flags, layout, this);
-
-        outValue.Update(data);
-
-        return outValue.Valid ? outValue : null;
-    }
-
-    public IndexBuffer CreateIndexBuffer(Span<ushort> data, RenderBufferFlags flags)
-    {
-        var outValue = new SDLGPUIndexBuffer(device, flags, this);
-
-        outValue.Update(data);
-
-        return outValue.Valid ? outValue : null;
-    }
-
-    public IndexBuffer CreateIndexBuffer(Span<uint> data, RenderBufferFlags flags)
-    {
-        var outValue = new SDLGPUIndexBuffer(device, flags, this);
-
-        outValue.Update(data);
-
-        return outValue.Valid ? outValue : null;
-    }
-
-    public VertexLayoutBuilder CreateVertexLayoutBuilder()
-    {
-        return new SDLGPUVertexLayoutBuilder();
+        commands.Add(new SDLGPUBeginRenderPassCommand(target, clear, clearColor, viewport, view, projection));
     }
 
     public IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
@@ -789,10 +622,9 @@ internal class SDLGPURendererBackend : IRendererBackend
         return sampler;
     }
 
-    public void Render(IRenderPass pass, RenderState state)
+    public void Render(RenderState state)
     {
-        if(pass is not SDLGPURenderPass renderPass ||
-            state.program is not SDLGPUShaderProgram shader ||
+        if(state.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment ||
             state.vertexBuffer is not SDLGPUVertexBuffer vertex ||
             vertex.layout is not SDLGPUVertexLayout vertexLayout ||
@@ -989,56 +821,7 @@ internal class SDLGPURendererBackend : IRendererBackend
             return;
         }
 
-        renderPass.BindPipeline(pipeline);
-
-        var vertexBinding = new SDL.SDL_GPUBufferBinding()
-        {
-            buffer = vertex.buffer,
-        };
-
-        var indexBinding = new SDL.SDL_GPUBufferBinding()
-        {
-            buffer = index.buffer,
-        };
-
-        var scissor = new SDL.SDL_Rect();
-
-        if(state.scissor != default)
-        {
-            scissor = new()
-            {
-                x = state.scissor.left,
-                y = state.scissor.top,
-                w = state.scissor.Width,
-                h = state.scissor.Height,
-            };
-        }
-        else
-        {
-            scissor = new()
-            {
-                w = renderSize.X,
-                h = renderSize.Y,
-            };
-        }
-
-        SDL.SDL_SetGPUScissor(renderPass.renderPass, in scissor);
-
-        SDL.SDL_BindGPUVertexBuffers(renderPass.renderPass, 0, [vertexBinding], 1);
-
-        SDL.SDL_BindGPUIndexBuffer(renderPass.renderPass, in indexBinding, index.Is32Bit ?
-            SDL.SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_32BIT :
-            SDL.SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_16BIT);
-
-        if(samplers != null)
-        {
-            SDL.SDL_BindGPUFragmentSamplers(renderPass.renderPass, 0, samplers.AsSpan(), (uint)samplers.Length);
-        }
-
-        renderPass.ApplyBuiltinUniforms(in state.world);
-
-        SDL.SDL_DrawGPUIndexedPrimitives(renderPass.renderPass, (uint)state.indexCount, 1,
-            (uint)state.startIndex, state.startVertex, 0);
+        commands.Add(new SDLGPURenderCommand(state, pipeline, samplers));
     }
 
     public ITexture CreateTextureAssetTexture(SerializableTexture asset, TextureFlags flags)

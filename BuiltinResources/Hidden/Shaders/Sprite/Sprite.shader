@@ -17,7 +17,7 @@ End Input
 Begin Common
 
 /*
-[[vk::binding(1, StapleUniformBufferSet)]]
+[[vk::binding(StapleBufferIndexCount, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
 	float4 mainColor;

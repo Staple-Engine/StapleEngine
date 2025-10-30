@@ -87,7 +87,6 @@
 	  <PackageReference Include="Evergine.Bindings.KTX" Version="2025.10.14.32" />
 	</ItemGroup>
 	<ItemGroup>
-	  <ProjectReference Include="..\Staple.Assimp\Staple.Assimp.csproj" />
 	  <ProjectReference Include="..\Staple.OBJ\Staple.OBJ.csproj" />
 	  <ProjectReference Include="..\Staple.SharpGLTF\Staple.SharpGLTF.csproj" />
 	  <ProjectReference Include="..\Staple.UFBX\Staple.UFBX.csproj" />
