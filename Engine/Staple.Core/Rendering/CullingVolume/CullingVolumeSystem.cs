@@ -9,15 +9,11 @@ public sealed class CullingVolumeSystem : IRenderSystem
     public Type RelatedComponent => typeof(CullingVolume);
 
     #region Lifecycle
-    public void ClearRenderData(ushort viewID)
-    {
-    }
-
     public void Prepare()
     {
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
@@ -29,7 +25,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
     {
     }
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
     }
     #endregion

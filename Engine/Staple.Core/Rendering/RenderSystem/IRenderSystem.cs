@@ -11,7 +11,7 @@ public interface IRenderSystem
 {
     /// <summary>
     /// Whether this render system uses its own render process.
-    /// It will not be given its own view ID and should ignore the <see cref="Process"/> and <see cref="Submit(ushort)"/> viewID parameter.
+    /// It will be rendered after all other render systems.
     /// </summary>
     bool UsesOwnRenderProcess { get; }
 
@@ -22,7 +22,7 @@ public interface IRenderSystem
 
     /// <summary>
     /// Prepares the render system for rendering.
-    /// Called before entities are processed for the current render view.
+    /// Called before entities are processed.
     /// </summary>
     void Prepare();
 
@@ -42,20 +42,12 @@ public interface IRenderSystem
     /// <param name="entities">A list of all entities, transforms, and the related component</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
-    /// <param name="viewID">The current view ID</param>
-    void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID);
+    void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform);
 
     /// <summary>
-    /// Submits all rendering commands for a specific view to the renderer
+    /// Submits all rendering commands to the renderer
     /// </summary>
-    /// <param name="viewID">The view ID</param>
-    void Submit(ushort viewID);
-
-    /// <summary>
-    /// Instructs the render system to clear any cached render data for a specific view ID
-    /// </summary>
-    /// <param name="viewID">The view ID</param>
-    void ClearRenderData(ushort viewID);
+    void Submit();
 
     /// <summary>
     /// Called when this render system starts up

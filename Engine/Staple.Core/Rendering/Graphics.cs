@@ -21,11 +21,10 @@ namespace Staple
         /// <param name="transform">The transform for the model</param>
         /// <param name="topology">The geometry topology</param>
         /// <param name="lighting">What kind of lighting to apply</param>
-        /// <param name="viewID">The bgfx view ID to render to</param>
         /// <param name="materialSetupCallback">A callback to setup the material. If it's not set, the default behaviour will be used</param>
         public static void RenderGeometry(VertexBuffer vertex, IndexBuffer index,
             int startVertex, int startIndex, int indexCount, Material material,
-            Vector3 position, Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, ushort viewID,
+            Vector3 position, Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting,
             Action materialSetupCallback = null)
         {
             if(vertex == null ||
@@ -80,12 +79,12 @@ namespace Staple
 
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                RenderSystem.Submit(viewID, renderState, Mesh.TriangleCount(topology, indexCount), 1);
+                RenderSystem.Submit(renderState, Mesh.TriangleCount(topology, indexCount), 1);
             }
         }
 
         public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, Material material, Vector3 position,
-            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, ushort viewID, Action materialSetupCallback = null)
+            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, Action materialSetupCallback = null)
             where T: unmanaged
         {
             if (vertices.Length == 0||
@@ -128,11 +127,11 @@ namespace Staple
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-            RenderSystem.Instance.RenderSimple(vertices, layout, indices, viewID, renderState);
+            RenderSystem.Instance.RenderSimple(vertices, layout, indices, renderState);
         }
 
         public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, Material material, Vector3 position,
-            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, ushort viewID, Action materialSetupCallback = null)
+            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, Action materialSetupCallback = null)
             where T : unmanaged
         {
             if (vertices.Length == 0 ||
@@ -175,7 +174,7 @@ namespace Staple
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-            RenderSystem.Instance.RenderSimple(vertices, layout, indices, viewID, renderState);
+            RenderSystem.Instance.RenderSimple(vertices, layout, indices, renderState);
         }
     }
 }

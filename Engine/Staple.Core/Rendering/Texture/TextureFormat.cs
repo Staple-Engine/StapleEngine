@@ -84,6 +84,5 @@ public enum TextureFormat
     D24,
     D24S8,
     D32S8,
-    D24F,
     D32F,
 }

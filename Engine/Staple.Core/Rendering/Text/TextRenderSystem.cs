@@ -20,7 +20,7 @@ public class TextRenderSystem : IRenderSystem
 
     private Material material;
 
-    private readonly Dictionary<ushort, List<TextInfo>> texts = [];
+    private readonly List<TextInfo> texts = [];
 
     public bool UsesOwnRenderProcess => false;
 
@@ -33,11 +33,6 @@ public class TextRenderSystem : IRenderSystem
     public void Shutdown()
     {
         material?.Destroy();
-    }
-
-    public void ClearRenderData(ushort viewID)
-    {
-        texts.Remove(viewID);
     }
 
     public void Prepare()
@@ -59,18 +54,9 @@ public class TextRenderSystem : IRenderSystem
     {
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        if(texts.TryGetValue(viewID, out var container) == false)
-        {
-            container = [];
-
-            texts.Add(viewID, container);
-        }
-        else
-        {
-            container.Clear();
-        }
+        texts.Clear();
 
         foreach (var (_, transform, relatedComponent) in entities)
         {
@@ -86,7 +72,7 @@ public class TextRenderSystem : IRenderSystem
                 text.fontSize = 4;
             }
 
-            container.Add(new TextInfo()
+            texts.Add(new TextInfo()
             {
                 text = text.text,
                 fontSize = text.fontSize,
@@ -97,22 +83,17 @@ public class TextRenderSystem : IRenderSystem
         }
     }
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
         if (material == null)
         {
             return;
         }
 
-        if (texts.TryGetValue(viewID, out var container) == false)
-        {
-            return;
-        }
-
-        foreach (var text in container)
+        foreach (var text in texts)
         {
             TextRenderer.instance.DrawText(text.text, text.transform.Matrix, new TextParameters().Font(text.fontAsset).FontSize(text.fontSize),
-                material, text.scale, false, viewID);
+                material, text.scale, false);
         }
     }
 }

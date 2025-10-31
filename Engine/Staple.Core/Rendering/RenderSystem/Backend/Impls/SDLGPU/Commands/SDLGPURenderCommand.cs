@@ -16,8 +16,10 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.SDL_GPU
             state.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment ||
             state.vertexBuffer is not SDLGPUVertexBuffer vertex ||
+            backend.TryGetVertexBuffer(vertex.handle, out var vertexBuffer) == false ||
             vertex.layout is not SDLGPUVertexLayout vertexLayout ||
-            state.indexBuffer is not SDLGPUIndexBuffer index)
+            state.indexBuffer is not SDLGPUIndexBuffer index ||
+            backend.TryGetIndexBuffer(index.handle, out var indexBuffer) == false)
         {
             return;
         }
@@ -33,12 +35,12 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.SDL_GPU
 
         var vertexBinding = new SDL.SDL_GPUBufferBinding()
         {
-            buffer = vertex.buffer,
+            buffer = vertexBuffer.buffer,
         };
 
         var indexBinding = new SDL.SDL_GPUBufferBinding()
         {
-            buffer = index.buffer,
+            buffer = indexBuffer.buffer,
         };
 
         var scissor = new SDL.SDL_Rect();

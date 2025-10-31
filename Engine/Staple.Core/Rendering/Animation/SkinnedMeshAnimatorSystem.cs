@@ -21,10 +21,6 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
     {
     }
 
-    public void ClearRenderData(ushort viewID)
-    {
-    }
-
     public void Prepare()
     {
     }
@@ -33,18 +29,13 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
     {
     }
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
     }
     #endregion
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        if(viewID != RenderSystem.FirstCameraViewID && (Platform.IsEditor == false || viewID != RenderSystem.EditorSceneViewID))
-        {
-            return;
-        }
-
         foreach (var (entity, transform, relatedComponent) in entities)
         {
             var animator = relatedComponent as SkinnedMeshAnimator;

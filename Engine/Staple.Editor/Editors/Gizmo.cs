@@ -28,7 +28,7 @@ public static class Gizmo
 
         meshMaterial.MainColor = color;
 
-        MeshRenderSystem.RenderMesh(Mesh.Cube, position, rotation, scale, meshMaterial, MaterialLighting.Unlit, StapleEditor.WireframeView);
+        MeshRenderSystem.RenderMesh(Mesh.Cube, position, rotation, scale, meshMaterial, MaterialLighting.Unlit);
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public static class Gizmo
             wireCube.indices = wireCube.vertices.Select((x, xIndex) => xIndex).ToArray();
         }
 
-        MeshRenderSystem.RenderMesh(wireCube, position, rotation, scale, meshMaterial, MaterialLighting.Unlit, StapleEditor.WireframeView);
+        MeshRenderSystem.RenderMesh(wireCube, position, rotation, scale, meshMaterial, MaterialLighting.Unlit);
     }
     /// <summary>
     /// Shows a sphere
@@ -106,7 +106,7 @@ public static class Gizmo
 
         meshMaterial.MainColor = color;
 
-        MeshRenderSystem.RenderMesh(Mesh.Sphere, position, rotation, scale, meshMaterial, MaterialLighting.Unlit, StapleEditor.WireframeView);
+        MeshRenderSystem.RenderMesh(Mesh.Sphere, position, rotation, scale, meshMaterial, MaterialLighting.Unlit);
     }
 
     /// <summary>
@@ -129,7 +129,7 @@ public static class Gizmo
             wireSphere.MeshTopology = MeshTopology.LineStrip;
         }
 
-        MeshRenderSystem.RenderMesh(wireSphere, position, rotation, scale, meshMaterial, MaterialLighting.Unlit, StapleEditor.WireframeView);
+        MeshRenderSystem.RenderMesh(wireSphere, position, rotation, scale, meshMaterial, MaterialLighting.Unlit);
     }
 
     public static void Line(Vector3 from, Vector3 to, Color color)
@@ -143,7 +143,7 @@ public static class Gizmo
             .Build();
 
         Graphics.RenderSimple([from, to], lineLayout, [0, 1], meshMaterial, Vector3.Zero, Matrix4x4.Identity,
-            MeshTopology.Lines, MaterialLighting.Unlit, StapleEditor.WireframeView);
+            MeshTopology.Lines, MaterialLighting.Unlit);
     }
 
     public static void Lines(Span<Vector3> points, Span<ushort> indices, Color color)
@@ -157,7 +157,7 @@ public static class Gizmo
             .Build();
 
         Graphics.RenderSimple(points, lineLayout, indices, meshMaterial, Vector3.Zero, Matrix4x4.Identity,
-            MeshTopology.Lines, MaterialLighting.Unlit, StapleEditor.WireframeView);
+            MeshTopology.Lines, MaterialLighting.Unlit);
     }
 
     public static void Lines(Span<Vector3> points, Span<uint> indices, Color color)
@@ -171,6 +171,6 @@ public static class Gizmo
             .Build();
 
         Graphics.RenderSimple(points, lineLayout, indices, meshMaterial, Vector3.Zero, Matrix4x4.Identity,
-            MeshTopology.Lines, MaterialLighting.Unlit, StapleEditor.WireframeView);
+            MeshTopology.Lines, MaterialLighting.Unlit);
     }
 }

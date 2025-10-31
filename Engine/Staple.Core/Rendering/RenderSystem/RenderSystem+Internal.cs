@@ -69,19 +69,11 @@ public sealed partial class RenderSystem
     }
 
     /// <summary>
-    /// Contains lists of drawcalls per view ID
+    /// Contains lists of drawcalls for the drawcall interpolator
     /// </summary>
     internal class DrawBucket
     {
-        public Dictionary<ushort, List<DrawCall>> drawCalls = [];
-    }
-
-    /// <summary>
-    /// Contains information on a render pass
-    /// </summary>
-    internal class RenderPass
-    {
-        public IRenderPass pass;
+        public List<DrawCall> drawCalls = [];
     }
 
     internal static byte Priority = 1;
@@ -132,21 +124,6 @@ public sealed partial class RenderSystem
     private readonly SceneQuery<Transform> entityQuery = new();
 
     /// <summary>
-    /// Cached per-frame used view IDs
-    /// </summary>
-    private HashSet<ushort> usedViewIDs = [];
-
-    /// <summary>
-    /// Cached per-frame used view IDs (previous frame)
-    /// </summary>
-    private HashSet<ushort> previousUsedViewIDs = [];
-
-    /// <summary>
-    /// Contains all render passes
-    /// </summary>
-    private readonly Dictionary<ushort, Stack<RenderPass>> renderPasses = [];
-
-    /// <summary>
     /// The renderer backend
     /// </summary>
     internal static readonly IRendererBackend Backend = new SDLGPURendererBackend();
@@ -155,7 +132,7 @@ public sealed partial class RenderSystem
     /// Transient buffers allow per-frame rendering without the book-keeping of resource management
     /// </summary>
     /// <remarks>ViewID to Vertex Layout-specific sets</remarks>
-    private readonly Dictionary<ushort, Dictionary<VertexLayout, TransientEntry>> transientBuffers = [];
+    private readonly Dictionary<VertexLayout, TransientEntry> transientBuffers = [];
     #endregion
 
     #region Helpers
@@ -283,10 +260,6 @@ public sealed partial class RenderSystem
 
         RenderStats.Clear();
 
-        (previousUsedViewIDs, usedViewIDs) = (usedViewIDs, previousUsedViewIDs);
-
-        usedViewIDs.Clear();
-
         ClearCullingStates();
 
         foreach(var system in renderSystems)
@@ -315,25 +288,7 @@ public sealed partial class RenderSystem
                 continue;
             }
 
-            system.Submit(0);
-        }
-
-        previousUsedViewIDs.ExceptWith(usedViewIDs);
-
-        if (previousUsedViewIDs.Count > 0)
-        {
-            foreach (var viewID in previousUsedViewIDs)
-            {
-                foreach (var system in renderSystems)
-                {
-                    if(system.UsesOwnRenderProcess)
-                    {
-                        continue;
-                    }
-
-                    system.ClearRenderData(viewID);
-                }
-            }
+            system.Submit();
         }
     }
 
@@ -438,29 +393,16 @@ public sealed partial class RenderSystem
     #endregion
 
     #region Render Modes
-
     /// <summary>
     /// Update process for standard rendering
     /// </summary>
     private void UpdateStandard()
     {
-        CurrentViewID = 1;
-
         using var profiler = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
         foreach (var pair in renderQueue)
         {
-            RenderStandard(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, true, CurrentViewID++);
-        }
-
-        foreach(var pair in renderPasses)
-        {
-            while(pair.Value.Count > 0)
-            {
-                var pass = pair.Value.Pop();
-
-                pass?.pass.Finish();
-            }
+            RenderStandard(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, true);
         }
 
         foreach(var (_, transform) in entityQuery.Contents)
@@ -474,13 +416,11 @@ public sealed partial class RenderSystem
     /// </summary>
     private void UpdateAccumulator()
     {
-        CurrentViewID = 1;
-
         using var profiler = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
         foreach (var pair in renderQueue)
         {
-            RenderAccumulator(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2, CurrentViewID++);
+            RenderAccumulator(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2);
         }
 
         foreach (var (_, transform) in entityQuery.Contents)
@@ -490,8 +430,6 @@ public sealed partial class RenderSystem
 
         if (needsDrawCalls)
         {
-            CurrentViewID = 1;
-
             lock (lockObject)
             {
                 (currentDrawBucket, previousDrawBucket) = (previousDrawBucket, currentDrawBucket);
@@ -547,7 +485,7 @@ public sealed partial class RenderSystem
 
                                 if (renderable.isVisible)
                                 {
-                                    AddDrawCall(contents[j].Item1, contents[j].Item2, contents[j].Item3, renderable, CurrentViewID);
+                                    AddDrawCall(contents[j].Item1, contents[j].Item2, contents[j].Item3, renderable);
                                 }
                                 else
                                 {
@@ -556,18 +494,6 @@ public sealed partial class RenderSystem
                             }
                         }
                     }
-                }
-
-                CurrentViewID++;
-            }
-
-            foreach (var pair in renderPasses)
-            {
-                while (pair.Value.Count > 0)
-                {
-                    var pass = pair.Value.Pop();
-
-                    pass?.pass.Finish();
                 }
             }
         }
@@ -588,7 +514,7 @@ public sealed partial class RenderSystem
     /// <param name="entity">The camera's entity</param>
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
-    private static IRenderPass PrepareCamera(Entity entity, Camera camera, Transform cameraTransform)
+    private static void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform)
     {
         unsafe
         {
@@ -599,37 +525,28 @@ public sealed partial class RenderSystem
 
             camera.UpdateFrustum(view, projection);
 
-            return Backend.BeginRenderPass(null, camera.clearMode, camera.clearColor, camera.viewport,
-                view, projection);
+            Backend.BeginRenderPass(null, camera.clearMode, camera.clearColor, camera.viewport,
+                in view, in projection);
         }
     }
 
     /// <summary>
     /// Prepares to render for a specific view ID
     /// </summary>
-    /// <param name="viewID">The View ID</param>
     /// <param name="target">The render target, if any</param>
     /// <param name="clearMode">How to clear the target</param>
     /// <param name="clearColor">The color to clear if clearMode is <see cref="CameraClearMode.SolidColor"/></param>
     /// <param name="viewport">The viewport area to render to (normalized coordinates for x, y, width, height)</param>
     /// <param name="cameraTransform">The transform of the camera</param>
     /// <param name="projection">The projection matrix</param>
-    private static IRenderPass PrepareRender(ushort viewID, RenderTarget target, CameraClearMode clearMode,
+    private static void PrepareRender(RenderTarget target, CameraClearMode clearMode,
         Color clearColor, Vector4 viewport, Matrix4x4 cameraTransform, Matrix4x4 projection)
     {
-        if(Instance.transientBuffers.TryGetValue(viewID, out var entries))
-        {
-            foreach(var item in entries)
-            {
-                item.Value.Clear();
-            }
-        }
-
         unsafe
         {
             Matrix4x4.Invert(cameraTransform, out var view);
 
-            return Backend.BeginRenderPass(target, clearMode, clearColor, viewport, view, projection);
+            Backend.BeginRenderPass(target, clearMode, clearColor, viewport, view, projection);
         }
     }
 
@@ -640,19 +557,11 @@ public sealed partial class RenderSystem
     /// <param name="transform">The entity's transform</param>
     /// <param name="relatedComponent">The entity's related component</param>
     /// <param name="renderable">The entity's Renderable</param>
-    /// <param name="viewID">The current view ID</param>
-    private void AddDrawCall(Entity entity, Transform transform, IComponent relatedComponent, Renderable renderable, ushort viewID)
+    private void AddDrawCall(Entity entity, Transform transform, IComponent relatedComponent, Renderable renderable)
     {
         lock (lockObject)
         {
-            if (currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
-            {
-                drawCalls = [];
-
-                currentDrawBucket.drawCalls.Add(viewID, drawCalls);
-            }
-
-            drawCalls.Add(new()
+            currentDrawBucket.drawCalls.Add(new()
             {
                 entity = entity,
                 renderable = renderable,
@@ -664,29 +573,9 @@ public sealed partial class RenderSystem
         }
     }
 
-    internal static IRenderPass GetViewPass(ushort viewID)
+    internal static void Submit(RenderState state, int triangles, int instances)
     {
-        if (Instance.renderPasses.TryGetValue(viewID, out var c) == false ||
-            c.Count == 0)
-        {
-            return null;
-        }
-
-        return c.Peek().pass;
-    }
-
-    internal static void Submit(ushort viewID, RenderState state, int triangles, int instances)
-    {
-        var pass = GetViewPass(viewID);
-
-        if (pass == null)
-        {
-            Log.Debug($"Rendering: View ID {viewID} not set up - are you rendering at the right time?\n{Environment.StackTrace}");
-
-            return;
-        }
-
-        Backend.Render(pass, state);
+        Backend.Render(state);
 
         RenderStats.drawCalls++;
         RenderStats.triangleCount += triangles * instances;
@@ -697,33 +586,7 @@ public sealed partial class RenderSystem
         }
     }
 
-    internal void PushRenderPass(ushort viewID, IRenderPass pass)
-    {
-        if(renderPasses.TryGetValue(viewID, out var c) == false)
-        {
-            c = new();
-
-            renderPasses.Add(viewID, c);
-        }
-
-        c.Push(new()
-        {
-            pass = pass,
-        });
-    }
-
-    internal RenderPass PopRenderPass(ushort viewID)
-    {
-        if(renderPasses.TryGetValue(viewID, out var c) == false ||
-            c.Count == 0)
-        {
-            return null;
-        }
-
-        return c.Pop();
-    }
-
-    internal void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, ushort viewID, RenderState state)
+    internal void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
         where T : unmanaged
     {
         if(layout == null)
@@ -738,18 +601,14 @@ public sealed partial class RenderSystem
             return;
         }
 
-        if (transientBuffers.TryGetValue(viewID, out var transientData) == false)
-        {
-            transientData = [];
+        //TODO
+        return;
 
-            transientBuffers.Add(viewID, transientData);
-        }
-
-        if(transientData.TryGetValue(layout, out var entry) == false)
+        if(transientBuffers.TryGetValue(layout, out var entry) == false)
         {
             entry = new();
 
-            transientData.Add(layout, entry);
+            transientBuffers.Add(layout, entry);
         }
 
         var vertexArray = new byte[size * vertices.Length];
@@ -778,7 +637,7 @@ public sealed partial class RenderSystem
         entry.startIndex += indices.Length;
     }
 
-    internal void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, ushort viewID, RenderState state)
+    internal void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state)
         where T : unmanaged
     {
         if (layout == null)
@@ -793,18 +652,14 @@ public sealed partial class RenderSystem
             return;
         }
 
-        if (transientBuffers.TryGetValue(viewID, out var transientData) == false)
-        {
-            transientData = [];
+        //TODO
+        return;
 
-            transientBuffers.Add(viewID, transientData);
-        }
-
-        if (transientData.TryGetValue(layout, out var entry) == false)
+        if (transientBuffers.TryGetValue(layout, out var entry) == false)
         {
             entry = new();
 
-            transientData.Add(layout, entry);
+            transientBuffers.Add(layout, entry);
         }
 
         var vertexArray = new byte[size * vertices.Length];

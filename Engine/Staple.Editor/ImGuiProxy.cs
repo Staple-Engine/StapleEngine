@@ -15,7 +15,6 @@ namespace Staple.Editor;
 
 internal class ImGuiProxy
 {
-    public ushort viewID = 255;
     public ImGuiContextPtr ImGuiContext;
     public ImNodesContextPtr ImNodesContext;
     public ImPlotContextPtr ImPlotContext;
@@ -572,7 +571,7 @@ internal class ImGuiProxy
                 indexBuffer.Update(indices);
             }
 
-            RenderSystem.Instance.Render(viewID, null, CameraClearMode.None, StapleEditor.ClearColor, new(0, 0, 1, 1),
+            RenderSystem.Instance.Render(null, CameraClearMode.None, StapleEditor.ClearColor, new(0, 0, 1, 1),
                 Matrix4x4.Identity, ortho,
                 () =>
                 {
@@ -649,7 +648,7 @@ internal class ImGuiProxy
                                     world = Matrix4x4.Identity,
                                 };
 
-                                RenderSystem.Submit(viewID, state, (int)drawCmd.ElemCount / 3, 1);
+                                RenderSystem.Submit(state, (int)drawCmd.ElemCount / 3, 1);
                             }
                         }
 

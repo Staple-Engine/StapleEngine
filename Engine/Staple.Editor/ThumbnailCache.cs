@@ -227,7 +227,7 @@ internal class ThumbnailCache
 
                         var lightTransform = new Transform();
 
-                        renderTarget.Render(StapleEditor.MeshRenderView, () =>
+                        renderTarget.Render(() =>
                         {
                             LightSystem.OverrideLights = [(default, lightTransform, new Light()
                             {
@@ -238,15 +238,13 @@ internal class ThumbnailCache
                             LightSystem.OverrideAmbientColor = Color.Black;
 
                             RenderSystem.Instance.RenderEntity(default, camera, cameraTransform,
-                                tempEntity, tempEntity.GetComponent<Transform>(), false, StapleEditor.MeshRenderView);
+                                tempEntity, tempEntity.GetComponent<Transform>(), false);
 
                             LightSystem.OverrideLights = overrideLights;
                             LightSystem.OverrideAmbientColor = overrideAmbientColor;
-
-                            RenderSystem.Instance.ClearRenderData(StapleEditor.MeshRenderView);
                         });
 
-                        renderTarget.ReadTexture(StapleEditor.MeshRenderView, 0, (texture, data) =>
+                        renderTarget.ReadTexture(/*StapleEditor.MeshRenderView*/0, 0, (texture, data) =>
                         {
                             tempEntity.Destroy();
                             renderTarget.Destroy();
@@ -483,7 +481,7 @@ internal class ThumbnailCache
 
                         var lightTransform = new Transform();
 
-                        renderTarget.Render(StapleEditor.MeshRenderView, () =>
+                        renderTarget.Render(() =>
                         {
                             LightSystem.OverrideLights = [(default, lightTransform, new Light()
                             {
@@ -494,13 +492,13 @@ internal class ThumbnailCache
                             LightSystem.OverrideAmbientColor = Color.Black;
 
                             RenderSystem.Instance.RenderEntity(default, camera, cameraTransform,
-                                tempEntity, tempEntity.GetComponent<Transform>(), false, StapleEditor.MeshRenderView);
+                                tempEntity, tempEntity.GetComponent<Transform>(), false);
 
                             LightSystem.OverrideLights = overrideLights;
                             LightSystem.OverrideAmbientColor = overrideAmbientColor;
                         });
 
-                        renderTarget.ReadTexture(StapleEditor.MeshRenderView, 0, (texture, data) =>
+                        renderTarget.ReadTexture(/*StapleEditor.MeshRenderView*/0, 0, (texture, data) =>
                         {
                             tempEntity.Destroy();
                             renderTarget.Destroy();

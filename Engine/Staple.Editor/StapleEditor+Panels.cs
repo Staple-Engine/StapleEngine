@@ -944,10 +944,10 @@ internal partial class StapleEditor
                 {
                     for (var i = 0; i < Scene.SortedCameras.Length; i++)
                     {
-                        RenderTarget.SetActive((ushort)(i + 1), gameRenderTarget);
+                        RenderTarget.SetActive(gameRenderTarget);
                     }
 
-                    RenderTarget.SetActive(UICanvasSystem.UIViewID, gameRenderTarget);
+                    //RenderTarget.SetActive(UICanvasSystem.UIViewID, gameRenderTarget);
 
                     ExecuteGameViewHandler(() =>
                     {

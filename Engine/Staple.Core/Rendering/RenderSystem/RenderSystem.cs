@@ -10,16 +10,6 @@ namespace Staple.Internal;
 /// </summary>
 public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 {
-    /// <summary>
-    /// The ID of the first camera in the scene
-    /// </summary>
-    public const ushort FirstCameraViewID = 1;
-
-    /// <summary>
-    /// The ID of the editor scene view
-    /// </summary>
-    public const ushort EditorSceneViewID = 253;
-
     public SubsystemType type { get; } = SubsystemType.Update;
 
     /// <summary>
@@ -31,11 +21,6 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// Rendering statistics
     /// </summary>
     public static readonly RenderStats RenderStats = new();
-
-    /// <summary>
-    /// The current view ID that is being rendered
-    /// </summary>
-    public static ushort CurrentViewID { get; private set; }
 
     /// <summary>
     /// The current frame being rendered
@@ -110,21 +95,6 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     }
 
     /// <summary>
-    /// Clears the queued render data for a specific view ID
-    /// </summary>
-    /// <param name="viewID">The view ID to clear</param>
-    public void ClearRenderData(ushort viewID)
-    {
-        lock (lockObject)
-        {
-            foreach (var s in renderSystems)
-            {
-                s.ClearRenderData(viewID);
-            }
-        }
-    }
-
-    /// <summary>
     /// Renders to a specific view ID
     /// </summary>
     /// <param name="viewID">The view ID</param>
@@ -135,25 +105,12 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="cameraTransform">The transform of the camera</param>
     /// <param name="projection">The projection matrix</param>
     /// <param name="callback">A callback to render the content</param>
-    public void Render(ushort viewID, RenderTarget target, CameraClearMode clearMode,
+    public void Render(RenderTarget target, CameraClearMode clearMode,
         Color clearColor, Vector4 viewport, Matrix4x4 cameraTransform, Matrix4x4 projection, Action callback)
     {
-        usedViewIDs.Add(viewID);
-
-        var pass = PrepareRender(viewID, target, clearMode, clearColor, viewport, cameraTransform, projection);
-
-        if (pass == null)
-        {
-            return;
-        }
-
-        PushRenderPass(viewID, pass);
+        PrepareRender(target, clearMode, clearColor, viewport, cameraTransform, projection);
 
         callback?.Invoke();
-
-        pass.Finish();
-
-        PopRenderPass(viewID);
     }
 
     /// <summary>
@@ -164,22 +121,12 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="cameraTransform">The camera's transform</param>
     /// <param name="queue">The render queue for this camera</param>
     /// <param name="cull">Whether to cull invisible elements</param>
-    /// <param name="viewID">The view ID</param>
     public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        List<(IRenderSystem, List<(Entity, Transform, IComponent)>)> queue, bool cull, ushort viewID)
+        List<(IRenderSystem, List<(Entity, Transform, IComponent)>)> queue, bool cull)
     {
-        usedViewIDs.Add(viewID);
-
         CurrentCamera = (camera, cameraTransform);
 
-        var pass = PrepareCamera(cameraEntity, camera, cameraTransform);
-
-        if (pass == null)
-        {
-            return;
-        }
-
-        PushRenderPass(viewID, pass);
+        PrepareCamera(cameraEntity, camera, cameraTransform);
 
         var queueLength = queue.Count;
 
@@ -223,7 +170,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 }
             }
 
-            system.Process(CollectionsMarshal.AsSpan(content), camera, cameraTransform, viewID);
+            system.Process(CollectionsMarshal.AsSpan(content), camera, cameraTransform);
         }
 
         for (var i = 0; i < queueLength; i++)
@@ -235,12 +182,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 continue;
             }
 
-            system.Submit(viewID);
+            system.Submit();
         }
-
-        pass.Finish();
-
-        PopRenderPass(viewID);
     }
 
     /// <summary>
@@ -252,12 +195,9 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="entity">The entity to render</param>
     /// <param name="entityTransform">The transform of the entity to render</param>
     /// <param name="cull">Whether to cull invisible elements</param>
-    /// <param name="viewID">The view ID</param>
     public void RenderEntity(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        Entity entity, Transform entityTransform, bool cull, ushort viewID)
+        Entity entity, Transform entityTransform, bool cull)
     {
-        usedViewIDs.Add(viewID);
-
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
         var c = (CurrentCamera.Item1, CurrentCamera.Item2);
@@ -331,25 +271,14 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         Handle(entity, entityTransform);
 
-        var pass = PrepareCamera(cameraEntity, camera, cameraTransform);
-
-        if (pass == null)
-        {
-            return;
-        }
-
-        PushRenderPass(viewID, pass);
+        PrepareCamera(cameraEntity, camera, cameraTransform);
 
         foreach (var pair in systemQueues)
         {
-            pair.Key.Process(CollectionsMarshal.AsSpan(pair.Value), camera, cameraTransform, viewID);
+            pair.Key.Process(CollectionsMarshal.AsSpan(pair.Value), camera, cameraTransform);
 
-            pair.Key.Submit(viewID);
+            pair.Key.Submit();
         }
-
-        pass.Finish();
-
-        PopRenderPass(viewID);
 
         CurrentCamera = (c.Item1, c.Item2);
     }
@@ -360,11 +289,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="cameraEntity">The camera's entity</param>
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
-    /// <param name="viewID">The view ID</param>
-    public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
+    public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform)
     {
-        usedViewIDs.Add(viewID);
-
         CurrentCamera = (camera, cameraTransform);
 
         var systems = new List<IRenderSystem>();
@@ -388,64 +314,50 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         lock (lockObject)
         {
-            if (currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) && previousDrawBucket.drawCalls.TryGetValue(viewID, out var previousDrawCalls))
+            foreach (var call in currentDrawBucket.drawCalls)
             {
-                foreach (var call in drawCalls)
+                var previous = previousDrawBucket.drawCalls.Find(x => x.entity.Identifier == call.entity.Identifier);
+
+                if (call.renderable.isVisible)
                 {
-                    var previous = previousDrawCalls.Find(x => x.entity.Identifier == call.entity.Identifier);
+                    var currentPosition = call.position;
+                    var currentRotation = call.rotation;
+                    var currentScale = call.scale;
 
-                    if (call.renderable.isVisible)
+                    if (previous == null)
                     {
-                        var currentPosition = call.position;
-                        var currentRotation = call.rotation;
-                        var currentScale = call.scale;
+                        stagingTransform.LocalPosition = currentPosition;
+                        stagingTransform.LocalRotation = currentRotation;
+                        stagingTransform.LocalScale = currentScale;
+                    }
+                    else
+                    {
+                        var previousPosition = previous.position;
+                        var previousRotation = previous.rotation;
+                        var previousScale = previous.scale;
 
-                        if (previous == null)
-                        {
-                            stagingTransform.LocalPosition = currentPosition;
-                            stagingTransform.LocalRotation = currentRotation;
-                            stagingTransform.LocalScale = currentScale;
-                        }
-                        else
-                        {
-                            var previousPosition = previous.position;
-                            var previousRotation = previous.rotation;
-                            var previousScale = previous.scale;
+                        stagingTransform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
+                        stagingTransform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
+                        stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
+                    }
 
-                            stagingTransform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
-                            stagingTransform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
-                            stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
-                        }
-
-                        foreach (var system in systems)
+                    foreach (var system in systems)
+                    {
+                        if (call.relatedComponent.GetType() == system.RelatedComponent)
                         {
-                            if (call.relatedComponent.GetType() == system.RelatedComponent)
-                            {
-                                system.Process([(call.entity, stagingTransform, call.relatedComponent)],
-                                    camera, cameraTransform, viewID);
-                            }
+                            system.Process([(call.entity, stagingTransform, call.relatedComponent)],
+                                camera, cameraTransform);
                         }
                     }
                 }
             }
         }
 
-        var pass = PrepareCamera(cameraEntity, camera, cameraTransform);
-
-        if (pass == null)
-        {
-            return;
-        }
-
-        PushRenderPass(viewID, pass);
+        PrepareCamera(cameraEntity, camera, cameraTransform);
 
         foreach (var system in systems)
         {
-            system.Submit(viewID);
+            system.Submit();
         }
-
-        pass.Finish();
-
-        PopRenderPass(viewID);
     }
 }

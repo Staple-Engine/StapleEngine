@@ -29,7 +29,7 @@ public sealed class MeshRenderSystem : IRenderSystem
         public Matrix4x4[] transformMatrices = [];
     }
 
-    private readonly Dictionary<ushort, Dictionary<int, InstanceData>> instanceCache = [];
+    private readonly Dictionary<int, InstanceData> instanceCache = [];
 
     public bool UsesOwnRenderProcess => false;
 
@@ -58,9 +58,8 @@ public sealed class MeshRenderSystem : IRenderSystem
     /// <param name="scale">The scale of the mesh</param>
     /// <param name="material">The material to use</param>
     /// <param name="lighting">The lighting model to use</param>
-    /// <param name="viewID">The view ID to render to</param>
     public static void RenderMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material,
-        MaterialLighting lighting, ushort viewID)
+        MaterialLighting lighting)
     {
         if(mesh == null ||
             material == null ||
@@ -103,13 +102,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-            RenderSystem.Submit(viewID, renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
+            RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
         }
-    }
-
-    public void ClearRenderData(ushort viewID)
-    {
-        instanceCache.Remove(viewID);
     }
 
     public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
@@ -157,20 +151,11 @@ public sealed class MeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        if (instanceCache.TryGetValue(viewID, out var instance) == false)
+        foreach (var p in instanceCache)
         {
-            instance = [];
-
-            instanceCache.Add(viewID, instance);
-        }
-        else
-        {
-            foreach (var p in instance)
-            {
-                p.Value.instanceInfos.Clear();
-            }
+            p.Value.instanceInfos.Clear();
         }
 
         foreach (var (_, transform, relatedComponent) in entities)
@@ -202,24 +187,17 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if (instanceCache.TryGetValue(viewID, out var cache) == false)
-            {
-                cache = [];
-
-                instanceCache.Add(viewID, cache);
-            }
-
             var lighting = (renderer.overrideLighting ? renderer.lighting : renderer.mesh.meshAsset?.lighting) ?? renderer.lighting;
 
             void Add(Material material, int submeshIndex)
             {
                 var key = HashCode.Combine(renderer.mesh.Guid.GuidHash, material.Guid.GuidHash, lighting, submeshIndex);
 
-                if (cache.TryGetValue(key, out var meshCache) == false)
+                if (instanceCache.TryGetValue(key, out var meshCache) == false)
                 {
                     meshCache = new();
 
-                    cache.Add(key, meshCache);
+                    instanceCache.Add(key, meshCache);
                 }
 
                 meshCache.instanceInfos.Add(new()
@@ -250,31 +228,23 @@ public sealed class MeshRenderSystem : IRenderSystem
             }
         }
 
-        foreach (var pair in instanceCache)
+        foreach (var p in instanceCache)
         {
-            foreach (var p in pair.Value)
+            if(p.Value.instanceInfos.Length != p.Value.transformMatrices.Length)
             {
-                if(p.Value.instanceInfos.Length != p.Value.transformMatrices.Length)
-                {
-                    Array.Resize(ref p.Value.transformMatrices, p.Value.instanceInfos.Length);
-                }
+                Array.Resize(ref p.Value.transformMatrices, p.Value.instanceInfos.Length);
             }
         }
     }
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
-        if(instanceCache.TryGetValue(viewID, out var instance) == false)
-        {
-            return;
-        }
-
         Material lastMaterial = null;
         MaterialLighting lastLighting = MaterialLighting.Unlit;
         var lastInstances = 0;
         var forceDiscard = false;
 
-        foreach (var (_, contents) in instance)
+        foreach (var (_, contents) in instanceCache)
         {
             if (contents.instanceInfos.Length == 0)
             {
@@ -389,7 +359,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                     {
                         renderState.program = program;
 
-                        RenderSystem.Submit(viewID, renderState, renderData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
+                        RenderSystem.Submit(renderState, renderData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
                     }
                 }
             }

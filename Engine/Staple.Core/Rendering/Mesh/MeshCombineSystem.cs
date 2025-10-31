@@ -29,7 +29,7 @@ public sealed class MeshCombineSystem : IRenderSystem
         public Transform transform;
     }
 
-    private readonly Dictionary<ushort, ExpandableContainer<RenderInfo>> renderers = [];
+    private readonly ExpandableContainer<RenderInfo> renderers = new();
 
     #region Lifecycle
     public void Prepare()
@@ -275,18 +275,9 @@ public sealed class MeshCombineSystem : IRenderSystem
         }
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        if (renderers.TryGetValue(viewID, out var container) == false)
-        {
-            container = new();
-
-            renderers.Add(viewID, container);
-        }
-        else
-        {
-            container.Clear();
-        }
+        renderers.Clear();
 
         foreach (var (entity, transform, relatedComponent) in entities)
         {
@@ -297,7 +288,7 @@ public sealed class MeshCombineSystem : IRenderSystem
                 continue;
             }
 
-            container.Add(new()
+            renderers.Add(new()
             {
                 renderer = combine,
                 transform = transform,
@@ -305,28 +296,18 @@ public sealed class MeshCombineSystem : IRenderSystem
         }
     }
 
-    public void ClearRenderData(ushort viewID)
+    public void Submit()
     {
-        renderers.Remove(viewID);
-    }
-
-    public void Submit(ushort viewID)
-    {
-        if (renderers.TryGetValue(viewID, out var content) == false)
-        {
-            return;
-        }
-
         Material lastMaterial = null;
 
         var lastLighting = MaterialLighting.Unlit;
         var lastTopology = MeshTopology.Triangles;
 
-        var l = content.Length;
+        var l = renderers.Length;
 
         for (var i = 0; i < l; i++)
         {
-            var item = content.Contents[i];
+            var item = renderers.Contents[i];
 
             var renderer = item.renderer;
 
@@ -392,7 +373,7 @@ public sealed class MeshCombineSystem : IRenderSystem
 
                 renderState.program = program;
 
-                RenderSystem.Submit(viewID, renderState, mesh.SubmeshTriangleCount(0), 1);
+                RenderSystem.Submit(renderState, mesh.SubmeshTriangleCount(0), 1);
             }
         }
     }

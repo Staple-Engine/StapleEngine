@@ -20,10 +20,6 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
     {
     }
 
-    public void ClearRenderData(ushort viewID)
-    {
-    }
-
     public void Prepare()
     {
     }
@@ -32,13 +28,8 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
     {
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        if(viewID != RenderSystem.FirstCameraViewID)
-        {
-            return;
-        }
-
         foreach(var (entity, transform, relatedComponent) in entities)
         {
             if (relatedComponent is not SkinnedMeshAttachment attachment ||
@@ -89,7 +80,7 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
         }
     }
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
     }
 }

@@ -34,11 +34,6 @@ internal partial class StapleEditor
 
     private static Color PrefabColor = new Color32("#00CED1");
 
-    internal const int ClearView = 0;
-    internal const int MeshRenderView = 252;
-    internal const int SceneView = 253;
-    internal const int WireframeView = 253; //Can't use its own view
-
     #region Classes
     enum ViewportType
     {
@@ -855,7 +850,7 @@ internal partial class StapleEditor
                 return;
             }
 
-            RenderSystem.Instance.Render(ClearView, null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1), Matrix4x4.Identity,
+            RenderSystem.Instance.Render(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1), Matrix4x4.Identity,
                 Matrix4x4.Identity, null);
 
             io.DisplaySize = new Vector2(window.width, window.height);

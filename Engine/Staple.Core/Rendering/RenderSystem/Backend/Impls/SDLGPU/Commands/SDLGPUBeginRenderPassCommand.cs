@@ -62,7 +62,8 @@ internal class SDLGPUBeginRenderPassCommand(RenderTarget target, CameraClearMode
         }
 
         if (texture == nint.Zero ||
-            (depthTexture?.Disposed ?? true))
+            (depthTexture?.Disposed ?? true) ||
+            backend.TryGetTexture(depthTexture.handle, out var depthTextureResource) == false)
         {
             return;
         }
@@ -94,7 +95,7 @@ internal class SDLGPUBeginRenderPassCommand(RenderTarget target, CameraClearMode
                 _ => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
             },
             store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
-            texture = depthTexture.texture,
+            texture = depthTextureResource.texture,
         };
 
         backend.renderPass = SDL.SDL_BeginGPURenderPass(backend.commandBuffer, [colorTarget], 1, in depthTarget);

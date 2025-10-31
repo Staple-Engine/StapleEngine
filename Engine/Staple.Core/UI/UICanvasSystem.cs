@@ -9,8 +9,6 @@ namespace Staple.Internal;
 /// </summary>
 public class UICanvasSystem : IRenderSystem
 {
-    public const ushort UIViewID = 200;
-
     private static readonly MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
 
     private readonly SceneQuery<UICanvas> canvases = new();
@@ -30,10 +28,6 @@ public class UICanvasSystem : IRenderSystem
     {
     }
 
-    public void ClearRenderData(ushort viewID)
-    {
-    }
-
     public void Prepare()
     {
     }
@@ -42,16 +36,16 @@ public class UICanvasSystem : IRenderSystem
     {
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
     }
     #endregion
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
         var projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1);
 
-        RenderSystem.Instance.Render(UIViewID, null, CameraClearMode.None, Color.White, new(0, 0, 1, 1),
+        RenderSystem.Instance.Render(null, CameraClearMode.None, Color.White, new(0, 0, 1, 1),
             Matrix4x4.Identity, projection, () =>
             {
                 IsPointerOverUI = false;

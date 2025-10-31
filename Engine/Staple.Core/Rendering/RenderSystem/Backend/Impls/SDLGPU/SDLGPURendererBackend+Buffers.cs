@@ -12,6 +12,8 @@ internal partial class SDLGPURendererBackend
             return;
         }
 
+        SDL.SDL_WaitForGPUIdle(device);
+
         if (resource.transferBuffer != nint.Zero)
         {
             SDL.SDL_ReleaseGPUTransferBuffer(device, resource.transferBuffer);

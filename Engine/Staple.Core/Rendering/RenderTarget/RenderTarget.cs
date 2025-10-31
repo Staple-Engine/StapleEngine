@@ -76,9 +76,8 @@ public sealed class RenderTarget
     /// <summary>
     /// Renders with this render target
     /// </summary>
-    /// <param name="viewID">The view ID to use</param>
     /// <param name="renderCallback">A callback with render instrucitons</param>
-    public void Render(ushort viewID, Action renderCallback)
+    public void Render(Action renderCallback)
     {
         if(destroyed)
         {
@@ -91,7 +90,7 @@ public sealed class RenderTarget
         Screen.Width = width;
         Screen.Height = height;
 
-        SetActive(viewID);
+        SetActive();
 
         try
         {
@@ -99,7 +98,7 @@ public sealed class RenderTarget
         }
         catch(Exception e)
         {
-            Log.Debug($"[RenderTarget] While rendering view ID {viewID}: {e}");
+            Log.Debug($"[RenderTarget] While rendering: {e}");
         }
 
         Screen.Width = screenWidth;
@@ -107,10 +106,9 @@ public sealed class RenderTarget
     }
 
     /// <summary>
-    /// Sets this framebuffer as active for a view
+    /// Sets this framebuffer as active
     /// </summary>
-    /// <param name="viewID">The view ID</param>
-    internal void SetActive(ushort viewID)
+    internal void SetActive()
     {
         if(destroyed)
         {
@@ -203,14 +201,14 @@ public sealed class RenderTarget
     /// </summary>
     /// <param name="viewID">The view ID</param>
     /// <param name="target">The render target to set</param>
-    internal static void SetActive(ushort viewID, RenderTarget target)
+    internal static void SetActive(RenderTarget target)
     {
         if(target == null || target.destroyed)
         {
             return;
         }
 
-        target.SetActive(viewID);
+        //target.SetActive(viewID);
     }
 
     /// <summary>

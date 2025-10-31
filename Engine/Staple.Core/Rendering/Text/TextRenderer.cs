@@ -443,7 +443,7 @@ public class TextRenderer
         return outValue;
     }
 
-    public void DrawText(string text, Matrix4x4 transform, TextParameters parameters, Material material, float scale, bool flipY, ushort viewID)
+    public void DrawText(string text, Matrix4x4 transform, TextParameters parameters, Material material, float scale, bool flipY)
     {
         if(text == null)
         {

@@ -28,18 +28,13 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         public Transform transform;
     }
 
-    private readonly Dictionary<ushort, ExpandableContainer<RenderInfo>> renderers = [];
+    private readonly ExpandableContainer<RenderInfo> renderers = new();
 
     private readonly SceneQuery<SkinnedMeshInstance, Transform> instances = new();
 
     public bool UsesOwnRenderProcess => false;
 
     public Type RelatedComponent => typeof(SkinnedMeshRenderer);
-
-    public void ClearRenderData(ushort viewID)
-    {
-        renderers.Remove(viewID);
-    }
 
     public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
@@ -89,18 +84,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        if(renderers.TryGetValue(viewID, out var container) == false)
-        {
-            container = new();
-
-            renderers.Add(viewID, container);
-        }
-        else
-        {
-            container.Clear();
-        }
+        renderers.Clear();
 
         foreach (var (entity, transform, relatedComponent) in entities)
         {
@@ -153,7 +139,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 renderer.instance ??= new(entity, EntityQueryMode.Parent, false);
             }
 
-            container.Add(new()
+            renderers.Add(new()
             {
                 renderer = renderer,
                 transform = transform,
@@ -244,13 +230,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
-        if (renderers.TryGetValue(viewID, out var content) == false)
-        {
-            return;
-        }
-
         Material lastMaterial = null;
 
         var lastMeshAsset = 0;
@@ -259,11 +240,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
         var renderState = new RenderState();
 
-        var l = content.Length;
+        var l = renderers.Length;
 
         for (var i = 0; i < l; i++)
         {
-            var item = content.Contents[i];
+            var item = renderers.Contents[i];
 
             var renderer = item.renderer;
             var instance = renderer.instance.Content;
@@ -342,7 +323,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 renderState.readOnlyBuffers = [(SkinningBufferIndex, buffer)];
 
-                RenderSystem.Submit(viewID, renderState, renderer.mesh.SubmeshTriangleCount(j), 1);
+                RenderSystem.Submit(renderState, renderer.mesh.SubmeshTriangleCount(j), 1);
             }
         }
     }

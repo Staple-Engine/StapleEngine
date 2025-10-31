@@ -195,7 +195,7 @@ internal partial class StapleEditor
                         }
                     }
 
-                    pair.Key.Process(components.ToArray(), camera, cameraTransform, SceneView);
+                    pair.Key.Process(components.ToArray(), camera, cameraTransform);
                 }
                 catch (Exception e)
                 {
@@ -204,10 +204,11 @@ internal partial class StapleEditor
             }
         }
 
-        RenderSystem.Instance.Render(SceneView, null, CameraClearMode.Depth, ClearColor, new(0, 0, 1, 1),
+        RenderSystem.Instance.Render(null, CameraClearMode.Depth, ClearColor, new(0, 0, 1, 1),
             cameraTransform.Matrix, projection, () =>
             {
                 wireframeMaterial?.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
+
                 foreach (var pair in renderQueue.renderQueue)
                 {
                     var (components, renderables) = pair.Value;
@@ -219,7 +220,7 @@ internal partial class StapleEditor
 
                     try
                     {
-                        pair.Key.Submit(SceneView);
+                        pair.Key.Submit();
                     }
                     catch (Exception e)
                     {

@@ -31,6 +31,20 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         public bool used = false;
     }
 
+    internal class TextureResource
+    {
+        public nint texture;
+        public nint transferBuffer;
+        public TextureFormat format;
+        public TextureFlags flags;
+        public int width;
+        public int height;
+
+        public int length;
+
+        public bool used = false;
+    }
+
     internal class ViewData
     {
         public RenderTarget renderTarget;
@@ -63,6 +77,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     private readonly BufferResource[] vertexBuffers = new BufferResource[ushort.MaxValue - 1];
     private readonly BufferResource[] indexBuffers = new BufferResource[ushort.MaxValue - 1];
+    private readonly TextureResource[] textures = new TextureResource[ushort.MaxValue - 1];
 
     public bool SupportsTripleBuffering => SDL.SDL_WindowSupportsGPUPresentMode(device, window.window,
         SDL.SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_MAILBOX);
@@ -509,117 +524,13 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     public bool SupportsTextureFormat(TextureFormat format, TextureFlags flags)
     {
-        if(SDLGPUTexture.TryGetTextureFormat(format, flags, out var f) == false)
+        if(TryGetTextureFormat(format, flags, out var f) == false)
         {
             return false;
         }
 
-        return SDL.SDL_GPUTextureSupportsFormat(device, f, SDLGPUTexture.GetTextureType(flags),
-            SDLGPUTexture.GetTextureUsage(flags));
-    }
-
-    public nint GetSampler(TextureFlags flags)
-    {
-        if (textureSamplers.TryGetValue(flags, out var sampler) == false)
-        {
-            SDL.SDL_GPUSamplerAddressMode GetAddressModeU()
-            {
-                if (flags.HasFlag(TextureFlags.RepeatU))
-                {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
-                }
-
-                if (flags.HasFlag(TextureFlags.MirrorU))
-                {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-                }
-
-                if (flags.HasFlag(TextureFlags.ClampU))
-                {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-                }
-
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-            }
-
-            SDL.SDL_GPUSamplerAddressMode GetAddressModeV()
-            {
-                if (flags.HasFlag(TextureFlags.RepeatV))
-                {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
-                }
-
-                if (flags.HasFlag(TextureFlags.MirrorV))
-                {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-                }
-
-                if (flags.HasFlag(TextureFlags.ClampV))
-                {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-                }
-
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-            }
-
-            SDL.SDL_GPUSamplerAddressMode GetAddressModeW()
-            {
-                if (flags.HasFlag(TextureFlags.RepeatW))
-                {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
-                }
-
-                if (flags.HasFlag(TextureFlags.MirrorW))
-                {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
-                }
-
-                if (flags.HasFlag(TextureFlags.ClampW))
-                {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-                }
-
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-            }
-
-            var anisotropy = false;
-
-            if (flags.HasFlag(TextureFlags.AnisotropicFilter))
-            {
-                anisotropy = true;
-            }
-
-            var uMode = GetAddressModeU();
-            var vMode = GetAddressModeV();
-            var wMode = GetAddressModeW();
-
-            var magFilter = flags.HasFlag(TextureFlags.LinearFilter) ? SDL.SDL_GPUFilter.SDL_GPU_FILTER_LINEAR :
-                SDL.SDL_GPUFilter.SDL_GPU_FILTER_NEAREST;
-
-            var mipmapMode = flags.HasFlag(TextureFlags.LinearFilter) ? SDL.SDL_GPUSamplerMipmapMode.SDL_GPU_SAMPLERMIPMAPMODE_LINEAR :
-                SDL.SDL_GPUSamplerMipmapMode.SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
-
-            var info = new SDL.SDL_GPUSamplerCreateInfo()
-            {
-                address_mode_u = uMode,
-                address_mode_v = vMode,
-                address_mode_w = wMode,
-                enable_anisotropy = anisotropy,
-                mag_filter = magFilter,
-                min_filter = magFilter,
-                mipmap_mode = mipmapMode,
-                max_anisotropy = 16,
-            };
-
-            sampler = SDL.SDL_CreateGPUSampler(device, in info);
-
-            if (sampler != nint.Zero)
-            {
-                textureSamplers.Add(flags, sampler);
-            }
-        }
-
-        return sampler;
+        return SDL.SDL_GPUTextureSupportsFormat(device, f, GetTextureType(flags),
+            GetTextureUsage(flags));
     }
 
     public void Render(RenderState state)
@@ -638,7 +549,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         for (var i = 0; i < samplerCount; i++)
         {
             if (state.textures[i]?.impl is not SDLGPUTexture texture ||
-                texture.Disposed)
+                texture.Disposed ||
+                TryGetTexture(texture.handle, out _) == false)
             {
                 return;
             }
@@ -651,12 +563,13 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             for (var i = 0; i < samplers.Length; i++)
             {
                 if (state.textures[i]?.impl is not SDLGPUTexture texture ||
-                    texture.Disposed)
+                    texture.Disposed ||
+                    TryGetTexture(texture.handle, out var resource) == false)
                 {
                     return;
                 }
 
-                samplers[i].texture = texture.texture;
+                samplers[i].texture = resource.texture;
                 samplers[i].sampler = GetSampler(texture.flags);
             }
         }
@@ -664,7 +577,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         var depthStencilFormat = DepthStencilFormat;
 
         if(depthStencilFormat.HasValue == false ||
-            SDLGPUTexture.TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
+            TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
             out var sdlDepthFormat) == false)
         {
             sdlDepthFormat = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D24_UNORM;
@@ -822,99 +735,5 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
 
         commands.Add(new SDLGPURenderCommand(state, pipeline, samplers));
-    }
-
-    public ITexture CreateTextureAssetTexture(SerializableTexture asset, TextureFlags flags)
-    {
-        var format = asset.metadata.Format;
-
-        if (SDLGPUTexture.TryGetTextureFormat(format, flags, out var textureFormat) == false)
-        {
-            return null;
-        }
-
-        var info = new SDL.SDL_GPUTextureCreateInfo()
-        {
-            format = textureFormat,
-            width = (uint)asset.width,
-            height = (uint)asset.height,
-            type = SDLGPUTexture.GetTextureType(flags),
-            usage = SDLGPUTexture.GetTextureUsage(flags),
-            layer_count_or_depth = 1,
-            num_levels = 1,
-        };
-
-        var texture = SDL.SDL_CreateGPUTexture(device, in info);
-
-        if (texture == nint.Zero)
-        {
-            return null;
-        }
-
-        var outValue = new SDLGPUTexture(device, texture, asset.width, asset.height, format, flags, this);
-
-        outValue.Update(asset.data);
-
-        return outValue;
-    }
-
-    public ITexture CreatePixelTexture(byte[] data, int width, int height, TextureFormat format, TextureFlags flags)
-    {
-        if (SDLGPUTexture.TryGetTextureFormat(format, flags, out var textureFormat) == false)
-        {
-            return null;
-        }
-
-        var info = new SDL.SDL_GPUTextureCreateInfo()
-        {
-            format = textureFormat,
-            width = (uint)width,
-            height = (uint)height,
-            type = SDLGPUTexture.GetTextureType(flags),
-            usage = SDLGPUTexture.GetTextureUsage(flags),
-            layer_count_or_depth = 1,
-            num_levels = 1, //TODO: Support multiple levels
-        };
-
-        var texture = SDL.SDL_CreateGPUTexture(device, in info);
-
-        if (texture == nint.Zero)
-        {
-            return null;
-        }
-
-        var outValue = new SDLGPUTexture(device, texture, width, height, format, flags, this);
-
-        outValue.Update(data);
-
-        return outValue;
-    }
-
-    public ITexture CreateEmptyTexture(int width, int height, TextureFormat format, TextureFlags flags)
-    {
-        if(SDLGPUTexture.TryGetTextureFormat(format, flags, out var textureFormat) == false)
-        {
-            return null;
-        }
-
-        var info = new SDL.SDL_GPUTextureCreateInfo()
-        {
-            format = textureFormat,
-            width = (uint)width,
-            height = (uint)height,
-            type = SDLGPUTexture.GetTextureType(flags),
-            usage = SDLGPUTexture.GetTextureUsage(flags),
-            layer_count_or_depth = 1,
-            num_levels = 1,
-        };
-
-        var texture = SDL.SDL_CreateGPUTexture(device, in info);
-
-        if(texture == nint.Zero)
-        {
-            return null;
-        }
-
-        return new SDLGPUTexture(device, texture, width, height, format, flags, this);
     }
 }
