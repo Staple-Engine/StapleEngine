@@ -55,7 +55,7 @@ internal class SDLGPUUpdateTextureCommand(ResourceHandle<Texture> handle, byte[]
             return;
         }
 
-        var mapData = SDL.SDL_MapGPUTransferBuffer(backend.device, resource.transferBuffer, true);
+        var mapData = SDL.SDL_MapGPUTransferBuffer(backend.device, resource.transferBuffer, false);
 
         unsafe
         {
