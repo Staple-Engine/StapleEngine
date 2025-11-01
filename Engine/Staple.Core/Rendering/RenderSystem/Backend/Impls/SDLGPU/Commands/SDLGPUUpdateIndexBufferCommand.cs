@@ -31,7 +31,7 @@ internal class SDLGPUUpdateIndexBufferCommand(ResourceHandle<IndexBuffer> handle
                 buffer.buffer = nint.Zero;
             }
 
-            var usageFlags = SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_VERTEX;
+            var usageFlags = SDL.SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDEX;
 
             if (buffer.flags.HasFlag(RenderBufferFlags.GraphicsRead))
             {
@@ -95,7 +95,7 @@ internal class SDLGPUUpdateIndexBufferCommand(ResourceHandle<IndexBuffer> handle
             return;
         }
 
-        var mapData = SDL.SDL_MapGPUTransferBuffer(backend.device, buffer.transferBuffer, true);
+        var mapData = SDL.SDL_MapGPUTransferBuffer(backend.device, buffer.transferBuffer, false);
 
         unsafe
         {
@@ -122,6 +122,6 @@ internal class SDLGPUUpdateIndexBufferCommand(ResourceHandle<IndexBuffer> handle
             size = (uint)data.Length,
         };
 
-        SDL.SDL_UploadToGPUBuffer(backend.copyPass, in location, in region, true);
+        SDL.SDL_UploadToGPUBuffer(backend.copyPass, in location, in region, false);
     }
 }

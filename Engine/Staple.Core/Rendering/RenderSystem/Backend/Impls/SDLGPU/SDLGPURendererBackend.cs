@@ -290,6 +290,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 ReleaseBufferResource(resource);
             }
 
+            foreach(var resource in textures)
+            {
+                ReleaseTextureResource(resource);
+            }
+
             depthTexture?.Destroy();
 
             depthTexture = null;

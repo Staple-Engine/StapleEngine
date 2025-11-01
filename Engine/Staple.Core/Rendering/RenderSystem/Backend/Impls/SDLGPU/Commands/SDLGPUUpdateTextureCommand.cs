@@ -82,6 +82,6 @@ internal class SDLGPUUpdateTextureCommand(ResourceHandle<Texture> handle, byte[]
             d = 1,
         };
 
-        SDL.SDL_UploadToGPUTexture(backend.copyPass, in textureInfo, in destination, true);
+        SDL.SDL_UploadToGPUTexture(backend.copyPass, in textureInfo, in destination, false);
     }
 }

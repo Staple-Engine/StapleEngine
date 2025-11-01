@@ -95,7 +95,7 @@ internal class SDLGPUUpdateVertexBufferCommand(ResourceHandle<VertexBuffer> hand
             return;
         }
 
-        var mapData = SDL.SDL_MapGPUTransferBuffer(backend.device, buffer.transferBuffer, true);
+        var mapData = SDL.SDL_MapGPUTransferBuffer(backend.device, buffer.transferBuffer, false);
 
         unsafe
         {
@@ -122,6 +122,6 @@ internal class SDLGPUUpdateVertexBufferCommand(ResourceHandle<VertexBuffer> hand
             size = (uint)data.Length,
         };
 
-        SDL.SDL_UploadToGPUBuffer(backend.copyPass, in location, in region, true);
+        SDL.SDL_UploadToGPUBuffer(backend.copyPass, in location, in region, false);
     }
 }
