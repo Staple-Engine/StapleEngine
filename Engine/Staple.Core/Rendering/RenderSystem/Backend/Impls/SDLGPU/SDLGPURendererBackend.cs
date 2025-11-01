@@ -393,6 +393,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private readonly TextureResource[] textures = new TextureResource[ushort.MaxValue - 1];
 
     private bool iteratingCommands = false;
+    private int commandIndex;
 
     public bool SupportsTripleBuffering => SDL.SDL_WindowSupportsGPUPresentMode(device, window.window,
         SDL.SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_MAILBOX);
@@ -626,14 +627,15 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     private void AddCommand(IRenderCommand command)
     {
+        //If we're iterating, add the new command in front of the current one
         if(iteratingCommands)
         {
-            Log.Error($"[Rendering] Adding a command to the command list while iterating the list!");
-
-            return;
+            commands.Insert(commandIndex + 1, command);
         }
-
-        commands.Add(command);
+        else
+        {
+            commands.Add(command);
+        }
     }
 
     public void BeginFrame()
@@ -675,9 +677,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         iteratingCommands = true;
 
-        foreach (var command in commands)
+        for(var i = 0; i < commands.Count; i++)
         {
-            command.Update(this);
+            commandIndex = i;
+
+            commands[i].Update(this);
         }
 
         iteratingCommands = false;

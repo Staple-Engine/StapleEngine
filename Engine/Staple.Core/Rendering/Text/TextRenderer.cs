@@ -470,24 +470,10 @@ public class TextRenderer
 
         if (MakeTextGeometry(text, parameters, scale, flipY, out var vertices, out var indices))
         {
-            /*
-            if(VertexBuffer.TransientBufferHasSpace(vertices.Length, VertexLayout.Value) &&
-                IndexBuffer.TransientBufferHasSpace(indices.Length, false))
-            {
-                var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), VertexLayout.Value);
-                var indexBuffer = IndexBuffer.CreateTransient(indices);
+            material.MainTexture = font.Texture;
 
-                if(vertexBuffer == null || indexBuffer == null)
-                {
-                    return;
-                }
-
-                material.MainTexture = font.Texture;
-
-                Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length,
-                    material, Vector3.Zero, transform, MeshTopology.Triangles, MaterialLighting.Unlit, viewID);
-            }
-            */
+            Graphics.RenderSimple(vertices, VertexLayout.Value, indices, material, Vector3.Zero, transform, MeshTopology.Triangles,
+                MaterialLighting.Unlit);
         }
     }
 

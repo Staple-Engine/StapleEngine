@@ -31,16 +31,6 @@ public partial class UIPanel
         vertices[3].position = new(size.X, size.Y, 0);
         vertices[3].uv = new(1, 1);
 
-        /*
-        var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteUtils.VertexLayout.Value);
-
-        var indexBuffer = IndexBuffer.CreateTransient(indices);
-
-        if (vertexBuffer == null || indexBuffer == null)
-        {
-            return;
-        }
-
         var c = material.MainColor;
         var t = material.MainTexture;
 
@@ -50,13 +40,11 @@ public partial class UIPanel
         material.DisableShaderKeyword(Shader.SkinningKeyword);
         material.DisableShaderKeyword(Shader.InstancingKeyword);
 
-        Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, 4, 0, 6, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
-            Manager.ViewID);
+        Graphics.RenderSimple(vertices, SpriteUtils.VertexLayout.Value, indices, material, Vector3.Zero,
+            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit);
 
         material.MainColor = c;
         material.MainTexture = t;
-        */
     }
 
     /// <summary>
@@ -85,16 +73,6 @@ public partial class UIPanel
         vertices[3].position = new(size.X, size.Y, 0);
         vertices[3].uv = new(rect.right / (float)texture.Width, rect.bottom / (float)texture.Height);
 
-        /*
-        var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), SpriteUtils.VertexLayout.Value);
-
-        var indexBuffer = IndexBuffer.CreateTransient(indices);
-
-        if (vertexBuffer == null || indexBuffer == null)
-        {
-            return;
-        }
-
         var c = material.MainColor;
         var t = material.MainTexture;
 
@@ -104,13 +82,11 @@ public partial class UIPanel
         material.DisableShaderKeyword(Shader.SkinningKeyword);
         material.DisableShaderKeyword(Shader.InstancingKeyword);
 
-        Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, 4, 0, 6, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
-            Manager.ViewID);
+        Graphics.RenderSimple(vertices, SpriteUtils.VertexLayout.Value, indices, material, Vector3.Zero,
+            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit);
 
         material.MainColor = c;
         material.MainTexture = t;
-        */
     }
 
     /// <summary>
@@ -147,13 +123,9 @@ public partial class UIPanel
         var vertexBuffer = VertexBuffer.CreateTransient(ninePatchVertices.AsSpan(), SpriteUtils.VertexLayout.Value);
 
         var indexBuffer = IndexBuffer.CreateTransient(ninePatchIndices);
+        */
 
         material ??= new(SpriteUtils.DefaultMaterial.Value);
-
-        if (vertexBuffer == null || indexBuffer == null)
-        {
-            return;
-        }
 
         var c = material.MainColor;
         var t = material.MainTexture;
@@ -164,13 +136,11 @@ public partial class UIPanel
         material.DisableShaderKeyword(Shader.SkinningKeyword);
         material.DisableShaderKeyword(Shader.InstancingKeyword);
 
-        Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, ninePatchVertices.Length, 0, ninePatchIndices.Length, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit,
-            Manager.ViewID);
+        Graphics.RenderSimple(ninePatchVertices, SpriteUtils.VertexLayout.Value, ninePatchIndices, material, Vector3.Zero,
+            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit);
 
         material.MainColor = c;
         material.MainTexture = t;
-        */
     }
 
     /// <summary>
@@ -225,15 +195,9 @@ public partial class UIPanel
             return;
         }
 
-        /*
-        var vertexBuffer = VertexBuffer.CreateTransient(textVertices.AsSpan(), TextRenderer.VertexLayout.Value);
-
-        var indexBuffer = IndexBuffer.CreateTransient(textIndices);
-
         material.MainTexture = texture;
 
-        Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertexCount, 0, indexCount, material, Vector3.Zero,
-            Matrix4x4.Identity, MeshTopology.Triangles, MaterialLighting.Unlit, Manager.ViewID);
-        */
+        Graphics.RenderSimple(textVertices, TextRenderer.VertexLayout.Value, textIndices, material, Vector3.Zero,
+            Matrix4x4.Identity, MeshTopology.Triangles, MaterialLighting.Unlit);
     }
 }

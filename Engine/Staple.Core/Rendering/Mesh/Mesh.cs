@@ -12,6 +12,28 @@ namespace Staple;
 /// </summary>
 public sealed partial class Mesh : IGuidAsset
 {
+    public struct StandardVertex
+    {
+        public Vector3 position;
+        public Vector2 uv;
+        public Vector3 normal;
+        public Vector3 tangent;
+        public Vector3 bitangent;
+        public Color color;
+    }
+
+    public static Lazy<VertexLayout> StandardVertexLayout = new(() =>
+    {
+        return VertexLayoutBuilder.CreateNew()
+            .Add(VertexAttribute.Position, VertexAttributeType.Float3)
+            .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2)
+            .Add(VertexAttribute.Normal, VertexAttributeType.Float3)
+            .Add(VertexAttribute.Tangent, VertexAttributeType.Float3)
+            .Add(VertexAttribute.Bitangent, VertexAttributeType.Float3)
+            .Add(VertexAttribute.Color0, VertexAttributeType.Float4)
+            .Build();
+    });
+
     /// <summary>
     /// Whether this mesh is readable by the CPU
     /// </summary>
