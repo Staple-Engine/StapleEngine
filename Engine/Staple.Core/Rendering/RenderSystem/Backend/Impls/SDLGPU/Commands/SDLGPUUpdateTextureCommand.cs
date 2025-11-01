@@ -45,7 +45,10 @@ internal class SDLGPUUpdateTextureCommand(ResourceHandle<Texture> handle, byte[]
             backend.FinishPasses();
         }
 
-        backend.copyPass = SDL.SDL_BeginGPUCopyPass(backend.commandBuffer);
+        if(backend.copyPass == nint.Zero)
+        {
+            backend.copyPass = SDL.SDL_BeginGPUCopyPass(backend.commandBuffer);
+        }
 
         if (backend.copyPass == nint.Zero)
         {

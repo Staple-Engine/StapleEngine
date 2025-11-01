@@ -35,8 +35,7 @@ internal partial class SDLGPURendererBackend
     {
         for (var i = 0; i < resources.Length; i++)
         {
-            if (resources[i] is null ||
-                resources[i].used)
+            if (resources[i]?.used ?? false)
             {
                 continue;
             }

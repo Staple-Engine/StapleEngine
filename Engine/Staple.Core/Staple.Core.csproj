@@ -207,7 +207,6 @@
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUIndexBuffer.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURendererBackend+Textures.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURendererBackend.cs" />
-		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURenderPass.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUShaderProgram.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUTexture.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexBuffer.cs" />

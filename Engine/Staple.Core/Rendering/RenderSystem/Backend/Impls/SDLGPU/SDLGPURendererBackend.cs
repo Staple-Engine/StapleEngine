@@ -189,8 +189,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         UpdateRenderMode(renderFlags);
 
-        BeginFrame();
-
         return true;
     }
 
