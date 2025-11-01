@@ -200,6 +200,8 @@
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUDestroyTextureCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUDestroyVertexBufferCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPURenderCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPURenderTransientCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPURenderTransientUIntCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUUpdateIndexBufferCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUUpdateTextureCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUUpdateVertexBufferCommand.cs" />

@@ -89,6 +89,8 @@ public static class Gizmo
             ];
 
             wireCube.indices = wireCube.vertices.Select((x, xIndex) => xIndex).ToArray();
+
+            wireCube.UploadMeshData();
         }
 
         MeshRenderSystem.RenderMesh(wireCube, position, rotation, scale, meshMaterial, MaterialLighting.Unlit);
@@ -127,6 +129,8 @@ public static class Gizmo
             wireSphere = Mesh.GenerateSphere(18, 9, 0.5f, true);
 
             wireSphere.MeshTopology = MeshTopology.LineStrip;
+
+            wireSphere.UploadMeshData();
         }
 
         MeshRenderSystem.RenderMesh(wireSphere, position, rotation, scale, meshMaterial, MaterialLighting.Unlit);

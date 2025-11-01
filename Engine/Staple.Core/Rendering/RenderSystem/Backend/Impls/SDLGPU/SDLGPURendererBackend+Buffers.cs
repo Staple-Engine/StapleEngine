@@ -165,7 +165,7 @@ internal partial class SDLGPURendererBackend
 
     public void UpdateVertexBuffer(ResourceHandle<VertexBuffer> buffer, Span<byte> data)
     {
-        commands.Add(new SDLGPUUpdateVertexBufferCommand(buffer, data.ToArray()));
+        AddCommand(new SDLGPUUpdateVertexBufferCommand(buffer, data.ToArray()));
     }
 
     public void UpdateIndexBuffer(ResourceHandle<IndexBuffer> buffer, Span<ushort> data)
@@ -181,7 +181,7 @@ internal partial class SDLGPURendererBackend
                 data.CopyTo(target);
             }
 
-            commands.Add(new SDLGPUUpdateIndexBufferCommand(buffer, holder));
+            AddCommand(new SDLGPUUpdateIndexBufferCommand(buffer, holder));
         }
     }
 
@@ -198,17 +198,17 @@ internal partial class SDLGPURendererBackend
                 data.CopyTo(target);
             }
 
-            commands.Add(new SDLGPUUpdateIndexBufferCommand(buffer, holder));
+            AddCommand(new SDLGPUUpdateIndexBufferCommand(buffer, holder));
         }
     }
 
     public void DestroyVertexBuffer(ResourceHandle<VertexBuffer> buffer)
     {
-        commands.Add(new SDLGPUDestroyVertexBufferCommand(buffer));
+        AddCommand(new SDLGPUDestroyVertexBufferCommand(buffer));
     }
 
     public void DestroyIndexBuffer(ResourceHandle<IndexBuffer> buffer)
     {
-        commands.Add(new SDLGPUDestroyIndexBufferCommand(buffer));
+        AddCommand(new SDLGPUDestroyIndexBufferCommand(buffer));
     }
 }

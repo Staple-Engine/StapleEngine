@@ -24,50 +24,6 @@ public sealed partial class RenderSystem
         public IComponent relatedComponent;
     }
 
-    internal class TransientEntry
-    {
-        public readonly List<byte> vertices = [];
-
-        public readonly List<ushort> indices = [];
-
-        public readonly List<uint> uintIndices = [];
-
-        public VertexBuffer vertexBuffer;
-
-        public IndexBuffer indexBuffer;
-
-        public IndexBuffer uintIndexBuffer;
-
-        public readonly List<RenderState> drawCalls = [];
-
-        public readonly List<RenderState> uintDrawCalls = [];
-
-        public int startVertex;
-
-        public int startIndex;
-
-        public int startIndexUInt;
-
-        public void Clear()
-        {
-            vertexBuffer?.Destroy();
-            indexBuffer?.Destroy();
-            uintIndexBuffer?.Destroy();
-
-            vertexBuffer = null;
-            indexBuffer = null;
-            uintIndexBuffer = null;
-
-            startVertex = startIndex = startIndexUInt = 0;
-
-            vertices.Clear();
-            indices.Clear();
-            uintIndices.Clear();
-            drawCalls.Clear();
-            uintDrawCalls.Clear();
-        }
-    }
-
     /// <summary>
     /// Contains lists of drawcalls for the drawcall interpolator
     /// </summary>
@@ -127,12 +83,6 @@ public sealed partial class RenderSystem
     /// The renderer backend
     /// </summary>
     internal static readonly IRendererBackend Backend = new SDLGPURendererBackend();
-
-    /// <summary>
-    /// Transient buffers allow per-frame rendering without the book-keeping of resource management
-    /// </summary>
-    /// <remarks>ViewID to Vertex Layout-specific sets</remarks>
-    private readonly Dictionary<VertexLayout, TransientEntry> transientBuffers = [];
     #endregion
 
     #region Helpers
@@ -585,108 +535,5 @@ public sealed partial class RenderSystem
             RenderStats.savedDrawCalls += (instances - 1);
         }
     }
-
-    internal void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
-        where T : unmanaged
-    {
-        if(layout == null)
-        {
-            return;
-        }
-
-        var size = Marshal.SizeOf<T>();
-
-        if(size % layout.Stride != 0)
-        {
-            return;
-        }
-
-        //TODO
-        return;
-
-        if(transientBuffers.TryGetValue(layout, out var entry) == false)
-        {
-            entry = new();
-
-            transientBuffers.Add(layout, entry);
-        }
-
-        var vertexArray = new byte[size * vertices.Length];
-
-        unsafe
-        {
-            fixed(void *ptr = vertexArray)
-            {
-                var target = new Span<T>(ptr, vertices.Length);
-
-                vertices.CopyTo(target);
-            }
-        }
-
-        entry.vertices.AddRange(vertexArray);
-
-        entry.indices.AddRange(indices);
-
-        state.startVertex = entry.startVertex;
-        state.startIndex = entry.startIndex;
-        state.indexCount = indices.Length;
-
-        entry.drawCalls.Add(state);
-
-        entry.startVertex += vertices.Length;
-        entry.startIndex += indices.Length;
-    }
-
-    internal void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state)
-        where T : unmanaged
-    {
-        if (layout == null)
-        {
-            return;
-        }
-
-        var size = Marshal.SizeOf<T>();
-
-        if (size % layout.Stride != 0)
-        {
-            return;
-        }
-
-        //TODO
-        return;
-
-        if (transientBuffers.TryGetValue(layout, out var entry) == false)
-        {
-            entry = new();
-
-            transientBuffers.Add(layout, entry);
-        }
-
-        var vertexArray = new byte[size * vertices.Length];
-
-        unsafe
-        {
-            fixed (void* ptr = vertexArray)
-            {
-                var target = new Span<T>(ptr, vertices.Length);
-
-                vertices.CopyTo(target);
-            }
-        }
-
-        entry.vertices.AddRange(vertexArray);
-
-        entry.uintIndices.AddRange(indices);
-
-        state.startVertex = entry.startVertex;
-        state.startIndex = entry.startIndexUInt;
-        state.indexCount = indices.Length;
-
-        entry.uintDrawCalls.Add(state);
-
-        entry.startVertex += vertices.Length;
-        entry.startIndexUInt += indices.Length;
-    }
-
     #endregion
 }

@@ -61,4 +61,8 @@ internal interface IRendererBackend
     ITexture CreateEmptyTexture(int width, int height, TextureFormat format, TextureFlags flags);
 
     void Render(RenderState state);
+
+    void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state) where T : unmanaged;
+
+    void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state) where T : unmanaged;
 }

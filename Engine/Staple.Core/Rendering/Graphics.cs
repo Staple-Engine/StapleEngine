@@ -118,16 +118,16 @@ namespace Staple
 
             lightSystem?.ApplyMaterialLighting(material, lighting);
 
-            var program = material.ShaderProgram;
+            renderState.program = material.ShaderProgram;
 
-            if (program == null)
+            if (renderState.program == null)
             {
                 return;
             }
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-            RenderSystem.Instance.RenderSimple(vertices, layout, indices, renderState);
+            RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }
 
         public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, Material material, Vector3 position,
@@ -165,16 +165,16 @@ namespace Staple
 
             lightSystem?.ApplyMaterialLighting(material, lighting);
 
-            var program = material.ShaderProgram;
+            renderState.program = material.ShaderProgram;
 
-            if (program == null)
+            if (renderState.program == null)
             {
                 return;
             }
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-            RenderSystem.Instance.RenderSimple(vertices, layout, indices, renderState);
+            RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }
     }
 }

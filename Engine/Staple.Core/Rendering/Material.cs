@@ -107,7 +107,9 @@ public sealed class Material : IGuidAsset
     {
         get
         {
-            var textureCount = hasMainTexture ? 1 : 0;
+            var addMainTexture = ((mainTexture?.Disposed ?? true) == false);
+
+            var textureCount = addMainTexture ? 1 : 0;
 
             foreach(var pair in parameters)
             {
@@ -124,12 +126,12 @@ public sealed class Material : IGuidAsset
                 Array.Resize(ref textures, textureCount);
             }
 
-            if(hasMainTexture)
+            if(addMainTexture)
             {
                 textures[0] = MainTexture;
             }
 
-            var counter = hasMainTexture ? 1 : 0;
+            var counter = addMainTexture ? 1 : 0;
 
             foreach (var pair in parameters)
             {
@@ -1050,6 +1052,9 @@ public sealed class Material : IGuidAsset
         {
             shader.SetColor(mainColorHandle, mainColor);
         }
+
+        state.sourceBlend = shader.sourceBlend;
+        state.destinationBlend = shader.destinationBlend;
 
         if (applyPropertiesCallbacks.Length != parameters.Count)
         {

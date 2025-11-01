@@ -400,6 +400,8 @@ internal class ResourceManager
             {
                 pair.Value.changed = true;
 
+                pair.Value.UploadMeshData();
+
                 Log.Debug($"Recreated mesh {pair.Key}");
             }
             catch (Exception e)
@@ -418,6 +420,8 @@ internal class ResourceManager
             try
             {
                 pair.Value.changed = true;
+
+                pair.Value.UploadMeshData();
 
                 Log.Debug($"Recreated mesh {pair.Key}");
             }
