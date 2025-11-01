@@ -28,7 +28,9 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.SDL_GPU
 
         if(renderPass == nint.Zero)
         {
-            throw new InvalidOperationException("Can't render without a render pass!");
+            backend.ResumeRenderPass();
+
+            renderPass = backend.renderPass;
         }
 
         SDL.SDL_BindGPUGraphicsPipeline(renderPass, pipeline);

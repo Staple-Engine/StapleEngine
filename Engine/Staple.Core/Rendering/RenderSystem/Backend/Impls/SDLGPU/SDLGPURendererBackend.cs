@@ -387,6 +387,83 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
     }
 
+    internal void ResumeRenderPass()
+    {
+        FinishPasses();
+
+        var texture = nint.Zero;
+        var width = 0;
+        var height = 0;
+
+        SDLGPUTexture depthTexture = null;
+
+        if (viewData.renderTarget == null)
+        {
+            texture = swapchainTexture;
+            width = swapchainWidth;
+            height = swapchainHeight;
+
+            depthTexture = depthTexture as SDLGPUTexture;
+
+            if (depthTexture == null)
+            {
+                UpdateDepthTextureIfNeeded(true);
+
+                depthTexture = depthTexture as SDLGPUTexture;
+            }
+        }
+        else
+        {
+            //TODO: texture
+
+            width = viewData.renderTarget.width;
+            height = viewData.renderTarget.height;
+
+            return;
+        }
+
+        if (texture == nint.Zero ||
+            (depthTexture?.Disposed ?? true) ||
+            TryGetTexture(depthTexture.handle, out var depthTextureResource) == false)
+        {
+            return;
+        }
+
+        var colorTarget = new SDL.SDL_GPUColorTargetInfo()
+        {
+            load_op = SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+            store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
+            texture = texture,
+        };
+
+        var depthTarget = new SDL.SDL_GPUDepthStencilTargetInfo()
+        {
+            clear_depth = 1,
+            load_op = SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+            store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
+            texture = depthTextureResource.texture,
+        };
+
+        renderPass = SDL.SDL_BeginGPURenderPass(commandBuffer, [colorTarget], 1, in depthTarget);
+
+        if (renderPass == nint.Zero)
+        {
+            return;
+        }
+
+        var viewportData = new SDL.SDL_GPUViewport()
+        {
+            x = (int)(viewData.viewport.X * width),
+            y = (int)(viewData.viewport.Y * height),
+            w = (int)(viewData.viewport.Z * width),
+            h = (int)(viewData.viewport.W * height),
+            min_depth = 0,
+            max_depth = 1,
+        };
+
+        SDL.SDL_SetGPUViewport(renderPass, in viewportData);
+    }
+
     public void BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
         in Matrix4x4 view, in Matrix4x4 projection)
     {
