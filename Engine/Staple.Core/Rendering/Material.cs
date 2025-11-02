@@ -858,15 +858,22 @@ public sealed class Material : IGuidAsset
         {
             if (parameter.type == MaterialParameterType.Texture)
             {
-                if(value == null && (parameter.shaderHandle.DefaultValue?.Length ?? 0) > 0)
+                if(value == null)
                 {
-                    if(parameter.shaderHandle.DefaultValue == WhiteTexture.Guid.Guid)
+                    if(string.IsNullOrEmpty(parameter.shaderHandle.DefaultValue) == false)
                     {
-                        value = WhiteTexture;
+                        if (parameter.shaderHandle.DefaultValue == WhiteTexture.Guid.Guid)
+                        {
+                            value = WhiteTexture;
+                        }
+                        else
+                        {
+                            value = ResourceManager.instance.LoadTexture(parameter.shaderHandle.DefaultValue);
+                        }
                     }
                     else
                     {
-                        value = ResourceManager.instance.LoadTexture(parameter.shaderHandle.DefaultValue);
+                        value = WhiteTexture;
                     }
                 }
 
@@ -878,15 +885,22 @@ public sealed class Material : IGuidAsset
         {
             var handle = shader.GetUniformHandle(hash);
 
-            if (value == null && (handle.DefaultValue?.Length ?? 0) > 0)
+            if (value == null)
             {
-                if (handle.DefaultValue == WhiteTexture.Guid.Guid)
+                if (string.IsNullOrEmpty(parameter.shaderHandle.DefaultValue) == false)
                 {
-                    value = WhiteTexture;
+                    if (parameter.shaderHandle.DefaultValue == WhiteTexture.Guid.Guid)
+                    {
+                        value = WhiteTexture;
+                    }
+                    else
+                    {
+                        value = ResourceManager.instance.LoadTexture(parameter.shaderHandle.DefaultValue);
+                    }
                 }
                 else
                 {
-                    value = ResourceManager.instance.LoadTexture(handle.DefaultValue);
+                    value = WhiteTexture;
                 }
             }
 
