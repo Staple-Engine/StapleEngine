@@ -85,16 +85,23 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.SDL_GPU
         }
 
         backend.viewData.renderData.world = state.world;
+        backend.viewData.renderData.time = Time.unscaledTime;
 
         unsafe
         {
-            fixed (void* ptr = &backend.viewData.renderData)
+            if(uniformData.TryGetValue(0, out var data) &&
+                Marshal.SizeOf<SDLGPURendererBackend.StapleRenderData>() == data.Length)
             {
-                SDL.SDL_PushGPUVertexUniformData(backend.commandBuffer, 0, (nint)ptr,
-                    (uint)Marshal.SizeOf<SDLGPURendererBackend.StapleRenderData>());
+                fixed (void* ptr = &backend.viewData.renderData)
+                {
+                    var source = new Span<byte>(ptr, data.Length);
+                    var target = new Span<byte>(data);
+
+                    source.CopyTo(target);
+                }
             }
 
-            foreach(var pair in uniformData)
+            foreach (var pair in uniformData)
             {
                 fixed(void *ptr = pair.Value)
                 {
