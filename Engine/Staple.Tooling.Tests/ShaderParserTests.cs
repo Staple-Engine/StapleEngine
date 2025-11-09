@@ -13,9 +13,9 @@ public class ShaderParserTests
 Variants A, B, C
 
 Begin Parameters
-varying vec2 v_texcoord0 : TEXCOORD0 = vec2(0.0, 0.0)
-varying vec2 v_texcoord1 : TEXCOORD1
-uniform vec2 v_texcoord2
+float2 v_texcoord0 : TEXCOORD0 = float2(0.0, 0.0)
+float2 v_texcoord1 : TEXCOORD1
+float2 v_texcoord2
 End Parameters
 
 Begin Vertex
@@ -48,20 +48,20 @@ End Compute
 
         Assert.That(parameters.Count, Is.EqualTo(3));
 
-        Assert.That(parameters[0].type, Is.EqualTo("varying"));
-        Assert.That(parameters[0].dataType, Is.EqualTo("vec2"));
+        Assert.That(parameters[0].type, Is.Null);
+        Assert.That(parameters[0].dataType, Is.EqualTo("float2"));
         Assert.That(parameters[0].name, Is.EqualTo("v_texcoord0"));
         Assert.That(parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
-        Assert.That(parameters[0].initializer, Is.EqualTo("vec2(0.0, 0.0)"));
+        Assert.That(parameters[0].initializer, Is.EqualTo("float2(0.0, 0.0)"));
 
-        Assert.That(parameters[1].type, Is.EqualTo("varying"));
-        Assert.That(parameters[1].dataType, Is.EqualTo("vec2"));
+        Assert.That(parameters[1].type, Is.Null);
+        Assert.That(parameters[1].dataType, Is.EqualTo("float2"));
         Assert.That(parameters[1].name, Is.EqualTo("v_texcoord1"));
         Assert.That(parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
         Assert.That(parameters[1].initializer, Is.Null);
 
-        Assert.That(parameters[2].type, Is.EqualTo("uniform"));
-        Assert.That(parameters[2].dataType, Is.EqualTo("vec2"));
+        Assert.That(parameters[2].type, Is.Null);
+        Assert.That(parameters[2].dataType, Is.EqualTo("float2"));
         Assert.That(parameters[2].name, Is.EqualTo("v_texcoord2"));
         Assert.That(parameters[2].vertexAttribute, Is.Null);
         Assert.That(parameters[2].initializer, Is.Null);
@@ -84,14 +84,14 @@ Type VertexFragment
 Variants A, B, C
 
 Begin Parameters
-varying vec2 v_texcoord0 : TEXCOORD0 = vec2(0.0, 0.0)
-varying vec2 v_texcoord1: TEXCOORD1
-uniform vec2 v_texcoord2=vec2(1.0, 1.0)
+float2 v_texcoord0 : TEXCOORD0 = float2(0.0, 0.0)
+float2 v_texcoord1: TEXCOORD1
+float2 v_texcoord2=float2(1.0, 1.0)
 End Parameters
 
 Begin Instancing
 float rotation
-vec4 color
+float4 color
 End Instancing
 
 Begin Vertex
@@ -129,27 +129,27 @@ End Compute
         Assert.That(instanceParameters[0].type, Is.EqualTo("float"));
 
         Assert.That(instanceParameters[1].name, Is.EqualTo("color"));
-        Assert.That(instanceParameters[1].type, Is.EqualTo("vec4"));
+        Assert.That(instanceParameters[1].type, Is.EqualTo("float4"));
 
         Assert.That(parameters.Count, Is.EqualTo(3));
 
-        Assert.That(parameters[0].type, Is.EqualTo("varying"));
-        Assert.That(parameters[0].dataType, Is.EqualTo("vec2"));
+        Assert.That(parameters[0].type, Is.Null);
+        Assert.That(parameters[0].dataType, Is.EqualTo("float2"));
         Assert.That(parameters[0].name, Is.EqualTo("v_texcoord0"));
         Assert.That(parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
-        Assert.That(parameters[0].initializer, Is.EqualTo("vec2(0.0, 0.0)"));
+        Assert.That(parameters[0].initializer, Is.EqualTo("float2(0.0, 0.0)"));
 
-        Assert.That(parameters[1].type, Is.EqualTo("varying"));
-        Assert.That(parameters[1].dataType, Is.EqualTo("vec2"));
+        Assert.That(parameters[1].type, Is.Null);
+        Assert.That(parameters[1].dataType, Is.EqualTo("float2"));
         Assert.That(parameters[1].name, Is.EqualTo("v_texcoord1"));
         Assert.That(parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
         Assert.That(parameters[1].initializer, Is.Null);
 
-        Assert.That(parameters[2].type, Is.EqualTo("uniform"));
-        Assert.That(parameters[2].dataType, Is.EqualTo("vec2"));
+        Assert.That(parameters[2].type, Is.Null);
+        Assert.That(parameters[2].dataType, Is.EqualTo("float2"));
         Assert.That(parameters[2].name, Is.EqualTo("v_texcoord2"));
         Assert.That(parameters[2].vertexAttribute, Is.Null);
-        Assert.That(parameters[2].initializer, Is.EqualTo("vec2(1.0, 1.0)"));
+        Assert.That(parameters[2].initializer, Is.EqualTo("float2(1.0, 1.0)"));
 
         Assert.That(vertex, Is.Not.Null);
         Assert.That(vertex.content, Is.EqualTo("vertex A\nvertex B"));
@@ -169,15 +169,15 @@ Type Compute
 Variants A, B, C
 
 Begin Parameters
-varying vec2 v_texcoord0 : TEXCOORD0 = vec2(0.0, 0.0)
-varying vec2 v_texcoord1 : TEXCOORD1
-uniform vec2 v_texcoord2
-ROBuffer<vec4> myBuffer:0
+float2 v_texcoord0 : TEXCOORD0 = float2(0.0, 0.0)
+float2 v_texcoord1 : TEXCOORD1
+float2 v_texcoord2
+ROBuffer<float4> myBuffer
 End Parameters
 
 Begin Instancing
 float rotation
-vec4 color
+float4 color
 End Instancing
 
 Begin Vertex
@@ -207,29 +207,29 @@ End Compute
 
         Assert.That(parameters.Count, Is.EqualTo(4));
 
-        Assert.That(parameters[0].type, Is.EqualTo("varying"));
-        Assert.That(parameters[0].dataType, Is.EqualTo("vec2"));
+        Assert.That(parameters[0].type, Is.Null);
+        Assert.That(parameters[0].dataType, Is.EqualTo("float2"));
         Assert.That(parameters[0].name, Is.EqualTo("v_texcoord0"));
         Assert.That(parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
-        Assert.That(parameters[0].initializer, Is.EqualTo("vec2(0.0, 0.0)"));
+        Assert.That(parameters[0].initializer, Is.EqualTo("float2(0.0, 0.0)"));
 
-        Assert.That(parameters[1].type, Is.EqualTo("varying"));
-        Assert.That(parameters[1].dataType, Is.EqualTo("vec2"));
+        Assert.That(parameters[1].type, Is.Null);
+        Assert.That(parameters[1].dataType, Is.EqualTo("float2"));
         Assert.That(parameters[1].name, Is.EqualTo("v_texcoord1"));
         Assert.That(parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
         Assert.That(parameters[1].initializer, Is.Null);
 
-        Assert.That(parameters[2].type, Is.EqualTo("uniform"));
-        Assert.That(parameters[2].dataType, Is.EqualTo("vec2"));
+        Assert.That(parameters[2].type, Is.Null);
+        Assert.That(parameters[2].dataType, Is.EqualTo("float2"));
         Assert.That(parameters[2].name, Is.EqualTo("v_texcoord2"));
         Assert.That(parameters[2].vertexAttribute, Is.Null);
         Assert.That(parameters[2].initializer, Is.Null);
 
         Assert.That(parameters[3].type, Is.EqualTo("ROBuffer"));
-        Assert.That(parameters[3].dataType, Is.EqualTo("vec4"));
+        Assert.That(parameters[3].dataType, Is.EqualTo("float4"));
         Assert.That(parameters[3].name, Is.EqualTo("myBuffer"));
         Assert.That(parameters[3].vertexAttribute, Is.Null);
-        Assert.That(parameters[3].initializer, Is.EqualTo("0"));
+        Assert.That(parameters[3].initializer, Is.Null);
 
         Assert.That(vertex, Is.Null);
 
@@ -273,7 +273,7 @@ End Fragment
 Type VertexFragment
 
 Begin Parameters
-[Attribute] variant: ATTRIBUTE uniform texture myTexture
+[Attribute] variant: ATTRIBUTE texture myTexture
 End Parameters
 
 Begin Instancing
@@ -303,7 +303,7 @@ End Fragment
 Type VertexFragment
 
 Begin Parameters
-uniform texture myTexture
+texture myTexture
 End Parameters
 
 Begin Input
@@ -343,7 +343,7 @@ End Fragment
 Type VertexFragment
 
 Begin Parameters
-uniform texture myTexture
+texture myTexture
 End Parameters
 
 Begin Input

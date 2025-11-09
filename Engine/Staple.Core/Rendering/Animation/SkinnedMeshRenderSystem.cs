@@ -315,11 +315,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                var program = material.ShaderProgram;
-
                 var buffer = instance.boneBuffer;
 
-                renderState.program = program;
+                renderState.shader = material.shader;
+
+                renderState.shaderVariant = material.ShaderVariantKey;
 
                 renderState.readOnlyBuffers = [(SkinningBufferIndex, buffer)];
 

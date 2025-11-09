@@ -643,7 +643,8 @@ internal class ImGuiProxy
                                     startVertex = currentVertex + (int)drawCmd.VtxOffset,
                                     startIndex = currentIndex + (int)drawCmd.IdxOffset,
                                     indexCount = (int)drawCmd.ElemCount,
-                                    program = program,
+                                    shader = this.program,
+                                    shaderVariant = "",
                                     textures = textures,
                                     world = Matrix4x4.Identity,
                                 };

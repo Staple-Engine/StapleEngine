@@ -18,13 +18,15 @@ public partial class ComputeShader : IGuidAsset
     private Shader.UniformInfo[] uniforms = [];
     private readonly IntLookupCache<int> uniformIndices = new();
 
-    private byte[] shaderSource = [];
+    private readonly byte[] shaderSource = [];
 
-    private ComputeShaderMetrics metrics;
+    private readonly ComputeShaderMetrics metrics;
+
+    private readonly ShaderUniformContainer uniformContainer;
+
+    private readonly Dictionary<string, ShaderUniformField> fields = [];
 
     private IShaderProgram program;
-
-    private int usedTextureStages = 0;
 
     [GeneratedRegex("\\[([0-9]+)\\]")]
     private static partial Regex UniformCountRegex();
@@ -49,8 +51,26 @@ public partial class ComputeShader : IGuidAsset
     {
         metadata = shader.metadata;
 
-        shaderSource = entries.FirstOrDefault().Value.computeShader ?? [];
-        metrics = entries.FirstOrDefault().Value.computeMetrics ?? new();
+        var entry = entries.FirstOrDefault().Value;
+
+        shaderSource = entry.computeShader ?? [];
+        metrics = entry.computeMetrics ?? new();
+        uniformContainer = entry.uniforms;
+
+        foreach (var uniform in entry.uniforms.uniforms)
+        {
+            if((uniform.fields?.Count ?? 0) == 0)
+            {
+                //TODO: Actual uniforms
+            }
+            else
+            {
+                foreach (var field in uniform.fields)
+                {
+                    fields.AddOrSetKey(field.name, field);
+                }
+            }
+        }
     }
 
     ~ComputeShader()
@@ -96,7 +116,7 @@ public partial class ComputeShader : IGuidAsset
             return false;
         }
 
-        program = RenderSystem.Backend.CreateShaderCompute(shaderSource, metrics);
+        program = RenderSystem.Backend.CreateShaderCompute(shaderSource, metrics, uniformContainer);
 
         if (program == null)
         {
@@ -175,40 +195,29 @@ public partial class ComputeShader : IGuidAsset
             count = NormalizeUniformCount(uniform.name),
         };
 
-        if (u.Create())
+        var i = uniforms.Length;
+
+        uniformIndices.Add(normalizedHash, i);
+        uniforms = uniforms.Concat([u]).ToArray();
+
+        if (uniformIndices.IndexOf(nameHash) < 0)
         {
-            if (uniform.type == ShaderUniformType.Texture)
+            uniformIndices.Add(nameHash, i);
+
+            uniforms = uniforms.Concat([new()
             {
-                u.stage = (byte)usedTextureStages;
-
-                usedTextureStages++;
-            }
-
-            var i = uniforms.Length;
-
-            uniformIndices.Add(normalizedHash, i);
-            uniforms = uniforms.Concat([u]).ToArray();
-
-            if (uniformIndices.IndexOf(nameHash) < 0)
-            {
-                uniformIndices.Add(nameHash, i);
-
-                uniforms = uniforms.Concat([new()
+                count = u.count,
+                isAlias = true,
+                uniform = new()
                 {
-                    count = u.count,
-                    isAlias = true,
-                    //handle = u.handle,
-                    stage = u.stage,
-                    uniform = new()
-                    {
-                        name = u.uniform.name,
-                        type = uniform.type,
-                        attribute = uniform.attribute,
-                        variant = uniform.variant,
-                        defaultValue = uniform.defaultValue,
-                    },
-                }]).ToArray();
-            }
+                    name = u.uniform.name,
+                    type = uniform.type,
+                    attribute = uniform.attribute,
+                    variant = uniform.variant,
+                    defaultValue = uniform.defaultValue,
+                    slot = uniform.slot,
+                },
+            }]).ToArray();
         }
     }
 

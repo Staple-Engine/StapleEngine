@@ -155,8 +155,6 @@ public sealed class Material : IGuidAsset
 
     internal HashSet<int> shaderKeywords = [];
 
-    private Action[] applyPropertiesCallbacks = [];
-
     private readonly Dictionary<int, string> cachedShaderVariantKeys = [];
 
     private Color mainColor = Color.White;
@@ -596,17 +594,43 @@ public sealed class Material : IGuidAsset
                 if (parameter.type == MaterialParameterType.Int)
                 {
                     parameter.intValue = value;
+
+                    if (parameter.shaderHandle.Variant != null)
+                    {
+                        if (parameter.intValue <= 0)
+                        {
+                            DisableShaderKeyword(parameter.shaderHandle.Variant);
+                        }
+                        else
+                        {
+                            EnableShaderKeyword(parameter.shaderHandle.Variant);
+                        }
+                    }
                 }
             }
             else
             {
-                parameters.AddOrSetKey(hash, new ParameterInfo()
+                parameter = new ParameterInfo()
                 {
                     name = name,
                     type = MaterialParameterType.Int,
                     intValue = value,
                     shaderHandle = shader.GetUniformHandle(hash),
-                });
+                };
+
+                parameters.AddOrSetKey(hash, parameter);
+
+                if (parameter.shaderHandle.Variant != null)
+                {
+                    if (parameter.intValue <= 0)
+                    {
+                        DisableShaderKeyword(parameter.shaderHandle.Variant);
+                    }
+                    else
+                    {
+                        EnableShaderKeyword(parameter.shaderHandle.Variant);
+                    }
+                }
             }
         }
         else
@@ -649,17 +673,43 @@ public sealed class Material : IGuidAsset
                 if (parameter.type == MaterialParameterType.Float)
                 {
                     parameter.floatValue = value;
+
+                    if (parameter.shaderHandle.Variant != null)
+                    {
+                        if (parameter.floatValue <= 0)
+                        {
+                            DisableShaderKeyword(parameter.shaderHandle.Variant);
+                        }
+                        else
+                        {
+                            EnableShaderKeyword(parameter.shaderHandle.Variant);
+                        }
+                    }
                 }
             }
             else
             {
-                parameters.AddOrSetKey(hash, new ParameterInfo()
+                parameter = new ParameterInfo()
                 {
                     name = name,
                     type = MaterialParameterType.Float,
                     floatValue = value,
                     shaderHandle = shader.GetUniformHandle(hash),
-                });
+                };
+
+                parameters.AddOrSetKey(hash, parameter);
+
+                if (parameter.shaderHandle.Variant != null)
+                {
+                    if (parameter.floatValue <= 0)
+                    {
+                        DisableShaderKeyword(parameter.shaderHandle.Variant);
+                    }
+                    else
+                    {
+                        EnableShaderKeyword(parameter.shaderHandle.Variant);
+                    }
+                }
             }
         }
         else
@@ -1062,136 +1112,72 @@ public sealed class Material : IGuidAsset
             state.textures = Textures;
         }
 
-        if(hasMainColor)
-        {
-            shader.SetColor(mainColorHandle, mainColor);
-        }
-
         state.sourceBlend = shader.sourceBlend;
         state.destinationBlend = shader.destinationBlend;
 
-        if (applyPropertiesCallbacks.Length != parameters.Count)
+        if (hasMainColor)
         {
-            applyPropertiesCallbacks = new Action[parameters.Count];
-
-            var counter = 0;
-
-            foreach (var parameter in parameters.Values)
-            {
-                if((applyMode == ApplyMode.IgnoreTextures && parameter.type == MaterialParameterType.Texture) ||
-                    (applyMode == ApplyMode.TexturesOnly && parameter.type != MaterialParameterType.Texture))
-                {
-                    continue;
-                }
-
-                var key = parameter.name;
-
-                switch (parameter.type)
-                {
-                    case MaterialParameterType.Matrix3x3:
-
-                        applyPropertiesCallbacks[counter++] = () =>
-                        {
-                            shader.SetMatrix3x3(parameter.shaderHandle, parameter.matrix3x3Value);
-                        };
-
-                        break;
-
-                    case MaterialParameterType.Matrix4x4:
-
-                        applyPropertiesCallbacks[counter++] = () =>
-                        {
-                            shader.SetMatrix4x4(parameter.shaderHandle, parameter.matrix4x4Value);
-                        };
-
-                        break;
-
-                    case MaterialParameterType.Float:
-
-                        applyPropertiesCallbacks[counter++] = () =>
-                        {
-                            shader.SetVector4(parameter.shaderHandle, new Vector4(parameter.floatValue, 0, 0, 0));
-
-                            if (parameter.shaderHandle.Variant != null)
-                            {
-                                if(parameter.floatValue <= 0)
-                                {
-                                    DisableShaderKeyword(parameter.shaderHandle.Variant);
-                                }
-                                else
-                                {
-                                    EnableShaderKeyword(parameter.shaderHandle.Variant);
-                                }
-                            }
-                        };
-
-                        break;
-
-                    case MaterialParameterType.Int:
-
-                        applyPropertiesCallbacks[counter++] = () =>
-                        {
-                            shader.SetVector4(parameter.shaderHandle, new Vector4(parameter.intValue, 0, 0, 0));
-
-                            if (parameter.shaderHandle.Variant != null)
-                            {
-                                if (parameter.intValue <= 0)
-                                {
-                                    DisableShaderKeyword(parameter.shaderHandle.Variant);
-                                }
-                                else
-                                {
-                                    EnableShaderKeyword(parameter.shaderHandle.Variant);
-                                }
-                            }
-                        };
-
-                        break;
-
-                    case MaterialParameterType.Vector2:
-
-                        applyPropertiesCallbacks[counter++] = () =>
-                        {
-                            shader.SetVector4(parameter.shaderHandle, new Vector4(parameter.vector2Value, 0, 0));
-                        };
-
-                        break;
-
-                    case MaterialParameterType.Vector3:
-
-                        applyPropertiesCallbacks[counter++] = () =>
-                        {
-                            shader.SetVector4(parameter.shaderHandle, new Vector4(parameter.vector3Value, 0));
-                        };
-
-                        break;
-
-                    case MaterialParameterType.Vector4:
-
-                        applyPropertiesCallbacks[counter++] = () =>
-                        {
-                            shader.SetVector4(parameter.shaderHandle, parameter.vector4Value);
-                        };
-
-                        break;
-
-                    case MaterialParameterType.Color:
-
-                        applyPropertiesCallbacks[counter++] = () =>
-                        {
-                            shader.SetColor(parameter.shaderHandle, parameter.colorValue);
-                        };
-
-                        break;
-                }
-            }
+            shader.SetColor(ShaderVariantKey, mainColorHandle, mainColor);
         }
 
-        var l = applyPropertiesCallbacks.Length;
-
-        for(var i = 0; i < l; i++)
+        foreach (var parameter in parameters.Values)
         {
-            applyPropertiesCallbacks[i]?.Invoke();
+            if((applyMode == ApplyMode.IgnoreTextures && parameter.type == MaterialParameterType.Texture) ||
+                (applyMode == ApplyMode.TexturesOnly && parameter.type != MaterialParameterType.Texture))
+            {
+                continue;
+            }
+
+            switch (parameter.type)
+            {
+                case MaterialParameterType.Matrix3x3:
+
+                    shader.SetMatrix3x3(ShaderVariantKey, parameter.shaderHandle, parameter.matrix3x3Value);
+
+                    break;
+
+                case MaterialParameterType.Matrix4x4:
+
+                    shader.SetMatrix4x4(ShaderVariantKey, parameter.shaderHandle, parameter.matrix4x4Value);
+
+                    break;
+
+                case MaterialParameterType.Float:
+
+                    shader.SetVector4(ShaderVariantKey, parameter.shaderHandle, new Vector4(parameter.floatValue, 0, 0, 0));
+
+                    break;
+
+                case MaterialParameterType.Int:
+
+                    shader.SetVector4(ShaderVariantKey, parameter.shaderHandle, new Vector4(parameter.intValue, 0, 0, 0));
+
+                    break;
+
+                case MaterialParameterType.Vector2:
+
+                    shader.SetVector4(ShaderVariantKey, parameter.shaderHandle, new Vector4(parameter.vector2Value, 0, 0));
+
+                    break;
+
+                case MaterialParameterType.Vector3:
+
+                    shader.SetVector4(ShaderVariantKey, parameter.shaderHandle, new Vector4(parameter.vector3Value, 0));
+
+                    break;
+
+                case MaterialParameterType.Vector4:
+
+                    shader.SetVector4(ShaderVariantKey, parameter.shaderHandle, parameter.vector4Value);
+
+                    break;
+
+                case MaterialParameterType.Color:
+
+                    shader.SetColor(ShaderVariantKey, parameter.shaderHandle, parameter.colorValue);
+
+                    break;
+            }
         }
     }
 }

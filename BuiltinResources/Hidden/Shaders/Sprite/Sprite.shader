@@ -4,8 +4,8 @@ Blend SrcAlpha OneMinusSrcAlpha
 
 Begin Parameters
 
-uniform color mainColor
-uniform texture mainTexture
+color mainColor
+texture mainTexture
 
 End Parameters
 

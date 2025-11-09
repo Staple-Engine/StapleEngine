@@ -5,7 +5,9 @@ namespace Staple.Internal;
 
 internal struct RenderState
 {
-    public IShaderProgram program;
+    public Shader shader;
+    public ComputeShader computeShader;
+    public string shaderVariant;
     public MeshTopology primitiveType;
     public CullingMode cull;
     public bool wireframe;
@@ -32,7 +34,7 @@ internal struct RenderState
         {
             var hashCode = new HashCode();
 
-            hashCode.Add(program);
+            hashCode.Add(shaderVariant);
             hashCode.Add(primitiveType);
             hashCode.Add(cull);
             hashCode.Add(wireframe);

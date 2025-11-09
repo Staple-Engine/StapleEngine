@@ -169,7 +169,6 @@ static partial class Program
             [
                 new UFXImporter(),
                 new SharpGLTFImporter(),
-                new AssimpImporter(),
                 new OBJImporter(),
             ];
 

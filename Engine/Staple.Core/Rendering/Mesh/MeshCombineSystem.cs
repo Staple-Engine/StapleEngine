@@ -369,9 +369,8 @@ public sealed class MeshCombineSystem : IRenderSystem
 
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                var program = material.ShaderProgram;
-
-                renderState.program = program;
+                renderState.shader = material.shader;
+                renderState.shaderVariant = material.ShaderVariantKey;
 
                 RenderSystem.Submit(renderState, mesh.SubmeshTriangleCount(0), 1);
             }

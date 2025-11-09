@@ -2,7 +2,7 @@ Type VertexFragment
 
 Begin Parameters
 
-uniform color mainColor
+color mainColor
 
 End Parameters
 

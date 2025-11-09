@@ -1,19 +1,24 @@
 ﻿using SDL3;
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
-internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.SDL_GPUTextureSamplerBinding[] samplers) : IRenderCommand
+internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.SDL_GPUTextureSamplerBinding[] samplers,
+    Dictionary<byte, byte[]> uniformData, SDLGPUShaderProgram program) : IRenderCommand
 {
     public RenderState state = state;
     public nint pipeline = pipeline;
     public SDL.SDL_GPUTextureSamplerBinding[] samplers = samplers;
+    public Dictionary<byte, byte[]> uniformData = uniformData;
+    public SDLGPUShaderProgram program = program;
 
     public void Update(IRendererBackend rendererBackend)
     {
         if (rendererBackend is not SDLGPURendererBackend backend ||
-            state.program is not SDLGPUShaderProgram shader ||
+            state.shader == null ||
+            program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment ||
             state.vertexBuffer is not SDLGPUVertexBuffer vertex ||
             backend.TryGetVertexBuffer(vertex.handle, out var vertexBuffer) == false ||
@@ -87,6 +92,15 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.SDL_GPU
             {
                 SDL.SDL_PushGPUVertexUniformData(backend.commandBuffer, 0, (nint)ptr,
                     (uint)Marshal.SizeOf<SDLGPURendererBackend.StapleRenderData>());
+            }
+
+            foreach(var pair in uniformData)
+            {
+                fixed(void *ptr = pair.Value)
+                {
+                    SDL.SDL_PushGPUVertexUniformData(backend.commandBuffer, pair.Key, (nint)ptr,
+                        (uint)pair.Value.Length);
+                }
             }
         }
 

@@ -31,6 +31,8 @@
 	  <Compile Include="MeshImporterContext.cs" />
 	  <Compile Include="MeshOptimization.cs" />
 	  <Compile Include="ShaderParser.cs" />
+	  <Compile Include="ShaderReflectionData.cs" />
+	  <Compile Include="ShaderReflectionParser.cs" />
 	  <Compile Include="Utilities.cs" />
 	  <Compile Include="Vector4Filler.cs" />
 	</ItemGroup>

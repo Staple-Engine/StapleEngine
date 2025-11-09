@@ -1,7 +1,6 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
-using System.IO.Pipelines;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -44,10 +43,10 @@ public static partial class ShaderParser
     private static readonly Regex instancingRegex = InstancingRegex();
     private static readonly Regex instancingParameterRegex = InstancingParameterRegex();
 
-    [GeneratedRegex("(\\[\\w+\\] )?(variant\\: \\w+ )?(varying|uniform) (\\w+) (\\w+)(([ ]*)\\:([ ]*)(\\w+))?(([ ]*)\\=([ ]*)(.*))?")]
+    [GeneratedRegex("(\\[\\w+\\] )?(variant\\: \\w+ )?([ ]*)(\\w+) (\\w+)(([ ]*)\\:([ ]*)(\\w+))?(([ ]*)\\=([ ]*)(.*))?")]
     private static partial Regex ParameterRegex();
 
-    [GeneratedRegex("(ROBuffer|RWBuffer|WOBuffer)\\<(\\w+)\\>([ ]*)(\\w+)([ ]*)\\:([ ]*)([0-9]+)")]
+    [GeneratedRegex("(ROBuffer|RWBuffer|WOBuffer)\\<(\\w+)\\>([ ]*)(\\w+)([ ]*)")]
     private static partial Regex BufferRegex();
 
     [GeneratedRegex("Begin Vertex((.|\\n)*)End Vertex")]
@@ -133,7 +132,6 @@ public static partial class ShaderParser
             {
                 var parameter = new Parameter
                 {
-                    type = match.Groups[3].Value.Trim(),
                     dataType = match.Groups[4].Value.Trim(),
                     name = match.Groups[5].Value.Trim(),
                     vertexAttribute = match.Groups[9].Value.Trim(),
@@ -143,12 +141,12 @@ public static partial class ShaderParser
                 var attribute = match.Groups[1].Value.Trim();
                 var variant = match.Groups[2].Value.Trim();
 
-                if((attribute?.Length ?? 0) > 0)
+                if(string.IsNullOrEmpty(attribute) == false)
                 {
                     parameter.attribute = attribute[1..^1];
                 }
 
-                if((variant?.Length ?? 0) > 0)
+                if(string.IsNullOrEmpty(variant) == false)
                 {
                     parameter.variant = variant["variant: ".Length..];
                 }
@@ -166,29 +164,13 @@ public static partial class ShaderParser
                 parameterList.Add(parameter);
             }
 
-            foreach(Match match in bufferMatches)
+            foreach (Match match in bufferMatches)
             {
-                if(int.TryParse(match.Groups[7].Value.Trim(), out var bufferIndex) == false)
-                {
-                    type = default;
-                    parameters = default;
-                    variants = [];
-                    vertex = default;
-                    fragment = default;
-                    compute = default;
-                    blendMode = default;
-                    instanceParameters = default;
-                    vertexInputs = default;
-
-                    return false;
-                }
-
                 var parameter = new Parameter
                 {
                     type = match.Groups[1].Value.Trim(),
                     dataType = match.Groups[2].Value.Trim(),
                     name = match.Groups[4].Value.Trim(),
-                    initializer = bufferIndex.ToString(),
                 };
 
                 parameterList.Add(parameter);

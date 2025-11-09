@@ -6,19 +6,19 @@ Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING, NORMALMAP, CUTOU
 
 Begin Parameters
 
-uniform vec3 viewPosition;
-uniform texture ambientOcclusionTexture
-uniform color diffuseColor = #FFFFFFFF
-uniform texture diffuseTexture = WHITE
-uniform texture displacementTexture
-uniform color emissiveColor
-uniform texture emissiveTexture
-uniform texture heightTexture
-variant: NORMALMAP uniform texture normalTexture
-uniform color specularColor
-uniform texture specularTexture
-variant: CUTOUT uniform float cutout
-uniform float alphaThreshold = 0.25
+float3 viewPosition;
+texture ambientOcclusionTexture
+color diffuseColor = #FFFFFFFF
+texture diffuseTexture = WHITE
+texture displacementTexture
+color emissiveColor
+texture emissiveTexture
+texture heightTexture
+variant: NORMALMAP texture normalTexture
+color specularColor
+texture specularTexture
+variant: CUTOUT float cutout
+float alphaThreshold = 0.25
 
 End Parameters
 
@@ -36,7 +36,6 @@ End Instancing
 
 Begin Common
 
-/*
 [[vk::binding(StapleBufferIndexCount, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
@@ -47,7 +46,6 @@ cbuffer Uniforms
 	float cutout;
 	float alphaThreshold;
 };
-*/
 
 struct VertexOutput
 {

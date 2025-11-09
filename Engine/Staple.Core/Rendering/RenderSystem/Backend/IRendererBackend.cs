@@ -30,7 +30,9 @@ internal interface IRendererBackend
 
     IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
         VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
-        VertexAttribute[] vertexAttributes);
+        VertexAttribute[] vertexAttributes, ShaderUniformContainer uniforms);
+
+    IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics computeMetrics, ShaderUniformContainer uniforms);
 
     VertexBuffer CreateVertexBuffer(Span<byte> data, VertexLayout layout, RenderBufferFlags flags);
 
@@ -49,8 +51,6 @@ internal interface IRendererBackend
     void DestroyVertexBuffer(ResourceHandle<VertexBuffer> buffer);
 
     void DestroyIndexBuffer(ResourceHandle<IndexBuffer> buffer);
-
-    IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics computeMetrics);
 
     bool SupportsTextureFormat(TextureFormat format, TextureFlags flags);
 

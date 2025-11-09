@@ -139,24 +139,19 @@ static partial class Program
                         variant = shader.variants.Contains(parameter.variant) ? parameter.variant : null,
                     };
 
-                    p.semantic = parameter.type switch
-                    {
-                        "varying" => ShaderParameterSemantic.Varying,
-                        "uniform" => ShaderParameterSemantic.Uniform,
-                        _ => ShaderParameterSemantic.Uniform,
-                    };
+                    p.semantic = ShaderParameterSemantic.Uniform;
 
                     var typeValue = parameter.dataType switch
                     {
                         "int" => (int)ShaderUniformType.Int,
                         "float" => (int)ShaderUniformType.Float,
-                        "vec2" => (int)ShaderUniformType.Vector2,
-                        "vec3" => (int)ShaderUniformType.Vector3,
-                        "vec4" => (int)ShaderUniformType.Vector4,
+                        "float2" => (int)ShaderUniformType.Vector2,
+                        "float3" => (int)ShaderUniformType.Vector3,
+                        "float4" => (int)ShaderUniformType.Vector4,
                         "color" => (int)ShaderUniformType.Color,
                         "texture" => (int)ShaderUniformType.Texture,
-                        "mat3" => (int)ShaderUniformType.Matrix3x3,
-                        "mat4" => (int)ShaderUniformType.Matrix4x4,
+                        "float3x3" => (int)ShaderUniformType.Matrix3x3,
+                        "float4x4" => (int)ShaderUniformType.Matrix4x4,
                         _ => -1
                     };
 
@@ -212,12 +207,12 @@ static partial class Program
                         {
                             "int" => (int)ShaderUniformType.Int,
                             "float" => (int)ShaderUniformType.Float,
-                            "vec2" => (int)ShaderUniformType.Vector2,
-                            "vec3" => (int)ShaderUniformType.Vector3,
-                            "vec4" => (int)ShaderUniformType.Vector4,
+                            "float2" => (int)ShaderUniformType.Vector2,
+                            "float3" => (int)ShaderUniformType.Vector3,
+                            "float4" => (int)ShaderUniformType.Vector4,
                             "color" => (int)ShaderUniformType.Color,
-                            "mat3" => (int)ShaderUniformType.Matrix3x3,
-                            "mat4" => (int)ShaderUniformType.Matrix4x4,
+                            "float3x3" => (int)ShaderUniformType.Matrix3x3,
+                            "float4x4" => (int)ShaderUniformType.Matrix4x4,
                             _ => -1
                         };
 
@@ -295,8 +290,6 @@ static partial class Program
                         {
                             name = x.name,
                             type = x.type,
-                            slot = Array.IndexOf([ShaderUniformType.ReadOnlyBuffer, ShaderUniformType.WriteOnlyBuffer, ShaderUniformType.ReadWriteBuffer], x.type) >= 0 &&
-                                int.TryParse(x.defaultValue, out var bufferIndex) ? bufferIndex : -1,
                             attribute = x.attribute,
                             variant = x.variant,
                             defaultValue = x.defaultValue,
@@ -336,7 +329,8 @@ static partial class Program
                     entries);
 
                     byte[] ProcessShader(string shaderFileName, List<string> extraDefines,
-                        ShaderCompilerType shaderType, Renderer renderer, out object shaderMetrics)
+                        ShaderCompilerType shaderType, Renderer renderer, out object shaderMetrics,
+                        out ShaderReflectionData reflectionData)
                     {
                         var shaderExtension = shaderType switch
                         {
@@ -349,6 +343,7 @@ static partial class Program
                         var destinationFormat = "";
                         var outShaderFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
                         var outShaderFileNameTranspiled = $"{Path.Combine(Path.GetTempPath(), Path.GetTempFileName())}{shaderExtension}";
+                        var reflectionJsonFileName = Path.Combine(Path.GetTempPath(), Path.GetTempFileName());
 
                         var skip = false;
 
@@ -434,7 +429,7 @@ static partial class Program
                                 StartInfo = new ProcessStartInfo
                                 {
                                     FileName = shaderTranspilerPath,
-                                    Arguments = $"-o \"{outShaderFileNameTranspiled}\" -profile sm_6_0 -target spirv {stage} {entry} {defineString} {shaderInclude} \"{shaderFileName}\"",
+                                    Arguments = $"-o \"{outShaderFileNameTranspiled}\" -profile sm_6_0 -target spirv {stage} {entry} {defineString} {shaderInclude} -reflection-json \"{reflectionJsonFileName}\" \"{shaderFileName}\"",
                                     UseShellExecute = false,
                                     RedirectStandardOutput = true,
                                     CreateNoWindow = true,
@@ -446,12 +441,13 @@ static partial class Program
                             if (process.ExitCode != 0)
                             {
                                 shaderMetrics = null;
+                                reflectionData = null;
 
                                 Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
 
                                 try
                                 {
-                                    File.Delete(outShaderFileName);
+                                    File.Delete(outShaderFileNameTranspiled);
                                 }
                                 catch (Exception)
                                 {
@@ -461,6 +457,27 @@ static partial class Program
                             }
 
                             process.Close();
+                        }
+
+                        try
+                        {
+                            var text = File.ReadAllText(reflectionJsonFileName);
+
+                            reflectionData = JsonConvert.DeserializeObject<ShaderReflectionData>(text);
+
+                            //For debugging
+                            //File.Copy(reflectionJsonFileName, $"{outputFile}.reflection.json", true);
+                        }
+                        catch (Exception e)
+                        {
+                            shaderMetrics = null;
+                            reflectionData = null;
+
+                            Console.WriteLine($"Failed to process reflection: {e}");
+
+                            File.Delete(reflectionJsonFileName);
+
+                            return null;
                         }
 
                         if (skip == false)
@@ -697,7 +714,7 @@ static partial class Program
                         };
 
                         byte[] Compile(ShaderPiece piece, ShaderCompilerType type, Renderer renderer, ref string code,
-                            out object shaderMetrics)
+                            out object shaderMetrics, out ShaderUniformContainer uniforms)
                         {
                             code = "import Staple;\n";
 
@@ -712,11 +729,22 @@ static partial class Program
                             catch (Exception)
                             {
                                 shaderMetrics = null;
+                                uniforms = null;
 
                                 return null;
                             }
 
-                            var data = ProcessShader(shaderFileName, extraDefines, type, renderer, out shaderMetrics);
+                            var data = ProcessShader(shaderFileName, extraDefines, type, renderer, out shaderMetrics,
+                                out var reflection);
+
+                            if(reflection == null)
+                            {
+                                uniforms = new();
+                            }
+                            else
+                            {
+                                uniforms = reflection.ToContainer();
+                            }
 
                             try
                             {
@@ -758,7 +786,7 @@ static partial class Program
                                 string computeCode = "";
 
                                 shaderObject.computeShader = Compile(shader.compute, ShaderCompilerType.compute, renderer, ref computeCode,
-                                    out var computeMetrics);
+                                    out var computeMetrics, out var reflectionData);
 
                                 if (shaderObject.computeShader == null)
                                 {
@@ -770,6 +798,11 @@ static partial class Program
                                 if (computeMetrics is ComputeShaderMetrics c)
                                 {
                                     shaderObject.computeMetrics = c;
+                                }
+
+                                if(reflectionData != null)
+                                {
+                                    shaderObject.uniforms = reflectionData;
                                 }
 
                                 lock (entryLock)
@@ -845,10 +878,10 @@ static partial class Program
                                 string fragmentCode = "";
 
                                 shaderObject.vertexShader = Compile(shader.vertex, ShaderCompilerType.vertex, renderer, ref vertexCode,
-                                    out var vertexMetrics);
+                                    out var vertexMetrics, out var vertexReflectionData);
 
                                 shaderObject.fragmentShader = Compile(shader.fragment, ShaderCompilerType.fragment, renderer, ref fragmentCode,
-                                    out var fragmentMetrics);
+                                    out var fragmentMetrics, out var fragmentReflectionData);
 
                                 if (shaderObject.vertexShader == null || shaderObject.fragmentShader == null)
                                 {
@@ -865,6 +898,16 @@ static partial class Program
                                 if (fragmentMetrics is VertexFragmentShaderMetrics f)
                                 {
                                     shaderObject.fragmentMetrics = f;
+                                }
+
+                                if (vertexReflectionData != null)
+                                {
+                                    shaderObject.uniforms = vertexReflectionData;
+                                }
+
+                                if(fragmentReflectionData != null)
+                                {
+                                    shaderObject.uniforms.Merge(fragmentReflectionData);
                                 }
 
                                 lock (entryLock)

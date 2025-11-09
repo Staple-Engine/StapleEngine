@@ -100,7 +100,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         if (program != null)
         {
-            renderState.program = program;
+            renderState.shader = material.shader;
+            renderState.shaderVariant = material.ShaderVariantKey;
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
@@ -361,7 +362,8 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     if(program != null)
                     {
-                        renderState.program = program;
+                        renderState.shader = material.shader;
+                        renderState.shaderVariant = material.ShaderVariantKey;
 
                         RenderSystem.Submit(renderState, renderData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
                     }

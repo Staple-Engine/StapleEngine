@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -17,6 +16,23 @@ public sealed class LightSystem : IRenderSystem
         public Matrix4x4 transform;
         public Matrix3x3 normalMatrix;
         public Vector3 padding;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    private struct LightData
+    {
+        public Color ambientColor;
+        public float lightCount;
+        public Vector3 viewPosition;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    private struct LightDetails
+    {
+        public LightType type;
+        public Vector3 position;
+        public Color diffuse;
+        public Color specular;
     }
 
     /// <summary>
@@ -268,11 +284,11 @@ public sealed class LightSystem : IRenderSystem
         var lightSpotDirectionHandle = handles[6];
         var lightSpotValues = handles[7];
 
-        material.shader.SetVector3(viewPosHandle, cameraPosition);
-        material.shader.SetColor(lightAmbientHandle, lightAmbient);
-        material.shader.SetVector4(lightCountHandle, lightCountValue);
-        material.shader.SetVector4(lightTypePositionHandle, cachedLightTypePositions);
-        material.shader.SetVector4(lightDiffuseHandle, cachedLightDiffuse);
-        material.shader.SetVector4(lightSpotDirectionHandle, cachedLightSpotDirection);
+        material.shader.SetVector3(material.ShaderVariantKey, viewPosHandle, cameraPosition);
+        material.shader.SetColor(material.ShaderVariantKey, lightAmbientHandle, lightAmbient);
+        material.shader.SetVector4(material.ShaderVariantKey, lightCountHandle, lightCountValue);
+        material.shader.SetVector4(material.ShaderVariantKey, lightTypePositionHandle, cachedLightTypePositions);
+        material.shader.SetVector4(material.ShaderVariantKey, lightDiffuseHandle, cachedLightDiffuse);
+        material.shader.SetVector4(material.ShaderVariantKey, lightSpotDirectionHandle, cachedLightSpotDirection);
     }
 }

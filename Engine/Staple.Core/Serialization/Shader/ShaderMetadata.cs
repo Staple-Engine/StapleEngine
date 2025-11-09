@@ -1,6 +1,7 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Staple.Internal;
 
@@ -46,6 +47,91 @@ public class ShaderUniform
 
     [Key(5)]
     public string defaultValue;
+}
+
+[MessagePackObject]
+public class ShaderUniformField
+{
+    [Key(0)]
+    public string name;
+
+    [Key(1)]
+    public ShaderUniformType type;
+
+    [Key(2)]
+    public int offset;
+
+    [Key(3)]
+    public int size;
+
+    [Key(4)]
+    public int binding;
+}
+
+[MessagePackObject]
+public class ShaderUniformMapping
+{
+    [Key(0)]
+    public List<ShaderUniformField> fields = [];
+
+    [Key(1)]
+    public int binding;
+
+    [Key(2)]
+    public int size;
+
+    [Key(3)]
+    public string name;
+
+    [Key(4)]
+    public ShaderUniformType type;
+
+    [Key(5)]
+    public ShaderUniformType elementType;
+}
+
+[MessagePackObject]
+public class ShaderUniformContainer
+{
+    [Key(0)]
+    public List<ShaderUniformMapping> uniforms = [];
+
+    [Key(1)]
+    public List<ShaderUniformMapping> textures = [];
+
+    [Key(2)]
+    public List<ShaderUniformMapping> storageBuffers = [];
+
+    public void Merge(ShaderUniformContainer other)
+    {
+        static void Add(List<ShaderUniformMapping> container, ShaderUniformMapping target)
+        {
+            foreach(var uniform in container)
+            {
+                if(uniform.name == target.name)
+                {
+                    return;
+                }
+            }
+
+            container.Add(target);
+        }
+
+        foreach(var uniform in other.uniforms)
+        {
+            Add(uniforms, uniform);
+        }
+
+        foreach (var uniform in other.textures)
+        {
+            Add(textures, uniform);
+        }
+
+        foreach (var uniform in other.storageBuffers)
+        {
+            Add(storageBuffers, uniform);
+        }
+    }
 }
 
 [MessagePackObject]

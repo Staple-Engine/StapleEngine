@@ -1,5 +1,6 @@
 ﻿using SDL3;
 using System;
+using System.Collections.Generic;
 
 namespace Staple.Internal;
 
@@ -13,8 +14,11 @@ internal class SDLGPUShaderProgram : IShaderProgram
     public nint compute;
     public bool disposed = false;
     public VertexAttribute[] vertexAttributes;
+    public Dictionary<byte, byte[]> uniformValues;
+    public ShaderUniformContainer uniforms;
 
-    public SDLGPUShaderProgram(nint device, nint vertex, nint fragment, VertexAttribute[] vertexAttributes)
+    public SDLGPUShaderProgram(nint device, nint vertex, nint fragment, VertexAttribute[] vertexAttributes,
+        ShaderUniformContainer uniforms, Dictionary<byte, byte[]> uniformValues)
     {
         Type = ShaderType.VertexFragment;
 
@@ -22,19 +26,28 @@ internal class SDLGPUShaderProgram : IShaderProgram
         this.vertex = vertex;
         this.fragment = fragment;
         this.vertexAttributes = vertexAttributes;
+        this.uniforms = uniforms;
+        this.uniformValues = uniformValues;
     }
 
-    public SDLGPUShaderProgram(nint device, nint compute)
+    public SDLGPUShaderProgram(nint device, nint compute, ShaderUniformContainer uniforms, Dictionary<byte, byte[]> uniformValues)
     {
         Type = ShaderType.Compute;
 
         this.device = device;
         this.compute = compute;
+        this.uniforms = uniforms;
+        this.uniformValues = uniformValues;
     }
 
     public override int GetHashCode()
     {
         return HashCode.Combine(device, vertex, fragment, compute, disposed);
+    }
+
+    public bool TryGetUniformData(byte binding, out byte[] data)
+    {
+        return uniformValues.TryGetValue(binding, out data);
     }
 
     public void Destroy()

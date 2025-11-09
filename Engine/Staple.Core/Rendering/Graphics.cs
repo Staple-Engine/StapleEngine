@@ -75,7 +75,8 @@ namespace Staple
 
             if(program != null)
             {
-                renderState.program = program;
+                renderState.shader = material.shader;
+                renderState.shaderVariant = material.ShaderVariantKey;
 
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
@@ -118,12 +119,15 @@ namespace Staple
 
             lightSystem?.ApplyMaterialLighting(material, lighting);
 
-            renderState.program = material.ShaderProgram;
+            var program = material.ShaderProgram;
 
-            if (renderState.program == null)
+            if (program == null)
             {
                 return;
             }
+
+            renderState.shader = material.shader;
+            renderState.shaderVariant = material.ShaderVariantKey;
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
@@ -165,12 +169,15 @@ namespace Staple
 
             lightSystem?.ApplyMaterialLighting(material, lighting);
 
-            renderState.program = material.ShaderProgram;
+            var program = material.ShaderProgram;
 
-            if (renderState.program == null)
+            if (program == null)
             {
                 return;
             }
+
+            renderState.shader = material.shader;
+            renderState.shaderVariant = material.ShaderVariantKey;
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 

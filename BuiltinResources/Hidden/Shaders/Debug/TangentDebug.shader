@@ -2,7 +2,7 @@ Variants BITANGENT_COLOR
 
 Begin Parameters
 
-variant: BITANGENT_COLOR uniform float tangentOrBitangent
+variant: BITANGENT_COLOR float tangentOrBitangent
 
 End Parameters
 

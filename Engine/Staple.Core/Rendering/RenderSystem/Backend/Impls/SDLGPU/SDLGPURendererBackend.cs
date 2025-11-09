@@ -1,10 +1,10 @@
 ﻿using SDL3;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 
 namespace Staple.Internal;
 
@@ -828,7 +828,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     public IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
         VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
-        VertexAttribute[] vertexAttributes)
+        VertexAttribute[] vertexAttributes, ShaderUniformContainer uniforms)
     {
         unsafe
         {
@@ -902,11 +902,18 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            return new SDLGPUShaderProgram(device, vertexShader, fragmentShader, vertexAttributes);
+            var uniformValues = new Dictionary<byte, byte[]>();
+
+            foreach(var item in uniforms.uniforms)
+            {
+                uniformValues.Add((byte)item.binding, new byte[item.size]);
+            }
+
+            return new SDLGPUShaderProgram(device, vertexShader, fragmentShader, vertexAttributes, uniforms, uniformValues);
         }
     }
 
-    public IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics metrics)
+    public IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics metrics, ShaderUniformContainer uniforms)
     {
         unsafe
         {
@@ -949,7 +956,14 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            return new SDLGPUShaderProgram(device, computeShader);
+            var uniformValues = new Dictionary<byte, byte[]>();
+
+            foreach (var item in uniforms.uniforms)
+            {
+                uniformValues.Add((byte)item.binding, new byte[item.size]);
+            }
+
+            return new SDLGPUShaderProgram(device, computeShader, uniforms, uniformValues);
         }
     }
 
@@ -966,7 +980,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     public void Render(RenderState state)
     {
-        if(state.program is not SDLGPUShaderProgram shader ||
+        if(state.shader == null ||
+            state.shaderVariant == null ||
+            state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
+            instance.program is not SDLGPUShaderProgram shader ||
+            state.shader == null ||
             shader.Type != ShaderType.VertexFragment ||
             state.vertexBuffer is not SDLGPUVertexBuffer vertex ||
             vertex.layout is not SDLGPUVertexLayout vertexLayout ||
@@ -1165,14 +1183,25 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return;
         }
 
-        AddCommand(new SDLGPURenderCommand(state, pipeline, samplers));
+        var uniformData = new Dictionary<byte, byte[]>();
+
+        foreach (var pair in shader.uniformValues)
+        {
+            //Duplicate uniform data
+            uniformData.Add(pair.Key, pair.Value.ToArray());
+        }
+
+        AddCommand(new SDLGPURenderCommand(state, pipeline, samplers, uniformData, shader));
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
         where T : unmanaged
     {
         if (layout is not SDLGPUVertexLayout vertexLayout ||
-            state.program is not SDLGPUShaderProgram shader ||
+            state.shaderVariant == null ||
+            state.shader == null ||
+            state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
+            instance.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment)
         {
             return;
@@ -1408,14 +1437,25 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndex += indices.Length;
 
-        AddCommand(new SDLGPURenderTransientCommand(state, pipeline, samplers, entry));
+        var uniformData = new Dictionary<byte, byte[]>();
+
+        foreach (var pair in shader.uniformValues)
+        {
+            //Duplicate uniform data
+            uniformData.Add(pair.Key, pair.Value.ToArray());
+        }
+
+        AddCommand(new SDLGPURenderTransientCommand(state, pipeline, samplers, uniformData, shader, entry));
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state)
         where T : unmanaged
     {
         if (layout is not SDLGPUVertexLayout vertexLayout ||
-            state.program is not SDLGPUShaderProgram shader ||
+            state.shaderVariant == null ||
+            state.shader == null ||
+            state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
+            instance.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment)
         {
             return;
@@ -1651,6 +1691,14 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndexUInt += indices.Length;
 
-        AddCommand(new SDLGPURenderTransientUIntCommand(state, pipeline, samplers, entry));
+        var uniformData = new Dictionary<byte, byte[]>();
+
+        foreach (var pair in shader.uniformValues)
+        {
+            //Duplicate uniform data
+            uniformData.Add(pair.Key, pair.Value.ToArray());
+        }
+
+        AddCommand(new SDLGPURenderTransientUIntCommand(state, pipeline, samplers, uniformData, shader, entry));
     }
 }
