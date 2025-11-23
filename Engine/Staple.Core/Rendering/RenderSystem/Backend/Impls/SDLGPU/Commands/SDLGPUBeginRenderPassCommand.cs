@@ -21,14 +21,14 @@ internal class SDLGPUBeginRenderPassCommand(RenderTarget target, CameraClearMode
             return;
         }
 
+        backend.FinishPasses();
+
         backend.viewData.renderTarget = target;
         backend.viewData.clearMode = clearMode;
         backend.viewData.clearColor = clearColor;
         backend.viewData.viewport = viewport;
         backend.viewData.renderData.view = view;
         backend.viewData.renderData.projection = projection;
-
-        backend.FinishPasses();
 
         var texture = nint.Zero;
         var width = 0;

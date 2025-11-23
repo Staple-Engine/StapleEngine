@@ -165,13 +165,16 @@ public sealed class LightSystem : IRenderSystem
     /// <param name="lighting">The lighting type</param>
     public void ApplyMaterialLighting(Material material, MaterialLighting lighting)
     {
-        if(Enabled == false)
+        if(Enabled == false || true) //TODO
         {
             material.DisableShaderKeyword(Shader.LitKeyword);
             material.DisableShaderKeyword(Shader.HalfLambertKeyword);
 
             return;
         }
+
+        //TODO
+        return;
 
         switch (lighting)
         {
@@ -213,6 +216,9 @@ public sealed class LightSystem : IRenderSystem
         {
             return;
         }
+
+        //TODO
+        return;
 
         var targets = Lights;
 

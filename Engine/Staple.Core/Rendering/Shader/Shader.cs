@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Staple.Internal;
 
@@ -182,11 +182,7 @@ public partial class Shader : IGuidAsset
             name = name.Replace(uniformCountRegex.Match(name).Value, string.Empty);
         }
 
-        return type switch
-        {
-            ShaderUniformType.Int or ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => $"{name}_uniform",
-            _ => name
-        };
+        return name;
     }
 
     private static int NormalizeUniformCount(string name)
@@ -376,6 +372,13 @@ public partial class Shader : IGuidAsset
         return vertexData != null || fragmentData != null;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool CanStoreUniformData(byte[] array, int offset, int size)
+    {
+        //Logic: If we have an array of 1 element, 0 + 1 < 1 fails, so must be <=
+        return offset >= 0 && offset + size <= array.Length;
+    }
+
     private void SetValue<T>(string variantKey, ShaderHandle handle, T value) where T: unmanaged
     {
         if (TryGetUniformData(variantKey, handle, out var uniform, out var offset, out var vertexData, out var fragmentData) == false)
@@ -389,14 +392,14 @@ public partial class Shader : IGuidAsset
         {
             var source = new Span<byte>(&value, size);
 
-            if (vertexData != null && vertexData.Length == size)
+            if (vertexData != null && CanStoreUniformData(vertexData, offset, size))
             {
                 var target = new Span<byte>(vertexData, offset, size);
 
                 source.CopyTo(target);
             }
 
-            if (fragmentData != null && fragmentData.Length == size)
+            if (fragmentData != null && CanStoreUniformData(fragmentData, offset, size))
             {
                 var target = new Span<byte>(fragmentData, offset, size);
 
@@ -420,14 +423,14 @@ public partial class Shader : IGuidAsset
                 var size = Marshal.SizeOf<T>() * count;
                 var source = new Span<byte>(ptr, size);
 
-                if (vertexData != null && vertexData.Length >= size && vertexData.Length % size == 0)
+                if (vertexData != null && CanStoreUniformData(vertexData, offset, size))
                 {
                     var target = new Span<byte>(vertexData, offset, size);
 
                     source.CopyTo(target);
                 }
 
-                if (fragmentData != null && fragmentData.Length >= size && fragmentData.Length % size == 0)
+                if (fragmentData != null && CanStoreUniformData(fragmentData, offset, size))
                 {
                     var target = new Span<byte>(fragmentData, offset, size);
 

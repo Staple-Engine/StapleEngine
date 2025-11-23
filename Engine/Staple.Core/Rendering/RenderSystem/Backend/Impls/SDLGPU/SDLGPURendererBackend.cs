@@ -1062,7 +1062,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                     if (attributeIndex < 0)
                     {
-                        continue;
+                        Log.Error($"Failed to render: vertex attribute {shader.vertexAttributes[i]} was not declared in the vertex layout!");
+
+                        return false;
                     }
 
                     shaderAttributes.Add(new()

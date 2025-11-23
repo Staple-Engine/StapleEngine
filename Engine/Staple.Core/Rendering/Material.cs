@@ -1123,7 +1123,8 @@ public sealed class Material : IGuidAsset
         foreach (var parameter in parameters.Values)
         {
             if((applyMode == ApplyMode.IgnoreTextures && parameter.type == MaterialParameterType.Texture) ||
-                (applyMode == ApplyMode.TexturesOnly && parameter.type != MaterialParameterType.Texture))
+                (applyMode == ApplyMode.TexturesOnly && parameter.type != MaterialParameterType.Texture) ||
+                parameter.shaderHandle.IsValid == false)
             {
                 continue;
             }
@@ -1144,25 +1145,25 @@ public sealed class Material : IGuidAsset
 
                 case MaterialParameterType.Float:
 
-                    shader.SetVector4(ShaderVariantKey, parameter.shaderHandle, new Vector4(parameter.floatValue, 0, 0, 0));
+                    shader.SetFloat(ShaderVariantKey, parameter.shaderHandle, parameter.floatValue);
 
                     break;
 
                 case MaterialParameterType.Int:
 
-                    shader.SetVector4(ShaderVariantKey, parameter.shaderHandle, new Vector4(parameter.intValue, 0, 0, 0));
+                    shader.SetFloat(ShaderVariantKey, parameter.shaderHandle, (float)parameter.intValue);
 
                     break;
 
                 case MaterialParameterType.Vector2:
 
-                    shader.SetVector4(ShaderVariantKey, parameter.shaderHandle, new Vector4(parameter.vector2Value, 0, 0));
+                    shader.SetVector2(ShaderVariantKey, parameter.shaderHandle, parameter.vector2Value);
 
                     break;
 
                 case MaterialParameterType.Vector3:
 
-                    shader.SetVector4(ShaderVariantKey, parameter.shaderHandle, new Vector4(parameter.vector3Value, 0));
+                    shader.SetVector3(ShaderVariantKey, parameter.shaderHandle, parameter.vector3Value);
 
                     break;
 
