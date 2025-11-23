@@ -937,15 +937,15 @@ public sealed class Material : IGuidAsset
 
             if (value == null)
             {
-                if (string.IsNullOrEmpty(parameter.shaderHandle.DefaultValue) == false)
+                if (string.IsNullOrEmpty(handle.DefaultValue) == false)
                 {
-                    if (parameter.shaderHandle.DefaultValue == WhiteTexture.Guid.Guid)
+                    if (handle.DefaultValue == WhiteTexture.Guid.Guid)
                     {
                         value = WhiteTexture;
                     }
                     else
                     {
-                        value = ResourceManager.instance.LoadTexture(parameter.shaderHandle.DefaultValue);
+                        value = ResourceManager.instance.LoadTexture(handle.DefaultValue);
                     }
                 }
                 else

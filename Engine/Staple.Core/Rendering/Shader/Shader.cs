@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Staple.Internal;
 
@@ -50,6 +51,7 @@ public partial class Shader : IGuidAsset
         internal ShaderUniform uniform;
         internal int count = 1;
         internal bool isAlias = false;
+        internal StringID handle;
 
         public override string ToString()
         {
@@ -69,8 +71,12 @@ public partial class Shader : IGuidAsset
         public VertexFragmentShaderMetrics fragmentShaderMetrics;
         public ComputeShaderMetrics computeShaderMetrics;
         public VertexAttribute[] attributes = [];
-        public ShaderUniformContainer uniforms;
-        public Dictionary<string, ShaderUniformField> fields = [];
+        public ShaderUniformContainer vertexUniforms;
+        public ShaderUniformContainer fragmentUniforms;
+        public Dictionary<StringID, ShaderUniformMapping> vertexMappings = [];
+        public Dictionary<StringID, ShaderUniformField> vertexFields = [];
+        public Dictionary<StringID, ShaderUniformMapping> fragmentMappings = [];
+        public Dictionary<StringID, ShaderUniformField> fragmentFields = [];
     }
 
     internal readonly ShaderMetadata metadata;
@@ -118,13 +124,28 @@ public partial class Shader : IGuidAsset
 
         foreach(var pair in entries)
         {
-            var fields = new Dictionary<string, ShaderUniformField>();
+            var vertexMappings = new Dictionary<StringID, ShaderUniformMapping>();
+            var vertexFields = new Dictionary<StringID, ShaderUniformField>();
+            var fragmentMappings = new Dictionary<StringID, ShaderUniformMapping>();
+            var fragmentFields = new Dictionary<StringID, ShaderUniformField>();
 
-            foreach(var uniform in pair.Value.uniforms.uniforms)
+            foreach (var uniform in pair.Value.vertexUniforms.uniforms)
             {
+                vertexMappings.AddOrSetKey(new(uniform.name), uniform);
+
                 foreach(var field in uniform.fields)
                 {
-                    fields.AddOrSetKey(field.name, field);
+                    vertexFields.AddOrSetKey(new(field.name), field);
+                }
+            }
+
+            foreach (var uniform in pair.Value.fragmentUniforms.uniforms)
+            {
+                fragmentMappings.AddOrSetKey(new(uniform.name), uniform);
+
+                foreach (var field in uniform.fields)
+                {
+                    fragmentFields.AddOrSetKey(new(field.name), field);
                 }
             }
 
@@ -138,8 +159,10 @@ public partial class Shader : IGuidAsset
                 fragmentShaderMetrics = pair.Value.fragmentMetrics,
                 computeShaderMetrics = pair.Value.computeMetrics,
                 attributes = pair.Value.vertexAttributes,
-                uniforms = pair.Value.uniforms,
-                fields = fields,
+                vertexUniforms = pair.Value.vertexUniforms,
+                fragmentUniforms = pair.Value.fragmentUniforms,
+                vertexFields = vertexFields,
+                fragmentFields = fragmentFields,
             });
         }
 
@@ -189,7 +212,7 @@ public partial class Shader : IGuidAsset
         {
             pair.Value.program = RenderSystem.Backend.CreateShaderVertexFragment(pair.Value.vertexShaderSource, pair.Value.fragmentShaderSource,
                 pair.Value.vertexShaderMetrics, pair.Value.fragmentShaderMetrics, pair.Value.attributes,
-                pair.Value.uniforms);
+                pair.Value.vertexUniforms, pair.Value.fragmentUniforms);
 
             if(pair.Value.program == null)
             {
@@ -256,6 +279,7 @@ public partial class Shader : IGuidAsset
                 defaultValue = uniform.defaultValue,
                 slot = uniform.slot,
             },
+            handle = new(normalizedName),
             count = NormalizeUniformCount(uniform.name),
         };
 
@@ -281,6 +305,7 @@ public partial class Shader : IGuidAsset
                     defaultValue = uniform.defaultValue,
                     slot = uniform.slot,
                 },
+                handle = new(normalizedName),
             }]).ToArray();
         }
     }
@@ -307,6 +332,111 @@ public partial class Shader : IGuidAsset
         return new(this, uniform);
     }
 
+    internal bool TryGetUniformData(string variantKey, ShaderHandle handle, out UniformInfo uniform, out int fieldOffset,
+        out byte[] vertexData, out byte[] fragmentData)
+    {
+        uniform = default;
+        fieldOffset = default;
+        vertexData = default;
+        fragmentData = default;
+
+        if (Disposed ||
+            handle.TryGetUniform(this, out uniform) == false ||
+            instances.TryGetValue(variantKey, out var shaderInstance) == false)
+        {
+            return false;
+        }
+
+        if(shaderInstance.vertexFields.TryGetValue(uniform.handle, out var field) &&
+            shaderInstance.program.TryGetVertexUniformData(field, out var data))
+        {
+            fieldOffset = field.offset;
+            vertexData = data;
+        }
+        else if (shaderInstance.vertexMappings.TryGetValue(uniform.handle, out var mapping) &&
+            shaderInstance.program.TryGetVertexUniformData(mapping, out data))
+        {
+            fieldOffset = 0;
+            vertexData = data;
+        }
+
+        if (shaderInstance.fragmentFields.TryGetValue(uniform.handle, out field) &&
+            shaderInstance.program.TryGetFragmentUniformData(field, out data))
+        {
+            fieldOffset = field.offset;
+            vertexData = data;
+        }
+        else if (shaderInstance.fragmentMappings.TryGetValue(uniform.handle, out var mapping) &&
+            shaderInstance.program.TryGetFragmentUniformData(mapping, out data))
+        {
+            fieldOffset = 0;
+            vertexData = data;
+        }
+
+        return vertexData != null || fragmentData != null;
+    }
+
+    private void SetValue<T>(string variantKey, ShaderHandle handle, T value) where T: unmanaged
+    {
+        if (TryGetUniformData(variantKey, handle, out var uniform, out var offset, out var vertexData, out var fragmentData) == false)
+        {
+            return;
+        }
+
+        var size = Marshal.SizeOf<T>();
+
+        unsafe
+        {
+            var source = new Span<byte>(&value, size);
+
+            if (vertexData != null && vertexData.Length == size)
+            {
+                var target = new Span<byte>(vertexData, offset, size);
+
+                source.CopyTo(target);
+            }
+
+            if (fragmentData != null && fragmentData.Length == size)
+            {
+                var target = new Span<byte>(fragmentData, offset, size);
+
+                source.CopyTo(target);
+            }
+        }
+    }
+
+    private void SetValue<T>(string variantKey, ShaderHandle handle, ReadOnlySpan<T> value) where T: unmanaged
+    {
+        if (TryGetUniformData(variantKey, handle, out var uniform, out var offset, out var vertexData, out var fragmentData) == false)
+        {
+            return;
+        }
+
+        unsafe
+        {
+            fixed (void* ptr = value)
+            {
+                var count = value.Length < uniform.count ? value.Length : uniform.count;
+                var size = Marshal.SizeOf<T>() * count;
+                var source = new Span<byte>(ptr, size);
+
+                if (vertexData != null && vertexData.Length >= size && vertexData.Length % size == 0)
+                {
+                    var target = new Span<byte>(vertexData, offset, size);
+
+                    source.CopyTo(target);
+                }
+
+                if (fragmentData != null && fragmentData.Length >= size && fragmentData.Length % size == 0)
+                {
+                    var target = new Span<byte>(fragmentData, offset, size);
+
+                    source.CopyTo(target);
+                }
+            }
+        }
+    }
+
     /// <summary>
     /// Sets a float uniform's value
     /// </summary>
@@ -315,21 +445,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetFloat(string variantKey, ShaderHandle handle, float value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var target = new Span<byte>(data, field.offset, sizeof(float));
-            var source = new Span<byte>(&value, sizeof(float));
-
-            source.CopyTo(target);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -340,21 +456,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector2(string variantKey, ShaderHandle handle, Vector2 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Vector2>());
-            var source = new Span<byte>(&value, Marshal.SizeOf<Vector2>());
-
-            source.CopyTo(target);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -365,25 +467,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector2(string variantKey, ShaderHandle handle, ReadOnlySpan<Vector2> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            uniform.count != value.Length ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            fixed(void *ptr = value)
-            {
-                var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Vector2>() * uniform.count);
-                var source = new Span<byte>(ptr, Marshal.SizeOf<Vector2>() * uniform.count);
-
-                source.CopyTo(target);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -394,21 +478,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector3(string variantKey, ShaderHandle handle, Vector3 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Vector3>());
-            var source = new Span<byte>(&value, Marshal.SizeOf<Vector3>());
-
-            source.CopyTo(target);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -419,25 +489,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector3(string variantKey, ShaderHandle handle, ReadOnlySpan<Vector3> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            uniform.count != value.Length ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            fixed (void* ptr = value)
-            {
-                var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Vector3>() * uniform.count);
-                var source = new Span<byte>(ptr, Marshal.SizeOf<Vector3>() * uniform.count);
-
-                source.CopyTo(target);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -448,21 +500,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector4(string variantKey, ShaderHandle handle, Vector4 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Vector4>());
-            var source = new Span<byte>(&value, Marshal.SizeOf<Vector4>());
-
-            source.CopyTo(target);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -473,25 +511,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector4(string variantKey, ShaderHandle handle, ReadOnlySpan<Vector4> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            uniform.count != value.Length ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            fixed (void* ptr = value)
-            {
-                var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Vector4>() * uniform.count);
-                var source = new Span<byte>(ptr, Marshal.SizeOf<Vector4>() * uniform.count);
-
-                source.CopyTo(target);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -502,21 +522,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetColor(string variantKey, ShaderHandle handle, Color value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Color>());
-            var source = new Span<byte>(&value, Marshal.SizeOf<Color>());
-
-            source.CopyTo(target);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -527,25 +533,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetColor(string variantKey, ShaderHandle handle, ReadOnlySpan<Color> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            uniform.count != value.Length ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            fixed (void* ptr = value)
-            {
-                var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Color>() * uniform.count);
-                var source = new Span<byte>(ptr, Marshal.SizeOf<Color>() * uniform.count);
-
-                source.CopyTo(target);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -575,21 +563,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix3x3(string variantKey, ShaderHandle handle, Matrix3x3 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Matrix3x3>());
-            var source = new Span<byte>(&value, Marshal.SizeOf<Matrix3x3>());
-
-            source.CopyTo(target);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -600,25 +574,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix3x3(string variantKey, ShaderHandle handle, ReadOnlySpan<Matrix3x3> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            uniform.count != value.Length ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            fixed (void* ptr = value)
-            {
-                var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Matrix3x3>() * uniform.count);
-                var source = new Span<byte>(ptr, Marshal.SizeOf<Matrix3x3>() * uniform.count);
-
-                source.CopyTo(target);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -629,21 +585,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix4x4(string variantKey, ShaderHandle handle, Matrix4x4 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Matrix4x4>());
-            var source = new Span<byte>(&value, Marshal.SizeOf<Matrix4x4>());
-
-            source.CopyTo(target);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -654,25 +596,7 @@ public partial class Shader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix4x4(string variantKey, ShaderHandle handle, ReadOnlySpan<Matrix4x4> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false ||
-            uniform.count != value.Length ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false ||
-            shaderInstance.fields.TryGetValue(uniform.uniform.name, out var field) == false ||
-            shaderInstance.program.TryGetUniformData((byte)field.binding, out var data) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            fixed (void* ptr = value)
-            {
-                var target = new Span<byte>(data, field.offset, Marshal.SizeOf<Matrix4x4>() * uniform.count);
-                var source = new Span<byte>(ptr, Marshal.SizeOf<Matrix4x4>() * uniform.count);
-
-                source.CopyTo(target);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>

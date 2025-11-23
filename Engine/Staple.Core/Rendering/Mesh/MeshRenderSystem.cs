@@ -78,9 +78,6 @@ public sealed class MeshRenderSystem : IRenderSystem
             depthWrite = true,
             primitiveType = mesh.MeshTopology,
             cull = material.CullingMode,
-            indexBuffer = mesh.indexBuffer,
-            vertexBuffer = mesh.vertexBuffer,
-            indexCount = mesh.IndexCount,
             world = matrix,
         };
 
@@ -351,8 +348,6 @@ public sealed class MeshRenderSystem : IRenderSystem
                 {
                     var content = contents.instanceInfos.Contents[i];
 
-                    renderState.vertexBuffer = content.mesh.vertexBuffer;
-                    renderState.indexBuffer = content.mesh.indexBuffer;
                     renderState.primitiveType = content.mesh.MeshTopology;
                     renderState.world = content.transform.Matrix;
 

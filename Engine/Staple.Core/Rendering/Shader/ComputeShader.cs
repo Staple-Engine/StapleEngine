@@ -55,9 +55,9 @@ public partial class ComputeShader : IGuidAsset
 
         shaderSource = entry.computeShader ?? [];
         metrics = entry.computeMetrics ?? new();
-        uniformContainer = entry.uniforms;
+        uniformContainer = entry.computeUniforms;
 
-        foreach (var uniform in entry.uniforms.uniforms)
+        foreach (var uniform in entry.computeUniforms.uniforms)
         {
             if((uniform.fields?.Count ?? 0) == 0)
             {
@@ -192,6 +192,7 @@ public partial class ComputeShader : IGuidAsset
                 variant = uniform.variant,
                 defaultValue = uniform.defaultValue,
             },
+            handle = new(normalizedName),
             count = NormalizeUniformCount(uniform.name),
         };
 
@@ -217,6 +218,7 @@ public partial class ComputeShader : IGuidAsset
                     defaultValue = uniform.defaultValue,
                     slot = uniform.slot,
                 },
+                handle = new(normalizedName),
             }]).ToArray();
         }
     }

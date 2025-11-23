@@ -409,6 +409,7 @@
 		<Compile Include="Utilities\Observables\ObservableBoxStrong.cs" />
 		<Compile Include="Utilities\Observables\ObservableManager.cs" />
 		<Compile Include="Utilities\StorageUtils.cs" />
+		<Compile Include="Utilities\StringID.cs" />
 		<Compile Include="Utilities\ThreadHelper.cs" />
 		<Compile Include="Utilities\TypeCache.cs" />
 		<Compile Include="World\IWorldChangeReceiver.cs" />

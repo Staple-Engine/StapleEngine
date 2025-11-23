@@ -877,12 +877,16 @@ public sealed partial class Mesh
 
         if(submeshes.Count == 0)
         {
+            state.vertexBuffer = vertexBuffer;
+            state.indexBuffer = indexBuffer;
             state.indexCount = indices.Length;
         }
         else if(submeshIndex >= 0 && submeshIndex < submeshes.Count)
         {
             var submesh = submeshes[submeshIndex];
 
+            state.vertexBuffer = vertexBuffer;
+            state.indexBuffer = indexBuffer;
             state.startVertex = submesh.startVertex;
             state.startIndex = submesh.startIndex;
             state.indexCount = submesh.indexCount;

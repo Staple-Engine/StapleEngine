@@ -3,12 +3,12 @@ module Staple;
 __include StapleMath;
 __include StapleLighting;
 
-#define STAPLE_SKINNING_STAGE_INDEX 1
+#define STAPLE_SKINNING_STAGE_INDEX 2
 
 #ifdef SKINNING
-public static const int StapleBufferIndexCount = 2;
+public static const int StapleBufferIndexCount = 3;
 #else
-public static const int StapleBufferIndexCount = 1;
+public static const int StapleBufferIndexCount = 2;
 #endif
 
 #ifdef STAPLE_VERTEX_SHADER
@@ -33,6 +33,11 @@ public cbuffer StapleRenderData
     public float4x4 world;
     public float4x4 view;
     public float4x4 projection;
+};
+
+[[vk::binding(1, StapleUniformBufferSet)]]
+public cbuffer StapleFragmentRenderData
+{
     public float time;
 };
 

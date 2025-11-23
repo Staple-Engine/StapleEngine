@@ -117,7 +117,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if(renderer.instance == null)
+            renderer.mesh.UploadMeshData();
+
+            if (renderer.instance == null)
             {
                 var rootTransform = FindRootTransform(transform, renderer.mesh.meshAsset.nodes.FirstOrDefault());
 

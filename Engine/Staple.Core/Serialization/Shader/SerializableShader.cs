@@ -94,7 +94,13 @@ public class SerializableShaderData
     public VertexAttribute[] vertexAttributes = [];
 
     [Key(7)]
-    public ShaderUniformContainer uniforms;
+    public ShaderUniformContainer vertexUniforms = new();
+
+    [Key(8)]
+    public ShaderUniformContainer fragmentUniforms = new();
+
+    [Key(9)]
+    public ShaderUniformContainer computeUniforms = new();
 }
 
 [MessagePackObject]

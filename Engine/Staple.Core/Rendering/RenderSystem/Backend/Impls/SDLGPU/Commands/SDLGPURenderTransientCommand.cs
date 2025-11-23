@@ -1,19 +1,19 @@
 ﻿using SDL3;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
 internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline,
-    SDL.SDL_GPUTextureSamplerBinding[] samplers, Dictionary<byte, byte[]> uniformData,
+    SDL.SDL_GPUTextureSamplerBinding[] samplers, Dictionary<byte, byte[]> vertexUniformData, Dictionary<byte, byte[]> fragmentUniformData,
     SDLGPUShaderProgram program, SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
 {
     public RenderState state = state;
     public nint pipeline = pipeline;
     public SDL.SDL_GPUTextureSamplerBinding[] samplers = samplers;
     public SDLGPURendererBackend.TransientEntry entry = entry;
-    public Dictionary<byte, byte[]> uniformData = uniformData;
+    public Dictionary<byte, byte[]> vertexUniformData = vertexUniformData;
+    public Dictionary<byte, byte[]> fragmentUniformData = fragmentUniformData;
     public SDLGPUShaderProgram program = program;
 
     public void Update(IRendererBackend rendererBackend)
@@ -80,33 +80,22 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline,
             SDL.SDL_BindGPUFragmentSamplers(renderPass, 0, samplers.AsSpan(), (uint)samplers.Length);
         }
 
-        backend.viewData.renderData.world = state.world;
-        backend.viewData.renderData.time = Time.unscaledTime;
-
         unsafe
         {
-            if (uniformData.TryGetValue(0, out var data) &&
-                Marshal.SizeOf<SDLGPURendererBackend.StapleRenderData>() == data.Length)
+            foreach (var pair in vertexUniformData)
             {
-                fixed (void* ptr = &backend.viewData.renderData)
-                {
-                    var source = new Span<byte>(ptr, data.Length);
-                    var target = new Span<byte>(data);
-
-                    source.CopyTo(target);
-                }
-            }
-
-            foreach (var pair in uniformData)
-            {
-                if (pair.Key == 0) //Staple Render Data
-                {
-                    continue;
-                }
-
                 fixed (void* ptr = pair.Value)
                 {
                     SDL.SDL_PushGPUVertexUniformData(backend.commandBuffer, pair.Key, (nint)ptr,
+                        (uint)pair.Value.Length);
+                }
+            }
+
+            foreach (var pair in fragmentUniformData)
+            {
+                fixed (void* ptr = pair.Value)
+                {
+                    SDL.SDL_PushGPUFragmentUniformData(backend.commandBuffer, pair.Key, (nint)ptr,
                         (uint)pair.Value.Length);
                 }
             }

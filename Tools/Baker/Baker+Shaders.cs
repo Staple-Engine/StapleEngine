@@ -802,7 +802,7 @@ static partial class Program
 
                                 if(reflectionData != null)
                                 {
-                                    shaderObject.uniforms = reflectionData;
+                                    shaderObject.computeUniforms = reflectionData;
                                 }
 
                                 lock (entryLock)
@@ -902,12 +902,12 @@ static partial class Program
 
                                 if (vertexReflectionData != null)
                                 {
-                                    shaderObject.uniforms = vertexReflectionData;
+                                    shaderObject.vertexUniforms = vertexReflectionData;
                                 }
 
                                 if(fragmentReflectionData != null)
                                 {
-                                    shaderObject.uniforms.Merge(fragmentReflectionData);
+                                    shaderObject.fragmentUniforms = fragmentReflectionData;
                                 }
 
                                 lock (entryLock)

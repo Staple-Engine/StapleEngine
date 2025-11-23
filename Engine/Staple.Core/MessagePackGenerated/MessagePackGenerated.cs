@@ -3933,7 +3933,7 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(8);
+            writer.WriteArrayHeader(10);
             writer.Write(value.vertexShader);
             writer.Write(value.fragmentShader);
             writer.Write(value.computeShader);
@@ -3941,7 +3941,9 @@ namespace MessagePack.Formatters.Staple.Internal
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.VertexFragmentShaderMetrics>().Serialize(ref writer, value.fragmentMetrics, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ComputeShaderMetrics>().Serialize(ref writer, value.computeMetrics, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.VertexAttribute[]>().Serialize(ref writer, value.vertexAttributes, options);
-            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformContainer>().Serialize(ref writer, value.uniforms, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformContainer>().Serialize(ref writer, value.vertexUniforms, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformContainer>().Serialize(ref writer, value.fragmentUniforms, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformContainer>().Serialize(ref writer, value.computeUniforms, options);
         }
 
         public global::Staple.Internal.SerializableShaderData Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -3982,7 +3984,13 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.vertexAttributes = formatterResolver.GetFormatterWithVerify<global::Staple.VertexAttribute[]>().Deserialize(ref reader, options);
                         break;
                     case 7:
-                        ____result.uniforms = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformContainer>().Deserialize(ref reader, options);
+                        ____result.vertexUniforms = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformContainer>().Deserialize(ref reader, options);
+                        break;
+                    case 8:
+                        ____result.fragmentUniforms = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformContainer>().Deserialize(ref reader, options);
+                        break;
+                    case 9:
+                        ____result.computeUniforms = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformContainer>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();

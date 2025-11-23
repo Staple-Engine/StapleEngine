@@ -5,17 +5,27 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Staple.Internal;
 
 internal partial class SDLGPURendererBackend : IRendererBackend
 {
+    internal static string StapleRenderDataUniformName = "StapleRenderData";
+    internal static string StapleFragmentDataUniformName = "StapleFragmentRenderData";
+
+    #region Classes
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     internal struct StapleRenderData
     {
         public Matrix4x4 world;
         public Matrix4x4 view;
         public Matrix4x4 projection;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    internal struct StapleFragmentRenderData
+    {
         public float time;
     }
 
@@ -53,6 +63,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         public Vector4 viewport;
 
         public StapleRenderData renderData;
+        public StapleFragmentRenderData fragmentData;
     }
 
     internal class TransientEntry
@@ -366,7 +377,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
         }
     }
+    #endregion
 
+    #region Fields
     internal Vector2Int renderSize;
 
     internal nint device;
@@ -394,6 +407,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     private bool iteratingCommands = false;
     private int commandIndex;
+    #endregion
 
     public bool SupportsTripleBuffering => SDL.SDL_WindowSupportsGPUPresentMode(device, window.window,
         SDL.SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_MAILBOX);
@@ -828,7 +842,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     public IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
         VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
-        VertexAttribute[] vertexAttributes, ShaderUniformContainer uniforms)
+        VertexAttribute[] vertexAttributes, ShaderUniformContainer vertexUniforms, ShaderUniformContainer fragmentUniforms)
     {
         unsafe
         {
@@ -902,14 +916,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            var uniformValues = new Dictionary<byte, byte[]>();
-
-            foreach(var item in uniforms.uniforms)
-            {
-                uniformValues.Add((byte)item.binding, new byte[item.size]);
-            }
-
-            return new SDLGPUShaderProgram(device, vertexShader, fragmentShader, vertexAttributes, uniforms, uniformValues);
+            return new SDLGPUShaderProgram(device, vertexShader, fragmentShader, vertexAttributes, vertexUniforms, fragmentUniforms);
         }
     }
 
@@ -978,240 +985,20 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             GetTextureUsage(flags));
     }
 
-    public void Render(RenderState state)
+    private bool TryGetRenderPipeline(RenderState state, SDLGPUVertexLayout vertexLayout,
+        out SDL.SDL_GPUTextureSamplerBinding[] samplers, out nint pipeline)
     {
-        if(state.shader == null ||
+        if (state.shader == null ||
             state.shaderVariant == null ||
             state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
             instance.program is not SDLGPUShaderProgram shader ||
             state.shader == null ||
-            shader.Type != ShaderType.VertexFragment ||
-            state.vertexBuffer is not SDLGPUVertexBuffer vertex ||
-            vertex.layout is not SDLGPUVertexLayout vertexLayout ||
-            state.indexBuffer is not SDLGPUIndexBuffer index)
-        {
-            return;
-        }
-
-        var samplerCount = state.textures?.Length ?? 0;
-
-        for (var i = 0; i < samplerCount; i++)
-        {
-            if (state.textures[i]?.impl is not SDLGPUTexture texture ||
-                texture.Disposed ||
-                TryGetTexture(texture.handle, out _) == false)
-            {
-                return;
-            }
-        }
-
-        var samplers = samplerCount > 0 ? new SDL.SDL_GPUTextureSamplerBinding[samplerCount] : null;
-
-        if(samplers != null)
-        {
-            for (var i = 0; i < samplers.Length; i++)
-            {
-                if (state.textures[i]?.impl is not SDLGPUTexture texture ||
-                    texture.Disposed ||
-                    TryGetTexture(texture.handle, out var resource) == false)
-                {
-                    return;
-                }
-
-                samplers[i].texture = resource.texture;
-                samplers[i].sampler = GetSampler(texture.flags);
-            }
-        }
-
-        var depthStencilFormat = DepthStencilFormat;
-
-        if(depthStencilFormat.HasValue == false ||
-            TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
-            out var sdlDepthFormat) == false)
-        {
-            sdlDepthFormat = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D24_UNORM;
-        }
-
-        var hash = state.StateKey;
-
-        if(graphicsPipelines.TryGetValue(hash, out var pipeline) == false)
-        {
-            unsafe
-            {
-                var shaderAttributes = new SDL.SDL_GPUVertexAttribute[vertexLayout.attributes.Length];
-
-                for(var i = 0; i < vertexLayout.attributes.Length; i++)
-                {
-                    var attribute = vertexLayout.attributes[i];
-
-                    var attributeIndex = shader.vertexAttributes.IndexOf(vertexLayout.vertexAttributes[i]);
-
-                    if(attributeIndex < 0)
-                    {
-                        Log.Error($"Failed to render: vertex attribute {shader.vertexAttributes[i]} was not declared in the vertex layout!");
-
-                        return;
-                    }
-
-                    shaderAttributes[i] = new()
-                    {
-                        buffer_slot = 0,
-                        format = attribute.format,
-                        offset = attribute.offset,
-                        location = (uint)attributeIndex,
-                    };
-                }
-
-                fixed (SDL.SDL_GPUVertexAttribute* attributes = shaderAttributes)
-                {
-                    var vertexDescription = new SDL.SDL_GPUVertexBufferDescription()
-                    {
-                        pitch = (uint)vertexLayout.Stride,
-                        slot = 0,
-                        input_rate = SDL.SDL_GPUVertexInputRate.SDL_GPU_VERTEXINPUTRATE_VERTEX
-                    };
-
-                    var sourceBlend = state.sourceBlend switch
-                    {
-                        BlendMode.DstAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
-                        BlendMode.DstColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
-                        BlendMode.One => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
-                        BlendMode.OneMinusDstAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
-                        BlendMode.OneMinusDstColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
-                        BlendMode.OneMinusSrcAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                        BlendMode.OneMinusSrcColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
-                        BlendMode.SrcAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-                        BlendMode.SrcAlphaSat => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
-                        BlendMode.SrcColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
-                        BlendMode.Zero => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
-                        BlendMode.Off => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
-                        _ => throw new ArgumentOutOfRangeException(nameof(state.sourceBlend), "Invalid blend mode"),
-                    };
-
-                    var destinationBlend = state.destinationBlend switch
-                    {
-                        BlendMode.DstAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
-                        BlendMode.DstColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
-                        BlendMode.One => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
-                        BlendMode.OneMinusDstAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
-                        BlendMode.OneMinusDstColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
-                        BlendMode.OneMinusSrcAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                        BlendMode.OneMinusSrcColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
-                        BlendMode.SrcAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-                        BlendMode.SrcAlphaSat => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
-                        BlendMode.SrcColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
-                        BlendMode.Zero => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
-                        BlendMode.Off => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
-                        _ => throw new ArgumentOutOfRangeException(nameof(state.destinationBlend), "Invalid blend mode"),
-                    };
-
-                    var colorTargetDescription = new SDL.SDL_GPUColorTargetDescription()
-                    {
-                        format = SDL.SDL_GetGPUSwapchainTextureFormat(device, window.window),
-                        blend_state = new()
-                        {
-                            enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,
-                            color_blend_op = SDL.SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
-                            alpha_blend_op = SDL.SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
-                            src_color_blendfactor = sourceBlend,
-                            src_alpha_blendfactor = sourceBlend,
-                            dst_color_blendfactor = destinationBlend,
-                            dst_alpha_blendfactor = destinationBlend,
-                        }
-                    };
-
-                    SDL.SDL_GPUVertexBufferDescription[] vertexDescriptions = [vertexDescription];
-
-                    fixed (SDL.SDL_GPUVertexBufferDescription* descriptions = vertexDescriptions)
-                    {
-                        var info = new SDL.SDL_GPUGraphicsPipelineCreateInfo()
-                        {
-                            primitive_type = state.primitiveType switch
-                            {
-                                MeshTopology.TriangleStrip => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
-                                MeshTopology.Triangles => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-                                MeshTopology.Lines => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINELIST,
-                                MeshTopology.LineStrip => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINESTRIP,
-                                _ => throw new ArgumentOutOfRangeException("Invalid value for primitive type", nameof(state.primitiveType)),
-                            },
-                            vertex_shader = shader.vertex,
-                            fragment_shader = shader.fragment,
-                            rasterizer_state = new()
-                            {
-                                cull_mode = state.cull switch
-                                {
-                                    CullingMode.None => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_NONE,
-                                    CullingMode.Front => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_FRONT,
-                                    CullingMode.Back => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_BACK,
-                                    _ => throw new ArgumentOutOfRangeException("Invalid value for cull", nameof(state.cull)),
-                                },
-                                fill_mode = state.wireframe ? SDL.SDL_GPUFillMode.SDL_GPU_FILLMODE_LINE : SDL.SDL_GPUFillMode.SDL_GPU_FILLMODE_FILL,
-                                front_face = SDL.SDL_GPUFrontFace.SDL_GPU_FRONTFACE_CLOCKWISE,
-                            },
-                            depth_stencil_state = new()
-                            {
-                                enable_depth_test = state.enableDepth,
-                                enable_depth_write = state.depthWrite,
-                                compare_op = SDL.SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
-                            },
-                            vertex_input_state = new()
-                            {
-                                num_vertex_buffers = 1,
-                                num_vertex_attributes = (uint)vertexLayout.attributes.Length,
-                                vertex_attributes = attributes,
-                                vertex_buffer_descriptions = descriptions,
-                            },
-                            target_info = new()
-                            {
-                                num_color_targets = 1,
-                                color_target_descriptions = &colorTargetDescription,
-                                has_depth_stencil_target = depthStencilFormat.HasValue,
-                                depth_stencil_format = sdlDepthFormat,
-                            }
-                        };
-
-                        pipeline = SDL.SDL_CreateGPUGraphicsPipeline(device, in info);
-
-                        graphicsPipelines.Add(hash, pipeline);
-                    }
-                }
-            }
-        }
-
-        if (pipeline == nint.Zero)
-        {
-            return;
-        }
-
-        var uniformData = new Dictionary<byte, byte[]>();
-
-        foreach (var pair in shader.uniformValues)
-        {
-            //Duplicate uniform data
-            uniformData.Add(pair.Key, pair.Value.ToArray());
-        }
-
-        AddCommand(new SDLGPURenderCommand(state, pipeline, samplers, uniformData, shader));
-    }
-
-    public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
-        where T : unmanaged
-    {
-        if (layout is not SDLGPUVertexLayout vertexLayout ||
-            state.shaderVariant == null ||
-            state.shader == null ||
-            state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
-            instance.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment)
         {
-            return;
-        }
+            samplers = default;
+            pipeline = nint.Zero;
 
-        var size = Marshal.SizeOf<T>();
-
-        if (size % layout.Stride != 0)
-        {
-            return;
+            return false;
         }
 
         var samplerCount = state.textures?.Length ?? 0;
@@ -1222,11 +1009,14 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 texture.Disposed ||
                 TryGetTexture(texture.handle, out _) == false)
             {
-                return;
+                samplers = default;
+                pipeline = nint.Zero;
+
+                return false;
             }
         }
 
-        var samplers = samplerCount > 0 ? new SDL.SDL_GPUTextureSamplerBinding[samplerCount] : null;
+        samplers = samplerCount > 0 ? new SDL.SDL_GPUTextureSamplerBinding[samplerCount] : null;
 
         if (samplers != null)
         {
@@ -1236,7 +1026,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     texture.Disposed ||
                     TryGetTexture(texture.handle, out var resource) == false)
                 {
-                    return;
+                    samplers = default;
+                    pipeline = nint.Zero;
+
+                    return false;
                 }
 
                 samplers[i].texture = resource.texture;
@@ -1255,11 +1048,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         var hash = state.StateKey;
 
-        if (graphicsPipelines.TryGetValue(hash, out var pipeline) == false)
+        if (graphicsPipelines.TryGetValue(hash, out pipeline) == false)
         {
             unsafe
             {
-                var shaderAttributes = new SDL.SDL_GPUVertexAttribute[vertexLayout.attributes.Length];
+                var shaderAttributes = new List<SDL.SDL_GPUVertexAttribute>();
 
                 for (var i = 0; i < vertexLayout.attributes.Length; i++)
                 {
@@ -1269,21 +1062,21 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                     if (attributeIndex < 0)
                     {
-                        Log.Error($"Failed to render: vertex attribute {shader.vertexAttributes[i]} was not declared in the vertex layout!");
-
-                        return;
+                        continue;
                     }
 
-                    shaderAttributes[i] = new()
+                    shaderAttributes.Add(new()
                     {
                         buffer_slot = 0,
                         format = attribute.format,
                         offset = attribute.offset,
                         location = (uint)attributeIndex,
-                    };
+                    });
                 }
 
-                fixed (SDL.SDL_GPUVertexAttribute* attributes = shaderAttributes)
+                var attributesSpan = CollectionsMarshal.AsSpan(shaderAttributes);
+
+                fixed (SDL.SDL_GPUVertexAttribute* attributes = attributesSpan)
                 {
                     var vertexDescription = new SDL.SDL_GPUVertexBufferDescription()
                     {
@@ -1400,6 +1193,110 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
 
         if (pipeline == nint.Zero)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    public void Render(RenderState state)
+    {
+        if(state.shader == null ||
+            state.shaderVariant == null ||
+            state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
+            instance.program is not SDLGPUShaderProgram shader ||
+            state.shader == null ||
+            shader.Type != ShaderType.VertexFragment ||
+            state.vertexBuffer is not SDLGPUVertexBuffer vertex ||
+            vertex.layout is not SDLGPUVertexLayout vertexLayout ||
+            state.indexBuffer is not SDLGPUIndexBuffer index ||
+            TryGetRenderPipeline(state, vertexLayout, out var samplers, out var pipeline) == false)
+        {
+            return;
+        }
+
+        var vertexUniformData = new Dictionary<byte, byte[]>();
+        var fragmentUniformData = new Dictionary<byte, byte[]>();
+
+        foreach (var pair in shader.vertexUniforms)
+        {
+            if(pair.Key.name == StapleRenderDataUniformName)
+            {
+                if(pair.Value.Length != Marshal.SizeOf<StapleRenderData>())
+                {
+                    Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
+                        + $"Should be {Marshal.SizeOf<StapleRenderData>()}!");
+
+                    continue;
+                }
+
+                unsafe
+                {
+                    viewData.renderData.world = state.world;
+
+                    fixed (void* ptr = &viewData.renderData)
+                    {
+                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleRenderData>());
+                        var target = new Span<byte>(pair.Value);
+
+                        source.CopyTo(target);
+                    }
+                }
+            }
+
+            vertexUniformData.AddOrSetKey((byte)pair.Key.binding, pair.Value.ToArray());
+        }
+
+        foreach (var pair in shader.fragmentUniforms)
+        {
+            if (pair.Key.name == StapleFragmentDataUniformName)
+            {
+                if (pair.Value.Length != Marshal.SizeOf<StapleFragmentRenderData>())
+                {
+                    Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
+                        + $"Should be {Marshal.SizeOf<StapleFragmentRenderData>()}!");
+
+                    continue;
+                }
+
+                unsafe
+                {
+                    viewData.fragmentData.time = Time.time;
+
+                    fixed (void* ptr = &viewData.fragmentData)
+                    {
+                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleFragmentRenderData>());
+                        var target = new Span<byte>(pair.Value);
+
+                        source.CopyTo(target);
+                    }
+                }
+            }
+
+            fragmentUniformData.AddOrSetKey((byte)pair.Key.binding, pair.Value.ToArray());
+        }
+
+        AddCommand(new SDLGPURenderCommand(state, pipeline, samplers, vertexUniformData, fragmentUniformData, shader));
+    }
+
+    public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
+        where T : unmanaged
+    {
+        if (layout is not SDLGPUVertexLayout vertexLayout ||
+            state.shaderVariant == null ||
+            state.shader == null ||
+            state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
+            instance.program is not SDLGPUShaderProgram shader ||
+            shader.Type != ShaderType.VertexFragment ||
+            TryGetRenderPipeline(state, vertexLayout, out var samplers, out var pipeline) == false)
+        {
+            return;
+        }
+
+        var size = Marshal.SizeOf<T>();
+
+        if (size % layout.Stride != 0)
         {
             return;
         }
@@ -1437,15 +1334,91 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndex += indices.Length;
 
-        var uniformData = new Dictionary<byte, byte[]>();
+        var vertexUniformData = new Dictionary<byte, byte[]>();
+        var fragmentUniformData = new Dictionary<byte, byte[]>();
 
-        foreach (var pair in shader.uniformValues)
+        foreach (var pair in shader.vertexUniforms)
         {
-            //Duplicate uniform data
-            uniformData.Add(pair.Key, pair.Value.ToArray());
+            if (pair.Key.name == StapleRenderDataUniformName)
+            {
+                if (pair.Value.Length != Marshal.SizeOf<StapleRenderData>())
+                {
+                    Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
+                        + $"Should be {Marshal.SizeOf<StapleRenderData>()}!");
+
+                    continue;
+                }
+
+                unsafe
+                {
+                    viewData.renderData.world = state.world;
+
+                    fixed (void* ptr = &viewData.renderData)
+                    {
+                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleRenderData>());
+                        var target = new Span<byte>(pair.Value);
+
+                        source.CopyTo(target);
+                    }
+                }
+            }
+            else if(pair.Key.name == StapleFragmentDataUniformName)
+            {
+                if (pair.Value.Length != Marshal.SizeOf<StapleFragmentRenderData>())
+                {
+                    Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
+                        + $"Should be {Marshal.SizeOf<StapleFragmentRenderData>()}!");
+
+                    continue;
+                }
+
+                unsafe
+                {
+                    viewData.fragmentData.time = Time.time;
+
+                    fixed (void* ptr = &viewData.fragmentData)
+                    {
+                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleFragmentRenderData>());
+                        var target = new Span<byte>(pair.Value);
+
+                        source.CopyTo(target);
+                    }
+                }
+            }
+
+            vertexUniformData.AddOrSetKey((byte)pair.Key.binding, pair.Value.ToArray());
         }
 
-        AddCommand(new SDLGPURenderTransientCommand(state, pipeline, samplers, uniformData, shader, entry));
+        foreach (var pair in shader.fragmentUniforms)
+        {
+            if (pair.Key.name == StapleFragmentDataUniformName)
+            {
+                if (pair.Value.Length != Marshal.SizeOf<StapleFragmentRenderData>())
+                {
+                    Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
+                        + $"Should be {Marshal.SizeOf<StapleFragmentRenderData>()}!");
+
+                    continue;
+                }
+
+                unsafe
+                {
+                    viewData.fragmentData.time = Time.time;
+
+                    fixed (void* ptr = &viewData.fragmentData)
+                    {
+                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleFragmentRenderData>());
+                        var target = new Span<byte>(pair.Value);
+
+                        source.CopyTo(target);
+                    }
+                }
+            }
+
+            fragmentUniformData.AddOrSetKey((byte)pair.Key.binding, pair.Value.ToArray());
+        }
+
+        AddCommand(new SDLGPURenderTransientCommand(state, pipeline, samplers, vertexUniformData, fragmentUniformData, shader, entry));
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state)
@@ -1456,7 +1429,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             state.shader == null ||
             state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
             instance.program is not SDLGPUShaderProgram shader ||
-            shader.Type != ShaderType.VertexFragment)
+            shader.Type != ShaderType.VertexFragment ||
+            TryGetRenderPipeline(state, vertexLayout, out var samplers, out var pipeline) == false)
         {
             return;
         }
@@ -1464,196 +1438,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         var size = Marshal.SizeOf<T>();
 
         if (size % layout.Stride != 0)
-        {
-            return;
-        }
-
-        var samplerCount = state.textures?.Length ?? 0;
-
-        for (var i = 0; i < samplerCount; i++)
-        {
-            if (state.textures[i]?.impl is not SDLGPUTexture texture ||
-                texture.Disposed ||
-                TryGetTexture(texture.handle, out _) == false)
-            {
-                return;
-            }
-        }
-
-        var samplers = samplerCount > 0 ? new SDL.SDL_GPUTextureSamplerBinding[samplerCount] : null;
-
-        if (samplers != null)
-        {
-            for (var i = 0; i < samplers.Length; i++)
-            {
-                if (state.textures[i]?.impl is not SDLGPUTexture texture ||
-                    texture.Disposed ||
-                    TryGetTexture(texture.handle, out var resource) == false)
-                {
-                    return;
-                }
-
-                samplers[i].texture = resource.texture;
-                samplers[i].sampler = GetSampler(texture.flags);
-            }
-        }
-
-        var depthStencilFormat = DepthStencilFormat;
-
-        if (depthStencilFormat.HasValue == false ||
-            TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
-            out var sdlDepthFormat) == false)
-        {
-            sdlDepthFormat = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D24_UNORM;
-        }
-
-        var hash = state.StateKey;
-
-        if (graphicsPipelines.TryGetValue(hash, out var pipeline) == false)
-        {
-            unsafe
-            {
-                var shaderAttributes = new SDL.SDL_GPUVertexAttribute[vertexLayout.attributes.Length];
-
-                for (var i = 0; i < vertexLayout.attributes.Length; i++)
-                {
-                    var attribute = vertexLayout.attributes[i];
-
-                    var attributeIndex = shader.vertexAttributes.IndexOf(vertexLayout.vertexAttributes[i]);
-
-                    if (attributeIndex < 0)
-                    {
-                        Log.Error($"Failed to render: vertex attribute {shader.vertexAttributes[i]} was not declared in the vertex layout!");
-
-                        return;
-                    }
-
-                    shaderAttributes[i] = new()
-                    {
-                        buffer_slot = 0,
-                        format = attribute.format,
-                        offset = attribute.offset,
-                        location = (uint)attributeIndex,
-                    };
-                }
-
-                fixed (SDL.SDL_GPUVertexAttribute* attributes = shaderAttributes)
-                {
-                    var vertexDescription = new SDL.SDL_GPUVertexBufferDescription()
-                    {
-                        pitch = (uint)vertexLayout.Stride,
-                        slot = 0,
-                        input_rate = SDL.SDL_GPUVertexInputRate.SDL_GPU_VERTEXINPUTRATE_VERTEX
-                    };
-
-                    var sourceBlend = state.sourceBlend switch
-                    {
-                        BlendMode.DstAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
-                        BlendMode.DstColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
-                        BlendMode.One => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
-                        BlendMode.OneMinusDstAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
-                        BlendMode.OneMinusDstColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
-                        BlendMode.OneMinusSrcAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                        BlendMode.OneMinusSrcColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
-                        BlendMode.SrcAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-                        BlendMode.SrcAlphaSat => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
-                        BlendMode.SrcColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
-                        BlendMode.Zero => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
-                        BlendMode.Off => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
-                        _ => throw new ArgumentOutOfRangeException(nameof(state.sourceBlend), "Invalid blend mode"),
-                    };
-
-                    var destinationBlend = state.destinationBlend switch
-                    {
-                        BlendMode.DstAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
-                        BlendMode.DstColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
-                        BlendMode.One => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
-                        BlendMode.OneMinusDstAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
-                        BlendMode.OneMinusDstColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
-                        BlendMode.OneMinusSrcAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                        BlendMode.OneMinusSrcColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
-                        BlendMode.SrcAlpha => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-                        BlendMode.SrcAlphaSat => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
-                        BlendMode.SrcColor => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
-                        BlendMode.Zero => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
-                        BlendMode.Off => SDL.SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
-                        _ => throw new ArgumentOutOfRangeException(nameof(state.destinationBlend), "Invalid blend mode"),
-                    };
-
-                    var colorTargetDescription = new SDL.SDL_GPUColorTargetDescription()
-                    {
-                        format = SDL.SDL_GetGPUSwapchainTextureFormat(device, window.window),
-                        blend_state = new()
-                        {
-                            enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,
-                            color_blend_op = SDL.SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
-                            alpha_blend_op = SDL.SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
-                            src_color_blendfactor = sourceBlend,
-                            src_alpha_blendfactor = sourceBlend,
-                            dst_color_blendfactor = destinationBlend,
-                            dst_alpha_blendfactor = destinationBlend,
-                        }
-                    };
-
-                    SDL.SDL_GPUVertexBufferDescription[] vertexDescriptions = [vertexDescription];
-
-                    fixed (SDL.SDL_GPUVertexBufferDescription* descriptions = vertexDescriptions)
-                    {
-                        var info = new SDL.SDL_GPUGraphicsPipelineCreateInfo()
-                        {
-                            primitive_type = state.primitiveType switch
-                            {
-                                MeshTopology.TriangleStrip => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
-                                MeshTopology.Triangles => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-                                MeshTopology.Lines => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINELIST,
-                                MeshTopology.LineStrip => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINESTRIP,
-                                _ => throw new ArgumentOutOfRangeException("Invalid value for primitive type", nameof(state.primitiveType)),
-                            },
-                            vertex_shader = shader.vertex,
-                            fragment_shader = shader.fragment,
-                            rasterizer_state = new()
-                            {
-                                cull_mode = state.cull switch
-                                {
-                                    CullingMode.None => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_NONE,
-                                    CullingMode.Front => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_FRONT,
-                                    CullingMode.Back => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_BACK,
-                                    _ => throw new ArgumentOutOfRangeException("Invalid value for cull", nameof(state.cull)),
-                                },
-                                fill_mode = state.wireframe ? SDL.SDL_GPUFillMode.SDL_GPU_FILLMODE_LINE : SDL.SDL_GPUFillMode.SDL_GPU_FILLMODE_FILL,
-                                front_face = SDL.SDL_GPUFrontFace.SDL_GPU_FRONTFACE_CLOCKWISE,
-                            },
-                            depth_stencil_state = new()
-                            {
-                                enable_depth_test = state.enableDepth,
-                                enable_depth_write = state.depthWrite,
-                                compare_op = SDL.SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
-                            },
-                            vertex_input_state = new()
-                            {
-                                num_vertex_buffers = 1,
-                                num_vertex_attributes = (uint)vertexLayout.attributes.Length,
-                                vertex_attributes = attributes,
-                                vertex_buffer_descriptions = descriptions,
-                            },
-                            target_info = new()
-                            {
-                                num_color_targets = 1,
-                                color_target_descriptions = &colorTargetDescription,
-                                has_depth_stencil_target = depthStencilFormat.HasValue,
-                                depth_stencil_format = sdlDepthFormat,
-                            }
-                        };
-
-                        pipeline = SDL.SDL_CreateGPUGraphicsPipeline(device, in info);
-
-                        graphicsPipelines.Add(hash, pipeline);
-                    }
-                }
-            }
-        }
-
-        if (pipeline == nint.Zero)
         {
             return;
         }
@@ -1691,14 +1475,67 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndexUInt += indices.Length;
 
-        var uniformData = new Dictionary<byte, byte[]>();
+        var vertexUniformData = new Dictionary<byte, byte[]>();
+        var fragmentUniformData = new Dictionary<byte, byte[]>();
 
-        foreach (var pair in shader.uniformValues)
+        foreach (var pair in shader.vertexUniforms)
         {
-            //Duplicate uniform data
-            uniformData.Add(pair.Key, pair.Value.ToArray());
+            if (pair.Key.name == StapleRenderDataUniformName)
+            {
+                if (pair.Value.Length != Marshal.SizeOf<StapleRenderData>())
+                {
+                    Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
+                        + $"Should be {Marshal.SizeOf<StapleRenderData>()}!");
+
+                    continue;
+                }
+
+                unsafe
+                {
+                    viewData.renderData.world = state.world;
+
+                    fixed (void* ptr = &viewData.renderData)
+                    {
+                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleRenderData>());
+                        var target = new Span<byte>(pair.Value);
+
+                        source.CopyTo(target);
+                    }
+                }
+            }
+
+            vertexUniformData.AddOrSetKey((byte)pair.Key.binding, pair.Value.ToArray());
         }
 
-        AddCommand(new SDLGPURenderTransientUIntCommand(state, pipeline, samplers, uniformData, shader, entry));
+        foreach (var pair in shader.fragmentUniforms)
+        {
+            if (pair.Key.name == StapleFragmentDataUniformName)
+            {
+                if (pair.Value.Length != Marshal.SizeOf<StapleFragmentRenderData>())
+                {
+                    Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
+                        + $"Should be {Marshal.SizeOf<StapleFragmentRenderData>()}!");
+
+                    continue;
+                }
+
+                unsafe
+                {
+                    viewData.fragmentData.time = Time.time;
+
+                    fixed (void* ptr = &viewData.fragmentData)
+                    {
+                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleFragmentRenderData>());
+                        var target = new Span<byte>(pair.Value);
+
+                        source.CopyTo(target);
+                    }
+                }
+            }
+
+            fragmentUniformData.AddOrSetKey((byte)pair.Key.binding, pair.Value.ToArray());
+        }
+
+        AddCommand(new SDLGPURenderTransientUIntCommand(state, pipeline, samplers, vertexUniformData, fragmentUniformData, shader, entry));
     }
 }
