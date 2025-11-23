@@ -1171,7 +1171,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                             vertex_input_state = new()
                             {
                                 num_vertex_buffers = 1,
-                                num_vertex_attributes = (uint)vertexLayout.attributes.Length,
+                                num_vertex_attributes = (uint)attributesSpan.Length,
                                 vertex_attributes = attributes,
                                 vertex_buffer_descriptions = descriptions,
                             },

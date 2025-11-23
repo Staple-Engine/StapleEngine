@@ -70,7 +70,7 @@ internal class SDLGPUVertexLayoutBuilder : VertexLayoutBuilder
 
                 _ => throw new System.ArgumentOutOfRangeException(nameof(type), "Not a valid data type"),
             },
-             offset = (uint)offset,
+            offset = (uint)offset,
         });
 
         offset += type switch
