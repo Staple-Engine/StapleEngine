@@ -5,7 +5,6 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Staple.Internal;
 
@@ -809,9 +808,19 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         var depthTarget = new SDL.SDL_GPUDepthStencilTargetInfo()
         {
             clear_depth = 1,
-            load_op = SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+            load_op = viewData.clearMode switch
+            {
+                CameraClearMode.None => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+                _ => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
+            },
             store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
             texture = depthTextureResource.texture,
+            stencil_load_op = viewData.clearMode switch
+            {
+                CameraClearMode.None => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+                _ => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
+            },
+            stencil_store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
         };
 
         renderPass = SDL.SDL_BeginGPURenderPass(commandBuffer, [colorTarget], 1, in depthTarget);
@@ -837,6 +846,13 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     public void BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
         in Matrix4x4 view, in Matrix4x4 projection)
     {
+        viewData.renderTarget = target;
+        viewData.clearMode = clear;
+        viewData.clearColor = clearColor;
+        viewData.viewport = viewport;
+        viewData.renderData.view = view;
+        viewData.renderData.projection = projection;
+
         AddCommand(new SDLGPUBeginRenderPassCommand(target, clear, clearColor, viewport, view, projection));
     }
 
@@ -1084,7 +1100,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     {
                         pitch = (uint)vertexLayout.Stride,
                         slot = 0,
-                        input_rate = SDL.SDL_GPUVertexInputRate.SDL_GPU_VERTEXINPUTRATE_VERTEX
+                        input_rate = SDL.SDL_GPUVertexInputRate.SDL_GPU_VERTEXINPUTRATE_VERTEX,
                     };
 
                     var sourceBlend = state.sourceBlend switch
@@ -1181,7 +1197,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                             {
                                 num_color_targets = 1,
                                 color_target_descriptions = &colorTargetDescription,
-                                has_depth_stencil_target = depthStencilFormat.HasValue,
+                                has_depth_stencil_target = state.enableDepth && depthStencilFormat.HasValue,
                                 depth_stencil_format = sdlDepthFormat,
                             }
                         };

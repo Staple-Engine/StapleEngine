@@ -571,8 +571,8 @@ internal class ImGuiProxy
                 indexBuffer.Update(indices);
             }
 
-            RenderSystem.Instance.Render(null, CameraClearMode.None, StapleEditor.ClearColor, new(0, 0, 1, 1),
-                Matrix4x4.Identity, ortho,
+            RenderSystem.Instance.Render(null, Scene.current == null ? CameraClearMode.SolidColor : CameraClearMode.None, StapleEditor.ClearColor,
+                new(0, 0, 1, 1), Matrix4x4.Identity, ortho,
                 () =>
                 {
                     currentVertex = 0;

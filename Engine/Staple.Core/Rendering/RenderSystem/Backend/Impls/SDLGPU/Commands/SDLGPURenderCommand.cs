@@ -1,7 +1,6 @@
 ﻿using SDL3;
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -51,28 +50,18 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.SDL_GPU
             buffer = indexBuffer.buffer,
         };
 
-        var scissor = new SDL.SDL_Rect();
-
         if (state.scissor != default)
         {
-            scissor = new()
+            var scissor = new SDL.SDL_Rect()
             {
                 x = state.scissor.left,
                 y = state.scissor.top,
                 w = state.scissor.Width,
                 h = state.scissor.Height,
             };
-        }
-        else
-        {
-            scissor = new()
-            {
-                w = backend.renderSize.X,
-                h = backend.renderSize.Y,
-            };
-        }
 
-        SDL.SDL_SetGPUScissor(renderPass, in scissor);
+            SDL.SDL_SetGPUScissor(renderPass, in scissor);
+        }
 
         SDL.SDL_BindGPUVertexBuffers(renderPass, 0, [vertexBinding], 1);
 

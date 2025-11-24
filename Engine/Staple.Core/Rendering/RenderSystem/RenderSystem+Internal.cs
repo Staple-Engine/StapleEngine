@@ -496,7 +496,7 @@ public sealed partial class RenderSystem
         {
             Matrix4x4.Invert(cameraTransform, out var view);
 
-            Backend.BeginRenderPass(target, clearMode, clearColor, viewport, view, projection);
+            Backend.BeginRenderPass(target, clearMode, clearColor, viewport, in view, in projection);
         }
     }
 

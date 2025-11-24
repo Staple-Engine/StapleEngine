@@ -96,6 +96,12 @@ internal class SDLGPUBeginRenderPassCommand(RenderTarget target, CameraClearMode
             },
             store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
             texture = depthTextureResource.texture,
+            stencil_load_op = clearMode switch
+            {
+                CameraClearMode.None => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+                _ => SDL.SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
+            },
+            stencil_store_op = SDL.SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
         };
 
         backend.renderPass = SDL.SDL_BeginGPURenderPass(backend.commandBuffer, [colorTarget], 1, in depthTarget);
