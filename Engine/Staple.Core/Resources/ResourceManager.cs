@@ -303,7 +303,7 @@ internal class ResourceManager
     }
 
     /// <summary>
-    /// Attempts to recreate resources (used usually when context is lost and bgfx was restarted)
+    /// Attempts to recreate resources (used usually when context is lost and rendering was restarted)
     /// </summary>
     internal void RecreateResources()
     {

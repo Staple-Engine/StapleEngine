@@ -1,7 +1,4 @@
-﻿using SDL3;
-using static Staple.InputAction;
-
-namespace Staple.Internal;
+﻿namespace Staple.Internal;
 
 internal class SDLGPUDestroyTextureCommand(ResourceHandle<Texture> handle) : IRenderCommand
 {

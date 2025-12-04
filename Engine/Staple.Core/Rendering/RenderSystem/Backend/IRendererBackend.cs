@@ -60,6 +60,8 @@ internal interface IRendererBackend
 
     ITexture CreateEmptyTexture(int width, int height, TextureFormat format, TextureFlags flags);
 
+    void ReadTexture(ITexture texture, Action<byte[]> onComplete);
+
     void Render(RenderState state);
 
     void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state) where T : unmanaged;

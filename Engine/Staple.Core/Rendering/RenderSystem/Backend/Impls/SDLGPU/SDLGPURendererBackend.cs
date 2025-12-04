@@ -398,6 +398,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private readonly Dictionary<TextureFlags, nint> textureSamplers = [];
     private bool needsDepthTextureUpdate = false;
     private readonly List<IRenderCommand> commands = [];
+    private readonly List<(SDLGPUTexture, Action<byte[]>)> readTextureQueue = [];
 
     private readonly BufferResource[] vertexBuffers = new BufferResource[ushort.MaxValue - 1];
     private readonly BufferResource[] indexBuffers = new BufferResource[ushort.MaxValue - 1];
@@ -710,7 +711,48 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         if (commandBuffer != nint.Zero)
         {
-            SDL.SDL_SubmitGPUCommandBuffer(commandBuffer);
+            var fences = new nint[SDL.SDL_SubmitGPUCommandBufferAndAcquireFence(commandBuffer)];
+
+            if(SDL.SDL_WaitForGPUFences(device, true, fences.AsSpan(), (uint)fences.Length) == false)
+            {
+                Log.Error($"[SDL GPU] Failed to wait for GPU Fences: {SDL.SDL_GetError()}");
+            }
+
+            SDL.SDL_ReleaseGPUFence(device, fences[0]);
+
+            for(var i = readTextureQueue.Count - 1; i >= 0; i--)
+            {
+                var item = readTextureQueue[i];
+
+                readTextureQueue.RemoveAt(i);
+
+                if (item.Item1 == null ||
+                    item.Item1.Disposed ||
+                    TryGetTexture(item.Item1.handle, out var resource) == false ||
+                    resource.used == false ||
+                    resource.transferBuffer == nint.Zero)
+                {
+                    continue;
+                }
+
+                unsafe
+                {
+                    var buffer = new byte[resource.length];
+
+                    var map = SDL.SDL_MapGPUTransferBuffer(device, resource.transferBuffer, false);
+
+                    var from = new Span<byte>((void *)map, buffer.Length);
+                    var to = new Span<byte>(buffer);
+
+                    from.CopyTo(to);
+
+                    SDL.SDL_UnmapGPUTransferBuffer(device, resource.transferBuffer);
+
+                    resource.transferBuffer = nint.Zero;
+
+                    item.Item2?.Invoke(buffer);
+                }
+            }
 
             commandBuffer = nint.Zero;
         }

@@ -90,7 +90,7 @@ public sealed partial class RenderSystem
     /// Gets the reset flags for specific video flags
     /// </summary>
     /// <param name="videoFlags">The video flags to use</param>
-    /// <returns>The BGFX Reset Flags</returns>
+    /// <returns>The reset flags</returns>
     internal static RenderModeFlags RenderFlags(VideoFlags videoFlags)
     {
         var resetFlags = RenderModeFlags.None;

@@ -12,6 +12,17 @@ internal partial class SDLGPURendererBackend
             return;
         }
 
+        for(var i = readTextureQueue.Count - 1; i >= 0; i--)
+        {
+            if (TryGetTexture(readTextureQueue[i].Item1?.handle ?? default, out var r) &&
+                r == resource)
+            {
+                readTextureQueue[i].Item2?.Invoke(null);
+
+                readTextureQueue.RemoveAt(i);
+            }
+        }
+
         SDL.SDL_WaitForGPUIdle(device);
 
         if (resource.transferBuffer != nint.Zero)
@@ -212,7 +223,7 @@ internal partial class SDLGPURendererBackend
             return null;
         }
 
-        var handle = SDLGPURendererBackend.ReserveTextureResource(textures, texture, asset.width, asset.height, format, flags);
+        var handle = ReserveTextureResource(textures, texture, asset.width, asset.height, format, flags);
 
         if (handle.IsValid == false)
         {
@@ -253,7 +264,7 @@ internal partial class SDLGPURendererBackend
             return null;
         }
 
-        var handle = SDLGPURendererBackend.ReserveTextureResource(textures, texture, width, height, format, flags);
+        var handle = ReserveTextureResource(textures, texture, width, height, format, flags);
 
         if(handle.IsValid == false)
         {
@@ -294,7 +305,7 @@ internal partial class SDLGPURendererBackend
             return null;
         }
 
-        var handle = SDLGPURendererBackend.ReserveTextureResource(textures, texture, width, height, format, flags);
+        var handle = ReserveTextureResource(textures, texture, width, height, format, flags);
 
         if (handle.IsValid == false)
         {
@@ -309,6 +320,34 @@ internal partial class SDLGPURendererBackend
     public void UpdateTexture(ResourceHandle<Texture> handle, Span<byte> data)
     {
         AddCommand(new SDLGPUUpdateTextureCommand(handle, data.ToArray()));
+    }
+
+    public void ReadTexture(ITexture texture, Action<byte[]> onComplete)
+    {
+        if(texture is not SDLGPUTexture t ||
+            t.Disposed ||
+            onComplete == null)
+        {
+            onComplete?.Invoke(null);
+
+            return;
+        }
+
+        AddCommand(new SDLGPUReadTextureCommand(t, onComplete));
+    }
+
+    internal void QueueTextureRead(SDLGPUTexture texture, Action<byte[]> onComplete)
+    {
+        if(texture == null ||
+            texture.Disposed ||
+            onComplete == null)
+        {
+            onComplete?.Invoke(null);
+
+            return;
+        }
+
+        readTextureQueue.Add((texture, onComplete));
     }
 
     public static SDL.SDL_GPUTextureType GetTextureType(TextureFlags flags)
