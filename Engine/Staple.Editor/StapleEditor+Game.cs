@@ -350,7 +350,13 @@ internal partial class StapleEditor
 
         Input.MousePosition = newMousePosition;
 
+        var previous = RenderTarget.Current;
+
+        RenderTarget.Current = gameRenderTarget;
+
         handler();
+
+        RenderTarget.Current = previous;
 
         Input.MousePosition = currentMousePosition;
 

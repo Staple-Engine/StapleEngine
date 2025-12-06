@@ -1,5 +1,4 @@
-﻿using SDL3;
-using System;
+﻿using System;
 
 namespace Staple.Internal;
 
@@ -8,7 +7,7 @@ internal class SDLGPUTexture(ResourceHandle<Texture> handle, int width, int heig
 {
     public ResourceHandle<Texture> handle = handle;
 
-    public readonly TextureFormat format = format;
+    public TextureFormat Format { get; private set; } = format;
 
     public readonly TextureFlags flags = flags;
 

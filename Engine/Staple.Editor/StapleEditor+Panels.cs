@@ -942,20 +942,30 @@ internal partial class StapleEditor
 
                 if (gameRenderTarget != null && Scene.current != null)
                 {
-                    for (var i = 0; i < Scene.SortedCameras.Length; i++)
-                    {
-                        RenderTarget.SetActive(gameRenderTarget);
-                    }
-
-                    //RenderTarget.SetActive(UICanvasSystem.UIViewID, gameRenderTarget);
-
                     ExecuteGameViewHandler(() =>
                     {
                         RenderSystem.Instance.Update();
                     });
+
+                    /*
+                    gameRenderTarget.colorTextures[0].ReadPixels((t, b) =>
+                    {
+                        var rawData = new RawTextureData()
+                        {
+                            colorComponents = StandardTextureColorComponents.RGBA,
+                            data = b,
+                            width = t.Width,
+                            height = t.Height,
+                        };
+
+                        var pngData = rawData.EncodePNG();
+
+                        File.WriteAllBytes(Path.Combine(Environment.CurrentDirectory, "Debug.png"), pngData);
+                    });
+                    */
                 }
 
-                var texture = gameRenderTarget.GetTexture();
+                var texture = gameRenderTarget.GetColorTexture();
 
                 if (texture != null)
                 {

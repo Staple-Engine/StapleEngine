@@ -204,7 +204,7 @@ internal partial class StapleEditor
             }
         }
 
-        RenderSystem.Instance.Render(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
+        RenderSystem.Render(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
             cameraTransform.Matrix, projection, () =>
             {
                 wireframeMaterial?.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));

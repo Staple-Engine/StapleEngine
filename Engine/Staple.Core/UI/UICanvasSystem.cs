@@ -45,8 +45,8 @@ public class UICanvasSystem : IRenderSystem
     {
         var projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1);
 
-        RenderSystem.Instance.Render(null, CameraClearMode.None, Color.White, new(0, 0, 1, 1),
-            Matrix4x4.Identity, projection, () =>
+        RenderSystem.Render(null, CameraClearMode.None, Color.White, new(0, 0, 1, 1), Matrix4x4.Identity, projection,
+            () =>
             {
                 IsPointerOverUI = false;
 

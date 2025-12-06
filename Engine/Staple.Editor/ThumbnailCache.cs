@@ -227,7 +227,8 @@ internal class ThumbnailCache
 
                         var lightTransform = new Transform();
 
-                        renderTarget.Render(() =>
+                        RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
+                            cameraTransform.Matrix, Camera.Projection(default, camera), () =>
                         {
                             LightSystem.OverrideLights = [(default, lightTransform, new Light()
                             {
@@ -244,7 +245,7 @@ internal class ThumbnailCache
                             LightSystem.OverrideAmbientColor = overrideAmbientColor;
                         });
 
-                        renderTarget.ReadTexture(/*StapleEditor.MeshRenderView*/0, 0, (texture, data) =>
+                        renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
                             tempEntity.Destroy();
                             renderTarget.Destroy();
@@ -481,7 +482,8 @@ internal class ThumbnailCache
 
                         var lightTransform = new Transform();
 
-                        renderTarget.Render(() =>
+                        RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
+                            cameraTransform.Matrix, Camera.Projection(default, camera), () =>
                         {
                             LightSystem.OverrideLights = [(default, lightTransform, new Light()
                             {
@@ -498,7 +500,7 @@ internal class ThumbnailCache
                             LightSystem.OverrideAmbientColor = overrideAmbientColor;
                         });
 
-                        renderTarget.ReadTexture(/*StapleEditor.MeshRenderView*/0, 0, (texture, data) =>
+                        renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
                             tempEntity.Destroy();
                             renderTarget.Destroy();

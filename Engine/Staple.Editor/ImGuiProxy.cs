@@ -571,7 +571,7 @@ internal class ImGuiProxy
                 indexBuffer.Update(indices);
             }
 
-            RenderSystem.Instance.Render(null, Scene.current == null ? CameraClearMode.SolidColor : CameraClearMode.None, StapleEditor.ClearColor,
+            RenderSystem.Render(null, Scene.current == null ? CameraClearMode.SolidColor : CameraClearMode.None, StapleEditor.ClearColor,
                 new(0, 0, 1, 1), Matrix4x4.Identity, ortho,
                 () =>
                 {
@@ -682,7 +682,6 @@ internal class ImGuiProxy
         {
             if (texture == null ||
                 texture.Disposed ||
-                texture.metadata.readBack ||
                 instance == null)
             {
                 return new ImTextureRef(texId: ImTextureID.Null);

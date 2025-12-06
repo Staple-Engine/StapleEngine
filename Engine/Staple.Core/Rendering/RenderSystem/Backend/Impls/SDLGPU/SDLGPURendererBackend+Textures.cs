@@ -65,6 +65,7 @@ internal partial class SDLGPURendererBackend
             resource.height = height;
             resource.format = format;
             resource.flags = flags;
+            resource.length = 0;
 
             return new ResourceHandle<Texture>((ushort)i);
         }
@@ -307,12 +308,65 @@ internal partial class SDLGPURendererBackend
 
         var handle = ReserveTextureResource(textures, texture, width, height, format, flags);
 
-        if (handle.IsValid == false)
+        if (handle.IsValid == false || TryGetTexture(handle, out var resource) == false)
         {
             SDL.SDL_ReleaseGPUTexture(device, texture);
 
             return null;
         }
+
+        resource.length = width * height * format switch
+        {
+            TextureFormat.A8 => sizeof(byte),
+            TextureFormat.R8 => sizeof(byte),
+            TextureFormat.R8I => sizeof(byte),
+            TextureFormat.R8U => sizeof(byte),
+            TextureFormat.R8S => sizeof(byte),
+            TextureFormat.R16 => sizeof(ushort),
+            TextureFormat.R16I => sizeof(ushort),
+            TextureFormat.R16U => sizeof(ushort),
+            TextureFormat.R16F => sizeof(ushort),
+            TextureFormat.R16S => sizeof(ushort),
+            TextureFormat.R32I => sizeof(uint),
+            TextureFormat.R32U => sizeof(uint),
+            TextureFormat.R32F => sizeof(uint),
+            TextureFormat.RG8 => sizeof(ushort),
+            TextureFormat.RG8I => sizeof(ushort),
+            TextureFormat.RG8U => sizeof(ushort),
+            TextureFormat.RG8S => sizeof(ushort),
+            TextureFormat.RG16 => sizeof(uint),
+            TextureFormat.RG16I => sizeof(uint),
+            TextureFormat.RG16U => sizeof(uint),
+            TextureFormat.RG16F => sizeof(uint),
+            TextureFormat.RG16S => sizeof(uint),
+            TextureFormat.RG32I => sizeof(ulong),
+            TextureFormat.RG32U => sizeof(ulong),
+            TextureFormat.RG32F => sizeof(ulong),
+            TextureFormat.BGRA8 => sizeof(uint),
+            TextureFormat.RGBA8 => sizeof(uint),
+            TextureFormat.RGBA8I => sizeof(uint),
+            TextureFormat.RGBA8U => sizeof(uint),
+            TextureFormat.RGBA8S => sizeof(uint),
+            TextureFormat.RGBA16 => sizeof(ulong),
+            TextureFormat.RGBA16I => sizeof(ulong),
+            TextureFormat.RGBA16U => sizeof(ulong),
+            TextureFormat.RGBA16F => sizeof(ulong),
+            TextureFormat.RGBA16S => sizeof(ulong),
+            TextureFormat.RGBA32I => sizeof(uint) * 4,
+            TextureFormat.RGBA32U => sizeof(uint) * 4,
+            TextureFormat.RGBA32F => sizeof(uint) * 4,
+            TextureFormat.B5G6R5 => sizeof(ushort),
+            TextureFormat.BGRA4 => sizeof(ushort),
+            TextureFormat.BGR5A1 => sizeof(ushort),
+            TextureFormat.RGB10A2 => sizeof(uint),
+            TextureFormat.RG11B10F => sizeof(uint),
+            TextureFormat.D16 => sizeof(ushort),
+            TextureFormat.D24 => sizeof(uint),
+            TextureFormat.D24S8 => sizeof(uint),
+            TextureFormat.D32S8 => sizeof(uint) + sizeof(byte),
+            TextureFormat.D32F => sizeof(uint),
+            _ => 0,
+        };
 
         return new SDLGPUTexture(handle, width, height, format, flags, this);
     }

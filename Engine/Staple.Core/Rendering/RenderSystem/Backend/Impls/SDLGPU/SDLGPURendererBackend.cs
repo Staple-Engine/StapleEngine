@@ -404,6 +404,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private readonly BufferResource[] indexBuffers = new BufferResource[ushort.MaxValue - 1];
     private readonly Dictionary<VertexLayout, TransientEntry> transientBuffers = [];
     private readonly TextureResource[] textures = new TextureResource[ushort.MaxValue - 1];
+    private RenderTarget currentRenderTarget;
 
     private bool iteratingCommands = false;
     private int commandIndex;
@@ -711,9 +712,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         if (commandBuffer != nint.Zero)
         {
-            var fences = new nint[SDL.SDL_SubmitGPUCommandBufferAndAcquireFence(commandBuffer)];
+            var fences = new nint[1];
 
-            if(SDL.SDL_WaitForGPUFences(device, true, fences.AsSpan(), (uint)fences.Length) == false)
+            fences[0] = SDL.SDL_SubmitGPUCommandBufferAndAcquireFence(commandBuffer);
+
+            if (SDL.SDL_WaitForGPUFences(device, true, fences.AsSpan(), (uint)fences.Length) == false)
             {
                 Log.Error($"[SDL GPU] Failed to wait for GPU Fences: {SDL.SDL_GetError()}");
             }
@@ -755,6 +758,14 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
 
             commandBuffer = nint.Zero;
+        }
+
+        if(currentRenderTarget != null)
+        {
+            currentRenderTarget = null;
+
+            Screen.Width = window.Size.X;
+            Screen.Height = window.Size.Y;
         }
     }
 
@@ -888,12 +899,23 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     public void BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
         in Matrix4x4 view, in Matrix4x4 projection)
     {
-        viewData.renderTarget = target;
+        viewData.renderTarget = currentRenderTarget = target;
         viewData.clearMode = clear;
         viewData.clearColor = clearColor;
         viewData.viewport = viewport;
         viewData.renderData.view = view;
         viewData.renderData.projection = projection;
+
+        if(target != null)
+        {
+            Screen.Width = target.width;
+            Screen.Height = target.height;
+        }
+        else
+        {
+            Screen.Width = window.Size.X;
+            Screen.Height = window.Size.Y;
+        }
 
         AddCommand(new SDLGPUBeginRenderPassCommand(target, clear, clearColor, viewport, view, projection));
     }
@@ -1179,74 +1201,122 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                         _ => throw new ArgumentOutOfRangeException(nameof(state.destinationBlend), "Invalid blend mode"),
                     };
 
-                    var colorTargetDescription = new SDL.SDL_GPUColorTargetDescription()
-                    {
-                        format = SDL.SDL_GetGPUSwapchainTextureFormat(device, window.window),
-                        blend_state = new()
-                        {
-                            enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,
-                            color_blend_op = SDL.SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
-                            alpha_blend_op = SDL.SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
-                            src_color_blendfactor = sourceBlend,
-                            src_alpha_blendfactor = sourceBlend,
-                            dst_color_blendfactor = destinationBlend,
-                            dst_alpha_blendfactor = destinationBlend,
-                        }
-                    };
+                    var colorTargetDescriptions = new List<SDL.SDL_GPUColorTargetDescription>();
 
-                    SDL.SDL_GPUVertexBufferDescription[] vertexDescriptions = [vertexDescription];
-
-                    fixed (SDL.SDL_GPUVertexBufferDescription* descriptions = vertexDescriptions)
+                    if(state.renderTarget == null || state.renderTarget.Disposed)
                     {
-                        var info = new SDL.SDL_GPUGraphicsPipelineCreateInfo()
+                        var colorTargetDescription = new SDL.SDL_GPUColorTargetDescription()
                         {
-                            primitive_type = state.primitiveType switch
+                            format = SDL.SDL_GetGPUSwapchainTextureFormat(device, window.window),
+                            blend_state = new()
                             {
-                                MeshTopology.TriangleStrip => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
-                                MeshTopology.Triangles => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
-                                MeshTopology.Lines => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINELIST,
-                                MeshTopology.LineStrip => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINESTRIP,
-                                _ => throw new ArgumentOutOfRangeException("Invalid value for primitive type", nameof(state.primitiveType)),
-                            },
-                            vertex_shader = shader.vertex,
-                            fragment_shader = shader.fragment,
-                            rasterizer_state = new()
-                            {
-                                cull_mode = state.cull switch
-                                {
-                                    CullingMode.None => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_NONE,
-                                    CullingMode.Front => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_FRONT,
-                                    CullingMode.Back => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_BACK,
-                                    _ => throw new ArgumentOutOfRangeException("Invalid value for cull", nameof(state.cull)),
-                                },
-                                fill_mode = state.wireframe ? SDL.SDL_GPUFillMode.SDL_GPU_FILLMODE_LINE : SDL.SDL_GPUFillMode.SDL_GPU_FILLMODE_FILL,
-                                front_face = SDL.SDL_GPUFrontFace.SDL_GPU_FRONTFACE_CLOCKWISE,
-                            },
-                            depth_stencil_state = new()
-                            {
-                                enable_depth_test = state.enableDepth,
-                                enable_depth_write = state.depthWrite,
-                                compare_op = SDL.SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
-                            },
-                            vertex_input_state = new()
-                            {
-                                num_vertex_buffers = 1,
-                                num_vertex_attributes = (uint)attributesSpan.Length,
-                                vertex_attributes = attributes,
-                                vertex_buffer_descriptions = descriptions,
-                            },
-                            target_info = new()
-                            {
-                                num_color_targets = 1,
-                                color_target_descriptions = &colorTargetDescription,
-                                has_depth_stencil_target = state.enableDepth && depthStencilFormat.HasValue,
-                                depth_stencil_format = sdlDepthFormat,
+                                enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,
+                                color_blend_op = SDL.SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                alpha_blend_op = SDL.SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                src_color_blendfactor = sourceBlend,
+                                src_alpha_blendfactor = sourceBlend,
+                                dst_color_blendfactor = destinationBlend,
+                                dst_alpha_blendfactor = destinationBlend,
                             }
                         };
 
-                        pipeline = SDL.SDL_CreateGPUGraphicsPipeline(device, in info);
+                        colorTargetDescriptions.Add(colorTargetDescription);
+                    }
+                    else
+                    {
+                        foreach(var texture in state.renderTarget.colorTextures)
+                        {
+                            if(texture.Disposed)
+                            {
+                                continue;
+                            }
 
-                        graphicsPipelines.Add(hash, pipeline);
+                            if(TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget, out var textureFormat))
+                            {
+                                var colorTargetDescription = new SDL.SDL_GPUColorTargetDescription()
+                                {
+                                    format = textureFormat,
+                                    blend_state = new()
+                                    {
+                                        enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,
+                                        color_blend_op = SDL.SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                        alpha_blend_op = SDL.SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                        src_color_blendfactor = sourceBlend,
+                                        src_alpha_blendfactor = sourceBlend,
+                                        dst_color_blendfactor = destinationBlend,
+                                        dst_alpha_blendfactor = destinationBlend,
+                                    }
+                                };
+
+                                colorTargetDescriptions.Add(colorTargetDescription);
+                            }
+                        }
+
+                        if(state.renderTarget.DepthTexture != null &&
+                            state.renderTarget.DepthTexture.Disposed == false &&
+                            TryGetTextureFormat(state.renderTarget.DepthTexture.impl.Format, state.renderTarget.flags | TextureFlags.DepthStencilTarget,
+                            out var depthFormat))
+                        {
+                            sdlDepthFormat = depthFormat;
+                        }
+                    }
+
+                    fixed(SDL.SDL_GPUColorTargetDescription *colorTargetDescriptionsPtr = CollectionsMarshal.AsSpan(colorTargetDescriptions))
+                    {
+                        SDL.SDL_GPUVertexBufferDescription[] vertexDescriptions = [vertexDescription];
+
+                        fixed (SDL.SDL_GPUVertexBufferDescription* descriptions = vertexDescriptions)
+                        {
+                            var info = new SDL.SDL_GPUGraphicsPipelineCreateInfo()
+                            {
+                                primitive_type = state.primitiveType switch
+                                {
+                                    MeshTopology.TriangleStrip => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
+                                    MeshTopology.Triangles => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+                                    MeshTopology.Lines => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINELIST,
+                                    MeshTopology.LineStrip => SDL.SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINESTRIP,
+                                    _ => throw new ArgumentOutOfRangeException("Invalid value for primitive type", nameof(state.primitiveType)),
+                                },
+                                vertex_shader = shader.vertex,
+                                fragment_shader = shader.fragment,
+                                rasterizer_state = new()
+                                {
+                                    cull_mode = state.cull switch
+                                    {
+                                        CullingMode.None => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_NONE,
+                                        CullingMode.Front => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_FRONT,
+                                        CullingMode.Back => SDL.SDL_GPUCullMode.SDL_GPU_CULLMODE_BACK,
+                                        _ => throw new ArgumentOutOfRangeException("Invalid value for cull", nameof(state.cull)),
+                                    },
+                                    fill_mode = state.wireframe ? SDL.SDL_GPUFillMode.SDL_GPU_FILLMODE_LINE : SDL.SDL_GPUFillMode.SDL_GPU_FILLMODE_FILL,
+                                    front_face = SDL.SDL_GPUFrontFace.SDL_GPU_FRONTFACE_CLOCKWISE,
+                                },
+                                depth_stencil_state = new()
+                                {
+                                    enable_depth_test = state.enableDepth,
+                                    enable_depth_write = state.depthWrite,
+                                    compare_op = SDL.SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
+                                },
+                                vertex_input_state = new()
+                                {
+                                    num_vertex_buffers = 1,
+                                    num_vertex_attributes = (uint)attributesSpan.Length,
+                                    vertex_attributes = attributes,
+                                    vertex_buffer_descriptions = descriptions,
+                                },
+                                target_info = new()
+                                {
+                                    num_color_targets = (uint)colorTargetDescriptions.Count,
+                                    color_target_descriptions = colorTargetDescriptionsPtr,
+                                    has_depth_stencil_target = depthStencilFormat.HasValue,
+                                    depth_stencil_format = sdlDepthFormat,
+                                }
+                            };
+
+                            pipeline = SDL.SDL_CreateGPUGraphicsPipeline(device, in info);
+
+                            graphicsPipelines.Add(hash, pipeline);
+                        }
                     }
                 }
             }
@@ -1262,7 +1332,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     public void Render(RenderState state)
     {
-        if(state.shader == null ||
+        state.renderTarget = currentRenderTarget;
+
+        if (state.shader == null ||
             state.shaderVariant == null ||
             state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
             instance.program is not SDLGPUShaderProgram shader ||
@@ -1343,6 +1415,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
         where T : unmanaged
     {
+        state.renderTarget = currentRenderTarget;
+
         if (layout is not SDLGPUVertexLayout vertexLayout ||
             state.shaderVariant == null ||
             state.shader == null ||
@@ -1484,6 +1558,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state)
         where T : unmanaged
     {
+        state.renderTarget = currentRenderTarget;
+
         if (layout is not SDLGPUVertexLayout vertexLayout ||
             state.shaderVariant == null ||
             state.shader == null ||

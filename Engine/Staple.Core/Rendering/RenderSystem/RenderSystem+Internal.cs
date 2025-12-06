@@ -475,13 +475,13 @@ public sealed partial class RenderSystem
 
             camera.UpdateFrustum(view, projection);
 
-            Backend.BeginRenderPass(null, camera.clearMode, camera.clearColor, camera.viewport,
+            Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport,
                 in view, in projection);
         }
     }
 
     /// <summary>
-    /// Prepares to render for a specific view ID
+    /// Prepares a render pass
     /// </summary>
     /// <param name="target">The render target, if any</param>
     /// <param name="clearMode">How to clear the target</param>
@@ -496,7 +496,7 @@ public sealed partial class RenderSystem
         {
             Matrix4x4.Invert(cameraTransform, out var view);
 
-            Backend.BeginRenderPass(target, clearMode, clearColor, viewport, in view, in projection);
+            Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection);
         }
     }
 

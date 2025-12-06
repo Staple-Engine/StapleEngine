@@ -119,12 +119,6 @@ public partial class UIPanel
 
         position += border.Position;
 
-        /*
-        var vertexBuffer = VertexBuffer.CreateTransient(ninePatchVertices.AsSpan(), SpriteUtils.VertexLayout.Value);
-
-        var indexBuffer = IndexBuffer.CreateTransient(ninePatchIndices);
-        */
-
         material ??= new(SpriteUtils.DefaultMaterial.Value);
 
         var c = material.MainColor;

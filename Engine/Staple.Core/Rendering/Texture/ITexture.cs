@@ -8,5 +8,7 @@ internal interface ITexture
 
     bool Disposed { get; }
 
+    TextureFormat Format { get; }
+
     void Destroy();
 }

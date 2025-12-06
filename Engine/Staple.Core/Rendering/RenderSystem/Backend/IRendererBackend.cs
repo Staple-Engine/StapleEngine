@@ -11,6 +11,8 @@ internal interface IRendererBackend
 
     bool SupportsLinearColorSpace { get; }
 
+    TextureFormat? DepthStencilFormat { get; }
+
     bool Initialize(RendererType renderer, bool debug, IRenderWindow window, RenderModeFlags renderFlags);
 
     void Destroy();

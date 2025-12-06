@@ -95,9 +95,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     }
 
     /// <summary>
-    /// Renders to a specific view ID
+    /// Renders with specific camera info
     /// </summary>
-    /// <param name="viewID">The view ID</param>
     /// <param name="target">The render target, if any</param>
     /// <param name="clearMode">How to clear the target</param>
     /// <param name="clearColor">The color to clear if clearMode is <see cref="CameraClearMode.SolidColor"/></param>
@@ -105,8 +104,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="cameraTransform">The transform of the camera</param>
     /// <param name="projection">The projection matrix</param>
     /// <param name="callback">A callback to render the content</param>
-    public void Render(RenderTarget target, CameraClearMode clearMode,
-        Color clearColor, Vector4 viewport, Matrix4x4 cameraTransform, Matrix4x4 projection, Action callback)
+    public static void Render(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
+        Matrix4x4 cameraTransform, Matrix4x4 projection, Action callback)
     {
         PrepareRender(target, clearMode, clearColor, viewport, cameraTransform, projection);
 
@@ -121,7 +120,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="cameraTransform">The camera's transform</param>
     /// <param name="queue">The render queue for this camera</param>
     /// <param name="cull">Whether to cull invisible elements</param>
-    public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
+    public static void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
         List<(IRenderSystem, List<(Entity, Transform, IComponent)>)> queue, bool cull)
     {
         CurrentCamera = (camera, cameraTransform);

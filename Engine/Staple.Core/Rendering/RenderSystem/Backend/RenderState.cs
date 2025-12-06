@@ -41,7 +41,6 @@ internal struct RenderState
             hashCode.Add(enableDepth);
             hashCode.Add(depthWrite);
             hashCode.Add(vertexBuffer?.layout);
-            hashCode.Add(renderTarget);
             hashCode.Add(sourceBlend);
             hashCode.Add(destinationBlend);
 
@@ -66,6 +65,30 @@ internal struct RenderState
                 foreach(var t in textures)
                 {
                     hashCode.Add(t.GetHashCode());
+                }
+            }
+
+            if(renderTarget != null && renderTarget.Disposed == false)
+            {
+                for(var i = 0; i < renderTarget.ColorTextureCount; i++)
+                {
+                    var texture = renderTarget.GetColorTexture(i);
+
+                    if(texture == null || texture.Disposed || texture.impl is not SDLGPUTexture t)
+                    {
+                        continue;
+                    }
+
+                    hashCode.Add(t.handle);
+                }
+
+                {
+                    if (renderTarget.DepthTexture != null &&
+                        renderTarget.DepthTexture.Disposed == false &&
+                        renderTarget.DepthTexture.impl is SDLGPUTexture t)
+                    {
+                        hashCode.Add(t.handle);
+                    }
                 }
             }
 

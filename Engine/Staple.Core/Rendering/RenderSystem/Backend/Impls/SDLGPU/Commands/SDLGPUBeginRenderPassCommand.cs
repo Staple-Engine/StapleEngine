@@ -36,7 +36,7 @@ internal class SDLGPUBeginRenderPassCommand(RenderTarget target, CameraClearMode
 
         SDLGPUTexture depthTexture = null;
 
-        if (target == null)
+        if (target == null || target.Disposed)
         {
             texture = backend.swapchainTexture;
             width = backend.swapchainWidth;
@@ -53,12 +53,17 @@ internal class SDLGPUBeginRenderPassCommand(RenderTarget target, CameraClearMode
         }
         else
         {
-            //TODO: texture
+            if(target.ColorTextureCount > 0 &&
+                target.colorTextures[0].impl is SDLGPUTexture t &&
+                backend.TryGetTexture(t.handle, out var textureResource))
+            {
+                texture = textureResource.texture;
+            }
 
             width = target.width;
             height = target.height;
 
-            return;
+            depthTexture = target.DepthTexture?.impl as SDLGPUTexture;
         }
 
         if (texture == nint.Zero ||
