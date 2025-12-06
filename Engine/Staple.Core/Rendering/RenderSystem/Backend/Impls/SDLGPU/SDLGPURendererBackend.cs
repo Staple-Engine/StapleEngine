@@ -836,12 +836,17 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
         else
         {
-            //TODO: texture
+            if (viewData.renderTarget.ColorTextureCount > 0 &&
+                viewData.renderTarget.colorTextures[0].impl is SDLGPUTexture t &&
+                TryGetTexture(t.handle, out var textureResource))
+            {
+                texture = textureResource.texture;
+            }
 
             width = viewData.renderTarget.width;
             height = viewData.renderTarget.height;
 
-            return;
+            depthTexture = viewData.renderTarget.DepthTexture?.impl as SDLGPUTexture;
         }
 
         if (texture == nint.Zero ||

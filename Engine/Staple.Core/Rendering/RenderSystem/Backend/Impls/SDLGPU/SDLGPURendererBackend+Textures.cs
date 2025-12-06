@@ -453,11 +453,13 @@ internal partial class SDLGPURendererBackend
 
         if (flags.HasFlag(TextureFlags.ColorTarget))
         {
-            return HandleFlags(SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_COLOR_TARGET);
+            return HandleFlags(SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_SAMPLER |
+                SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_COLOR_TARGET);
         }
         else if (flags.HasFlag(TextureFlags.DepthStencilTarget))
         {
-            return HandleFlags(SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET);
+            return HandleFlags(SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_SAMPLER | 
+                SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET);
         }
 
         return HandleFlags(SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_SAMPLER);
