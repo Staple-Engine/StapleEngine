@@ -78,7 +78,7 @@ public float4 StapleLightDiffuse<L: ILight>(float3 position, float3 normal, L li
 }
 
 public float4 StapleProcessLights<L: ILight>(float3 viewPosition, float3 worldPosition, float3 normal, float4 ambient,
-    float4 albedo, ILight[] lights)
+    float4 albedo, L[] lights)
 {
     if(lights.getCount() == 0)
     {
