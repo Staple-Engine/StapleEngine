@@ -248,11 +248,12 @@ internal class ThumbnailCache
                         renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
                             tempEntity.Destroy();
-                            renderTarget.Destroy();
 
                             if (texture == null || data == null)
                             {
                                 Cleanup();
+
+                                renderTarget.Destroy();
 
                                 return;
                             }
@@ -264,6 +265,8 @@ internal class ThumbnailCache
                                 height = texture.Height,
                                 data = data,
                             };
+
+                            renderTarget.Destroy();
 
                             try
                             {
@@ -443,6 +446,8 @@ internal class ThumbnailCache
                         {
                             Cleanup();
 
+                            renderTarget.Destroy();
+
                             return;
                         }
 
@@ -503,10 +508,11 @@ internal class ThumbnailCache
                         renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
                             tempEntity.Destroy();
-                            renderTarget.Destroy();
 
                             if (texture == null || data == null)
                             {
+                                renderTarget.Destroy();
+
                                 Cleanup();
 
                                 return;
@@ -519,6 +525,8 @@ internal class ThumbnailCache
                                 height = texture.Height,
                                 data = data,
                             };
+
+                            renderTarget.Destroy();
 
                             try
                             {
