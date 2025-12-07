@@ -328,11 +328,10 @@ public partial class Shader : IGuidAsset
         return new(this, uniform);
     }
 
-    internal bool TryGetUniformData(string variantKey, ShaderHandle handle, out UniformInfo uniform, out int fieldOffset,
-        out byte[] vertexData, out byte[] fragmentData)
+    internal bool TryGetUniformData(string variantKey, ShaderHandle handle, out UniformInfo uniform,
+        out (int, byte[])? vertexData, out (int, byte[])? fragmentData)
     {
         uniform = default;
-        fieldOffset = default;
         vertexData = default;
         fragmentData = default;
 
@@ -346,42 +345,38 @@ public partial class Shader : IGuidAsset
         if(shaderInstance.vertexFields.TryGetValue(uniform.handle, out var field) &&
             shaderInstance.program.TryGetVertexUniformData(field, out var data))
         {
-            fieldOffset = field.offset;
-            vertexData = data;
+            vertexData = (field.offset, data);
         }
         else if (shaderInstance.vertexMappings.TryGetValue(uniform.handle, out var mapping) &&
             shaderInstance.program.TryGetVertexUniformData(mapping, out data))
         {
-            fieldOffset = 0;
-            vertexData = data;
+            vertexData = (0, data);
         }
 
         if (shaderInstance.fragmentFields.TryGetValue(uniform.handle, out field) &&
             shaderInstance.program.TryGetFragmentUniformData(field, out data))
         {
-            fieldOffset = field.offset;
-            vertexData = data;
+            fragmentData = (field.offset, data);
         }
         else if (shaderInstance.fragmentMappings.TryGetValue(uniform.handle, out var mapping) &&
             shaderInstance.program.TryGetFragmentUniformData(mapping, out data))
         {
-            fieldOffset = 0;
-            vertexData = data;
+            fragmentData = (0, data);
         }
 
         return vertexData != null || fragmentData != null;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool CanStoreUniformData(byte[] array, int offset, int size)
+    internal static bool CanStoreUniformData((int, byte[]) data, int size)
     {
         //Logic: If we have an array of 1 element, 0 + 1 < 1 fails, so must be <=
-        return offset >= 0 && offset + size <= array.Length;
+        return data.Item1 >= 0 && data.Item1 + size <= data.Item2.Length;
     }
 
     private void SetValue<T>(string variantKey, ShaderHandle handle, T value) where T: unmanaged
     {
-        if (TryGetUniformData(variantKey, handle, out var uniform, out var offset, out var vertexData, out var fragmentData) == false)
+        if (TryGetUniformData(variantKey, handle, out var uniform, out var vertexData, out var fragmentData) == false)
         {
             return;
         }
@@ -392,16 +387,16 @@ public partial class Shader : IGuidAsset
         {
             var source = new Span<byte>(&value, size);
 
-            if (vertexData != null && CanStoreUniformData(vertexData, offset, size))
+            if (vertexData != null && CanStoreUniformData(vertexData.Value, size))
             {
-                var target = new Span<byte>(vertexData, offset, size);
+                var target = new Span<byte>(vertexData.Value.Item2, vertexData.Value.Item1, size);
 
                 source.CopyTo(target);
             }
 
-            if (fragmentData != null && CanStoreUniformData(fragmentData, offset, size))
+            if (fragmentData != null && CanStoreUniformData(fragmentData.Value, size))
             {
-                var target = new Span<byte>(fragmentData, offset, size);
+                var target = new Span<byte>(fragmentData.Value.Item2, fragmentData.Value.Item1, size);
 
                 source.CopyTo(target);
             }
@@ -410,7 +405,7 @@ public partial class Shader : IGuidAsset
 
     private void SetValue<T>(string variantKey, ShaderHandle handle, ReadOnlySpan<T> value) where T: unmanaged
     {
-        if (TryGetUniformData(variantKey, handle, out var uniform, out var offset, out var vertexData, out var fragmentData) == false)
+        if (TryGetUniformData(variantKey, handle, out var uniform, out var vertexData, out var fragmentData) == false)
         {
             return;
         }
@@ -423,16 +418,16 @@ public partial class Shader : IGuidAsset
                 var size = Marshal.SizeOf<T>() * count;
                 var source = new Span<byte>(ptr, size);
 
-                if (vertexData != null && CanStoreUniformData(vertexData, offset, size))
+                if (vertexData != null && CanStoreUniformData(vertexData.Value, size))
                 {
-                    var target = new Span<byte>(vertexData, offset, size);
+                    var target = new Span<byte>(vertexData.Value.Item2, vertexData.Value.Item1, size);
 
                     source.CopyTo(target);
                 }
 
-                if (fragmentData != null && CanStoreUniformData(fragmentData, offset, size))
+                if (fragmentData != null && CanStoreUniformData(fragmentData.Value, size))
                 {
-                    var target = new Span<byte>(fragmentData, offset, size);
+                    var target = new Span<byte>(fragmentData.Value.Item2, fragmentData.Value.Item1, size);
 
                     source.CopyTo(target);
                 }

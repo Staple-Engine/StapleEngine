@@ -25,13 +25,11 @@ End Common
 
 Begin Vertex
 
-/*
-[[vk::binding(1, StapleUniformBufferSet)]]
+[[vk::binding(StapleBufferIndexCount, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
     float4 mainColor;
 };
-*/
 
 struct Input
 {
@@ -44,7 +42,7 @@ VertexOutput VertexMain(Input input)
     VertexOutput output;
 
     float3 position = input.position;
-    float4 color = float4(1, 0, 0, 1);//mainColor;
+    float4 color = mainColor;
 
     output.color = color;
     output.position = mul(ProjectionViewWorld(world), float4(position, 1.0));

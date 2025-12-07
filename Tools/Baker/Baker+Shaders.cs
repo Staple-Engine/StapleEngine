@@ -767,6 +767,13 @@ static partial class Program
                                 if(reflectionData != null)
                                 {
                                     shaderObject.computeUniforms = reflectionData;
+
+                                    shaderObject.computeMetrics?.uniformBufferCount = reflectionData.uniforms
+                                        .Where(x =>
+                                            x.type != ShaderUniformType.ReadWriteBuffer &&
+                                            x.type != ShaderUniformType.ReadOnlyBuffer &&
+                                            x.type != ShaderUniformType.WriteOnlyBuffer)
+                                        .Count();
                                 }
 
                                 lock (entryLock)
@@ -867,11 +874,25 @@ static partial class Program
                                 if (vertexReflectionData != null)
                                 {
                                     shaderObject.vertexUniforms = vertexReflectionData;
+
+                                    shaderObject.vertexMetrics?.uniformBufferCount = vertexReflectionData.uniforms
+                                        .Where(x =>
+                                            x.type != ShaderUniformType.ReadWriteBuffer &&
+                                            x.type != ShaderUniformType.ReadOnlyBuffer &&
+                                            x.type != ShaderUniformType.WriteOnlyBuffer)
+                                        .Count();
                                 }
 
-                                if(fragmentReflectionData != null)
+                                if (fragmentReflectionData != null)
                                 {
                                     shaderObject.fragmentUniforms = fragmentReflectionData;
+
+                                    shaderObject.fragmentMetrics?.uniformBufferCount = fragmentReflectionData.uniforms
+                                        .Where(x =>
+                                            x.type != ShaderUniformType.ReadWriteBuffer &&
+                                            x.type != ShaderUniformType.ReadOnlyBuffer &&
+                                            x.type != ShaderUniformType.WriteOnlyBuffer)
+                                        .Count();
                                 }
 
                                 lock (entryLock)

@@ -16,13 +16,11 @@ End Input
 
 Begin Common
 
-/*
 [[vk::binding(StapleBufferIndexCount, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
 	float4 mainColor;
 };
-*/
 
 struct VertexOutput
 {
@@ -47,7 +45,7 @@ VertexOutput VertexMain(Input input)
     VertexOutput output;
 
     float3 position = input.position;
-    float4 color = float4(1, 1, 1, 1);//mainColor;
+    float4 color = mainColor;
 
     output.color = color;
 	output.coord = input.coord;

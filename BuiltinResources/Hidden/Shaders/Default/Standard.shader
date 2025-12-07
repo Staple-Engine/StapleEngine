@@ -131,19 +131,17 @@ cbuffer Textures
 float4 FragmentMain(VertexOutput input) : SV_Target
 {
 #if defined(VERTEX_COLORS) || defined(PER_VERTEX_LIGHTING)
-	float4 diffuse = input.color;// * diffuseColor;
+	float4 diffuse = input.color * diffuseColor;
 #else
-	float4 diffuse = diffuseTexture.Sample(input.coords);// * diffuseColor;
+	float4 diffuse = diffuseTexture.Sample(input.coords) * diffuseColor;
 #endif
 
-/*	
 #ifdef CUTOUT
 	if(diffuse.a < alphaThreshold)
 	{
 		discard;
 	}
 #endif
-*/
 	
 //TODO: handle light array
 /*
