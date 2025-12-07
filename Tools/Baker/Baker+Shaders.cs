@@ -666,42 +666,6 @@ static partial class Program
                         }
                     }
 
-                    string GetNativeShaderType(ShaderParameter parameter, int index, bool uniform)
-                    {
-                        var uniformString = uniform ? "uniform " : "";
-                        var name = parameter.name;
-
-                        if (int.TryParse(parameter.defaultValue, out var bufferIndex) == false)
-                        {
-                            bufferIndex = -1;
-                        }
-
-                        return parameter.type switch
-                        {
-                            ShaderUniformType.Int => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} int({name}_uniform.x)\n" : $"float {name}",
-                            ShaderUniformType.Float => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.x\n" : $"float {name}",
-                            ShaderUniformType.Vector2 => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.xy\n" : $"vec2 {name}",
-                            ShaderUniformType.Vector3 => uniform ? $"{uniformString}vec4 {name}_uniform;\n#define {name} {name}_uniform.xyz\n" : $"vec3 {name}",
-                            ShaderUniformType.Color or ShaderUniformType.Vector4 => $"{uniformString}vec4 {name}",
-                            ShaderUniformType.Texture => $"SAMPLER2D({name}, {index})",
-                            ShaderUniformType.Matrix3x3 => $"{uniformString}mat3 {name}",
-                            ShaderUniformType.Matrix4x4 => $"{uniformString}mat4 {name}",
-                            ShaderUniformType.ReadOnlyBuffer => $"BUFFER_RO({name}, {parameter.vertexAttribute}, {bufferIndex})",
-                            ShaderUniformType.WriteOnlyBuffer => $"BUFFER_WO({name}, {parameter.vertexAttribute}, {bufferIndex})",
-                            ShaderUniformType.ReadWriteBuffer => $"BUFFER_RW({name}, {parameter.vertexAttribute}, {bufferIndex})",
-                            _ => $"{uniformString}vec4 {name}",
-                        };
-                    }
-
-                    bool ShaderTypeHasEndTerminator(ShaderUniformType type)
-                    {
-                        return type switch
-                        {
-                            ShaderUniformType.Int or ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => false,
-                            _ => true,
-                        };
-                    }
-
                     bool Build(string variantKey, List<string> extraDefines)
                     {
                         string code;

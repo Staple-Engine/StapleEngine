@@ -18,7 +18,7 @@ public static class Screen
     /// <summary>
     /// The current window mode for the game/app.
     /// </summary>
-    public static WindowMode WindowMode => AppPlayer.instance == null ? WindowMode.Windowed : AppPlayer.instance.playerSettings.windowMode;
+    public static WindowMode WindowMode => AppPlayer.instance?.playerSettings?.windowMode ?? WindowMode.Windowed;
 
     /// <summary>
     /// The refresh rate of the screen

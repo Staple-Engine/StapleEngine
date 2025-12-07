@@ -460,7 +460,7 @@ internal class ImGuiProxy
                                         }
                                     }
 
-                                    target.Destroy();
+                                    target?.Destroy();
 
                                     target = Texture.CreatePixels($"ImGui {texture.UniqueID}", pixels,
                                         (ushort)texture.Width, (ushort)texture.Height,
@@ -474,10 +474,10 @@ internal class ImGuiProxy
                                             _ => TextureFormat.RGBA8,
                                         });
 
-                                    if(target != null)
-                                    {
-                                        textures[index] = (target, pixels, bytesPerPixel);
+                                    textures[index] = (target, pixels, bytesPerPixel);
 
+                                    if (target != null)
+                                    {
                                         texture.SetTexID(new ImTextureID(index));
                                     }
                                     else
@@ -499,7 +499,7 @@ internal class ImGuiProxy
 
                                 if (textures.TryGetValue(index, out var item))
                                 {
-                                    item.Item1.Destroy();
+                                    item.Item1?.Destroy();
 
                                     textures.Remove(index);
 
@@ -602,11 +602,11 @@ internal class ImGuiProxy
                             {
                                 var index = (int)drawCmd.GetTexID().Handle;
 
-                                if (this.textures.TryGetValue(index, out var item))
+                                if (this.textures.TryGetValue(index, out var item) && item.Item1 != null)
                                 {
                                     singleTexture[0] = item.Item1;
                                 }
-                                else if (registeredTextures.TryGetValue(index, out var t))
+                                else if (registeredTextures.TryGetValue(index, out var t) && t != null)
                                 {
                                     singleTexture[0] = t;
                                 }

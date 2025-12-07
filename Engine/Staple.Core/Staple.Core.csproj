@@ -191,7 +191,6 @@
 		<Compile Include="Rendering\Lighting\LightSystem.cs" />
 		<Compile Include="Rendering\Lighting\LightType.cs" />
 		<Compile Include="Rendering\MaterialLighting.cs" />
-		<Compile Include="Rendering\Access.cs" />
 		<Compile Include="Rendering\Mesh\MeshCombine.cs" />
 		<Compile Include="Rendering\Mesh\MeshCombineSystem.cs" />
 		<Compile Include="Rendering\Mesh\MeshInstanceOptions.cs" />
