@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -374,9 +375,26 @@ public partial class Shader : IGuidAsset
         return data.Item1 >= 0 && data.Item1 + size <= data.Item2.Length;
     }
 
+    private static void SetValueInternal(Span<byte> source, (int, byte[])? vertexData, (int, byte[])? fragmentData)
+    {
+        if (vertexData != null && CanStoreUniformData(vertexData.Value, source.Length))
+        {
+            var target = new Span<byte>(vertexData.Value.Item2, vertexData.Value.Item1, source.Length);
+
+            source.CopyTo(target);
+        }
+
+        if (fragmentData != null && CanStoreUniformData(fragmentData.Value, source.Length))
+        {
+            var target = new Span<byte>(fragmentData.Value.Item2, fragmentData.Value.Item1, source.Length);
+
+            source.CopyTo(target);
+        }
+    }
+
     private void SetValue<T>(string variantKey, ShaderHandle handle, T value) where T: unmanaged
     {
-        if (TryGetUniformData(variantKey, handle, out var uniform, out var vertexData, out var fragmentData) == false)
+        if (TryGetUniformData(variantKey, handle, out _, out var vertexData, out var fragmentData) == false)
         {
             return;
         }
@@ -387,19 +405,7 @@ public partial class Shader : IGuidAsset
         {
             var source = new Span<byte>(&value, size);
 
-            if (vertexData != null && CanStoreUniformData(vertexData.Value, size))
-            {
-                var target = new Span<byte>(vertexData.Value.Item2, vertexData.Value.Item1, size);
-
-                source.CopyTo(target);
-            }
-
-            if (fragmentData != null && CanStoreUniformData(fragmentData.Value, size))
-            {
-                var target = new Span<byte>(fragmentData.Value.Item2, fragmentData.Value.Item1, size);
-
-                source.CopyTo(target);
-            }
+            SetValueInternal(source, vertexData, fragmentData);
         }
     }
 
@@ -418,19 +424,7 @@ public partial class Shader : IGuidAsset
                 var size = Marshal.SizeOf<T>() * count;
                 var source = new Span<byte>(ptr, size);
 
-                if (vertexData != null && CanStoreUniformData(vertexData.Value, size))
-                {
-                    var target = new Span<byte>(vertexData.Value.Item2, vertexData.Value.Item1, size);
-
-                    source.CopyTo(target);
-                }
-
-                if (fragmentData != null && CanStoreUniformData(fragmentData.Value, size))
-                {
-                    var target = new Span<byte>(fragmentData.Value.Item2, fragmentData.Value.Item1, size);
-
-                    source.CopyTo(target);
-                }
+                SetValueInternal(source, vertexData, fragmentData);
             }
         }
     }

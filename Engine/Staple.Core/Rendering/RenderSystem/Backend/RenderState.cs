@@ -18,6 +18,7 @@ internal struct RenderState
     public InstanceBuffer instanceBuffer;
     public (int, VertexBuffer)[] readOnlyBuffers;
     public (int, VertexBuffer)[] readWriteBuffers;
+    public (int, VertexBuffer)[] writeOnlyBuffers;
     public int startVertex;
     public int startIndex;
     public int indexCount;
@@ -60,21 +61,29 @@ internal struct RenderState
                 }
             }
 
+            if (writeOnlyBuffers != null)
+            {
+                foreach (var t in writeOnlyBuffers)
+                {
+                    hashCode.Add(t);
+                }
+            }
+
             if (textures != null)
             {
                 foreach(var t in textures)
                 {
-                    hashCode.Add(t.GetHashCode());
+                    hashCode.Add(t);
                 }
             }
 
-            if(renderTarget != null && renderTarget.Disposed == false)
+            if((renderTarget?.Disposed ?? true) == false)
             {
                 for(var i = 0; i < renderTarget.ColorTextureCount; i++)
                 {
                     var texture = renderTarget.GetColorTexture(i);
 
-                    if(texture == null || texture.Disposed || texture.impl is not SDLGPUTexture t)
+                    if((texture?.Disposed ?? true) || texture.impl is not SDLGPUTexture t)
                     {
                         continue;
                     }
@@ -83,8 +92,7 @@ internal struct RenderState
                 }
 
                 {
-                    if (renderTarget.DepthTexture != null &&
-                        renderTarget.DepthTexture.Disposed == false &&
+                    if ((renderTarget.DepthTexture?.Disposed ?? true) == false &&
                         renderTarget.DepthTexture.impl is SDLGPUTexture t)
                     {
                         hashCode.Add(t.handle);
