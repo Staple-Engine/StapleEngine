@@ -12,6 +12,11 @@ public abstract class VertexBuffer
     internal VertexLayout layout;
 
     /// <summary>
+    /// Contains the render buffer flags of this buffer
+    /// </summary>
+    public RenderBufferFlags Flags { get; internal set; }
+
+    /// <summary>
     /// Whether this was destroyed
     /// </summary>
     public bool Disposed { get; private set; } = false;

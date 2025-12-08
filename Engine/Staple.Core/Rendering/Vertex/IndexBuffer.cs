@@ -14,6 +14,11 @@ public abstract class IndexBuffer
     internal bool Disposed { get; private set; } = false;
 
     /// <summary>
+    /// Contains the render buffer flags of this buffer
+    /// </summary>
+    public RenderBufferFlags Flags { get; internal set; }
+
+    /// <summary>
     /// Whether this index buffer is 32-bit
     /// </summary>
     public bool Is32Bit { get; protected set; }

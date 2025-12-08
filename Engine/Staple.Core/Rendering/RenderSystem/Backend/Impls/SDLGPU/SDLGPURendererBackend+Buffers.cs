@@ -91,14 +91,17 @@ internal partial class SDLGPURendererBackend
             return null;
         }
 
-        var handle = SDLGPURendererBackend.ReserveResourceBuffer<VertexBuffer>(vertexBuffers, flags);
+        var handle = ReserveResourceBuffer<VertexBuffer>(vertexBuffers, flags);
 
         if (handle.IsValid == false)
         {
             return null;
         }
 
-        var outValue = new SDLGPUVertexBuffer(handle, flags, layout, this);
+        var outValue = new SDLGPUVertexBuffer(handle, layout, this)
+        {
+            Flags = flags,
+        };
 
         outValue.Update(data);
 
@@ -112,14 +115,17 @@ internal partial class SDLGPURendererBackend
             return null;
         }
 
-        var handle = SDLGPURendererBackend.ReserveResourceBuffer<VertexBuffer>(vertexBuffers, flags);
+        var handle = ReserveResourceBuffer<VertexBuffer>(vertexBuffers, flags);
 
         if (handle.IsValid == false)
         {
             return null;
         }
 
-        var outValue = new SDLGPUVertexBuffer(handle, flags, layout, this);
+        var outValue = new SDLGPUVertexBuffer(handle, layout, this)
+        {
+            Flags = flags,
+        };
 
         outValue.Update(data);
 
@@ -128,14 +134,17 @@ internal partial class SDLGPURendererBackend
 
     public IndexBuffer CreateIndexBuffer(Span<ushort> data, RenderBufferFlags flags)
     {
-        var handle = SDLGPURendererBackend.ReserveResourceBuffer<IndexBuffer>(indexBuffers, flags);
+        var handle = ReserveResourceBuffer<IndexBuffer>(indexBuffers, flags);
 
         if (handle.IsValid == false)
         {
             return null;
         }
 
-        var outValue = new SDLGPUIndexBuffer(handle, flags, this);
+        var outValue = new SDLGPUIndexBuffer(handle, this)
+        {
+            Flags = flags,
+        };
 
         outValue.Update(data);
 
@@ -144,14 +153,17 @@ internal partial class SDLGPURendererBackend
 
     public IndexBuffer CreateIndexBuffer(Span<uint> data, RenderBufferFlags flags)
     {
-        var handle = SDLGPURendererBackend.ReserveResourceBuffer<IndexBuffer>(indexBuffers, flags);
+        var handle = ReserveResourceBuffer<IndexBuffer>(indexBuffers, flags);
 
         if (handle.IsValid == false)
         {
             return null;
         }
 
-        var outValue = new SDLGPUIndexBuffer(handle, flags, this);
+        var outValue = new SDLGPUIndexBuffer(handle, this)
+        {
+            Flags = flags,
+        };
 
         outValue.Update(data);
 

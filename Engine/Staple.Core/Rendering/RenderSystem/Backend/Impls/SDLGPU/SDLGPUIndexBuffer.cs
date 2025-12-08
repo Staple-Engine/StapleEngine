@@ -1,6 +1,4 @@
-﻿using SDL3;
-using System;
-using System.Runtime.InteropServices;
+﻿using System;
 
 namespace Staple.Internal;
 
@@ -8,15 +6,13 @@ internal class SDLGPUIndexBuffer : IndexBuffer
 {
     public ResourceHandle<IndexBuffer> handle;
 
-    private readonly RenderBufferFlags flags;
     private readonly SDLGPURendererBackend backend;
 
     public bool Valid => handle.IsValid;
 
-    public SDLGPUIndexBuffer(ResourceHandle<IndexBuffer> handle, RenderBufferFlags flags, SDLGPURendererBackend backend)
+    public SDLGPUIndexBuffer(ResourceHandle<IndexBuffer> handle, SDLGPURendererBackend backend)
     {
         this.handle = handle;
-        this.flags = flags;
         this.backend = backend;
 
         ResourceManager.instance.userCreatedIndexBuffers.Add(new(this));

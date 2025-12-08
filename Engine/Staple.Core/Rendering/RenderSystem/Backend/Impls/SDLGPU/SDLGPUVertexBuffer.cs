@@ -1,5 +1,4 @@
-﻿using SDL3;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
@@ -8,16 +7,13 @@ internal class SDLGPUVertexBuffer : VertexBuffer
 {
     public ResourceHandle<VertexBuffer> handle;
 
-    private readonly RenderBufferFlags flags;
     private readonly SDLGPURendererBackend backend;
 
     public bool IsValid => handle.IsValid;
 
-    public SDLGPUVertexBuffer(ResourceHandle<VertexBuffer> handle, RenderBufferFlags flags, VertexLayout layout,
-        SDLGPURendererBackend backend)
+    public SDLGPUVertexBuffer(ResourceHandle<VertexBuffer> handle, VertexLayout layout, SDLGPURendererBackend backend)
     {
         this.handle = handle;
-        this.flags = flags;
         this.layout = layout;
         this.backend = backend;
 
