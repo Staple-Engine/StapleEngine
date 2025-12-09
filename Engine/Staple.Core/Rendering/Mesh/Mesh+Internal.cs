@@ -690,12 +690,12 @@ public sealed partial class Mesh
 
         if(mesh.HasBoneIndices)
         {
-            builder.Add(VertexAttribute.BoneIndices, VertexAttributeType.Float4);
+            builder.Add(VertexAttribute.BlendIndices, VertexAttributeType.Float4);
         }
 
         if(mesh.HasBoneWeights)
         {
-            builder.Add(VertexAttribute.BoneWeight, VertexAttributeType.Float4);
+            builder.Add(VertexAttribute.BlendWeights, VertexAttributeType.Float4);
         }
 
         layout = builder.Build();

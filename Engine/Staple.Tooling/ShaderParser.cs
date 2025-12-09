@@ -37,6 +37,7 @@ public static partial class ShaderParser
     private static readonly Regex commonRegex = CommonRegex();
     private static readonly Regex parameterRegex = ParameterRegex();
     private static readonly Regex vertexInputRegex = VertexInputRegex();
+    private static readonly Regex vertexInputElementRegex = VertexInputElementRegex();
     private static readonly Regex blendRegex = BlendRegex();
     private static readonly Regex variantsRegex = VariantsRegex();
     private static readonly Regex bufferRegex = BufferRegex();
@@ -73,6 +74,9 @@ public static partial class ShaderParser
     [GeneratedRegex("Begin Input((.|\\n)*)End Input")]
     private static partial Regex VertexInputRegex();
 
+    [GeneratedRegex("(variant\\: (?:[^|\\s]+\\|)*[^|\\s]+)?([ ]*)(\\w+)")]
+    private static partial Regex VertexInputElementRegex();
+
     [GeneratedRegex("Blend (.*) (.*)")]
     private static partial Regex BlendRegex();
 
@@ -80,7 +84,7 @@ public static partial class ShaderParser
     private static partial Regex VariantsRegex();
 
     public static bool Parse(string source, ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
-        out List<string> variants, out List<InstanceParameter> instanceParameters, out List<VertexAttribute> vertexInputs,
+        out List<string> variants, out List<InstanceParameter> instanceParameters, out Dictionary<string, List<VertexAttribute>> vertexInputs,
         out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
     {
         vertexInputs = [];
@@ -191,22 +195,51 @@ public static partial class ShaderParser
 
             for(var i = 0; i < inputs.Length; i++)
             {
-                if (Enum.TryParse<VertexAttribute>(inputs[i], true, out var attribute) == false)
+                var match = vertexInputElementRegex.Match(inputs[i]);
+
+                if(match.Success)
                 {
-                    type = default;
-                    parameters = default;
-                    variants = [];
-                    vertex = default;
-                    fragment = default;
-                    compute = default;
-                    blendMode = default;
-                    instanceParameters = default;
-                    vertexInputs = default;
+                    if (Enum.TryParse<VertexAttribute>(match.Groups[3].Value, true, out var attribute) == false)
+                    {
+                        type = default;
+                        parameters = default;
+                        variants = [];
+                        vertex = default;
+                        fragment = default;
+                        compute = default;
+                        blendMode = default;
+                        instanceParameters = default;
+                        vertexInputs = default;
 
-                    return false;
+                        return false;
+                    }
+
+                    var keys = match.Groups[1].Value.Trim().Split('|');
+
+                    foreach(var key in keys)
+                    {
+                        var target = key;
+
+                        if(key.Length > 0)
+                        {
+                            if(key.StartsWith("variant: "))
+                            {
+                                target = target["variant: ".Length..];
+                            }
+                        }
+
+                        vertexInputs ??= [];
+
+                        if (vertexInputs.TryGetValue(target, out var list) == false)
+                        {
+                            list = [];
+
+                            vertexInputs.Add(target, list);
+                        }
+
+                        list.Add(attribute);
+                    }
                 }
-
-                vertexInputs.Add(attribute);
             }
         }
 

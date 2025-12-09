@@ -13,20 +13,18 @@ internal class SDLGPUShaderProgram : IShaderProgram
     public nint fragment;
     public nint compute;
     public bool disposed = false;
-    public VertexAttribute[] vertexAttributes;
     public Dictionary<ShaderUniformMapping, byte[]> vertexUniforms;
     public Dictionary<ShaderUniformMapping, byte[]> fragmentUniforms;
     public Dictionary<ShaderUniformMapping, byte[]> computeUniforms;
 
-    public SDLGPUShaderProgram(nint device, nint vertex, nint fragment, VertexAttribute[] vertexAttributes,
-        ShaderUniformContainer vertexUniforms, ShaderUniformContainer fragmentUniforms)
+    public SDLGPUShaderProgram(nint device, nint vertex, nint fragment, ShaderUniformContainer vertexUniforms,
+        ShaderUniformContainer fragmentUniforms)
     {
         Type = ShaderType.VertexFragment;
 
         this.device = device;
         this.vertex = vertex;
         this.fragment = fragment;
-        this.vertexAttributes = vertexAttributes;
         this.vertexUniforms = [];
         this.fragmentUniforms = [];
 

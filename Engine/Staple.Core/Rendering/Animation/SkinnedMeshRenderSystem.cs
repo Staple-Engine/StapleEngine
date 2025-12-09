@@ -200,7 +200,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     .Add(VertexAttribute.TexCoord1, VertexAttributeType.Float4)
                     .Add(VertexAttribute.TexCoord2, VertexAttributeType.Float4)
                     .Add(VertexAttribute.TexCoord3, VertexAttributeType.Float4)
-                    .Build(), RenderBufferFlags.ComputeRead);
+                    .Build(), RenderBufferFlags.GraphicsRead);
             }
 
             instance.transformUpdateTimer += Time.deltaTime;
@@ -323,7 +323,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 renderState.shaderVariant = material.ShaderVariantKey;
 
-                renderState.readOnlyBuffers = [(SkinningBufferIndex, buffer)];
+                renderState.storageBuffers = [(SkinningBufferIndex, buffer)];
 
                 RenderSystem.Submit(renderState, renderer.mesh.SubmeshTriangleCount(j), 1);
             }

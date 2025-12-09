@@ -76,8 +76,8 @@ public abstract class VertexLayoutBuilder
 
                 break;
 
-            case VertexAttribute.BoneIndices:
-            case VertexAttribute.BoneWeight:
+            case VertexAttribute.BlendIndices:
+            case VertexAttribute.BlendWeights:
 
                 components |= MeshAssetComponent.BoneIndicesWeights;
 

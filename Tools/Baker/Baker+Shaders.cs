@@ -672,9 +672,32 @@ static partial class Program
 
                         var shaderFileName = $"{Path.Combine(Path.GetTempPath(), Path.GetTempFileName())}.slang";
 
+                        var attributes = new List<VertexAttribute>();
+
+                        if(vertexInputs.TryGetValue("", out var a))
+                        {
+                            attributes.AddRange(a);
+                        }
+
+                        if(variantKey.Length > 0)
+                        {
+                            var variantPieces = variantKey.Split(' ');
+
+                            foreach (var piece in variantPieces)
+                            {
+                                foreach (var pair in vertexInputs)
+                                {
+                                    if (pair.Key.Equals(piece, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        attributes.AddRange(pair.Value);
+                                    }
+                                }
+                            }
+                        }
+
                         var shaderObject = new SerializableShaderData()
                         {
-                            vertexAttributes = vertexInputs.ToArray(),
+                            vertexAttributes = attributes.ToArray(),
                         };
 
                         byte[] Compile(ShaderPiece piece, ShaderCompilerType type, Renderer renderer, ref string code,

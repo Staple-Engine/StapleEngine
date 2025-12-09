@@ -81,6 +81,29 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
             SDL.BindGPUFragmentSamplers(renderPass, 0, samplers, (uint)samplers.Length);
         }
 
+        if ((state.storageBuffers?.Length ?? 0) > 0)
+        {
+            var buffers = new List<nint>();
+
+            foreach (var buffer in state.storageBuffers)
+            {
+                if (buffer.Item2 == null ||
+                    buffer.Item2.Flags.HasFlag(RenderBufferFlags.GraphicsRead) == false ||
+                    buffer.Item2.Disposed ||
+                    buffer.Item2 is not SDLGPUVertexBuffer v ||
+                    backend.TryGetVertexBuffer(v.handle, out var resource) == false ||
+                    resource.used == false ||
+                    resource.buffer == nint.Zero)
+                {
+                    continue;
+                }
+
+                buffers.Add(resource.buffer);
+            }
+
+            SDL.BindGPUVertexStorageBuffers(renderPass, 0, buffers.ToArray(), (uint)buffers.Count);
+        }
+
         unsafe
         {
             foreach (var pair in vertexUniformData)

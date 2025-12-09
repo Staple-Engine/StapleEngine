@@ -55,3 +55,21 @@ public float4x4 ViewWorld(float4x4 world)
 {
     return mul(view, world);
 }
+
+#ifdef SKINNING
+public float4x4 StapleGetBoneMatrix(int index)
+{
+    return float4x4(StapleBoneMatrices[index * 4],
+        StapleBoneMatrices[index * 4 + 1],
+        StapleBoneMatrices[index * 4 + 2],
+        StapleBoneMatrices[index * 4 + 3]);
+}
+
+public float4x4 StapleGetSkinningMatrix(float4x4 model, float4 indices, float4 weights)
+{
+    return model * (weights.x * StapleGetBoneMatrix(int(indices.x)) +
+        weights.y * StapleGetBoneMatrix(int(indices.y)) +
+        weights.z * StapleGetBoneMatrix(int(indices.z)) +
+        weights.w * StapleGetBoneMatrix(int(indices.w)));
+}
+#endif

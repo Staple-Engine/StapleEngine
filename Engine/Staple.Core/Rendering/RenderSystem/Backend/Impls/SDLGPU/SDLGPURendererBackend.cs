@@ -1,4 +1,5 @@
-﻿using SDL3;
+﻿using Evergine.Bindings.Vulkan;
+using SDL3;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -477,54 +478,56 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         var props = SDL.CreateProperties();
 
-        var createOptions = new SDL.GPUVulkanOptions()
-        {
-            VulkanApiVersion = MakeVulkanVersion(VulkanVersionMajor, VulkanVersionMinor, VulkanVersionPatch),
-        };
-
-        switch (renderer)
-        {
-            case RendererType.Vulkan:
-
-                SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersSPIRVBoolean, true);
-
-                unsafe
-                {
-                    void* ptr = &createOptions;
-
-                    SDL.SetPointerProperty(props, SDL.Props.GPUDeviceCreateVulkanOptionsPointer, (nint)ptr);
-                }
-
-                break;
-
-            case RendererType.Direct3D12:
-
-                SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersDXBCBoolean, true);
-                SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersDXILBoolean, true);
-
-                break;
-
-            case RendererType.Metal:
-
-                SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersMSLBoolean, true);
-                SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersMetalLibBoolean, true);
-
-                break;
-        }
-
         SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateDebugModeBoolean, debug);
 
-        SDL.SetStringProperty(props, SDL.Props.GPUDeviceCreateNameString, renderer switch
+        unsafe
         {
-            RendererType.Metal => "metal",
-            RendererType.Direct3D12 => "direct3d12",
-            RendererType.Vulkan => "vulkan",
-            _ => "vulkan",
-        });
+            var createOptions = new SDL.GPUVulkanOptions()
+            {
+                VulkanApiVersion = MakeVulkanVersion(VulkanVersionMajor, VulkanVersionMinor, VulkanVersionPatch),
+            };
 
-        device = SDL.CreateGPUDeviceWithProperties(props);
+            switch (renderer)
+            {
+                case RendererType.Vulkan:
 
-        if(device == nint.Zero)
+                    SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersSPIRVBoolean, true);
+
+                    void *ptr = &createOptions;
+
+                    SDL.SetPointerProperty(props, SDL.Props.GPUDeviceCreateVulkanOptionsPointer, (nint)ptr);
+
+                    break;
+
+                case RendererType.Direct3D12:
+
+                    SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersDXBCBoolean, true);
+                    SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersDXILBoolean, true);
+
+                    break;
+
+                case RendererType.Metal:
+
+                    SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersMSLBoolean, true);
+                    SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersMetalLibBoolean, true);
+
+                    break;
+            }
+
+            SDL.SetStringProperty(props, SDL.Props.GPUDeviceCreateNameString, renderer switch
+            {
+                RendererType.Metal => "metal",
+                RendererType.Direct3D12 => "direct3d12",
+                RendererType.Vulkan => "vulkan",
+                _ => "vulkan",
+            });
+
+            device = SDL.CreateGPUDeviceWithProperties(props);
+        }
+
+        SDL.DestroyProperties(props);
+
+        if (device == nint.Zero)
         {
             return false;
         }
@@ -956,7 +959,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     public IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
         VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
-        VertexAttribute[] vertexAttributes, ShaderUniformContainer vertexUniforms, ShaderUniformContainer fragmentUniforms)
+        ShaderUniformContainer vertexUniforms, ShaderUniformContainer fragmentUniforms)
     {
         unsafe
         {
@@ -1030,7 +1033,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            return new SDLGPUShaderProgram(device, vertexShader, fragmentShader, vertexAttributes, vertexUniforms, fragmentUniforms);
+            return new SDLGPUShaderProgram(device, vertexShader, fragmentShader, vertexUniforms, fragmentUniforms);
         }
     }
 
@@ -1115,6 +1118,44 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return false;
         }
 
+        List<VertexAttribute> GetMissingAttributes()
+        {
+            var outValue = new List<VertexAttribute>();
+
+            foreach (var attribute in instance.attributes)
+            {
+                if (vertexLayout.vertexAttributes.IndexOf(attribute) < 0)
+                {
+                    outValue.Add(attribute);
+                }
+            }
+
+            return outValue;
+        }
+
+        if (vertexLayout.attributes.Length < instance.attributes.Length)
+        {
+            var message = $"Failed to render: Vertex Layout is missing attributes ({vertexLayout.attributes.Length} attributes vs " +
+                $"required {instance.attributes.Length} shader attributes)";
+
+            var attributes = GetMissingAttributes();
+
+            if(attributes.Count > 0)
+            {
+                Log.Error($"{message}\nAdditionally, the following vertex attributes are missing: " +
+                    string.Join('\n', attributes.Select(x => x.ToString().ToUpperInvariant())));
+            }
+            else
+            {
+                Log.Error(message);
+            }
+
+            samplers = default;
+            pipeline = nint.Zero;
+
+            return false;
+        }
+
         var samplerCount = state.textures?.Length ?? 0;
 
         for (var i = 0; i < samplerCount; i++)
@@ -1168,18 +1209,26 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             {
                 var shaderAttributes = new List<SDL.GPUVertexAttribute>();
 
-                for (var i = 0; i < vertexLayout.attributes.Length; i++)
-                {
-                    var attribute = vertexLayout.attributes[i];
+                var missingAttributes = new List<VertexAttribute>();
 
-                    var attributeIndex = shader.vertexAttributes.IndexOf(vertexLayout.vertexAttributes[i]);
+                for (var i = 0; i < instance.attributes.Length; i++)
+                {
+                    var attributeIndex = vertexLayout.vertexAttributes.IndexOf(instance.attributes[i]);
 
                     if (attributeIndex < 0)
                     {
-                        Log.Error($"Failed to render: vertex attribute {shader.vertexAttributes[i]} was not declared in the vertex layout!");
+                        var attributes = GetMissingAttributes();
+
+                        if (attributes.Count > 0)
+                        {
+                            Log.Error("Failed to render: The following vertex attributes are missing: " +
+                                string.Join('\n', attributes.Select(x => x.ToString().ToUpperInvariant())));
+                        }
 
                         return false;
                     }
+
+                    var attribute = vertexLayout.attributes[attributeIndex];
 
                     shaderAttributes.Add(new()
                     {
@@ -1188,6 +1237,14 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                         Offset = attribute.Offset,
                         Location = (uint)attributeIndex,
                     });
+                }
+
+                if(missingAttributes.Count > 0)
+                {
+                    Log.Error($"Failed to render: vertex attributes {string.Join(", ", missingAttributes.Select(x => x.ToString().ToUpperInvariant()))} " +
+                        "were not declared in the vertex layout!");
+
+                    return false;
                 }
 
                 var attributesSpan = CollectionsMarshal.AsSpan(shaderAttributes);

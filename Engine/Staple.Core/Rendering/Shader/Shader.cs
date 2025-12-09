@@ -208,8 +208,7 @@ public partial class Shader : IGuidAsset
         foreach(var pair in instances)
         {
             pair.Value.program = RenderSystem.Backend.CreateShaderVertexFragment(pair.Value.vertexShaderSource, pair.Value.fragmentShaderSource,
-                pair.Value.vertexShaderMetrics, pair.Value.fragmentShaderMetrics, pair.Value.attributes,
-                pair.Value.vertexUniforms, pair.Value.fragmentUniforms);
+                pair.Value.vertexShaderMetrics, pair.Value.fragmentShaderMetrics, pair.Value.vertexUniforms, pair.Value.fragmentUniforms);
 
             if(pair.Value.program == null)
             {

@@ -32,7 +32,7 @@ internal interface IRendererBackend
 
     IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
         VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
-        VertexAttribute[] vertexAttributes, ShaderUniformContainer vertexUniforms, ShaderUniformContainer fragmentUniforms);
+        ShaderUniformContainer vertexUniforms, ShaderUniformContainer fragmentUniforms);
 
     IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics computeMetrics, ShaderUniformContainer uniforms);
 

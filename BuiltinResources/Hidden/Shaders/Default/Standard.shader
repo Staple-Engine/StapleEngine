@@ -26,9 +26,11 @@ Begin Input
 POSITION
 TEXCOORD0
 NORMAL
-TANGENT
-BITANGENT
-COLOR0
+variant: NORMALMAP TANGENT
+variant: NORMALMAP BITANGENT
+variant: VERTEX_COLORS|PER_VERTEX_LIGHTING COLOR0
+variant: SKINNING BLENDINDICES
+variant: SKINNING BLENDWEIGHTS
 End Input
 
 Begin Instancing
@@ -54,9 +56,13 @@ struct VertexOutput
 	float3 lightNormal;
 	float2 coords;
 	float3 normal;
+#ifdef NORMALMAP
 	float3 tangent;
 	float3 bitangent;
+#endif
+#if defined(VERTEX_COLORS) || defined(PER_VERTEX_LIGHTING)
 	float4 color;
+#endif
 	uint instanceID;
 };
 
@@ -69,9 +75,17 @@ struct Input
 	float3 position : POSITION;
 	float2 coords : TEXCOORD0;
 	float3 normal : NORMAL;
+#ifdef NORMALMAP
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
+#endif
+#if defined(VERTEX_COLORS) || defined(PER_VERTEX_LIGHTING)
 	float4 color : COLOR0;
+#endif
+#ifdef SKINNING
+	float4 indices : BLENDINDICES;
+	float4 weights : BLENDWEIGHTS;
+#endif
 	uint instanceID : SV_InstanceID;
 };
 
@@ -80,7 +94,11 @@ VertexOutput VertexMain(Input input)
 {
 	VertexOutput output;
 
+#ifdef SKINNING
+	float4x4 model = StapleGetSkinningMatrix(world, input.indices, input.weights);
+#else
 	float4x4 model = world;
+#endif
 
 	float4x4 projectionViewWorld = ProjectionViewWorld(model);
 	float4x4 viewWorld = ViewWorld(model);
@@ -93,8 +111,10 @@ VertexOutput VertexMain(Input input)
 
 	output.coords = input.coords;
 	output.normal = input.normal;
+#ifdef NORMALMAP
 	output.tangent = input.tangent;
 	output.bitangent = input.bitangent;
+#endif
 	output.lightNormal = StapleLightNormal(input.normal, model);
 	output.instanceID = input.instanceID;
 	
@@ -110,7 +130,9 @@ VertexOutput VertexMain(Input input)
 	output.color = input.color;
 #endif
 */
+#if defined(VERTEX_COLORS) || defined(PER_VERTEX_LIGHTING)
 	output.color = input.color;
+#endif
 
 	return output;
 }

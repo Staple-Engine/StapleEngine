@@ -479,6 +479,7 @@
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
+	  <PackageReference Include="Evergine.Bindings.Vulkan" Version="2025.10.20.38" />
 	  <PackageReference Include="SDL3-CS" Version="3.3.3-preview.20251204-144801" />
 	</ItemGroup>
 </Project>
