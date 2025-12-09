@@ -31,15 +31,6 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
-project "SDL3-CS"
-	kind "SharedLib"
-	language "C#"
-	clr "Unsafe"
-	
-	files {
-		"SDL3-CS/**.cs"
-	}
-
 project "NAudio"
 	kind "SharedLib"
 	language "C#"

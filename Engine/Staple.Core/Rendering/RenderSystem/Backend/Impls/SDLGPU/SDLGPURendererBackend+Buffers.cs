@@ -12,18 +12,18 @@ internal partial class SDLGPURendererBackend
             return;
         }
 
-        SDL.SDL_WaitForGPUIdle(device);
+        SDL.WaitForGPUIdle(device);
 
         if (resource.transferBuffer != nint.Zero)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(device, resource.transferBuffer);
+            SDL.ReleaseGPUTransferBuffer(device, resource.transferBuffer);
 
             resource.transferBuffer = nint.Zero;
         }
 
         if (resource.buffer != nint.Zero)
         {
-            SDL.SDL_ReleaseGPUBuffer(device, resource.buffer);
+            SDL.ReleaseGPUBuffer(device, resource.buffer);
 
             resource.buffer = nint.Zero;
         }

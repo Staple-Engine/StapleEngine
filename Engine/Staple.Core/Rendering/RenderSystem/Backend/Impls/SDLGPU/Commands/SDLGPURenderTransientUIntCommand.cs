@@ -6,12 +6,12 @@ using System.Runtime.InteropServices;
 namespace Staple.Internal;
 
 internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline,
-    SDL.SDL_GPUTextureSamplerBinding[] samplers, Dictionary<byte, byte[]> vertexUniformData, Dictionary<byte, byte[]> fragmentUniformData,
+    SDL.GPUTextureSamplerBinding[] samplers, Dictionary<byte, byte[]> vertexUniformData, Dictionary<byte, byte[]> fragmentUniformData,
     SDLGPUShaderProgram program, SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
 {
     public RenderState state = state;
     public nint pipeline = pipeline;
-    public SDL.SDL_GPUTextureSamplerBinding[] samplers = samplers;
+    public SDL.GPUTextureSamplerBinding[] samplers = samplers;
     public SDLGPURendererBackend.TransientEntry entry = entry;
     public Dictionary<byte, byte[]> vertexUniformData = vertexUniformData;
     public Dictionary<byte, byte[]> fragmentUniformData = fragmentUniformData;
@@ -37,48 +37,48 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
             renderPass = backend.renderPass;
         }
 
-        SDL.SDL_BindGPUGraphicsPipeline(renderPass, pipeline);
+        SDL.BindGPUGraphicsPipeline(renderPass, pipeline);
 
-        var vertexBinding = new SDL.SDL_GPUBufferBinding()
+        var vertexBinding = new SDL.GPUBufferBinding()
         {
-            buffer = entry.vertexBuffer,
+            Buffer = entry.vertexBuffer,
         };
 
-        var indexBinding = new SDL.SDL_GPUBufferBinding()
+        var indexBinding = new SDL.GPUBufferBinding()
         {
-            buffer = entry.uintIndexBuffer,
+            Buffer = entry.uintIndexBuffer,
         };
 
-        var scissor = new SDL.SDL_Rect();
+        var scissor = new SDL.Rect();
 
         if (state.scissor != default)
         {
             scissor = new()
             {
-                x = state.scissor.left,
-                y = state.scissor.top,
-                w = state.scissor.Width,
-                h = state.scissor.Height,
+                X = state.scissor.left,
+                Y = state.scissor.top,
+                W = state.scissor.Width,
+                H = state.scissor.Height,
             };
         }
         else
         {
             scissor = new()
             {
-                w = backend.renderSize.X,
-                h = backend.renderSize.Y,
+                W = backend.renderSize.X,
+                H = backend.renderSize.Y,
             };
         }
 
-        SDL.SDL_SetGPUScissor(renderPass, in scissor);
+        SDL.SetGPUScissor(renderPass, in scissor);
 
-        SDL.SDL_BindGPUVertexBuffers(renderPass, 0, [vertexBinding], 1);
+        SDL.BindGPUVertexBuffers(renderPass, 0, [vertexBinding], 1);
 
-        SDL.SDL_BindGPUIndexBuffer(renderPass, in indexBinding, SDL.SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_32BIT);
+        SDL.BindGPUIndexBuffer(renderPass, in indexBinding, SDL.GPUIndexElementSize.IndexElementSize32Bit);
 
         if (samplers != null)
         {
-            SDL.SDL_BindGPUFragmentSamplers(renderPass, 0, samplers.AsSpan(), (uint)samplers.Length);
+            SDL.BindGPUFragmentSamplers(renderPass, 0, samplers, (uint)samplers.Length);
         }
 
         unsafe
@@ -87,8 +87,7 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
             {
                 fixed (void* ptr = pair.Value)
                 {
-                    SDL.SDL_PushGPUVertexUniformData(backend.commandBuffer, pair.Key, (nint)ptr,
-                        (uint)pair.Value.Length);
+                    SDL.PushGPUVertexUniformData(backend.commandBuffer, pair.Key, (nint)ptr, (uint)pair.Value.Length);
                 }
             }
 
@@ -96,13 +95,11 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
             {
                 fixed (void* ptr = pair.Value)
                 {
-                    SDL.SDL_PushGPUFragmentUniformData(backend.commandBuffer, pair.Key, (nint)ptr,
-                        (uint)pair.Value.Length);
+                    SDL.PushGPUFragmentUniformData(backend.commandBuffer, pair.Key, (nint)ptr, (uint)pair.Value.Length);
                 }
             }
         }
 
-        SDL.SDL_DrawGPUIndexedPrimitives(renderPass, (uint)state.indexCount, 1,
-            (uint)state.startIndex, state.startVertex, 0);
+        SDL.DrawGPUIndexedPrimitives(renderPass, (uint)state.indexCount, 1, (uint)state.startIndex, state.startVertex, 0);
     }
 }

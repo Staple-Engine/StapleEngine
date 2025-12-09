@@ -111,7 +111,7 @@ public static class Platform
         get
         {
             #if !ANDROID && !IOS
-            return SDL3.SDL.SDL_GetClipboardText();
+            return SDL3.SDL.GetClipboardText();
             #else
             return "";
             #endif
@@ -121,7 +121,7 @@ public static class Platform
     public static void SetClipboardText(string text)
     {
 #if !ANDROID && !IOS
-        SDL3.SDL.SDL_SetClipboardText(text);
+        SDL3.SDL.SetClipboardText(text);
 #endif
     }
 }

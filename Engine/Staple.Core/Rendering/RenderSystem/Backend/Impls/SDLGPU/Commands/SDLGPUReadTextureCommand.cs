@@ -22,18 +22,18 @@ internal class SDLGPUReadTextureCommand(SDLGPUTexture texture, Action<byte[]> on
 
         if (resource.transferBuffer != nint.Zero)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(backend.device, resource.transferBuffer);
+            SDL.ReleaseGPUTransferBuffer(backend.device, resource.transferBuffer);
 
             resource.transferBuffer = nint.Zero;
         }
 
-        var info = new SDL.SDL_GPUTransferBufferCreateInfo()
+        var info = new SDL.GPUTransferBufferCreateInfo()
         {
-            size = (uint)resource.length,
-            usage = SDL.SDL_GPUTransferBufferUsage.SDL_GPU_TRANSFERBUFFERUSAGE_DOWNLOAD,
+            Size = (uint)resource.length,
+            Usage = SDL.GPUTransferBufferUsage.Download,
         };
 
-        resource.transferBuffer = SDL.SDL_CreateGPUTransferBuffer(backend.device, in info);
+        resource.transferBuffer = SDL.CreateGPUTransferBuffer(backend.device, in info);
 
         if (resource.transferBuffer == nint.Zero)
         {
@@ -47,7 +47,7 @@ internal class SDLGPUReadTextureCommand(SDLGPUTexture texture, Action<byte[]> on
 
         if (backend.copyPass == nint.Zero)
         {
-            backend.copyPass = SDL.SDL_BeginGPUCopyPass(backend.commandBuffer);
+            backend.copyPass = SDL.BeginGPUCopyPass(backend.commandBuffer);
         }
 
         if (backend.copyPass == nint.Zero)
@@ -55,23 +55,23 @@ internal class SDLGPUReadTextureCommand(SDLGPUTexture texture, Action<byte[]> on
             return;
         }
 
-        var textureInfo = new SDL.SDL_GPUTextureTransferInfo()
+        var textureInfo = new SDL.GPUTextureTransferInfo()
         {
-            offset = 0,
-            pixels_per_row = (uint)resource.width,
-            rows_per_layer = (uint)resource.height,
-            transfer_buffer = resource.transferBuffer,
+            Offset = 0,
+            PixelsPerRow = (uint)resource.width,
+            RowsPerLayer = (uint)resource.height,
+            TransferBuffer = resource.transferBuffer,
         };
 
-        var destination = new SDL.SDL_GPUTextureRegion()
+        var destination = new SDL.GPUTextureRegion()
         {
-            texture = resource.texture,
-            w = (uint)resource.width,
-            h = (uint)resource.height,
-            d = 1,
+            Texture = resource.texture,
+            W = (uint)resource.width,
+            H = (uint)resource.height,
+            D = 1,
         };
 
-        SDL.SDL_DownloadFromGPUTexture(backend.copyPass, in destination, in textureInfo);
+        SDL.DownloadFromGPUTexture(backend.copyPass, in destination, in textureInfo);
 
         backend.QueueTextureRead(texture, onComplete);
     }

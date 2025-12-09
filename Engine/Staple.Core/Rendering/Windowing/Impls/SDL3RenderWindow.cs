@@ -21,14 +21,14 @@ internal class SDL3RenderWindow : IRenderWindow
         {
             if (cursor != nint.Zero)
             {
-                SDL.SDL_DestroyCursor(cursor);
+                SDL.DestroyCursor(cursor);
 
                 cursor = nint.Zero;
             }
 
             if(surface != nint.Zero)
             {
-                SDL.SDL_DestroySurface(surface);
+                SDL.DestroySurface(surface);
 
                 surface = nint.Zero;
             }
@@ -75,23 +75,23 @@ internal class SDL3RenderWindow : IRenderWindow
 
     public string Title
     {
-        get => SDL.SDL_GetWindowTitle(window);
+        get => SDL.GetWindowTitle(window);
 
-        set => SDL.SDL_SetWindowTitle(window, value);
+        set => SDL.SetWindowTitle(window, value);
     }
 
     public Vector2Int Position
     {
         get
         {
-            SDL.SDL_GetWindowPosition(window, out var x, out var y);
+            SDL.GetWindowPosition(window, out var x, out var y);
 
             return new(x, y);
         }
 
         set
         {
-            SDL.SDL_SetWindowPosition(window, value.X, value.Y);
+            SDL.SetWindowPosition(window, value.X, value.Y);
         }
     }
 
@@ -99,7 +99,7 @@ internal class SDL3RenderWindow : IRenderWindow
     {
         get
         {
-            SDL.SDL_GetWindowSize(window, out var w, out var h);
+            SDL.GetWindowSize(window, out var w, out var h);
 
             return new(w, h);
         }
@@ -114,7 +114,7 @@ internal class SDL3RenderWindow : IRenderWindow
                 return 0;
             }
 
-            return Array.IndexOf(displays, SDL.SDL_GetDisplayForWindow(window));
+            return Array.IndexOf(displays, SDL.GetDisplayForWindow(window));
         }
     }
 
@@ -131,34 +131,27 @@ internal class SDL3RenderWindow : IRenderWindow
     public bool Create(ref int width, ref int height, string title, bool resizable, WindowMode windowMode, Vector2Int? position,
         bool maximized, int monitorIndex)
     {
-        var displays = SDL.SDL_GetDisplays(out var displayCount);
+        displays = SDL.GetDisplays(out var displayCount);
 
-        if(displays == nint.Zero)
+        if(displays == null)
         {
             return false;
         }
 
-        unsafe
-        {
-            var displaySpan = new Span<uint>((void *)displays, displayCount);
-
-            this.displays = displaySpan.ToArray();
-        }
-
         var monitor = monitorIndex >= 0 && monitorIndex < displayCount ? this.displays[monitorIndex] : 0;
 
-        SDL.SDL_GetDisplayBounds(monitor, out var displayBounds);
+        SDL.GetDisplayBounds(monitor, out var displayBounds);
 
-        var windowFlags = SDL.SDL_WindowFlags.SDL_WINDOW_HIGH_PIXEL_DENSITY;
+        var windowFlags = SDL.WindowFlags.HighPixelDensity;
 
         if(resizable && windowMode == WindowMode.Windowed)
         {
-            windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
+            windowFlags |= SDL.WindowFlags.Resizable;
         }
 
         if(maximized)
         {
-            windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_MAXIMIZED;
+            windowFlags |= SDL.WindowFlags.Maximized;
         }
 
         var windowPosition = new Vector2Int();
@@ -180,7 +173,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
             case WindowMode.ExclusiveFullscreen:
 
-                windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
+                windowFlags |= SDL.WindowFlags.Fullscreen;
 
                 windowPosition = new Vector2Int(UndefinedDisplay(monitor), UndefinedDisplay(monitor));
 
@@ -188,28 +181,28 @@ internal class SDL3RenderWindow : IRenderWindow
 
             case WindowMode.BorderlessFullscreen:
 
-                windowFlags |= SDL.SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
+                windowFlags |= SDL.WindowFlags.Fullscreen;
 
                 windowPosition = new Vector2Int(UndefinedDisplay(monitor), UndefinedDisplay(monitor));
 
-                width = displayBounds.w;
-                height = displayBounds.h;
+                width = displayBounds.W;
+                height = displayBounds.H;
 
                 break;
         }
 
-        var props = SDL.SDL_CreateProperties();
+        var props = SDL.CreateProperties();
 
-        SDL.SDL_SetStringProperty(props, SDL.SDL_PROP_WINDOW_CREATE_TITLE_STRING, title);
-        SDL.SDL_SetNumberProperty(props, SDL.SDL_PROP_WINDOW_CREATE_X_NUMBER, windowPosition.X);
-        SDL.SDL_SetNumberProperty(props, SDL.SDL_PROP_WINDOW_CREATE_Y_NUMBER, windowPosition.Y);
-        SDL.SDL_SetNumberProperty(props, SDL.SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, width);
-        SDL.SDL_SetNumberProperty(props, SDL.SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, height);
-        SDL.SDL_SetNumberProperty(props, SDL.SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER, (long)windowFlags);
+        SDL.SetStringProperty(props, SDL.Props.WindowCreateTitleString, title);
+        SDL.SetNumberProperty(props, SDL.Props.WindowCreateXNumber, windowPosition.X);
+        SDL.SetNumberProperty(props, SDL.Props.WindowCreateYNumber, windowPosition.Y);
+        SDL.SetNumberProperty(props, SDL.Props.WindowCreateWidthNumber, width);
+        SDL.SetNumberProperty(props, SDL.Props.WindowCreateHeightNumber, height);
+        SDL.SetNumberProperty(props, SDL.Props.WindowCreateFlagsNumber, (long)windowFlags);
 
-        window = SDL.SDL_CreateWindowWithProperties(props);
+        window = SDL.CreateWindowWithProperties(props);
 
-        SDL.SDL_DestroyProperties(props);
+        SDL.DestroyProperties(props);
 
         if (window == nint.Zero)
         {
@@ -218,17 +211,14 @@ internal class SDL3RenderWindow : IRenderWindow
 
         if(windowMode == WindowMode.BorderlessFullscreen)
         {
-            SDL.SDL_SetWindowFullscreen(window, true);
+            SDL.SetWindowFullscreen(window, true);
         }
 
-        unsafe
-        {
-            SDL.SDL_DisplayMode* mode = SDL.SDL_GetCurrentDisplayMode(monitor);
+        SDL.DisplayMode? mode = SDL.GetCurrentDisplayMode(monitor);
 
-            if (mode != null)
-            {
-                refreshRate = (int)mode->refresh_rate;
-            }
+        if (mode != null)
+        {
+            refreshRate = (int)mode.Value.RefreshRate;
         }
 
         if (maximized)
@@ -236,147 +226,147 @@ internal class SDL3RenderWindow : IRenderWindow
             windowMaximized = true;
         }
 
-        defaultCursor = SDL.SDL_CreateSystemCursor(SDL.SDL_SystemCursor.SDL_SYSTEM_CURSOR_DEFAULT);
+        defaultCursor = SDL.CreateSystemCursor(SDL.SystemCursor.Default);
 
         return true;
     }
 
-    private static KeyCode MapSDLKey(SDL.SDL_Keycode sym)
+    private static KeyCode MapSDLKey(SDL.Keycode sym)
     {
         return sym switch
         {
-            SDL.SDL_Keycode.SDLK_0 => KeyCode.Alpha0,
-            SDL.SDL_Keycode.SDLK_1 => KeyCode.Alpha1,
-            SDL.SDL_Keycode.SDLK_2 => KeyCode.Alpha2,
-            SDL.SDL_Keycode.SDLK_3 => KeyCode.Alpha3,
-            SDL.SDL_Keycode.SDLK_4 => KeyCode.Alpha4,
-            SDL.SDL_Keycode.SDLK_5 => KeyCode.Alpha5,
-            SDL.SDL_Keycode.SDLK_6 => KeyCode.Alpha6,
-            SDL.SDL_Keycode.SDLK_7 => KeyCode.Alpha7,
-            SDL.SDL_Keycode.SDLK_8 => KeyCode.Alpha8,
-            SDL.SDL_Keycode.SDLK_9 => KeyCode.Alpha9,
-            SDL.SDL_Keycode.SDLK_A => KeyCode.A,
-            SDL.SDL_Keycode.SDLK_B => KeyCode.B,
-            SDL.SDL_Keycode.SDLK_C => KeyCode.C,
-            SDL.SDL_Keycode.SDLK_D => KeyCode.D,
-            SDL.SDL_Keycode.SDLK_E => KeyCode.E,
-            SDL.SDL_Keycode.SDLK_F => KeyCode.F,
-            SDL.SDL_Keycode.SDLK_G => KeyCode.G,
-            SDL.SDL_Keycode.SDLK_H => KeyCode.H,
-            SDL.SDL_Keycode.SDLK_I => KeyCode.I,
-            SDL.SDL_Keycode.SDLK_J => KeyCode.J,
-            SDL.SDL_Keycode.SDLK_K => KeyCode.K,
-            SDL.SDL_Keycode.SDLK_L => KeyCode.L,
-            SDL.SDL_Keycode.SDLK_M => KeyCode.M,
-            SDL.SDL_Keycode.SDLK_N => KeyCode.N,
-            SDL.SDL_Keycode.SDLK_O => KeyCode.O,
-            SDL.SDL_Keycode.SDLK_P => KeyCode.P,
-            SDL.SDL_Keycode.SDLK_Q => KeyCode.Q,
-            SDL.SDL_Keycode.SDLK_R => KeyCode.R,
-            SDL.SDL_Keycode.SDLK_S => KeyCode.S,
-            SDL.SDL_Keycode.SDLK_T => KeyCode.T,
-            SDL.SDL_Keycode.SDLK_U => KeyCode.U,
-            SDL.SDL_Keycode.SDLK_V => KeyCode.V,
-            SDL.SDL_Keycode.SDLK_W => KeyCode.W,
-            SDL.SDL_Keycode.SDLK_X => KeyCode.X,
-            SDL.SDL_Keycode.SDLK_Y => KeyCode.Y,
-            SDL.SDL_Keycode.SDLK_Z => KeyCode.Z,
-            SDL.SDL_Keycode.SDLK_BACKSLASH => KeyCode.Backslash,
-            SDL.SDL_Keycode.SDLK_BACKSPACE => KeyCode.Backspace,
-            SDL.SDL_Keycode.SDLK_CAPSLOCK => KeyCode.CapsLock,
-            SDL.SDL_Keycode.SDLK_COMMA => KeyCode.Comma,
-            SDL.SDL_Keycode.SDLK_DELETE => KeyCode.Delete,
-            SDL.SDL_Keycode.SDLK_DOWN => KeyCode.Down,
-            SDL.SDL_Keycode.SDLK_UP => KeyCode.Up,
-            SDL.SDL_Keycode.SDLK_LEFT => KeyCode.Left,
-            SDL.SDL_Keycode.SDLK_RIGHT => KeyCode.Right,
-            SDL.SDL_Keycode.SDLK_END => KeyCode.End,
-            SDL.SDL_Keycode.SDLK_EQUALS => KeyCode.Equal,
-            SDL.SDL_Keycode.SDLK_ESCAPE => KeyCode.Escape,
-            SDL.SDL_Keycode.SDLK_F1 => KeyCode.F1,
-            SDL.SDL_Keycode.SDLK_F2 => KeyCode.F2,
-            SDL.SDL_Keycode.SDLK_F3 => KeyCode.F3,
-            SDL.SDL_Keycode.SDLK_F4 => KeyCode.F4,
-            SDL.SDL_Keycode.SDLK_F5 => KeyCode.F5,
-            SDL.SDL_Keycode.SDLK_F6 => KeyCode.F6,
-            SDL.SDL_Keycode.SDLK_F7 => KeyCode.F7,
-            SDL.SDL_Keycode.SDLK_F8 => KeyCode.F8,
-            SDL.SDL_Keycode.SDLK_F9 => KeyCode.F9,
-            SDL.SDL_Keycode.SDLK_F10 => KeyCode.F10,
-            SDL.SDL_Keycode.SDLK_F11 => KeyCode.F11,
-            SDL.SDL_Keycode.SDLK_F12 => KeyCode.F12,
-            SDL.SDL_Keycode.SDLK_F13 => KeyCode.F13,
-            SDL.SDL_Keycode.SDLK_F14 => KeyCode.F14,
-            SDL.SDL_Keycode.SDLK_F15 => KeyCode.F15,
-            SDL.SDL_Keycode.SDLK_F16 => KeyCode.F16,
-            SDL.SDL_Keycode.SDLK_F17 => KeyCode.F17,
-            SDL.SDL_Keycode.SDLK_F18 => KeyCode.F18,
-            SDL.SDL_Keycode.SDLK_F19 => KeyCode.F19,
-            SDL.SDL_Keycode.SDLK_F20 => KeyCode.F20,
-            SDL.SDL_Keycode.SDLK_F21 => KeyCode.F21,
-            SDL.SDL_Keycode.SDLK_F22 => KeyCode.F22,
-            SDL.SDL_Keycode.SDLK_F23 => KeyCode.F23,
-            SDL.SDL_Keycode.SDLK_F24 => KeyCode.F24,
-            SDL.SDL_Keycode.SDLK_HOME => KeyCode.Home,
-            SDL.SDL_Keycode.SDLK_INSERT => KeyCode.Insert,
-            SDL.SDL_Keycode.SDLK_KP_0 => KeyCode.Numpad0,
-            SDL.SDL_Keycode.SDLK_KP_1 => KeyCode.Numpad1,
-            SDL.SDL_Keycode.SDLK_KP_2 => KeyCode.Numpad2,
-            SDL.SDL_Keycode.SDLK_KP_3 => KeyCode.Numpad3,
-            SDL.SDL_Keycode.SDLK_KP_4 => KeyCode.Numpad4,
-            SDL.SDL_Keycode.SDLK_KP_5 => KeyCode.Numpad5,
-            SDL.SDL_Keycode.SDLK_KP_6 => KeyCode.Numpad6,
-            SDL.SDL_Keycode.SDLK_KP_7 => KeyCode.Numpad7,
-            SDL.SDL_Keycode.SDLK_KP_8 => KeyCode.Numpad8,
-            SDL.SDL_Keycode.SDLK_KP_9 => KeyCode.Numpad9,
-            SDL.SDL_Keycode.SDLK_LALT => KeyCode.LeftAlt,
-            SDL.SDL_Keycode.SDLK_LCTRL => KeyCode.LeftControl,
-            SDL.SDL_Keycode.SDLK_LEFTBRACKET => KeyCode.LeftBracket,
-            SDL.SDL_Keycode.SDLK_LSHIFT => KeyCode.LeftShift,
-            SDL.SDL_Keycode.SDLK_RALT => KeyCode.RightAlt,
-            SDL.SDL_Keycode.SDLK_RCTRL => KeyCode.RightControl,
-            SDL.SDL_Keycode.SDLK_RIGHTBRACKET => KeyCode.RightBracket,
-            SDL.SDL_Keycode.SDLK_RSHIFT => KeyCode.RightShift,
-            SDL.SDL_Keycode.SDLK_MINUS => KeyCode.Minus,
-            SDL.SDL_Keycode.SDLK_PAGEDOWN => KeyCode.PageDown,
-            SDL.SDL_Keycode.SDLK_PAGEUP => KeyCode.PageUp,
-            SDL.SDL_Keycode.SDLK_PERIOD => KeyCode.Period,
-            SDL.SDL_Keycode.SDLK_PRINTSCREEN => KeyCode.PrintScreen,
-            SDL.SDL_Keycode.SDLK_RETURN => KeyCode.Enter,
-            SDL.SDL_Keycode.SDLK_RETURN2 => KeyCode.Enter,
-            SDL.SDL_Keycode.SDLK_SEMICOLON => KeyCode.SemiColon,
-            SDL.SDL_Keycode.SDLK_SLASH => KeyCode.Slash,
-            SDL.SDL_Keycode.SDLK_SPACE => KeyCode.Space,
-            SDL.SDL_Keycode.SDLK_TAB => KeyCode.Tab,
+            SDL.Keycode.Alpha0 => KeyCode.Alpha0,
+            SDL.Keycode.Alpha1 => KeyCode.Alpha1,
+            SDL.Keycode.Alpha2 => KeyCode.Alpha2,
+            SDL.Keycode.Alpha3 => KeyCode.Alpha3,
+            SDL.Keycode.Alpha4 => KeyCode.Alpha4,
+            SDL.Keycode.Alpha5 => KeyCode.Alpha5,
+            SDL.Keycode.Alpha6 => KeyCode.Alpha6,
+            SDL.Keycode.Alpha7 => KeyCode.Alpha7,
+            SDL.Keycode.Alpha8 => KeyCode.Alpha8,
+            SDL.Keycode.Alpha9 => KeyCode.Alpha9,
+            SDL.Keycode.A => KeyCode.A,
+            SDL.Keycode.B => KeyCode.B,
+            SDL.Keycode.C => KeyCode.C,
+            SDL.Keycode.D => KeyCode.D,
+            SDL.Keycode.E => KeyCode.E,
+            SDL.Keycode.F => KeyCode.F,
+            SDL.Keycode.G => KeyCode.G,
+            SDL.Keycode.H => KeyCode.H,
+            SDL.Keycode.I => KeyCode.I,
+            SDL.Keycode.J => KeyCode.J,
+            SDL.Keycode.K => KeyCode.K,
+            SDL.Keycode.L => KeyCode.L,
+            SDL.Keycode.M => KeyCode.M,
+            SDL.Keycode.N => KeyCode.N,
+            SDL.Keycode.O => KeyCode.O,
+            SDL.Keycode.P => KeyCode.P,
+            SDL.Keycode.Q => KeyCode.Q,
+            SDL.Keycode.R => KeyCode.R,
+            SDL.Keycode.S => KeyCode.S,
+            SDL.Keycode.T => KeyCode.T,
+            SDL.Keycode.U => KeyCode.U,
+            SDL.Keycode.V => KeyCode.V,
+            SDL.Keycode.W => KeyCode.W,
+            SDL.Keycode.X => KeyCode.X,
+            SDL.Keycode.Y => KeyCode.Y,
+            SDL.Keycode.Z => KeyCode.Z,
+            SDL.Keycode.Backslash => KeyCode.Backslash,
+            SDL.Keycode.Backspace => KeyCode.Backspace,
+            SDL.Keycode.Capslock => KeyCode.CapsLock,
+            SDL.Keycode.Comma => KeyCode.Comma,
+            SDL.Keycode.Delete => KeyCode.Delete,
+            SDL.Keycode.Down => KeyCode.Down,
+            SDL.Keycode.Up => KeyCode.Up,
+            SDL.Keycode.Left => KeyCode.Left,
+            SDL.Keycode.Right => KeyCode.Right,
+            SDL.Keycode.End => KeyCode.End,
+            SDL.Keycode.Equals => KeyCode.Equal,
+            SDL.Keycode.Escape => KeyCode.Escape,
+            SDL.Keycode.F1 => KeyCode.F1,
+            SDL.Keycode.F2 => KeyCode.F2,
+            SDL.Keycode.F3 => KeyCode.F3,
+            SDL.Keycode.F4 => KeyCode.F4,
+            SDL.Keycode.F5 => KeyCode.F5,
+            SDL.Keycode.F6 => KeyCode.F6,
+            SDL.Keycode.F7 => KeyCode.F7,
+            SDL.Keycode.F8 => KeyCode.F8,
+            SDL.Keycode.F9 => KeyCode.F9,
+            SDL.Keycode.F10 => KeyCode.F10,
+            SDL.Keycode.F11 => KeyCode.F11,
+            SDL.Keycode.F12 => KeyCode.F12,
+            SDL.Keycode.F13 => KeyCode.F13,
+            SDL.Keycode.F14 => KeyCode.F14,
+            SDL.Keycode.F15 => KeyCode.F15,
+            SDL.Keycode.F16 => KeyCode.F16,
+            SDL.Keycode.F17 => KeyCode.F17,
+            SDL.Keycode.F18 => KeyCode.F18,
+            SDL.Keycode.F19 => KeyCode.F19,
+            SDL.Keycode.F20 => KeyCode.F20,
+            SDL.Keycode.F21 => KeyCode.F21,
+            SDL.Keycode.F22 => KeyCode.F22,
+            SDL.Keycode.F23 => KeyCode.F23,
+            SDL.Keycode.F24 => KeyCode.F24,
+            SDL.Keycode.Home => KeyCode.Home,
+            SDL.Keycode.Insert => KeyCode.Insert,
+            SDL.Keycode.Kp0 => KeyCode.Numpad0,
+            SDL.Keycode.Kp1 => KeyCode.Numpad1,
+            SDL.Keycode.Kp2 => KeyCode.Numpad2,
+            SDL.Keycode.Kp3 => KeyCode.Numpad3,
+            SDL.Keycode.Kp4 => KeyCode.Numpad4,
+            SDL.Keycode.Kp5 => KeyCode.Numpad5,
+            SDL.Keycode.Kp6 => KeyCode.Numpad6,
+            SDL.Keycode.Kp7 => KeyCode.Numpad7,
+            SDL.Keycode.Kp8 => KeyCode.Numpad8,
+            SDL.Keycode.Kp9 => KeyCode.Numpad9,
+            SDL.Keycode.LAlt => KeyCode.LeftAlt,
+            SDL.Keycode.LCtrl => KeyCode.LeftControl,
+            SDL.Keycode.LeftBracket => KeyCode.LeftBracket,
+            SDL.Keycode.LShift => KeyCode.LeftShift,
+            SDL.Keycode.RAlt => KeyCode.RightAlt,
+            SDL.Keycode.RCtrl => KeyCode.RightControl,
+            SDL.Keycode.RightBracket => KeyCode.RightBracket,
+            SDL.Keycode.RShift => KeyCode.RightShift,
+            SDL.Keycode.Minus => KeyCode.Minus,
+            SDL.Keycode.Pagedown => KeyCode.PageDown,
+            SDL.Keycode.Pageup => KeyCode.PageUp,
+            SDL.Keycode.Period => KeyCode.Period,
+            SDL.Keycode.PrintScreen => KeyCode.PrintScreen,
+            SDL.Keycode.Return => KeyCode.Enter,
+            SDL.Keycode.Return2 => KeyCode.Enter,
+            SDL.Keycode.Semicolon => KeyCode.SemiColon,
+            SDL.Keycode.Slash => KeyCode.Slash,
+            SDL.Keycode.Space => KeyCode.Space,
+            SDL.Keycode.Tab => KeyCode.Tab,
             _ => KeyCode.Unknown,
         };
     }
 
-    private static AppEventModifierKeys GetModifiers(SDL.SDL_Keymod mod)
+    private static AppEventModifierKeys GetModifiers(SDL.Keymod mod)
     {
         AppEventModifierKeys modifiers = 0;
 
-        if (mod.HasFlag(SDL.SDL_Keymod.SDL_KMOD_CAPS))
+        if (mod.HasFlag(SDL.Keymod.Caps))
         {
             modifiers |= AppEventModifierKeys.CapsLock;
         }
 
-        if(mod.HasFlag(SDL.SDL_Keymod.SDL_KMOD_ALT))
+        if(mod.HasFlag(SDL.Keymod.Alt))
         {
             modifiers |= AppEventModifierKeys.Alt;
         }
 
-        if (mod.HasFlag(SDL.SDL_Keymod.SDL_KMOD_CTRL))
+        if (mod.HasFlag(SDL.Keymod.Ctrl))
         {
             modifiers |= AppEventModifierKeys.Control;
         }
 
-        if (mod.HasFlag(SDL.SDL_Keymod.SDL_KMOD_SHIFT))
+        if (mod.HasFlag(SDL.Keymod.Shift))
         {
             modifiers |= AppEventModifierKeys.Shift;
         }
 
-        if (mod.HasFlag(SDL.SDL_Keymod.SDL_KMOD_NUM))
+        if (mod.HasFlag(SDL.Keymod.Num))
         {
             modifiers |= AppEventModifierKeys.NumLock;
         }
@@ -386,23 +376,23 @@ internal class SDL3RenderWindow : IRenderWindow
 
     public void PollEvents()
     {
-        while(SDL.SDL_PollEvent(out var _event))
+        while(SDL.PollEvent(out var _event))
         {
-            switch((SDL.SDL_EventType)_event.type)
+            switch((SDL.EventType)_event.Type)
             {
-                case SDL.SDL_EventType.SDL_EVENT_WINDOW_FOCUS_GAINED:
+                case SDL.EventType.WindowFocusGained:
 
                     windowFocused = true;
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_WINDOW_FOCUS_LOST:
+                case SDL.EventType.WindowFocusLost:
 
                     windowFocused = false;
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_WINDOW_MAXIMIZED:
+                case SDL.EventType.WindowMaximized:
 
                     windowMaximized = true;
 
@@ -410,7 +400,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_WINDOW_RESTORED:
+                case SDL.EventType.WindowRestored:
 
                     windowMaximized = false;
 
@@ -418,27 +408,27 @@ internal class SDL3RenderWindow : IRenderWindow
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_WINDOW_MOVED:
+                case SDL.EventType.WindowMoved:
 
-                    SDL.SDL_GetWindowPosition(window, out var winX, out var winY);
+                    SDL.GetWindowPosition(window, out var winX, out var winY);
 
                     AppEventQueue.instance.Add(AppEvent.MoveWindow(new Vector2Int(winX, winY)));
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_KEY_DOWN:
-                case SDL.SDL_EventType.SDL_EVENT_KEY_UP:
+                case SDL.EventType.KeyDown:
+                case SDL.EventType.KeyUp:
 
-                    AppEventQueue.instance.Add(AppEvent.Key(MapSDLKey((SDL.SDL_Keycode)_event.key.key), (int)_event.key.scancode,
-                        _event.key.down ? AppEventInputState.Press : AppEventInputState.Release,
-                        GetModifiers(_event.key.mod)));
+                    AppEventQueue.instance.Add(AppEvent.Key(MapSDLKey((SDL.Keycode)_event.Key.Key), (int)_event.Key.Scancode,
+                        _event.Key.Down ? AppEventInputState.Press : AppEventInputState.Release,
+                        GetModifiers(_event.Key.Mod)));
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
-                case SDL.SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
+                case SDL.EventType.MouseButtonDown:
+                case SDL.EventType.MouseButtonUp:
 
-                    AppEventQueue.instance.Add(AppEvent.Mouse(_event.button.button switch
+                    AppEventQueue.instance.Add(AppEvent.Mouse(_event.Button.Button switch
                         {
                             1 => AppEventMouseButton.Left,
                             2 => AppEventMouseButton.Middle,
@@ -447,38 +437,38 @@ internal class SDL3RenderWindow : IRenderWindow
                             5 => AppEventMouseButton.Button2,
                             _ => 0,
                         },
-                        _event.button.down ? AppEventInputState.Press : AppEventInputState.Release,
-                        GetModifiers(SDL.SDL_GetModState())));
+                        _event.Button.Down ? AppEventInputState.Press : AppEventInputState.Release,
+                        GetModifiers(SDL.GetModState())));
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_MOUSE_MOTION:
+                case SDL.EventType.MouseMotion:
 
-                    if(SDL.SDL_GetWindowRelativeMouseMode(window))
+                    if(SDL.GetWindowRelativeMouseMode(window))
                     {
-                        Input.CursorPosCallback(_event.motion.xrel, _event.motion.yrel);
+                        Input.CursorPosCallback(_event.Motion.XRel, _event.Motion.YRel);
                     }
                     else
                     {
-                        Input.CursorPosCallback(_event.motion.x, _event.motion.y);
+                        Input.CursorPosCallback(_event.Motion.X, _event.Motion.Y);
                     }
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
+                case SDL.EventType.MouseWheel:
 
-                    Input.MouseScrollCallback(_event.wheel.x, _event.wheel.y);
+                    Input.MouseScrollCallback(_event.Wheel.X, _event.Wheel.Y);
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_GAMEPAD_ADDED:
+                case SDL.EventType.GamepadAdded:
 
                     {
-                        var instance = SDL.SDL_OpenGamepad(_event.cdevice.which);
+                        var instance = SDL.OpenGamepad(_event.CDevice.Which);
 
-                        var playerIndex = SDL.SDL_GetGamepadPlayerIndex(instance);
+                        var playerIndex = SDL.GetGamepadPlayerIndex(instance);
 
-                        gamepads.Add(_event.cdevice.which, new()
+                        gamepads.Add(_event.CDevice.Which, new()
                         {
                             instance = instance,
                             playerIndex = playerIndex,
@@ -489,14 +479,14 @@ internal class SDL3RenderWindow : IRenderWindow
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_GAMEPAD_REMOVED:
+                case SDL.EventType.GamepadRemoved:
 
                     {
-                        if(gamepads.TryGetValue(_event.cdevice.which, out var state))
+                        if(gamepads.TryGetValue(_event.CDevice.Which, out var state))
                         {
-                            SDL.SDL_CloseGamepad(state.instance);
+                            SDL.CloseGamepad(state.instance);
 
-                            gamepads.Remove(_event.cdevice.which);
+                            gamepads.Remove(_event.CDevice.Which);
 
                             Input.GamepadConnect(AppEvent.GamepadConnect(state.playerIndex, GamepadConnectionState.Disconnected));
                         }
@@ -504,50 +494,50 @@ internal class SDL3RenderWindow : IRenderWindow
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_DOWN:
-                case SDL.SDL_EventType.SDL_EVENT_GAMEPAD_BUTTON_UP:
+                case SDL.EventType.GamepadButtonDown:
+                case SDL.EventType.GamepadButtonUp:
 
                     {
-                        if (gamepads.TryGetValue(_event.cdevice.which, out var state))
+                        if (gamepads.TryGetValue(_event.CDevice.Which, out var state))
                         {
                             Input.GamepadButton(AppEvent.GamepadButton(state.playerIndex,
-                                (SDL.SDL_GamepadButton)_event.gbutton.button switch
+                                (SDL.GamepadButton)_event.GButton.Button switch
                                 {
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_SOUTH => GamepadButton.A,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_EAST => GamepadButton.B,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_WEST => GamepadButton.X,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_NORTH => GamepadButton.Y,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_BACK => GamepadButton.Back,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_GUIDE => GamepadButton.Guide,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_START => GamepadButton.Start,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_LEFT_STICK => GamepadButton.LeftStick,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_RIGHT_STICK => GamepadButton.RightStick,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_LEFT_SHOULDER => GamepadButton.LeftShoulder,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER => GamepadButton.RightShoulder,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_UP => GamepadButton.DPadUp,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_DOWN => GamepadButton.DPadDown,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_LEFT => GamepadButton.DPadLeft,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_DPAD_RIGHT => GamepadButton.DPadRight,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_MISC1 => GamepadButton.Misc1,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1 => GamepadButton.Paddle1,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_LEFT_PADDLE1 => GamepadButton.Paddle2,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2 => GamepadButton.Paddle3,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_LEFT_PADDLE2 => GamepadButton.Paddle4,
-                                    SDL.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_TOUCHPAD => GamepadButton.TouchPad,
+                                    SDL.GamepadButton.South => GamepadButton.A,
+                                    SDL.GamepadButton.East => GamepadButton.B,
+                                    SDL.GamepadButton.West => GamepadButton.X,
+                                    SDL.GamepadButton.North => GamepadButton.Y,
+                                    SDL.GamepadButton.Back => GamepadButton.Back,
+                                    SDL.GamepadButton.Guide => GamepadButton.Guide,
+                                    SDL.GamepadButton.Start => GamepadButton.Start,
+                                    SDL.GamepadButton.LeftStick => GamepadButton.LeftStick,
+                                    SDL.GamepadButton.RightStick => GamepadButton.RightStick,
+                                    SDL.GamepadButton.LeftShoulder => GamepadButton.LeftShoulder,
+                                    SDL.GamepadButton.RightShoulder => GamepadButton.RightShoulder,
+                                    SDL.GamepadButton.DPadUp => GamepadButton.DPadUp,
+                                    SDL.GamepadButton.DPadDown => GamepadButton.DPadDown,
+                                    SDL.GamepadButton.DPadLeft => GamepadButton.DPadLeft,
+                                    SDL.GamepadButton.DPadRight => GamepadButton.DPadRight,
+                                    SDL.GamepadButton.Misc1 => GamepadButton.Misc1,
+                                    SDL.GamepadButton.RightPaddle1 => GamepadButton.Paddle1,
+                                    SDL.GamepadButton.LeftPaddle1 => GamepadButton.Paddle2,
+                                    SDL.GamepadButton.RightPaddle2 => GamepadButton.Paddle3,
+                                    SDL.GamepadButton.LeftPaddle2 => GamepadButton.Paddle4,
+                                    SDL.GamepadButton.Touchpad => GamepadButton.TouchPad,
                                     _ => GamepadButton.Invalid,
                                 },
-                                _event.gbutton.down ? AppEventInputState.Press : AppEventInputState.Release));
+                                _event.GButton.Down ? AppEventInputState.Press : AppEventInputState.Release));
                         }
                     }
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_GAMEPAD_AXIS_MOTION:
+                case SDL.EventType.GamepadAxisMotion:
 
                     {
-                        if(gamepads.TryGetValue(_event.cdevice.which, out var state))
+                        if(gamepads.TryGetValue(_event.CDevice.Which, out var state))
                         {
-                            var value = _event.gaxis.value;
+                            var value = _event.GAxis.Value;
 
                             if (Math.Abs(value) <= AxisDeadzone)
                             {
@@ -556,14 +546,14 @@ internal class SDL3RenderWindow : IRenderWindow
 
                             var floatValue = value / (float)short.MaxValue;
 
-                            var axis = (SDL.SDL_GamepadAxis)_event.gaxis.axis switch
+                            var axis = (SDL.GamepadAxis)_event.GAxis.Axis switch
                             {
-                                SDL.SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTX => GamepadAxis.LeftX,
-                                SDL.SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFTY => GamepadAxis.LeftY,
-                                SDL.SDL_GamepadAxis.SDL_GAMEPAD_AXIS_RIGHTX => GamepadAxis.RightX,
-                                SDL.SDL_GamepadAxis.SDL_GAMEPAD_AXIS_RIGHTY => GamepadAxis.RightY,
-                                SDL.SDL_GamepadAxis.SDL_GAMEPAD_AXIS_LEFT_TRIGGER => GamepadAxis.TriggerLeft,
-                                SDL.SDL_GamepadAxis.SDL_GAMEPAD_AXIS_RIGHT_TRIGGER => GamepadAxis.TriggerRight,
+                                SDL.GamepadAxis.LeftX => GamepadAxis.LeftX,
+                                SDL.GamepadAxis.LeftY => GamepadAxis.LeftY,
+                                SDL.GamepadAxis.RightX => GamepadAxis.RightX,
+                                SDL.GamepadAxis.RightY => GamepadAxis.RightY,
+                                SDL.GamepadAxis.LeftTrigger => GamepadAxis.TriggerLeft,
+                                SDL.GamepadAxis.RightTrigger => GamepadAxis.TriggerRight,
                                 _ => GamepadAxis.Invalid,
                             };
 
@@ -578,24 +568,26 @@ internal class SDL3RenderWindow : IRenderWindow
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_QUIT:
+                case SDL.EventType.Quit:
 
                     closedWindow = true;
 
                     break;
 
-                case SDL.SDL_EventType.SDL_EVENT_TEXT_INPUT:
+                case SDL.EventType.TextInput:
 
                     unsafe
                     {
+                        byte* ptr = (byte*)_event.Text.Text;
+
                         var len = 0;
 
-                        while (_event.text.text[len] != '\0')
+                        while (ptr[len] != '\0')
                         {
                             len++;
                         }
 
-                        var text = Encoding.UTF8.GetString(_event.text.text, len);
+                        var text = Encoding.UTF8.GetString(ptr, len);
 
                         Input.HandleTextEvent(AppEvent.Text(text.Length > 0 ? (uint)text[0] : 0));
                     }
@@ -606,7 +598,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
         var windowPosition = new Vector2Int();
 
-        SDL.SDL_GetWindowPosition(window, out windowPosition.X, out windowPosition.Y);
+        SDL.GetWindowPosition(window, out windowPosition.X, out windowPosition.Y);
 
         if (previousWindowPosition != windowPosition)
         {
@@ -626,10 +618,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
     public void Init()
     {
-        SDL.SDL_Init(SDL.SDL_InitFlags.SDL_INIT_TIMER |
-            SDL.SDL_InitFlags.SDL_INIT_VIDEO |
-            SDL.SDL_InitFlags.SDL_INIT_HAPTIC |
-            SDL.SDL_InitFlags.SDL_INIT_GAMEPAD);
+        SDL.Init(SDL.InitFlags.Video | SDL.InitFlags.Haptic | SDL.InitFlags.Gamepad);
     }
 
     public void Terminate()
@@ -638,7 +627,7 @@ internal class SDL3RenderWindow : IRenderWindow
         {
             if(pair.Value.instance != nint.Zero)
             {
-                SDL.SDL_CloseGamepad(pair.Value.instance);
+                SDL.CloseGamepad(pair.Value.instance);
 
                 pair.Value.instance = nint.Zero;
             }
@@ -651,10 +640,10 @@ internal class SDL3RenderWindow : IRenderWindow
 
         if (window != nint.Zero)
         {
-            SDL.SDL_DestroyWindow(window);
+            SDL.DestroyWindow(window);
         }
 
-        SDL.SDL_Quit();
+        SDL.Quit();
     }
 
     public void GetNativePlatformData(AppPlatform platform, out NativeWindowType type, out nint windowPointer, out nint monitorPointer)
@@ -667,22 +656,22 @@ internal class SDL3RenderWindow : IRenderWindow
         {
             case AppPlatform.Windows:
 
-                windowPointer = SDL.SDL_GetPointerProperty(SDL.SDL_GetWindowProperties(window), SDL.SDL_PROP_WINDOW_WIN32_HWND_POINTER, nint.Zero);
+                windowPointer = SDL.GetPointerProperty(SDL.GetWindowProperties(window), SDL.Props.WindowWin32HWNDPointer, nint.Zero);
 
                 break;
 
             case AppPlatform.Linux:
 
-                switch(SDL.SDL_GetCurrentVideoDriver())
+                switch(SDL.GetCurrentVideoDriver())
                 {
                     case "x11":
 
                         type = NativeWindowType.X11;
 
-                        windowPointer = (nint)SDL.SDL_GetNumberProperty(SDL.SDL_GetWindowProperties(window),
-                            SDL.SDL_PROP_WINDOW_X11_WINDOW_NUMBER, 0);
-                        monitorPointer = SDL.SDL_GetPointerProperty(SDL.SDL_GetWindowProperties(window),
-                            SDL.SDL_PROP_WINDOW_X11_DISPLAY_POINTER, nint.Zero);
+                        windowPointer = (nint)SDL.GetNumberProperty(SDL.GetWindowProperties(window),
+                            SDL.Props.WindowX11WindowNumber, 0);
+                        monitorPointer = SDL.GetPointerProperty(SDL.GetWindowProperties(window),
+                            SDL.Props.WindowX11DisplayPointer, nint.Zero);
 
                         break;
 
@@ -690,10 +679,10 @@ internal class SDL3RenderWindow : IRenderWindow
 
                         type = NativeWindowType.Wayland;
 
-                        windowPointer = SDL.SDL_GetPointerProperty(SDL.SDL_GetWindowProperties(window),
-                            SDL.SDL_PROP_WINDOW_WAYLAND_SURFACE_POINTER, nint.Zero);
-                        monitorPointer = SDL.SDL_GetPointerProperty(SDL.SDL_GetWindowProperties(window),
-                            SDL.SDL_PROP_WINDOW_WAYLAND_DISPLAY_POINTER, nint.Zero);
+                        windowPointer = SDL.GetPointerProperty(SDL.GetWindowProperties(window),
+                            SDL.Props.WindowWaylandSurfacePointer, nint.Zero);
+                        monitorPointer = SDL.GetPointerProperty(SDL.GetWindowProperties(window),
+                            SDL.Props.WindowWaylandDisplayPointer, nint.Zero);
 
                         break;
 
@@ -708,10 +697,10 @@ internal class SDL3RenderWindow : IRenderWindow
 
                 if(metalView == nint.Zero)
                 {
-                    metalView = SDL.SDL_Metal_CreateView(window);
+                    metalView = SDL.MetalCreateView(window);
                 }
 
-                windowPointer = SDL.SDL_Metal_GetLayer(metalView);
+                windowPointer = SDL.MetalGetLayer(metalView);
 
                 break;
         }
@@ -719,26 +708,26 @@ internal class SDL3RenderWindow : IRenderWindow
 
     public void LockCursor()
     {
-        SDL.SDL_SetWindowRelativeMouseMode(window, true);
+        SDL.SetWindowRelativeMouseMode(window, true);
 
         Cursor.visible = false;
     }
 
     public void UnlockCursor()
     {
-        SDL.SDL_SetWindowRelativeMouseMode(window, false);
+        SDL.SetWindowRelativeMouseMode(window, false);
 
         Cursor.visible = true;
     }
 
     public void HideCursor()
     {
-        SDL.SDL_HideCursor();
+        SDL.HideCursor();
     }
 
     public void ShowCursor()
     {
-        SDL.SDL_ShowCursor();
+        SDL.ShowCursor();
     }
 
     public void SetIcon(RawTextureData icon)
@@ -754,13 +743,13 @@ internal class SDL3RenderWindow : IRenderWindow
         {
             var ptr = pinnedArray.AddrOfPinnedObject();
 
-            var surface = SDL.SDL_CreateSurfaceFrom(icon.width, icon.height,
-                SDL.SDL_GetPixelFormatForMasks(32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000),
+            var surface = SDL.CreateSurfaceFrom(icon.width, icon.height,
+                SDL.GetPixelFormatForMasks(32, 0x000000FF, 0x0000FF00, 0x00FF0000, 0xFF000000),
                 ptr, icon.width * 4);
 
-            SDL.SDL_SetWindowIcon(window, (nint)surface);
+            SDL.SetWindowIcon(window, (nint)surface);
 
-            SDL.SDL_DestroySurface((nint)surface);
+            SDL.DestroySurface((nint)surface);
         }
 
         pinnedArray.Free();
@@ -772,20 +761,20 @@ internal class SDL3RenderWindow : IRenderWindow
         {
             case WindowMode.Windowed:
 
-                if(SDL.SDL_SetWindowFullscreen(window, false) == false)
+                if(SDL.SetWindowFullscreen(window, false) == false)
                 {
                     return false;
                 }
 
-                SDL.SDL_SetWindowSize(window, width, height);
+                SDL.SetWindowSize(window, width, height);
 
                 break;
 
             case WindowMode.ExclusiveFullscreen:
 
-                SDL.SDL_SetWindowSize(window, width, height);
+                SDL.SetWindowSize(window, width, height);
 
-                if(SDL.SDL_SetWindowFullscreen(window, true) == false)
+                if(SDL.SetWindowFullscreen(window, true) == false)
                 {
                     return false;
                 }
@@ -794,7 +783,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
             case WindowMode.BorderlessFullscreen:
 
-                if (SDL.SDL_SetWindowFullscreen(window, true) == false)
+                if (SDL.SetWindowFullscreen(window, true) == false)
                 {
                     return false;
                 }
@@ -816,27 +805,27 @@ internal class SDL3RenderWindow : IRenderWindow
 
             fixed (void *ptr = outValue.pixels)
             {
-                var surface = SDL.SDL_CreateSurfaceFrom(width, height, SDL.SDL_PixelFormat.SDL_PIXELFORMAT_ARGB32, (nint)ptr, width * 4);
+                var surface = SDL.CreateSurfaceFrom(width, height, SDL.PixelFormat.ARGB8888, (nint)ptr, width * 4);
 
-                if(surface == null)
+                if(surface == nint.Zero)
                 {
                     image = default;
 
                     return false;
                 }
 
-                var cursor = SDL.SDL_CreateColorCursor((nint)surface, hotX, hotY);
+                var cursor = SDL.CreateColorCursor(surface, hotX, hotY);
 
                 if(cursor == nint.Zero)
                 {
-                    SDL.SDL_DestroySurface((nint)surface);
+                    SDL.DestroySurface(surface);
 
                     image = default;
 
                     return false;
                 }
 
-                outValue.surface = (nint)surface;
+                outValue.surface = surface;
                 outValue.cursor = cursor;
 
                 image = outValue;
@@ -851,12 +840,12 @@ internal class SDL3RenderWindow : IRenderWindow
         if(image is not SDL3Cursor cursor ||
             cursor.cursor == nint.Zero)
         {
-            SDL.SDL_SetCursor(defaultCursor);
+            SDL.SetCursor(defaultCursor);
 
             return;
         }
 
-        SDL.SDL_SetCursor(cursor.cursor);
+        SDL.SetCursor(cursor.cursor);
     }
 
     public void ShowTextInput()
@@ -866,7 +855,7 @@ internal class SDL3RenderWindow : IRenderWindow
             return;
         }
 
-        SDL.SDL_StartTextInput(window);
+        SDL.StartTextInput(window);
     }
 
     public void HideTextInput()
@@ -876,7 +865,7 @@ internal class SDL3RenderWindow : IRenderWindow
             return;
         }
 
-        SDL.SDL_StopTextInput(window);
+        SDL.StopTextInput(window);
     }
 }
 #endif

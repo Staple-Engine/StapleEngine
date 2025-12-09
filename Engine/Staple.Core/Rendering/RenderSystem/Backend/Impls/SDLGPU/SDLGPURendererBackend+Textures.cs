@@ -23,18 +23,18 @@ internal partial class SDLGPURendererBackend
             }
         }
 
-        SDL.SDL_WaitForGPUIdle(device);
+        SDL.WaitForGPUIdle(device);
 
         if (resource.transferBuffer != nint.Zero)
         {
-            SDL.SDL_ReleaseGPUTransferBuffer(device, resource.transferBuffer);
+            SDL.ReleaseGPUTransferBuffer(device, resource.transferBuffer);
 
             resource.transferBuffer = nint.Zero;
         }
 
         if (resource.texture != nint.Zero)
         {
-            SDL.SDL_ReleaseGPUTexture(device, resource.texture);
+            SDL.ReleaseGPUTexture(device, resource.texture);
 
             resource.texture = nint.Zero;
         }
@@ -92,64 +92,64 @@ internal partial class SDLGPURendererBackend
     {
         if (textureSamplers.TryGetValue(flags, out var sampler) == false)
         {
-            SDL.SDL_GPUSamplerAddressMode GetAddressModeU()
+            SDL.GPUSamplerAddressMode GetAddressModeU()
             {
                 if (flags.HasFlag(TextureFlags.RepeatU))
                 {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                    return SDL.GPUSamplerAddressMode.Repeat;
                 }
 
                 if (flags.HasFlag(TextureFlags.MirrorU))
                 {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                    return SDL.GPUSamplerAddressMode.MirroredRepeat;
                 }
 
                 if (flags.HasFlag(TextureFlags.ClampU))
                 {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                    return SDL.GPUSamplerAddressMode.ClampToEdge;
                 }
 
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                return SDL.GPUSamplerAddressMode.ClampToEdge;
             }
 
-            SDL.SDL_GPUSamplerAddressMode GetAddressModeV()
+            SDL.GPUSamplerAddressMode GetAddressModeV()
             {
                 if (flags.HasFlag(TextureFlags.RepeatV))
                 {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                    return SDL.GPUSamplerAddressMode.Repeat;
                 }
 
                 if (flags.HasFlag(TextureFlags.MirrorV))
                 {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                    return SDL.GPUSamplerAddressMode.MirroredRepeat;
                 }
 
                 if (flags.HasFlag(TextureFlags.ClampV))
                 {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                    return SDL.GPUSamplerAddressMode.ClampToEdge;
                 }
 
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                return SDL.GPUSamplerAddressMode.ClampToEdge;
             }
 
-            SDL.SDL_GPUSamplerAddressMode GetAddressModeW()
+            SDL.GPUSamplerAddressMode GetAddressModeW()
             {
                 if (flags.HasFlag(TextureFlags.RepeatW))
                 {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_REPEAT;
+                    return SDL.GPUSamplerAddressMode.Repeat;
                 }
 
                 if (flags.HasFlag(TextureFlags.MirrorW))
                 {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_MIRRORED_REPEAT;
+                    return SDL.GPUSamplerAddressMode.MirroredRepeat;
                 }
 
                 if (flags.HasFlag(TextureFlags.ClampW))
                 {
-                    return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                    return SDL.GPUSamplerAddressMode.ClampToEdge;
                 }
 
-                return SDL.SDL_GPUSamplerAddressMode.SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+                return SDL.GPUSamplerAddressMode.ClampToEdge;
             }
 
             var anisotropy = false;
@@ -163,25 +163,25 @@ internal partial class SDLGPURendererBackend
             var vMode = GetAddressModeV();
             var wMode = GetAddressModeW();
 
-            var magFilter = flags.HasFlag(TextureFlags.LinearFilter) ? SDL.SDL_GPUFilter.SDL_GPU_FILTER_LINEAR :
-                SDL.SDL_GPUFilter.SDL_GPU_FILTER_NEAREST;
+            var magFilter = flags.HasFlag(TextureFlags.LinearFilter) ? SDL.GPUFilter.Linear :
+                SDL.GPUFilter.Nearest;
 
-            var mipmapMode = flags.HasFlag(TextureFlags.LinearFilter) ? SDL.SDL_GPUSamplerMipmapMode.SDL_GPU_SAMPLERMIPMAPMODE_LINEAR :
-                SDL.SDL_GPUSamplerMipmapMode.SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
+            var mipmapMode = flags.HasFlag(TextureFlags.LinearFilter) ? SDL.GPUSamplerMipmapMode.Linear :
+                SDL.GPUSamplerMipmapMode.Nearest;
 
-            var info = new SDL.SDL_GPUSamplerCreateInfo()
+            var info = new SDL.GPUSamplerCreateInfo()
             {
-                address_mode_u = uMode,
-                address_mode_v = vMode,
-                address_mode_w = wMode,
-                enable_anisotropy = anisotropy,
-                mag_filter = magFilter,
-                min_filter = magFilter,
-                mipmap_mode = mipmapMode,
-                max_anisotropy = 16,
+                AddressModeU = uMode,
+                AddressModeV = vMode,
+                AddressModeW = wMode,
+                EnableAnisotropy = (byte)(anisotropy ? 1 : 0),
+                MagFilter = magFilter,
+                MinFilter = magFilter,
+                MipmapMode = mipmapMode,
+                MaxAnisotropy = 16,
             };
 
-            sampler = SDL.SDL_CreateGPUSampler(device, in info);
+            sampler = SDL.CreateGPUSampler(device, in info);
 
             if (sampler != nint.Zero)
             {
@@ -206,18 +206,18 @@ internal partial class SDLGPURendererBackend
             return null;
         }
 
-        var info = new SDL.SDL_GPUTextureCreateInfo()
+        var info = new SDL.GPUTextureCreateInfo()
         {
-            format = textureFormat,
-            width = (uint)asset.width,
-            height = (uint)asset.height,
-            type = GetTextureType(flags),
-            usage = GetTextureUsage(flags),
-            layer_count_or_depth = 1,
-            num_levels = 1,
+            Format = textureFormat,
+            Width = (uint)asset.width,
+            Height = (uint)asset.height,
+            Type = GetTextureType(flags),
+            Usage = GetTextureUsage(flags),
+            LayerCountOrDepth = 1,
+            NumLevels = 1,
         };
 
-        var texture = SDL.SDL_CreateGPUTexture(device, in info);
+        var texture = SDL.CreateGPUTexture(device, in info);
 
         if (texture == nint.Zero)
         {
@@ -228,7 +228,7 @@ internal partial class SDLGPURendererBackend
 
         if (handle.IsValid == false)
         {
-            SDL.SDL_ReleaseGPUTexture(device, texture);
+            SDL.ReleaseGPUTexture(device, texture);
 
             return null;
         }
@@ -247,18 +247,18 @@ internal partial class SDLGPURendererBackend
             return null;
         }
 
-        var info = new SDL.SDL_GPUTextureCreateInfo()
+        var info = new SDL.GPUTextureCreateInfo()
         {
-            format = textureFormat,
-            width = (uint)width,
-            height = (uint)height,
-            type = GetTextureType(flags),
-            usage = GetTextureUsage(flags),
-            layer_count_or_depth = 1,
-            num_levels = 1, //TODO: Support multiple levels
+            Format = textureFormat,
+            Width = (uint)width,
+            Height = (uint)height,
+            Type = GetTextureType(flags),
+            Usage = GetTextureUsage(flags),
+            LayerCountOrDepth = 1,
+            NumLevels = 1, //TODO: Support multiple levels
         };
 
-        var texture = SDL.SDL_CreateGPUTexture(device, in info);
+        var texture = SDL.CreateGPUTexture(device, in info);
 
         if (texture == nint.Zero)
         {
@@ -269,7 +269,7 @@ internal partial class SDLGPURendererBackend
 
         if(handle.IsValid == false)
         {
-            SDL.SDL_ReleaseGPUTexture(device, texture);
+            SDL.ReleaseGPUTexture(device, texture);
 
             return null;
         }
@@ -288,18 +288,18 @@ internal partial class SDLGPURendererBackend
             return null;
         }
 
-        var info = new SDL.SDL_GPUTextureCreateInfo()
+        var info = new SDL.GPUTextureCreateInfo()
         {
-            format = textureFormat,
-            width = (uint)width,
-            height = (uint)height,
-            type = GetTextureType(flags),
-            usage = GetTextureUsage(flags),
-            layer_count_or_depth = 1,
-            num_levels = 1,
+            Format = textureFormat,
+            Width = (uint)width,
+            Height = (uint)height,
+            Type = GetTextureType(flags),
+            Usage = GetTextureUsage(flags),
+            LayerCountOrDepth = 1,
+            NumLevels = 1,
         };
 
-        var texture = SDL.SDL_CreateGPUTexture(device, in info);
+        var texture = SDL.CreateGPUTexture(device, in info);
 
         if (texture == nint.Zero)
         {
@@ -310,7 +310,7 @@ internal partial class SDLGPURendererBackend
 
         if (handle.IsValid == false || TryGetTexture(handle, out var resource) == false)
         {
-            SDL.SDL_ReleaseGPUTexture(device, texture);
+            SDL.ReleaseGPUTexture(device, texture);
 
             return null;
         }
@@ -404,48 +404,48 @@ internal partial class SDLGPURendererBackend
         readTextureQueue.Add((texture, onComplete));
     }
 
-    public static SDL.SDL_GPUTextureType GetTextureType(TextureFlags flags)
+    public static SDL.GPUTextureType GetTextureType(TextureFlags flags)
     {
         if (flags.HasFlag(TextureFlags.TextureTypeCube))
         {
-            return SDL.SDL_GPUTextureType.SDL_GPU_TEXTURETYPE_CUBE;
+            return SDL.GPUTextureType.TexturetypeCube;
         }
 
         if (flags.HasFlag(TextureFlags.TextureTypeCubeArray))
         {
-            return SDL.SDL_GPUTextureType.SDL_GPU_TEXTURETYPE_CUBE_ARRAY;
+            return SDL.GPUTextureType.TexturetypeCubeArray;
         }
 
         if (flags.HasFlag(TextureFlags.TextureType2DArray))
         {
-            return SDL.SDL_GPUTextureType.SDL_GPU_TEXTURETYPE_2D_ARRAY;
+            return SDL.GPUTextureType.Texturetype2DArray;
         }
 
         if (flags.HasFlag(TextureFlags.TextureType3D))
         {
-            return SDL.SDL_GPUTextureType.SDL_GPU_TEXTURETYPE_3D;
+            return SDL.GPUTextureType.Texturetype3D;
         }
 
-        return SDL.SDL_GPUTextureType.SDL_GPU_TEXTURETYPE_2D;
+        return SDL.GPUTextureType.Texturetype2D;
     }
 
-    public static SDL.SDL_GPUTextureUsageFlags GetTextureUsage(TextureFlags flags)
+    public static SDL.GPUTextureUsageFlags GetTextureUsage(TextureFlags flags)
     {
-        SDL.SDL_GPUTextureUsageFlags HandleFlags(SDL.SDL_GPUTextureUsageFlags f)
+        SDL.GPUTextureUsageFlags HandleFlags(SDL.GPUTextureUsageFlags f)
         {
             if (flags.HasFlag(TextureFlags.ComputeRead))
             {
-                f |= SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_READ;
+                f |= SDL.GPUTextureUsageFlags.ComputeStorageRead;
             }
 
             if (flags.HasFlag(TextureFlags.ComputeWrite))
             {
-                f |= SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_COMPUTE_STORAGE_WRITE;
+                f |= SDL.GPUTextureUsageFlags.ComputeStorageWrite;
             }
 
             if (flags.HasFlag(TextureFlags.Readback))
             {
-                f |= SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_GRAPHICS_STORAGE_READ;
+                f |= SDL.GPUTextureUsageFlags.GraphicsStorageRead;
             }
 
             return f;
@@ -453,19 +453,19 @@ internal partial class SDLGPURendererBackend
 
         if (flags.HasFlag(TextureFlags.ColorTarget))
         {
-            return HandleFlags(SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_SAMPLER |
-                SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_COLOR_TARGET);
+            return HandleFlags(SDL.GPUTextureUsageFlags.Sampler |
+                SDL.GPUTextureUsageFlags.ColorTarget);
         }
         else if (flags.HasFlag(TextureFlags.DepthStencilTarget))
         {
-            return HandleFlags(SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_SAMPLER | 
-                SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_DEPTH_STENCIL_TARGET);
+            return HandleFlags(SDL.GPUTextureUsageFlags.Sampler | 
+                SDL.GPUTextureUsageFlags.DepthStencilTarget);
         }
 
-        return HandleFlags(SDL.SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_SAMPLER);
+        return HandleFlags(SDL.GPUTextureUsageFlags.Sampler);
     }
 
-    public static bool TryGetTextureFormat(TextureFormat format, TextureFlags flags, out SDL.SDL_GPUTextureFormat outValue)
+    public static bool TryGetTextureFormat(TextureFormat format, TextureFlags flags, out SDL.GPUTextureFormat outValue)
     {
         var hasSRGB = flags.HasFlag(TextureFlags.SRGB);
 
@@ -473,524 +473,524 @@ internal partial class SDLGPURendererBackend
         {
             case TextureFormat.BC1:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC1_RGBA_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC1_RGBA_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.BC1RGBAUnormSRGB :
+                    SDL.GPUTextureFormat.BC1RGBAUnorm;
 
                 return true;
 
             case TextureFormat.BC2:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC2_RGBA_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC2_RGBA_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.BC2RGBAUnormSRGB :
+                    SDL.GPUTextureFormat.BC2RGBAUnorm;
 
                 return true;
 
             case TextureFormat.BC3:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC3_RGBA_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC3_RGBA_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.BC3RGBAUnormSRGB :
+                    SDL.GPUTextureFormat.BC3RGBAUnorm;
 
                 return true;
 
             case TextureFormat.BC4:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC4_R_UNORM;
+                outValue = SDL.GPUTextureFormat.BC4RUnorm;
 
                 return true;
 
             case TextureFormat.BC5:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC5_RG_UNORM;
+                outValue = SDL.GPUTextureFormat.BC5RGUnorm;
 
                 return true;
 
             case TextureFormat.BC6H:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC6H_RGB_FLOAT;
+                outValue = SDL.GPUTextureFormat.BC6HRGBFloat;
 
                 return true;
 
             case TextureFormat.BC7:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC7_RGBA_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_BC7_RGBA_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.BC7RGBAUnormSRGB :
+                    SDL.GPUTextureFormat.BC7RGBAUnorm;
 
                 return true;
 
             case TextureFormat.ASTC4x4:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_4x4_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_4x4_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC4X4UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC4X4Unorm;
 
                 return true;
 
             case TextureFormat.ASTC5x4:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_5x4_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_5x4_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC5X4UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC5X4Unorm;
 
                 return true;
 
             case TextureFormat.ASTC5x5:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_5x5_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_5x5_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC5X5UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC5X5Unorm;
 
                 return true;
 
             case TextureFormat.ASTC6x5:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_6x5_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_6x5_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC6X5UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC5X5Unorm;
 
                 return true;
 
             case TextureFormat.ASTC6x6:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_6x6_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_6x6_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC6X6UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC6X6Unorm;
 
                 return true;
 
             case TextureFormat.ASTC8x5:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_8x5_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_8x5_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC8X5UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC8X5Unorm;
 
                 return true;
 
             case TextureFormat.ASTC8x6:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_8x6_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_8x6_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC8X6UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC8X6Unorm;
 
                 return true;
 
             case TextureFormat.ASTC8x8:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_8x8_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_8x8_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC8X8UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC8X8Unorm;
 
                 return true;
 
             case TextureFormat.ASTC10x5:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x5_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x5_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC10X5UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC10X5Unorm;
 
                 return true;
 
             case TextureFormat.ASTC10x6:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x6_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x6_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC10X6UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC10X6Unorm;
 
                 return true;
 
             case TextureFormat.ASTC10x8:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x8_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x8_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC10X8UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC10X8Unorm;
 
                 return true;
 
             case TextureFormat.ASTC10x10:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x10_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x10_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC10X10UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC10X10Unorm;
 
                 return true;
 
             case TextureFormat.ASTC12x10:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_12x10_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_12x10_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC12X10UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC12X10Unorm;
 
                 return true;
 
             case TextureFormat.ASTC12x12:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_12x12_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_12x12_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC12X12UnormSRGB :
+                    SDL.GPUTextureFormat.ASTC12X12Unorm;
 
                 return true;
 
             case TextureFormat.ASTC4x4F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_4x4_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC4X4Float;
 
                 return true;
 
             case TextureFormat.ASTC5x4F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_5x4_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC5X4Float;
 
                 return true;
 
             case TextureFormat.ASTC5x5F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_5x5_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC5X5Float;
 
                 return true;
 
             case TextureFormat.ASTC6x5F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_6x5_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC6X5Float;
 
                 return true;
 
             case TextureFormat.ASTC6x6F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_6x6_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC6X6Float;
 
                 return true;
 
             case TextureFormat.ASTC8x5F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_8x5_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC8X5Float;
 
                 return true;
 
             case TextureFormat.ASTC8x6F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_8x6_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC8X6Float;
 
                 return true;
 
             case TextureFormat.ASTC8x8F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_8x8_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC8X8Float;
 
                 return true;
 
             case TextureFormat.ASTC10x5F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x5_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC10X5Float;
 
                 return true;
 
             case TextureFormat.ASTC10x6F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x6_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC10X6Float;
 
                 return true;
 
             case TextureFormat.ASTC10x8F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x8_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC10X8Float;
 
                 return true;
 
             case TextureFormat.ASTC10x10F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_10x10_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC10X10Float;
 
                 return true;
 
             case TextureFormat.ASTC12x10F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_12x10_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC12X10Float;
 
                 return true;
 
             case TextureFormat.ASTC12x12F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_ASTC_12x12_FLOAT;
+                outValue = SDL.GPUTextureFormat.ASTC12X12Float;
 
                 return true;
 
             case TextureFormat.A8:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_A8_UNORM;
+                outValue = SDL.GPUTextureFormat.A8Unorm;
 
                 return true;
 
             case TextureFormat.R8:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8_UNORM;
+                outValue = SDL.GPUTextureFormat.R8Unorm;
 
                 return true;
 
             case TextureFormat.R8I:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8_INT;
+                outValue = SDL.GPUTextureFormat.R8Int;
 
                 return true;
 
             case TextureFormat.R8U:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8_UINT;
+                outValue = SDL.GPUTextureFormat.R8Uint;
 
                 return true;
 
             case TextureFormat.R8S:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8_SNORM;
+                outValue = SDL.GPUTextureFormat.R8Snorm;
 
                 return true;
 
             case TextureFormat.R16:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16_UNORM;
+                outValue = SDL.GPUTextureFormat.R16Unorm;
 
                 return true;
 
             case TextureFormat.R16I:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16_INT;
+                outValue = SDL.GPUTextureFormat.R16Int;
 
                 return true;
 
             case TextureFormat.R16U:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16_UINT;
+                outValue = SDL.GPUTextureFormat.R16Uint;
 
                 return true;
 
             case TextureFormat.R16F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16_FLOAT;
+                outValue = SDL.GPUTextureFormat.R16Float;
 
                 return true;
 
             case TextureFormat.R16S:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16_SNORM;
+                outValue = SDL.GPUTextureFormat.R16Snorm;
 
                 return true;
 
             case TextureFormat.R32I:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R32_INT;
+                outValue = SDL.GPUTextureFormat.R32Int;
 
                 return true;
 
             case TextureFormat.R32U:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R32_UINT;
+                outValue = SDL.GPUTextureFormat.R32Uint;
 
                 return true;
 
             case TextureFormat.R32F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R32_FLOAT;
+                outValue = SDL.GPUTextureFormat.R32Float;
 
                 return true;
 
             case TextureFormat.RG8:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8G8_UNORM;
+                outValue = SDL.GPUTextureFormat.R8G8Unorm;
 
                 return true;
 
             case TextureFormat.RG8I:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8G8_INT;
+                outValue = SDL.GPUTextureFormat.R8G8Int;
 
                 return true;
 
             case TextureFormat.RG8U:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8G8_UINT;
+                outValue = SDL.GPUTextureFormat.R8G8Uint;
 
                 return true;
 
             case TextureFormat.RG8S:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8G8_SNORM;
+                outValue = SDL.GPUTextureFormat.R8G8Snorm;
 
                 return true;
 
             case TextureFormat.RG16:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16G16_UNORM;
+                outValue = SDL.GPUTextureFormat.R16G16Unorm;
 
                 return true;
 
             case TextureFormat.RG16I:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16G16_INT;
+                outValue = SDL.GPUTextureFormat.R16G16Int;
 
                 return true;
 
             case TextureFormat.RG16U:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16G16_UINT;
+                outValue = SDL.GPUTextureFormat.R16G16Uint;
 
                 return true;
 
             case TextureFormat.RG16F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16G16_FLOAT;
+                outValue = SDL.GPUTextureFormat.R16G16Float;
 
                 return true;
 
             case TextureFormat.RG16S:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16G16_SNORM;
+                outValue = SDL.GPUTextureFormat.R16G16Snorm;
 
                 return true;
 
             case TextureFormat.RG32I:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R32G32_INT;
+                outValue = SDL.GPUTextureFormat.R32G32Int;
 
                 return true;
 
             case TextureFormat.RG32U:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R32G32_UINT;
+                outValue = SDL.GPUTextureFormat.R32G32Uint;
 
                 return true;
 
             case TextureFormat.RG32F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R32G32_FLOAT;
+                outValue = SDL.GPUTextureFormat.R32G32Float;
 
                 return true;
 
             case TextureFormat.BGRA8:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_B8G8R8A8_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.B8G8R8A8UnormSRGB :
+                    SDL.GPUTextureFormat.B8G8R8A8Unorm;
 
                 return true;
 
             case TextureFormat.RGBA8:
 
-                outValue = hasSRGB ? SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM_SRGB :
-                    SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+                outValue = hasSRGB ? SDL.GPUTextureFormat.R8G8B8A8UnormSRGB :
+                    SDL.GPUTextureFormat.R8G8B8A8Unorm;
 
                 return true;
 
             case TextureFormat.RGBA8I:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_INT;
+                outValue = SDL.GPUTextureFormat.R8G8B8A8Int;
 
                 return true;
 
             case TextureFormat.RGBA8U:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UINT;
+                outValue = SDL.GPUTextureFormat.R8G8B8A8Uint;
 
                 return true;
 
             case TextureFormat.RGBA8S:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_SNORM;
+                outValue = SDL.GPUTextureFormat.R8G8B8A8Snorm;
 
                 return true;
 
             case TextureFormat.RGBA16:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_UNORM;
+                outValue = SDL.GPUTextureFormat.R16G16B16A16Unorm;
 
                 return true;
 
             case TextureFormat.RGBA16I:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_INT;
+                outValue = SDL.GPUTextureFormat.R16G16B16A16Int;
 
                 return true;
 
             case TextureFormat.RGBA16U:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_UINT;
+                outValue = SDL.GPUTextureFormat.R16G16B16A16Uint;
 
                 return true;
 
             case TextureFormat.RGBA16F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_FLOAT;
+                outValue = SDL.GPUTextureFormat.R16G16B16A16Float;
 
                 return true;
 
             case TextureFormat.RGBA16S:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R16G16B16A16_SNORM;
+                outValue = SDL.GPUTextureFormat.R16G16B16A16Snorm;
 
                 return true;
 
             case TextureFormat.RGBA32I:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R32G32B32A32_INT;
+                outValue = SDL.GPUTextureFormat.R32G32B32A32Int;
 
                 return true;
 
             case TextureFormat.RGBA32U:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R32G32B32A32_UINT;
+                outValue = SDL.GPUTextureFormat.R32G32B32A32Uint;
 
                 return true;
 
             case TextureFormat.RGBA32F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R32G32B32A32_FLOAT;
+                outValue = SDL.GPUTextureFormat.R32G32B32A32Float;
 
                 return true;
 
             case TextureFormat.B5G6R5:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_B5G6R5_UNORM;
+                outValue = SDL.GPUTextureFormat.B5G6R5Unorm;
 
                 return true;
 
             case TextureFormat.BGRA4:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_B4G4R4A4_UNORM;
+                outValue = SDL.GPUTextureFormat.B4G4R4A4Unorm;
 
                 return true;
 
             case TextureFormat.BGR5A1:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_B5G5R5A1_UNORM;
+                outValue = SDL.GPUTextureFormat.B5G5R5A1Unorm;
 
                 return true;
 
             case TextureFormat.RGB10A2:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R10G10B10A2_UNORM;
+                outValue = SDL.GPUTextureFormat.R10G10B10A2Unorm;
 
                 return true;
 
             case TextureFormat.RG11B10F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R11G11B10_UFLOAT;
+                outValue = SDL.GPUTextureFormat.R11G11B10UFloat;
 
                 return true;
 
             case TextureFormat.D16:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D16_UNORM;
+                outValue = SDL.GPUTextureFormat.D16Unorm;
 
                 return true;
 
             case TextureFormat.D24:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D24_UNORM;
+                outValue = SDL.GPUTextureFormat.D24Unorm;
 
                 return true;
 
             case TextureFormat.D24S8:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D24_UNORM_S8_UINT;
+                outValue = SDL.GPUTextureFormat.D24UnormS8Uint;
 
                 return true;
 
             case TextureFormat.D32S8:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D32_FLOAT_S8_UINT;
+                outValue = SDL.GPUTextureFormat.D32FloatS8Uint;
 
                 return true;
 
             case TextureFormat.D32F:
 
-                outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D32_FLOAT;
+                outValue = SDL.GPUTextureFormat.D32Float;
 
                 return true;
         }
 
-        outValue = SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_INVALID;
+        outValue = SDL.GPUTextureFormat.Invalid;
 
         return false;
     }

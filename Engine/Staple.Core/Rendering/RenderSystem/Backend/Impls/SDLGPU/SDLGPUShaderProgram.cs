@@ -226,8 +226,8 @@ internal class SDLGPUShaderProgram : IShaderProgram
         {
             case ShaderType.VertexFragment:
 
-                SDL.SDL_ReleaseGPUShader(device, vertex);
-                SDL.SDL_ReleaseGPUShader(device, fragment);
+                SDL.ReleaseGPUShader(device, vertex);
+                SDL.ReleaseGPUShader(device, fragment);
 
                 vertex = nint.Zero;
                 fragment = nint.Zero;
@@ -236,7 +236,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
             case ShaderType.Compute:
 
-                SDL.SDL_ReleaseGPUShader(device, compute);
+                SDL.ReleaseGPUShader(device, compute);
 
                 compute = nint.Zero;
 
