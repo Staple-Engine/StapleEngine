@@ -1,5 +1,4 @@
-﻿using Evergine.Bindings.Vulkan;
-using SDL3;
+﻿using SDL3;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1209,8 +1208,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             {
                 var shaderAttributes = new List<SDL.GPUVertexAttribute>();
 
-                var missingAttributes = new List<VertexAttribute>();
-
                 for (var i = 0; i < instance.attributes.Length; i++)
                 {
                     var attributeIndex = vertexLayout.vertexAttributes.IndexOf(instance.attributes[i]);
@@ -1230,6 +1227,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                     var attribute = vertexLayout.attributes[attributeIndex];
 
+                    attributeIndex = instance.attributes.IndexOf(vertexLayout.vertexAttributes[attributeIndex]);
+
                     shaderAttributes.Add(new()
                     {
                         BufferSlot = 0,
@@ -1237,14 +1236,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                         Offset = attribute.Offset,
                         Location = (uint)attributeIndex,
                     });
-                }
-
-                if(missingAttributes.Count > 0)
-                {
-                    Log.Error($"Failed to render: vertex attributes {string.Join(", ", missingAttributes.Select(x => x.ToString().ToUpperInvariant()))} " +
-                        "were not declared in the vertex layout!");
-
-                    return false;
                 }
 
                 var attributesSpan = CollectionsMarshal.AsSpan(shaderAttributes);

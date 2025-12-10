@@ -152,46 +152,44 @@ internal partial class StapleEditor
             {
                 var (components, renderables) = pair.Value;
 
-                if (renderables.Count == 0)
-                {
-                    continue;
-                }
-
                 try
                 {
                     pair.Key.Preprocess(components.ToArray(), camera, cameraTransform);
 
-                    foreach (var (entity, transform, renderable) in renderables)
+                    if(renderables.Count > 0)
                     {
-                        if (renderable.enabled)
+                        foreach (var (entity, transform, renderable) in renderables)
                         {
-                            renderable.isVisible = renderable.enabled &&
-                                renderable.forceRenderingOff == false &&
-                                renderable.cullingState != CullingState.Invisible;
-
-                            if (renderable.isVisible)
+                            if (renderable.enabled)
                             {
-                                if (renderable.cullingState == CullingState.None)
-                                {
-                                    renderable.isVisible = camera.IsVisible(renderable.bounds);
+                                renderable.isVisible = renderable.enabled &&
+                                    renderable.forceRenderingOff == false &&
+                                    renderable.cullingState != CullingState.Invisible;
 
-                                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                                if (renderable.isVisible)
+                                {
+                                    if (renderable.cullingState == CullingState.None)
+                                    {
+                                        renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                                        renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                                    }
+                                }
+
+                                if (renderable.isVisible == false)
+                                {
+                                    RenderSystem.RenderStats.culledDrawCalls++;
+                                }
+
+                                if (transform.ChangedThisFrame)
+                                {
+                                    ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
                                 }
                             }
-
-                            if (renderable.isVisible == false)
+                            else
                             {
-                                RenderSystem.RenderStats.culledDrawCalls++;
+                                ClearEntityBody(entity);
                             }
-
-                            if (transform.ChangedThisFrame)
-                            {
-                                ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
-                            }
-                        }
-                        else
-                        {
-                            ClearEntityBody(entity);
                         }
                     }
 

@@ -38,7 +38,7 @@ End Instancing
 
 Begin Common
 
-[[vk::binding(StapleBufferIndexCount, StapleUniformBufferSet)]]
+[[vk::binding(StapleUniformBufferStart, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
 	float3 viewPosition;
@@ -140,7 +140,7 @@ End Vertex
 
 Begin Fragment
 
-[[vk::binding(0, StapleSamplerBufferSet)]]
+[[vk::binding(0, StapleSamplerStorageBufferSet)]]
 cbuffer Textures
 {
 	Sampler2D diffuseTexture;

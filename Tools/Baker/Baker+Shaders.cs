@@ -457,6 +457,73 @@ static partial class Program
                             }
 
                             process.Close();
+
+                            try
+                            {
+                                var text = File.ReadAllText(reflectionJsonFileName);
+
+                                reflectionData = JsonConvert.DeserializeObject<ShaderReflectionData>(text);
+
+                                //For debugging
+                                //File.Copy(reflectionJsonFileName, $"{outputFile}.reflection.json", true);
+                            }
+                            catch (Exception e)
+                            {
+                                shaderMetrics = null;
+                                reflectionData = null;
+
+                                Console.WriteLine($"Failed to process reflection: {e}");
+
+                                File.Delete(reflectionJsonFileName);
+
+                                return null;
+                            }
+
+                            var metrics = reflectionData.ToContainer();
+
+                            var textureCount = metrics.textures.Count;
+                            var storageTextureCount = 0; //TODO
+                            var storageBufferCount = metrics.storageBuffers.Count;
+                            var uniformBufferCount = metrics.uniforms.Count;
+
+                            defineString += $" -DSTAPLE_TEXTURE_COUNT={textureCount}" +
+                                $" -DSTAPLE_STORAGE_TEXTURE_COUNT={storageTextureCount}" +
+                                $" -DSTAPLE_STORAGE_BUFFER_COUNT={storageBufferCount}" +
+                                $" -DSTAPLE_UNIFORM_BUFFER_COUNT={uniformBufferCount}";
+
+                            process = new Process
+                            {
+                                StartInfo = new ProcessStartInfo
+                                {
+                                    FileName = shaderTranspilerPath,
+                                    Arguments = $"-o \"{outShaderFileNameTranspiled}\" -profile sm_6_0 -target spirv {stage} {entry} {defineString} {shaderInclude} -reflection-json \"{reflectionJsonFileName}\" \"{shaderFileName}\"",
+                                    UseShellExecute = false,
+                                    RedirectStandardOutput = true,
+                                    CreateNoWindow = true,
+                                }
+                            };
+
+                            Utilities.ExecuteAndCollectProcess(process, null);
+
+                            if (process.ExitCode != 0)
+                            {
+                                shaderMetrics = null;
+                                reflectionData = null;
+
+                                Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
+
+                                try
+                                {
+                                    File.Delete(outShaderFileNameTranspiled);
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                return null;
+                            }
+
+                            process.Close();
                         }
 
                         try

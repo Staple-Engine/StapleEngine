@@ -57,7 +57,7 @@ End Vertex
 
 Begin Fragment
 
-[[vk::binding(0, StapleSamplerBufferSet)]]
+[[vk::binding(0, StapleSamplerStorageBufferSet)]]
 cbuffer Uniforms
 {
 	Sampler2D mainTexture;

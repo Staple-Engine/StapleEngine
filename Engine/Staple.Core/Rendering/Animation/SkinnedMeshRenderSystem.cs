@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -10,8 +9,6 @@ namespace Staple.Internal;
 /// </summary>
 public class SkinnedMeshRenderSystem : IRenderSystem
 {
-    private const int SkinningBufferIndex = 1;
-
     /// <summary>
     /// Info for rendering
     /// </summary>

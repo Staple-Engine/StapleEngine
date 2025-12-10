@@ -20,6 +20,7 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.GPUText
             state.shader == null ||
             program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment ||
+            state.shader.instances.TryGetValue(state.shaderVariant, out var shaderInstance) == false ||
             state.vertexBuffer is not SDLGPUVertexBuffer vertex ||
             backend.TryGetVertexBuffer(vertex.handle, out var vertexBuffer) == false ||
             vertex.layout is not SDLGPUVertexLayout vertexLayout ||
@@ -94,7 +95,14 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.GPUText
                 buffers.Add(resource.buffer);
             }
 
-            SDL.BindGPUVertexStorageBuffers(renderPass, 0, buffers.ToArray(), (uint)buffers.Count);
+            if(buffers.Count > 0)
+            {
+                var bufferArray = buffers.ToArray();
+
+                SDL.BindGPUVertexStorageBuffers(renderPass,
+                    (uint)(shaderInstance.vertexShaderMetrics.samplerCount + shaderInstance.vertexShaderMetrics.storageTextureCount),
+                    bufferArray, (uint)buffers.Count);
+            }
         }
 
         unsafe

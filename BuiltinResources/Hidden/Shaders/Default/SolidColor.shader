@@ -25,7 +25,7 @@ End Common
 
 Begin Vertex
 
-[[vk::binding(StapleBufferIndexCount, StapleUniformBufferSet)]]
+[[vk::binding(StapleUniformBufferStart, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
     float4 mainColor;
