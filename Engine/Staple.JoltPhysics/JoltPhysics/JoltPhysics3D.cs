@@ -555,6 +555,10 @@ public class JoltPhysics3D : IPhysics3D
                     Position = position,
                     Rotation = rotation.SafeNormalize(),
                     enabled = true,
+                    currentPosition = position,
+                    currentRotation = rotation.SafeNormalize(),
+                    previousPosition = position,
+                    previousRotation = rotation.SafeNormalize(),
                 };
 
                 characters.Add(pair);
@@ -641,8 +645,10 @@ public class JoltPhysics3D : IPhysics3D
                     body = b,
                     entity = entity,
                     transform = entity.GetComponent<Transform>(),
-                    Position = position,
-                    Rotation = rotation.SafeNormalize(),
+                    currentPosition = position,
+                    currentRotation = rotation.SafeNormalize(),
+                    previousPosition = position,
+                    previousRotation = rotation.SafeNormalize(),
                 };
 
                 bodies.Add(pair);
