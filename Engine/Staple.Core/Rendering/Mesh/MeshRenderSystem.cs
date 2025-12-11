@@ -264,7 +264,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             var renderState = new RenderState()
             {
-                cull = material.CullingMode,
                 depthWrite = true,
                 enableDepth = true,
             };
@@ -346,7 +345,6 @@ public sealed class MeshRenderSystem : IRenderSystem
                 {
                     var content = contents.instanceInfos.Contents[i];
 
-                    renderState.primitiveType = content.mesh.MeshTopology;
                     renderState.world = content.transform.Matrix;
 
                     content.mesh.SetActive(ref renderState, content.submeshIndex);

@@ -31,6 +31,15 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
+project "xxHash"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+	
+	files {
+		"xxHash/**.cs"
+	}
+
 project "SDL3-CS"
 	kind "SharedLib"
 	language "C#"

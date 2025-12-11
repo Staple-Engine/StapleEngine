@@ -1,6 +1,7 @@
 ﻿using SDL3;
 using System;
 using System.Collections.Generic;
+using Standart.Hash.xxHash;
 
 namespace Staple.Internal;
 
@@ -16,6 +17,9 @@ internal class SDLGPUShaderProgram : IShaderProgram
     public Dictionary<ShaderUniformMapping, byte[]> vertexUniforms;
     public Dictionary<ShaderUniformMapping, byte[]> fragmentUniforms;
     public Dictionary<ShaderUniformMapping, byte[]> computeUniforms;
+    public readonly Dictionary<byte, ulong> vertexDataHashes = [];
+    public readonly Dictionary<byte, ulong> fragmentDataHashes = [];
+    public readonly Dictionary<byte, ulong> computeDataHashes = [];
 
     public SDLGPUShaderProgram(nint device, nint vertex, nint fragment, ShaderUniformContainer vertexUniforms,
         ShaderUniformContainer fragmentUniforms)
@@ -39,13 +43,14 @@ internal class SDLGPUShaderProgram : IShaderProgram
         }
     }
 
-    public SDLGPUShaderProgram(nint device, nint compute, ShaderUniformContainer uniforms, Dictionary<byte, byte[]> uniformValues)
+    public SDLGPUShaderProgram(nint device, nint compute, ShaderUniformContainer uniforms)
     {
         Type = ShaderType.Compute;
 
         this.device = device;
         this.compute = compute;
-        this.computeUniforms = [];
+        
+        computeUniforms = [];
 
         foreach(var uniform in uniforms.uniforms)
         {
@@ -56,6 +61,86 @@ internal class SDLGPUShaderProgram : IShaderProgram
     public override int GetHashCode()
     {
         return HashCode.Combine(device, vertex, fragment, compute, disposed);
+    }
+
+    public void ClearUniformHashes()
+    {
+        vertexDataHashes.Clear();
+        fragmentDataHashes.Clear();
+        computeDataHashes.Clear();
+    }
+
+    private static ulong MakeDataHash(byte[] data)
+    {
+        if(data == null || data.Length == 0)
+        {
+            return 0;
+        }
+
+        return xxHash64.ComputeHash(data.AsSpan(), data.Length);
+    }
+
+    public bool ShouldPushVertexUniform(byte binding, byte[] data)
+    {
+        var hash = MakeDataHash(data);
+
+        if(vertexDataHashes.TryGetValue(binding, out var last) == false)
+        {
+            vertexDataHashes.Add(binding, hash);
+
+            return true;
+        }
+
+        if(last != hash)
+        {
+            vertexDataHashes[binding] = hash;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool ShouldPushFragmentUniform(byte binding, byte[] data)
+    {
+        var hash = MakeDataHash(data);
+
+        if (fragmentDataHashes.TryGetValue(binding, out var last) == false)
+        {
+            fragmentDataHashes.Add(binding, hash);
+
+            return true;
+        }
+
+        if (last != hash)
+        {
+            fragmentDataHashes[binding] = hash;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public bool ShouldPushComputeUniform(byte binding, byte[] data)
+    {
+        var hash = MakeDataHash(data);
+
+        if (computeDataHashes.TryGetValue(binding, out var last) == false)
+        {
+            computeDataHashes.Add(binding, hash);
+
+            return true;
+        }
+
+        if (last != hash)
+        {
+            computeDataHashes[binding] = hash;
+
+            return true;
+        }
+
+        return false;
     }
 
     public bool TryGetVertexUniformData(ShaderUniformField field, out byte[] data)

@@ -5,15 +5,16 @@ using System.Collections.Generic;
 namespace Staple.Internal;
 
 internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline,
-    SDL.GPUTextureSamplerBinding[] samplers, Dictionary<byte, byte[]> vertexUniformData, Dictionary<byte, byte[]> fragmentUniformData,
-    SDLGPUShaderProgram program, SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
+    SDL.GPUTextureSamplerBinding[] samplers, SDLGPURendererBackend.StapleShaderUniform[] vertexUniformData,
+    SDLGPURendererBackend.StapleShaderUniform[] fragmentUniformData, SDLGPUShaderProgram program, SDLGPURendererBackend.TransientEntry entry) :
+    IRenderCommand
 {
     public RenderState state = state;
     public nint pipeline = pipeline;
     public SDL.GPUTextureSamplerBinding[] samplers = samplers;
     public SDLGPURendererBackend.TransientEntry entry = entry;
-    public Dictionary<byte, byte[]> vertexUniformData = vertexUniformData;
-    public Dictionary<byte, byte[]> fragmentUniformData = fragmentUniformData;
+    public SDLGPURendererBackend.StapleShaderUniform[] vertexUniformData = vertexUniformData;
+    public SDLGPURendererBackend.StapleShaderUniform[] fragmentUniformData = fragmentUniformData;
     public SDLGPUShaderProgram program = program;
 
     public void Update(IRendererBackend rendererBackend)
@@ -103,23 +104,28 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline,
             SDL.BindGPUVertexStorageBuffers(renderPass, 0, buffers.ToArray(), (uint)buffers.Count);
         }
 
-        unsafe
+        for(var i = 0; i < vertexUniformData.Length; i++)
         {
-            foreach (var pair in vertexUniformData)
+            var uniform = vertexUniformData[i];
+
+            if (program.ShouldPushVertexUniform(uniform.binding, uniform.data) == false)
             {
-                fixed (void* ptr = pair.Value)
-                {
-                    SDL.PushGPUVertexUniformData(backend.commandBuffer, pair.Key, (nint)ptr, (uint)pair.Value.Length);
-                }
+                continue;
             }
 
-            foreach (var pair in fragmentUniformData)
+            SDL.PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, uniform.data, (uint)uniform.data.Length);
+        }
+
+        for (var i = 0; i < fragmentUniformData.Length; i++)
+        {
+            var uniform = fragmentUniformData[i];
+
+            if (program.ShouldPushFragmentUniform(uniform.binding, uniform.data) == false)
             {
-                fixed (void* ptr = pair.Value)
-                {
-                    SDL.PushGPUFragmentUniformData(backend.commandBuffer, pair.Key, (nint)ptr, (uint)pair.Value.Length);
-                }
+                continue;
             }
+
+            SDL.PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, uniform.data, (uint)uniform.data.Length);
         }
 
         SDL.DrawGPUIndexedPrimitives(renderPass, (uint)state.indexCount, 1, (uint)state.startIndex, state.startVertex, 0);

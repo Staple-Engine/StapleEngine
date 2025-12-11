@@ -80,6 +80,9 @@
 		<Reference Include="NAudio">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\NAudio.dll</HintPath>
 		</Reference>
+		<Reference Include="xxHash">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\xxHash.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	
 	<ItemGroup>
@@ -474,7 +477,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.7.0-beta.1">
+		<PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.8.2-beta.1">
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
