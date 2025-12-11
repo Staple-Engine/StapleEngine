@@ -23,7 +23,6 @@ internal class SDLGPUUpdateVertexBufferCommand(ResourceHandle<VertexBuffer> hand
 
             if (buffer.buffer != nint.Zero)
             {
-                SDL.WaitForGPUIdle(backend.device);
                 SDL.ReleaseGPUBuffer(backend.device, buffer.buffer);
                 SDL.ReleaseGPUTransferBuffer(backend.device, buffer.transferBuffer);
 
@@ -71,7 +70,6 @@ internal class SDLGPUUpdateVertexBufferCommand(ResourceHandle<VertexBuffer> hand
 
             if (buffer.transferBuffer == nint.Zero)
             {
-                SDL.WaitForGPUIdle(backend.device);
                 SDL.ReleaseGPUBuffer(backend.device, buffer.buffer);
 
                 buffer.buffer = nint.Zero;

@@ -124,11 +124,14 @@ internal class RenderWindow
         while (window.ShouldClose == false && shouldStop == false)
         {
             PerformanceProfilerSystem.StartFrame();
-            RenderSystem.Backend.BeginFrame();
 
             Input.UpdateState();
 
             window.PollEvents();
+
+            CheckEvents();
+
+            RenderSystem.Backend.BeginFrame();
 
             lock (renderLock)
             {
@@ -186,8 +189,6 @@ internal class RenderWindow
                 {
                 }
             }
-
-            CheckEvents();
 
             if (Paused)
             {

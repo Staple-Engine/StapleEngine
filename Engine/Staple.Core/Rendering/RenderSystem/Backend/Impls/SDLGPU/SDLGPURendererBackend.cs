@@ -98,8 +98,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         public void Clear()
         {
-            SDL.WaitForGPUIdle(backend.device);
-
             if(vertexBuffer != nint.Zero)
             {
                 SDL.ReleaseGPUBuffer(backend.device, vertexBuffer);
@@ -161,7 +159,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                 if (transferBuffer == nint.Zero)
                 {
-                    SDL.WaitForGPUIdle(backend.device);
                     SDL.ReleaseGPUBuffer(backend.device, vertexBuffer);
 
                     vertexBuffer = nint.Zero;
@@ -181,6 +178,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                 if (backend.copyPass == nint.Zero)
                 {
+                    SDL.ReleaseGPUBuffer(backend.device, vertexBuffer);
+
                     return;
                 }
 
@@ -241,7 +240,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                 if (transferBuffer == nint.Zero)
                 {
-                    SDL.WaitForGPUIdle(backend.device);
                     SDL.ReleaseGPUBuffer(backend.device, vertexBuffer);
                     SDL.ReleaseGPUBuffer(backend.device, indexBuffer);
 
@@ -323,7 +321,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                 if (transferBuffer == nint.Zero)
                 {
-                    SDL.WaitForGPUIdle(backend.device);
                     SDL.ReleaseGPUBuffer(backend.device, vertexBuffer);
                     SDL.ReleaseGPUBuffer(backend.device, uintIndexBuffer);
 
@@ -626,8 +623,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     {
         if(device != nint.Zero)
         {
-            SDL.WaitForGPUIdle(device);
-
             foreach(var pair in graphicsPipelines)
             {
                 SDL.ReleaseGPUGraphicsPipeline(device, pair.Value);
