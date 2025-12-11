@@ -95,9 +95,9 @@ public float4x4 StapleGetBoneMatrix(int index)
 
 public float4x4 StapleGetSkinningMatrix(float4x4 world, float4 indices, float4 weights)
 {
-    return mul(weights.x * StapleGetBoneMatrix(int(indices.x)) +
+    return mul(world, weights.x * StapleGetBoneMatrix(int(indices.x)) +
         weights.y * StapleGetBoneMatrix(int(indices.y)) +
         weights.z * StapleGetBoneMatrix(int(indices.z)) +
-        weights.w * StapleGetBoneMatrix(int(indices.w)), world);
+        weights.w * StapleGetBoneMatrix(int(indices.w)));
 }
 #endif
