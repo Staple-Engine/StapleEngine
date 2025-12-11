@@ -875,6 +875,8 @@ public sealed partial class Mesh
             return false;
         }
 
+        state.primitiveType = MeshTopology;
+
         if(submeshes.Count == 0)
         {
             state.vertexBuffer = vertexBuffer;

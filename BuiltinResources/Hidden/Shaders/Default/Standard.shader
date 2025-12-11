@@ -6,19 +6,19 @@ Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING, NORMALMAP, CUTOU
 
 Begin Parameters
 
-float3 viewPosition;
 texture ambientOcclusionTexture
-color diffuseColor = #FFFFFFFF
 texture diffuseTexture = WHITE
+variant: NORMALMAP texture normalTexture
 texture displacementTexture
-color emissiveColor
 texture emissiveTexture
 texture heightTexture
-variant: NORMALMAP texture normalTexture
-color specularColor
 texture specularTexture
-variant: CUTOUT float cutout
+float3 viewPosition;
+color diffuseColor = #FFFFFFFF
+color emissiveColor
+color specularColor
 float alphaThreshold = 0.25
+variant: CUTOUT float cutout
 
 End Parameters
 
@@ -143,10 +143,13 @@ Begin Fragment
 [[vk::binding(0, StapleSamplerStorageBufferSet)]]
 cbuffer Textures
 {
+	Sampler2D ambientOcclusionTexture;
 	Sampler2D diffuseTexture;
-#ifdef NORMALMAP
 	Sampler2D normalTexture;
-#endif
+	Sampler2D displacementTexture;
+	Sampler2D emissiveTexture;
+	Sampler2D heightTexture;
+	Sampler2D specularTexture;
 };
 
 [shader("fragment")]

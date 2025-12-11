@@ -11,18 +11,18 @@ public static const int StapleTextureCount = 0;
 
 #ifdef STAPLE_STORAGE_TEXTURE_COUNT
 public static const int StapleStorageTextureStart = StapleTextureCount;
-public static const int StapleStorageTextureCount = StapleStorageTextureStart + STAPLE_STORAGE_TEXTURE_COUNT;
+public static const int StapleStorageTextureCount = STAPLE_STORAGE_TEXTURE_COUNT;
 #else
-public static const int StapleStorageTextureStart = 1;
-public static const int StapleStorageTextureCount = 1;
+public static const int StapleStorageTextureStart = 30;
+public static const int StapleStorageTextureCount = 30;
 #endif
 
 #ifdef STAPLE_STORAGE_BUFFER_COUNT
-public static const int StapleStorageBufferStart = StapleStorageTextureCount;
+public static const int StapleStorageBufferStart = StapleStorageTextureStart + StapleStorageTextureCount;
 public static const int StapleStorageBufferCount = StapleStorageBufferStart + STAPLE_STORAGE_BUFFER_COUNT;
 #else
-public static const int StapleStorageBufferStart = 2;
-public static const int StapleStorageBufferCount = 2;
+public static const int StapleStorageBufferStart = 60;
+public static const int StapleStorageBufferCount = 60;
 #endif
 
 #ifdef STAPLE_UNIFORM_BUFFER_COUNT
@@ -87,17 +87,17 @@ public float4x4 ViewWorld(float4x4 world)
 #ifdef SKINNING
 public float4x4 StapleGetBoneMatrix(int index)
 {
-    return float4x4(StapleBoneMatrices[index * 4],
+    return transpose(float4x4(StapleBoneMatrices[index * 4],
         StapleBoneMatrices[index * 4 + 1],
         StapleBoneMatrices[index * 4 + 2],
-        StapleBoneMatrices[index * 4 + 3]);
+        StapleBoneMatrices[index * 4 + 3]));
 }
 
-public float4x4 StapleGetSkinningMatrix(float4x4 model, float4 indices, float4 weights)
+public float4x4 StapleGetSkinningMatrix(float4x4 world, float4 indices, float4 weights)
 {
-    return model * (weights.x * StapleGetBoneMatrix(int(indices.x)) +
+    return mul(weights.x * StapleGetBoneMatrix(int(indices.x)) +
         weights.y * StapleGetBoneMatrix(int(indices.y)) +
         weights.z * StapleGetBoneMatrix(int(indices.z)) +
-        weights.w * StapleGetBoneMatrix(int(indices.w)));
+        weights.w * StapleGetBoneMatrix(int(indices.w)), world);
 }
 #endif

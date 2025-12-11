@@ -76,8 +76,6 @@ public sealed class MeshRenderSystem : IRenderSystem
         {
             enableDepth = true,
             depthWrite = true,
-            primitiveType = mesh.MeshTopology,
-            cull = material.CullingMode,
             world = matrix,
         };
 

@@ -237,7 +237,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         var lastLighting = MaterialLighting.Unlit;
         var lastTopology = MeshTopology.Triangles;
 
-        var renderState = new RenderState();
+        var renderState = new RenderState()
+        {
+            enableDepth = true,
+            depthWrite = true,
+        };
 
         var l = renderers.Length;
 
@@ -320,7 +324,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 renderState.shaderVariant = material.ShaderVariantKey;
 
-                renderState.storageBuffers = [(SkinningBufferIndex, buffer)];
+                renderState.storageBuffers = [(0, buffer)];
 
                 RenderSystem.Submit(renderState, renderer.mesh.SubmeshTriangleCount(j), 1);
             }

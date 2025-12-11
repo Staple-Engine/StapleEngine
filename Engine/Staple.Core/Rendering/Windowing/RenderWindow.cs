@@ -524,13 +524,19 @@ internal class RenderWindow
         {
             Log.Info($"[RenderWindow] Attempting to find the right renderer");
 
+#if _DEBUG
+            bool debug = true;
+#else
+            bool debug = false;
+#endif
+
             foreach (var renderer in renderers)
             {
                 Log.Info($"[RenderWindow] Trying {renderer}");
 
                 unsafe
                 {
-                    ok = RenderSystem.Backend.Initialize(renderer, true, window, renderFlags);
+                    ok = RenderSystem.Backend.Initialize(renderer, debug, window, renderFlags);
 
                     if (ok)
                     {

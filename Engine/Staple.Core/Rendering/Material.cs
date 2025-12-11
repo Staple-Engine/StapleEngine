@@ -1114,6 +1114,7 @@ public sealed class Material : IGuidAsset
 
         state.sourceBlend = shader.sourceBlend;
         state.destinationBlend = shader.destinationBlend;
+        state.cull = CullingMode;
 
         if (hasMainColor)
         {

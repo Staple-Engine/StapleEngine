@@ -68,6 +68,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Reference Include="SDL3-CS">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\SDL3-CS.dll</HintPath>
+		</Reference>
 		<Reference Include="MessagePack">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\MessagePack.dll</HintPath>
 		</Reference>
@@ -480,6 +483,5 @@
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
 	  <PackageReference Include="Evergine.Bindings.Vulkan" Version="2025.10.20.38" />
-	  <PackageReference Include="SDL3-CS" Version="3.3.3-preview.20251204-144801" />
 	</ItemGroup>
 </Project>

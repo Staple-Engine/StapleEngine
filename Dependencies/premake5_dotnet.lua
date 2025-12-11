@@ -31,6 +31,21 @@ project "CrossCopy"
 		"CrossCopy/*.cs"
 	}
 
+project "SDL3-CS"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+	
+	vsprops {
+		Nullable = "enable",
+		ImplicitUsings = "enable",
+		AllowUnsafeBlocks = "true"
+	}
+	
+	files {
+		"SDL3-CS/**.cs"
+	}
+
 project "NAudio"
 	kind "SharedLib"
 	language "C#"

@@ -858,6 +858,8 @@ static partial class Program
                                 {
                                     shaderObject.computeUniforms = reflectionData;
 
+                                    shaderObject.computeMetrics?.samplerCount = reflectionData.textures.Count;
+
                                     shaderObject.computeMetrics?.uniformBufferCount = reflectionData.uniforms
                                         .Where(x =>
                                             x.type != ShaderUniformType.ReadWriteBuffer &&
@@ -881,58 +883,6 @@ static partial class Program
                                     Console.WriteLine("\t\tError: Shader missing vertex or fragment section");
 
                                     return false;
-                                }
-
-                                if (shader.parameters != null)
-                                {
-                                    bool error = false;
-
-                                    var counters = new Dictionary<ShaderUniformType, int>();
-
-                                    foreach (var parameter in shader.parameters)
-                                    {
-                                        if (parameter == null)
-                                        {
-                                            error = true;
-
-                                            break;
-                                        }
-
-                                        if (parameter.semantic == ShaderParameterSemantic.Varying)
-                                        {
-                                            var counter = 0;
-
-                                            if (counters.ContainsKey(parameter.type))
-                                            {
-                                                counter = counters[parameter.type];
-                                            }
-
-                                            counters.AddOrSetKey(parameter.type, counter + 1);
-
-                                            /*
-                                            varying += $"\n{GetNativeShaderType(parameter, counter, false)}";
-
-                                            if ((parameter.vertexAttribute?.Length ?? 0) > 0)
-                                            {
-                                                varying += $" : {parameter.vertexAttribute}";
-                                            }
-
-                                            if ((parameter.defaultValue?.Length ?? 0) > 0)
-                                            {
-                                                varying += $" = {parameter.defaultValue}";
-                                            }
-
-                                            varying += ";";
-                                            */
-                                        }
-                                    }
-
-                                    if (error)
-                                    {
-                                        Console.WriteLine("\t\tError: Invalid parameter detected");
-
-                                        return false;
-                                    }
                                 }
 
                                 string vertexCode = "";
@@ -965,6 +915,8 @@ static partial class Program
                                 {
                                     shaderObject.vertexUniforms = vertexReflectionData;
 
+                                    shaderObject.vertexMetrics?.samplerCount = vertexReflectionData.textures.Count;
+
                                     shaderObject.vertexMetrics?.uniformBufferCount = vertexReflectionData.uniforms
                                         .Where(x =>
                                             x.type != ShaderUniformType.ReadWriteBuffer &&
@@ -976,6 +928,8 @@ static partial class Program
                                 if (fragmentReflectionData != null)
                                 {
                                     shaderObject.fragmentUniforms = fragmentReflectionData;
+
+                                    shaderObject.fragmentMetrics?.samplerCount = fragmentReflectionData.textures.Count;
 
                                     shaderObject.fragmentMetrics?.uniformBufferCount = fragmentReflectionData.uniforms
                                         .Where(x =>
