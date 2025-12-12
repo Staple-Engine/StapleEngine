@@ -41,7 +41,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     internal struct StapleShaderUniform
     {
         public byte binding;
-        public byte[] data;
+        public int position;
+        public int size;
     }
 
     internal class BufferResource
@@ -389,6 +390,43 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
         }
     }
+
+    internal class MemoryAllocator
+    {
+        private byte[] buffer = new byte[1024];
+
+        public int Position { get; private set; }
+
+        public Span<byte> Allocate(int size)
+        {
+            if (Position + size >= buffer.Length)
+            {
+                Array.Resize(ref buffer, Position + size + 1024);
+            }
+
+            var p = Position;
+
+            Position += size;
+
+            return new(buffer, p, size);
+        }
+
+        public Span<byte> Get(int position, int size)
+        {
+            if(position < 0 || position + size >= buffer.Length)
+            {
+                return default;
+            }
+
+            return new(buffer, position, size);
+        }
+
+        public void Clear()
+        {
+            Position = 0;
+        }
+    }
+
     #endregion
 
     #region Fields
@@ -405,6 +443,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     internal ITexture depthTexture;
 
     internal readonly ViewData viewData = new();
+    internal readonly MemoryAllocator frameAllocator = new();
 
     private SDL3RenderWindow window;
     private readonly Dictionary<int, (nint, SDL.GPUTextureSamplerBinding[], SDL.GPUTextureSamplerBinding[])> graphicsPipelines = [];
@@ -417,8 +456,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private readonly BufferResource[] indexBuffers = new BufferResource[ushort.MaxValue - 1];
     private readonly Dictionary<VertexLayout, TransientEntry> transientBuffers = [];
     private readonly TextureResource[] textures = new TextureResource[ushort.MaxValue - 1];
-    private RenderTarget currentRenderTarget;
     private readonly List<SDLGPUShaderProgram> shaders = [];
+    private RenderTarget currentRenderTarget;
 
     private bool iteratingCommands = false;
     private int commandIndex;
@@ -715,6 +754,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         swapchainHeight = (int)h;
 
         UpdateDepthTextureIfNeeded(false);
+
+        frameAllocator.Clear();
     }
 
     public void EndFrame()
@@ -738,8 +779,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         FinishPasses();
 
         commands.Clear();
+        frameAllocator.Clear();
 
-        foreach(var pair in transientBuffers)
+        foreach (var pair in transientBuffers)
         {
             pair.Value.Clear();
         }
@@ -1492,10 +1534,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return;
         }
 
-        var vertexUniformData = new StapleShaderUniform[shader.vertexUniforms.Count];
-        var fragmentUniformData = new StapleShaderUniform[shader.fragmentUniforms.Count];
-
-        var counter = 0;
+        var vertexUniformData = new List<StapleShaderUniform>();
+        var fragmentUniformData = new List<StapleShaderUniform>();
 
         foreach (var pair in shader.vertexUniforms)
         {
@@ -1523,9 +1563,15 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            if (shader.ShouldPushVertexUniform((byte)pair.Key.binding, pair.Value) == false)
+            {
+                continue;
+            }
+
             unsafe
             {
-                var copy = new byte[pair.Value.Length];
+                var position = frameAllocator.Position;
+                var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
                 {
@@ -1535,15 +1581,14 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                vertexUniformData[counter++] = new()
+                vertexUniformData.Add(new()
                 {
                     binding = (byte)pair.Key.binding,
-                    data = copy,
-                };
+                    position = position,
+                    size = pair.Value.Length,
+                });
             }
         }
-
-        counter = 0;
 
         foreach (var pair in shader.fragmentUniforms)
         {
@@ -1571,9 +1616,15 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            if (shader.ShouldPushFragmentUniform((byte)pair.Key.binding, pair.Value) == false)
+            {
+                continue;
+            }
+
             unsafe
             {
-                var copy = new byte[pair.Value.Length];
+                var position = frameAllocator.Position;
+                var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
                 {
@@ -1583,11 +1634,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                fragmentUniformData[counter++] = new()
+                fragmentUniformData.Add(new()
                 {
                     binding = (byte)pair.Key.binding,
-                    data = copy,
-                };
+                    position = position,
+                    size = pair.Value.Length,
+                });
             }
         }
 
@@ -1649,10 +1701,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndex += indices.Length;
 
-        var vertexUniformData = new StapleShaderUniform[shader.vertexUniforms.Count];
-        var fragmentUniformData = new StapleShaderUniform[shader.fragmentUniforms.Count];
-
-        var counter = 0;
+        var vertexUniformData = new List<StapleShaderUniform>();
+        var fragmentUniformData = new List<StapleShaderUniform>();
 
         foreach (var pair in shader.vertexUniforms)
         {
@@ -1680,9 +1730,15 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            if(shader.ShouldPushVertexUniform((byte)pair.Key.binding, pair.Value) == false)
+            {
+                continue;
+            }
+
             unsafe
             {
-                var copy = new byte[pair.Value.Length];
+                var position = frameAllocator.Position;
+                var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
                 {
@@ -1692,15 +1748,14 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                vertexUniformData[counter++] = new()
+                vertexUniformData.Add(new()
                 {
                     binding = (byte)pair.Key.binding,
-                    data = copy,
-                };
+                    position = position,
+                    size = pair.Value.Length,
+                });
             }
         }
-
-        counter = 0;
 
         foreach (var pair in shader.fragmentUniforms)
         {
@@ -1728,9 +1783,15 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            if (shader.ShouldPushFragmentUniform((byte)pair.Key.binding, pair.Value) == false)
+            {
+                continue;
+            }
+
             unsafe
             {
-                var copy = new byte[pair.Value.Length];
+                var position = frameAllocator.Position;
+                var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
                 {
@@ -1740,11 +1801,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                fragmentUniformData[counter++] = new()
+                fragmentUniformData.Add(new()
                 {
                     binding = (byte)pair.Key.binding,
-                    data = copy,
-                };
+                    position = position,
+                    size = pair.Value.Length,
+                });
             }
         }
 
@@ -1807,10 +1869,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndexUInt += indices.Length;
 
-        var vertexUniformData = new StapleShaderUniform[shader.vertexUniforms.Count];
-        var fragmentUniformData = new StapleShaderUniform[shader.fragmentUniforms.Count];
-
-        var counter = 0;
+        var vertexUniformData = new List<StapleShaderUniform>();
+        var fragmentUniformData = new List<StapleShaderUniform>();
 
         foreach (var pair in shader.vertexUniforms)
         {
@@ -1838,9 +1898,15 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            if (shader.ShouldPushVertexUniform((byte)pair.Key.binding, pair.Value) == false)
+            {
+                continue;
+            }
+
             unsafe
             {
-                var copy = new byte[pair.Value.Length];
+                var position = frameAllocator.Position;
+                var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
                 {
@@ -1850,15 +1916,14 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                vertexUniformData[counter++] = new()
+                vertexUniformData.Add(new()
                 {
                     binding = (byte)pair.Key.binding,
-                    data = copy,
-                };
+                    position = position,
+                    size = pair.Value.Length,
+                });
             }
         }
-
-        counter = 0;
 
         foreach (var pair in shader.fragmentUniforms)
         {
@@ -1886,11 +1951,17 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            if (shader.ShouldPushFragmentUniform((byte)pair.Key.binding, pair.Value) == false)
+            {
+                continue;
+            }
+
             unsafe
             {
-                var copy = new byte[pair.Value.Length];
+                var position = frameAllocator.Position;
+                var copy = frameAllocator.Allocate(pair.Value.Length);
 
-                fixed(void *source = pair.Value)
+                fixed (void *source = pair.Value)
                 {
                     fixed(void *target = copy)
                     {
@@ -1898,11 +1969,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                fragmentUniformData[counter++] = new()
+                fragmentUniformData.Add(new()
                 {
                     binding = (byte)pair.Key.binding,
-                    data = copy,
-                };
+                    position = position,
+                    size = pair.Value.Length,
+                });
             }
         }
 

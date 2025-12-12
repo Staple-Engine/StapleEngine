@@ -70,17 +70,17 @@ internal class SDLGPUShaderProgram : IShaderProgram
         computeDataHashes.Clear();
     }
 
-    private static ulong MakeDataHash(byte[] data)
+    private static ulong MakeDataHash(Span<byte> data)
     {
-        if(data == null || data.Length == 0)
+        if(data.IsEmpty)
         {
             return 0;
         }
 
-        return xxHash64.ComputeHash(data.AsSpan(), data.Length);
+        return xxHash64.ComputeHash(data, data.Length);
     }
 
-    public bool ShouldPushVertexUniform(byte binding, byte[] data)
+    public bool ShouldPushVertexUniform(byte binding, Span<byte> data)
     {
         var hash = MakeDataHash(data);
 
@@ -101,7 +101,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
         return false;
     }
 
-    public bool ShouldPushFragmentUniform(byte binding, byte[] data)
+    public bool ShouldPushFragmentUniform(byte binding, Span<byte> data)
     {
         var hash = MakeDataHash(data);
 
@@ -122,7 +122,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
         return false;
     }
 
-    public bool ShouldPushComputeUniform(byte binding, byte[] data)
+    public bool ShouldPushComputeUniform(byte binding, Span<byte> data)
     {
         var hash = MakeDataHash(data);
 
