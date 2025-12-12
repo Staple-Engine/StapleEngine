@@ -1372,7 +1372,7 @@ internal class ResourceManager
                 {
                     case MaterialParameterType.TextureWrap:
 
-                        material.parameters.Add(parameter.Key.GetHashCode(), new()
+                        material.parameters.Add(parameter.Key, new()
                         {
                             name = parameter.Key,
                             type = MaterialParameterType.TextureWrap,
@@ -1385,14 +1385,7 @@ internal class ResourceManager
 
                         var texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
 
-                        if (parameter.Key == Material.MainTextureProperty)
-                        {
-                            material.MainTexture = texture;
-                        }
-                        else
-                        {
-                            material.SetTexture(parameter.Key, texture);
-                        }
+                        material.SetTexture(parameter.Key, texture);
 
                         break;
 
@@ -1428,14 +1421,7 @@ internal class ResourceManager
 
                     case MaterialParameterType.Color:
 
-                        if(parameter.Key == Material.MainColorProperty)
-                        {
-                            material.MainColor = parameter.Value.colorValue;
-                        }
-                        else
-                        {
-                            material.SetColor(parameter.Key, parameter.Value.colorValue, parameter.Value.source);
-                        }
+                        material.SetColor(parameter.Key, parameter.Value.colorValue, parameter.Value.source);
 
                         break;
 

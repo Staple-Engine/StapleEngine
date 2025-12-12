@@ -145,11 +145,11 @@ public sealed class LightSystem : IRenderSystem
     {
     }
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 

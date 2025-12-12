@@ -78,6 +78,8 @@ public partial class Shader : IGuidAsset
         public Dictionary<StringID, ShaderUniformField> vertexFields = [];
         public Dictionary<StringID, ShaderUniformMapping> fragmentMappings = [];
         public Dictionary<StringID, ShaderUniformField> fragmentFields = [];
+        public Dictionary<StringID, int> vertexTextureBindings = [];
+        public Dictionary<StringID, int> fragmentTextureBindings = [];
     }
 
     internal readonly ShaderMetadata metadata;
@@ -85,10 +87,9 @@ public partial class Shader : IGuidAsset
 
     internal static readonly List<DefaultUniform> DefaultUniforms = [];
 
-    internal readonly Dictionary<string, ShaderInstance> instances = [];
+    internal readonly Dictionary<StringID, ShaderInstance> instances = [];
 
-    private UniformInfo[] uniforms = [];
-    private readonly IntLookupCache<int> uniformIndices = new();
+    private Dictionary<StringID, UniformInfo> uniforms = [];
 
     [GeneratedRegex("\\[([0-9]+)\\]")]
     private static partial Regex UniformCountRegex();
@@ -129,6 +130,8 @@ public partial class Shader : IGuidAsset
             var vertexFields = new Dictionary<StringID, ShaderUniformField>();
             var fragmentMappings = new Dictionary<StringID, ShaderUniformMapping>();
             var fragmentFields = new Dictionary<StringID, ShaderUniformField>();
+            var vertexTextureBindings = new Dictionary<StringID, int>();
+            var fragmentTextureBindings = new Dictionary<StringID, int>();
 
             foreach (var uniform in pair.Value.vertexUniforms.uniforms)
             {
@@ -150,9 +153,19 @@ public partial class Shader : IGuidAsset
                 }
             }
 
-            instances.AddOrSetKey(pair.Key, new()
+            foreach(var texture in pair.Value.vertexUniforms.textures)
             {
-                keyPieces = pair.Key.Split(' ').Select(x => x.GetHashCode()).ToArray(),
+                vertexTextureBindings.Add(texture.name, texture.binding);
+            }
+
+            foreach (var texture in pair.Value.fragmentUniforms.textures)
+            {
+                fragmentTextureBindings.Add(texture.name, texture.binding);
+            }
+
+            instances.AddOrSetKey(new(pair.Key), new()
+            {
+                keyPieces = pair.Key.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => x.GetHashCode()).ToArray(),
                 vertexShaderSource = pair.Value.vertexShader,
                 fragmentShaderSource = pair.Value.fragmentShader,
                 computeShaderSource = pair.Value.computeShader,
@@ -162,8 +175,12 @@ public partial class Shader : IGuidAsset
                 attributes = pair.Value.vertexAttributes,
                 vertexUniforms = pair.Value.vertexUniforms,
                 fragmentUniforms = pair.Value.fragmentUniforms,
+                vertexMappings = vertexMappings,
                 vertexFields = vertexFields,
+                vertexTextureBindings = vertexTextureBindings,
+                fragmentMappings = fragmentMappings,
                 fragmentFields = fragmentFields,
+                fragmentTextureBindings = fragmentTextureBindings,
             });
         }
 
@@ -216,7 +233,7 @@ public partial class Shader : IGuidAsset
             }
         }
 
-        if (uniforms.Length == 0)
+        if (uniforms.Count == 0)
         {
             foreach (var uniform in metadata.uniforms)
             {
@@ -225,7 +242,7 @@ public partial class Shader : IGuidAsset
 
             void EnsureUniform(DefaultUniform u)
             {
-                var uniform = GetUniform(u.name.GetHashCode());
+                var uniform = GetUniform(u.name);
 
                 if (uniform == null)
                 {
@@ -247,19 +264,8 @@ public partial class Shader : IGuidAsset
     internal void AddUniform(DefaultUniform uniform)
     {
         var normalizedName = NormalizeUniformName(uniform.name, uniform.type);
-        var nameHash = uniform.name.GetHashCode();
-        var normalizedHash = normalizedName.GetHashCode();
 
-        var uniformIndex = uniformIndices.IndexOf(nameHash);
-
-        if(uniformIndex >= 0)
-        {
-            return;
-        }
-
-        uniformIndex = uniformIndices.IndexOf(normalizedHash);
-
-        if (uniformIndex >= 0)
+        if(uniforms.ContainsKey(uniform.name) || uniforms.ContainsKey(normalizedName))
         {
             return;
         }
@@ -279,16 +285,11 @@ public partial class Shader : IGuidAsset
             count = NormalizeUniformCount(uniform.name),
         };
 
-        var i = uniforms.Length;
+        uniforms.Add(normalizedName, u);
 
-        uniformIndices.Add(normalizedHash, i);
-        uniforms = uniforms.Concat([u]).ToArray();
-
-        if (uniformIndices.IndexOf(nameHash) < 0)
+        if (uniforms.ContainsKey(uniform.name) == false)
         {
-            uniformIndices.Add(nameHash, i);
-
-            uniforms = uniforms.Concat([new()
+            uniforms.Add(uniform.name, new()
             {
                 count = u.count,
                 isAlias = true,
@@ -302,23 +303,23 @@ public partial class Shader : IGuidAsset
                     slot = uniform.slot,
                 },
                 handle = new(normalizedName),
-            }]).ToArray();
+            });
         }
     }
 
-    internal UniformInfo GetUniform(int hash)
+    internal UniformInfo GetUniform(StringID name)
     {
         if (Disposed)
         {
             return null;
         }
 
-        return uniformIndices.TryGetValue(hash, out var index) ? uniforms[index] : null;
+        return uniforms.TryGetValue(name, out var u) ? u : null;
     }
 
-    internal ShaderHandle GetUniformHandle(int hash)
+    internal ShaderHandle GetUniformHandle(StringID name)
     {
-        var uniform = GetUniform(hash);
+        var uniform = GetUniform(name);
 
         if(uniform == null)
         {
@@ -328,7 +329,7 @@ public partial class Shader : IGuidAsset
         return new(this, uniform);
     }
 
-    internal bool TryGetUniformData(string variantKey, ShaderHandle handle, out UniformInfo uniform,
+    internal bool TryGetUniformData(StringID variantKey, ShaderHandle handle, out UniformInfo uniform,
         out (int, byte[])? vertexData, out (int, byte[])? fragmentData)
     {
         uniform = default;
@@ -391,7 +392,7 @@ public partial class Shader : IGuidAsset
         }
     }
 
-    private void SetValue<T>(string variantKey, ShaderHandle handle, T value) where T: unmanaged
+    private void SetValue<T>(StringID variantKey, ShaderHandle handle, T value) where T: unmanaged
     {
         if (TryGetUniformData(variantKey, handle, out _, out var vertexData, out var fragmentData) == false)
         {
@@ -408,7 +409,7 @@ public partial class Shader : IGuidAsset
         }
     }
 
-    private void SetValue<T>(string variantKey, ShaderHandle handle, ReadOnlySpan<T> value) where T: unmanaged
+    private void SetValue<T>(StringID variantKey, ShaderHandle handle, ReadOnlySpan<T> value) where T: unmanaged
     {
         if (TryGetUniformData(variantKey, handle, out var uniform, out var vertexData, out var fragmentData) == false)
         {
@@ -434,7 +435,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetFloat(string variantKey, ShaderHandle handle, float value)
+    public void SetFloat(StringID variantKey, ShaderHandle handle, float value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -445,7 +446,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector2(string variantKey, ShaderHandle handle, Vector2 value)
+    public void SetVector2(StringID variantKey, ShaderHandle handle, Vector2 value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -456,7 +457,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector2(string variantKey, ShaderHandle handle, ReadOnlySpan<Vector2> value)
+    public void SetVector2(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Vector2> value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -467,7 +468,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector3(string variantKey, ShaderHandle handle, Vector3 value)
+    public void SetVector3(StringID variantKey, ShaderHandle handle, Vector3 value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -478,7 +479,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector3(string variantKey, ShaderHandle handle, ReadOnlySpan<Vector3> value)
+    public void SetVector3(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Vector3> value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -489,7 +490,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector4(string variantKey, ShaderHandle handle, Vector4 value)
+    public void SetVector4(StringID variantKey, ShaderHandle handle, Vector4 value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -500,7 +501,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector4(string variantKey, ShaderHandle handle, ReadOnlySpan<Vector4> value)
+    public void SetVector4(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Vector4> value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -511,7 +512,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetColor(string variantKey, ShaderHandle handle, Color value)
+    public void SetColor(StringID variantKey, ShaderHandle handle, Color value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -522,7 +523,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetColor(string variantKey, ShaderHandle handle, ReadOnlySpan<Color> value)
+    public void SetColor(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Color> value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -533,7 +534,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetTexture(string variantKey, ShaderHandle handle, Texture value)
+    public void SetTexture(StringID variantKey, ShaderHandle handle, Texture value)
     {
         if (Disposed ||
             value == null ||
@@ -552,7 +553,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetMatrix3x3(string variantKey, ShaderHandle handle, Matrix3x3 value)
+    public void SetMatrix3x3(StringID variantKey, ShaderHandle handle, Matrix3x3 value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -563,7 +564,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetMatrix3x3(string variantKey, ShaderHandle handle, ReadOnlySpan<Matrix3x3> value)
+    public void SetMatrix3x3(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Matrix3x3> value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -574,7 +575,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetMatrix4x4(string variantKey, ShaderHandle handle, Matrix4x4 value)
+    public void SetMatrix4x4(StringID variantKey, ShaderHandle handle, Matrix4x4 value)
     {
         SetValue(variantKey, handle, value);
     }
@@ -585,7 +586,7 @@ public partial class Shader : IGuidAsset
     /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetMatrix4x4(string variantKey, ShaderHandle handle, ReadOnlySpan<Matrix4x4> value)
+    public void SetMatrix4x4(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Matrix4x4> value)
     {
         SetValue(variantKey, handle, value);
     }

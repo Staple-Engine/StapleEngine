@@ -7,7 +7,7 @@ internal struct RenderState
 {
     public Shader shader;
     public ComputeShader computeShader;
-    public string shaderVariant;
+    public StringID shaderVariant;
     public MeshTopology primitiveType;
     public CullingMode cull;
     public bool wireframe;
@@ -24,7 +24,8 @@ internal struct RenderState
     public BlendMode sourceBlend;
     public BlendMode destinationBlend;
     public Rect scissor;
-    public Texture[] textures;
+    public Texture[] vertexTextures;
+    public Texture[] fragmentTextures;
     public Matrix4x4 world;
 
     internal readonly int StateKey
@@ -51,15 +52,23 @@ internal struct RenderState
                 }
             }
 
-            if (textures != null)
+            if (vertexTextures != null)
             {
-                foreach(var t in textures)
+                foreach(var t in vertexTextures)
                 {
                     hashCode.Add(t);
                 }
             }
 
-            if((renderTarget?.Disposed ?? true) == false)
+            if (fragmentTextures != null)
+            {
+                foreach (var t in fragmentTextures)
+                {
+                    hashCode.Add(t);
+                }
+            }
+
+            if ((renderTarget?.Disposed ?? true) == false)
             {
                 for(var i = 0; i < renderTarget.ColorTextureCount; i++)
                 {

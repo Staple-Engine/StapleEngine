@@ -45,16 +45,13 @@ public sealed class MeshCombineSystem : IRenderSystem
     }
     #endregion
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (entity, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            if (relatedComponent is not MeshCombine combine)
-            {
-                continue;
-            }
+            var combine = (MeshCombine)entry.component;
 
-            combine.renderers ??= new(entity, EntityQueryMode.SelfAndChildren, true);
+            combine.renderers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, true);
 
             foreach (var (_, renderer) in combine.renderers.Contents)
             {
@@ -67,7 +64,7 @@ public sealed class MeshCombineSystem : IRenderSystem
 
                 var combinableMeshes = new Dictionary<(MeshAssetComponent, MeshTopology, MaterialLighting, int), List<(Mesh, Transform, Material)>>();
 
-                Matrix4x4.Invert(transform.Matrix, out var worldTransform);
+                Matrix4x4.Invert(entry.transform.Matrix, out var worldTransform);
 
                 foreach (var (e, t, renderer) in combine.renderers.ContentEntities)
                 {
@@ -260,28 +257,30 @@ public sealed class MeshCombineSystem : IRenderSystem
                 }
             }
 
-            if (transform.ChangedThisFrame || combine.localBounds.size == Vector3.Zero)
+            if (entry.transform.ChangedThisFrame || combine.localBounds.size == Vector3.Zero)
             {
-                var localSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(transform.LocalRotation));
+                var localSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(entry.transform.LocalRotation));
 
-                var globalSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(transform.Rotation));
+                var globalSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(entry.transform.Rotation));
 
-                combine.localBounds = new(transform.LocalPosition + combine.combinedMeshBounds.center.Transformed(transform.LocalRotation) * transform.LocalScale,
-                    localSize * transform.LocalScale);
+                combine.localBounds = new(entry.transform.LocalPosition +
+                    combine.combinedMeshBounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
+                    localSize * entry.transform.LocalScale);
 
-                combine.bounds = new(transform.Position + combine.combinedMeshBounds.center.Transformed(transform.Rotation) * transform.Scale,
-                    globalSize * transform.Scale);
+                combine.bounds = new(entry.transform.Position +
+                    combine.combinedMeshBounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
+                    globalSize * entry.transform.Scale);
             }
         }
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
         renderers.Clear();
 
-        foreach (var (entity, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            if (relatedComponent is not MeshCombine combine ||
+            if (entry.component is not MeshCombine combine ||
                 combine.meshes.Count == 0 ||
                 combine.materials.Count != combine.meshes.Count)
             {
@@ -291,7 +290,7 @@ public sealed class MeshCombineSystem : IRenderSystem
             renderers.Add(new()
             {
                 renderer = combine,
-                transform = transform,
+                transform = entry.transform,
             });
         }
     }

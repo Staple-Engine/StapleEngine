@@ -220,6 +220,7 @@
 		<Compile Include="Rendering\RenderSystem\Backend\IRenderCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\IRendererBackend.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\RenderState.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderEntry.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderStats.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\Shader\ComputeShader.cs" />

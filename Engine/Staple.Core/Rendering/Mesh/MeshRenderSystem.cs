@@ -104,11 +104,11 @@ public sealed class MeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (_, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            var renderer = relatedComponent as MeshRenderer;
+            var renderer = entry.component as MeshRenderer;
 
             if (renderer.mesh == null ||
                 renderer.materials == null ||
@@ -136,31 +136,33 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             renderer.mesh.UploadMeshData();
 
-            if (transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
+            if (entry.transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
             {
-                var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(transform.LocalRotation));
+                var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.LocalRotation));
 
-                var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(transform.Rotation));
+                var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.Rotation));
 
-                renderer.localBounds = new(transform.LocalPosition + renderer.mesh.bounds.center.Transformed(transform.LocalRotation) * transform.LocalScale,
-                    localSize * transform.LocalScale);
+                renderer.localBounds = new(entry.transform.LocalPosition +
+                    renderer.mesh.bounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
+                    localSize * entry.transform.LocalScale);
 
-                renderer.bounds = new(transform.Position + renderer.mesh.bounds.center.Transformed(transform.Rotation) * transform.Scale,
-                    globalSize * transform.Scale);
+                renderer.bounds = new(entry.transform.Position +
+                    renderer.mesh.bounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
+                    globalSize * entry.transform.Scale);
             }
         }
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
         foreach (var p in instanceCache)
         {
             p.Value.instanceInfos.Clear();
         }
 
-        foreach (var (_, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            var renderer = relatedComponent as MeshRenderer;
+            var renderer = entry.component as MeshRenderer;
 
             if (renderer.isVisible == false ||
                 renderer.mesh == null ||
@@ -205,7 +207,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                     mesh = renderer.mesh,
                     material = material,
                     lighting = lighting,
-                    transform = transform,
+                    transform = entry.transform,
                     submeshIndex = submeshIndex,
                 });
             }
@@ -244,6 +246,12 @@ public sealed class MeshRenderSystem : IRenderSystem
         var lastInstances = 0;
         var forceDiscard = false;
 
+        var renderState = new RenderState()
+        {
+            depthWrite = true,
+            enableDepth = true,
+        };
+
         foreach (var (_, contents) in instanceCache)
         {
             if (contents.instanceInfos.Length == 0)
@@ -261,12 +269,6 @@ public sealed class MeshRenderSystem : IRenderSystem
             var material = renderData.material;
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
-            var renderState = new RenderState()
-            {
-                depthWrite = true,
-                enableDepth = true,
-            };
 
             if (needsDiscard)
             {

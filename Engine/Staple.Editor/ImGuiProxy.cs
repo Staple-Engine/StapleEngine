@@ -615,7 +615,7 @@ internal class ImGuiProxy
                             }
                             else
                             {
-                                textures = emptyTexture;
+                                textures = [Material.WhiteTexture];
                             }
 
                             var clipRect = new Vector4((drawCmd.ClipRect.X - clipPos.X) * clipScale.X,
@@ -645,7 +645,7 @@ internal class ImGuiProxy
                                     indexCount = (int)drawCmd.ElemCount,
                                     shader = this.program,
                                     shaderVariant = "",
-                                    textures = textures,
+                                    fragmentTextures = textures,
                                     world = Matrix4x4.Identity,
                                 };
 

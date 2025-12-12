@@ -125,14 +125,13 @@ internal partial class StapleEditor
             ImGuizmo.Enable(false);
         }
 
-
         var renderSystem = RenderSystem.Instance;
 
         RenderSystem.RenderStats.Clear();
 
-        foreach (var system in renderSystem.renderSystems)
+        foreach (var systemInfo in renderSystem.renderSystems)
         {
-            system.Prepare();
+            systemInfo.system.Prepare();
         }
 
         RenderSystem.CurrentCamera = (camera, cameraTransform);

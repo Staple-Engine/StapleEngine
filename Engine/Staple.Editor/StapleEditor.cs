@@ -183,7 +183,7 @@ internal partial class StapleEditor
     class RenderQueue : IWorldChangeReceiver
     {
         public readonly SceneQuery<Transform> transforms = new(true);
-        public readonly Dictionary<IRenderSystem, (List<(Entity, Transform, IComponent)>, List<(Entity, Transform, Renderable)>)> renderQueue = [];
+        public readonly Dictionary<IRenderSystem, (List<RenderEntry>, List<(Entity, Transform, Renderable)>)> renderQueue = [];
         public readonly List<Entity> disabledEntities = [];
         private readonly Dictionary<IRenderSystem, bool> componentIsRenderable = [];
 
@@ -193,14 +193,14 @@ internal partial class StapleEditor
             disabledEntities.Clear();
             componentIsRenderable.Clear();
 
-            foreach (var system in RenderSystem.Instance.renderSystems)
+            foreach (var systemInfo in RenderSystem.Instance.renderSystems)
             {
-                if(system.UsesOwnRenderProcess)
+                if(systemInfo.system.UsesOwnRenderProcess)
                 {
                     continue;
                 }
 
-                componentIsRenderable.Add(system, system.RelatedComponent?.IsAssignableTo(typeof(Renderable)) ?? false);
+                componentIsRenderable.Add(systemInfo.system, systemInfo.isRenderable);
             }
 
             foreach (var (entity, transform) in transforms.Contents)
@@ -219,25 +219,25 @@ internal partial class StapleEditor
                     continue;
                 }
 
-                foreach (var system in RenderSystem.Instance.renderSystems)
+                foreach (var systemInfo in RenderSystem.Instance.renderSystems)
                 {
-                    if (system.UsesOwnRenderProcess)
+                    if (systemInfo.system.UsesOwnRenderProcess)
                     {
                         continue;
                     }
 
-                    if (renderQueue.TryGetValue(system, out var content) == false)
+                    if (renderQueue.TryGetValue(systemInfo.system, out var content) == false)
                     {
                         content = ([], []);
 
-                        renderQueue.Add(system, content);
+                        renderQueue.Add(systemInfo.system, content);
                     }
 
-                    if (entity.TryGetComponent(system.RelatedComponent, out var component))
+                    if (entity.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                     {
-                        content.Item1.Add((entity, transform, component));
+                        content.Item1.Add(new(entity, transform, component));
 
-                        var isRenderable = componentIsRenderable[system];
+                        var isRenderable = componentIsRenderable[systemInfo.system];
 
                         if(isRenderable)
                         {

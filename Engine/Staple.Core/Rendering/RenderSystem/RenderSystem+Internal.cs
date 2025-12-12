@@ -57,7 +57,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// All registered render systems
     /// </summary>
-    internal readonly List<IRenderSystem> renderSystems = [];
+    internal readonly List<RenderSystemInfo> renderSystems = [];
 
     /// <summary>
     /// Temporary transform for rendering with the interpolator
@@ -72,7 +72,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// The render queue
     /// </summary>
-    private readonly List<((Camera, Transform), List<(IRenderSystem, List<(Entity, Transform, IComponent)>)>)> renderQueue = [];
+    private readonly List<((Camera, Transform), List<(RenderSystemInfo, List<RenderEntry>)>)> renderQueue = [];
 
     /// <summary>
     /// The entity query for every entity with a transform
@@ -195,9 +195,9 @@ public sealed partial class RenderSystem
 
     public void Shutdown()
     {
-        foreach (var system in renderSystems)
+        foreach (var systemInfo in renderSystems)
         {
-            system.Shutdown();
+            systemInfo.system.Shutdown();
         }
     }
 
@@ -212,14 +212,14 @@ public sealed partial class RenderSystem
 
         ClearCullingStates();
 
-        foreach(var system in renderSystems)
+        foreach (var systemInfo in renderSystems)
         {
-            if(system.UsesOwnRenderProcess == false)
+            if(systemInfo.system.UsesOwnRenderProcess == false)
             {
                 continue;
             }
 
-            system.Prepare();
+            systemInfo.system.Prepare();
         }
 
         if (UseDrawcallInterpolator)
@@ -231,14 +231,14 @@ public sealed partial class RenderSystem
             UpdateStandard();
         }
 
-        foreach (var system in renderSystems)
+        foreach (var systemInfo in renderSystems)
         {
-            if (system.UsesOwnRenderProcess == false)
+            if (systemInfo.system.UsesOwnRenderProcess == false)
             {
                 continue;
             }
 
-            system.Submit();
+            systemInfo.system.Submit();
         }
     }
 
@@ -251,9 +251,9 @@ public sealed partial class RenderSystem
         {
             foreach (var item in pair.Item2)
             {
-                foreach (var (_, _, renderable) in item.Item2)
+                foreach (var entry in item.Item2)
                 {
-                    if (renderable is not Renderable r)
+                    if (entry.component is not Renderable r)
                     {
                         continue;
                     }
@@ -274,9 +274,9 @@ public sealed partial class RenderSystem
         {
             for (var i = renderSystems.Count - 1; i >= 0; i--)
             {
-                if (renderSystems[i].GetType().Assembly == assembly)
+                if (renderSystems[i].system.GetType().Assembly == assembly)
                 {
-                    renderSystems[i].Shutdown();
+                    renderSystems[i].system.Shutdown();
 
                     renderSystems.RemoveAt(i);
                 }
@@ -296,7 +296,7 @@ public sealed partial class RenderSystem
             {
                 foreach (var cameraInfo in cameras)
                 {
-                    var collected = new Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>>();
+                    var collected = new Dictionary<RenderSystemInfo, List<RenderEntry>>();
 
                     foreach (var entityInfo in entityQuery.Contents)
                     {
@@ -307,28 +307,28 @@ public sealed partial class RenderSystem
                             continue;
                         }
 
-                        foreach (var system in renderSystems)
+                        foreach (var systemInfo in renderSystems)
                         {
-                            if(system.UsesOwnRenderProcess)
+                            if(systemInfo.system.UsesOwnRenderProcess)
                             {
                                 continue;
                             }
 
-                            if (collected.TryGetValue(system, out var content) == false)
+                            if (collected.TryGetValue(systemInfo, out var content) == false)
                             {
                                 content = [];
 
-                                collected.Add(system, content);
+                                collected.Add(systemInfo, content);
                             }
 
-                            if (entityInfo.Item1.TryGetComponent(system.RelatedComponent, out var component))
+                            if (entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                             {
-                                content.Add((entityInfo.Item1, entityInfo.Item2, component));
+                                content.Add(new(entityInfo.Item1, entityInfo.Item2, component));
                             }
                         }
                     }
 
-                    var final = new List<(IRenderSystem, List<(Entity, Transform, IComponent)>)>();
+                    var final = new List<(RenderSystemInfo, List<RenderEntry>)>();
 
                     foreach(var pair in collected)
                     {
@@ -402,29 +402,31 @@ public sealed partial class RenderSystem
                     camera.UpdateFrustum(view, projection);
                 }
 
-                foreach (var systemInfo in pair.Item2)
+                foreach (var systems in pair.Item2)
                 {
-                    var system = systemInfo.Item1;
-                    var contents = systemInfo.Item2;
+                    var systemInfo = systems.Item1;
+                    var contents = systems.Item2;
 
                     if(contents.Count == 0)
                     {
                         continue;
                     }
 
-                    system.Preprocess(CollectionsMarshal.AsSpan(contents), camera, cameraTransform);
+                    systemInfo.system.Preprocess(CollectionsMarshal.AsSpan(contents), camera, cameraTransform);
 
-                    var contentLength = contents.Count;
-
-                    for (var j = 0; j < contentLength; j++)
+                    if(systemInfo.isRenderable)
                     {
-                        if (contents[j].Item3 is Renderable renderable)
+                        var contentLength = contents.Count;
+
+                        for (var j = 0; j < contentLength; j++)
                         {
+                            var renderable = (Renderable)contents[j].component;
+
                             renderable.isVisible = renderable.enabled &&
                                 renderable.forceRenderingOff == false &&
                                 renderable.cullingState != CullingState.Invisible;
 
-                            if(renderable.isVisible)
+                            if (renderable.isVisible)
                             {
                                 if (renderable.cullingState == CullingState.None)
                                 {
@@ -435,7 +437,7 @@ public sealed partial class RenderSystem
 
                                 if (renderable.isVisible)
                                 {
-                                    AddDrawCall(contents[j].Item1, contents[j].Item2, contents[j].Item3, renderable);
+                                    AddDrawCall(contents[j].entity, contents[j].transform, contents[j].component, renderable);
                                 }
                                 else
                                 {

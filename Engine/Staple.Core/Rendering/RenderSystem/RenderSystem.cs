@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -10,6 +11,25 @@ namespace Staple.Internal;
 /// </summary>
 public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 {
+    /// <summary>
+    /// Contains information on a render system and its capabilities
+    /// </summary>
+    public readonly struct RenderSystemInfo(IRenderSystem system, bool isRenderable)
+    {
+        public readonly IRenderSystem system = system;
+        public readonly bool isRenderable = isRenderable;
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(system, isRenderable);
+        }
+
+        public override bool Equals([NotNullWhen(true)] object obj)
+        {
+            return obj is RenderSystemInfo info && info.system == system && info.isRenderable == isRenderable;
+        }
+    }
+
     public SubsystemType type { get; } = SubsystemType.Update;
 
     /// <summary>
@@ -47,7 +67,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
         {
             foreach (var s in renderSystems)
             {
-                if (s == system || s.GetType() == system.GetType())
+                if (s.system == system || s.system.GetType() == system.GetType())
                 {
                     return;
                 }
@@ -69,7 +89,9 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 World.AddChangeReceiver(receiver);
             }
 
-            renderSystems.Add(system);
+            renderSystems.Add(new(system, system.RelatedComponent != null &&
+                (system.RelatedComponent.IsSubclassOf(typeof(Renderable)) ||
+                system.RelatedComponent == typeof(Renderable))));
         }
     }
 
@@ -84,7 +106,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
         {
             foreach(var s in renderSystems)
             {
-                if(s is T instance)
+                if(s.system is T instance)
                 {
                     return instance;
                 }
@@ -121,7 +143,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="queue">The render queue for this camera</param>
     /// <param name="cull">Whether to cull invisible elements</param>
     public static void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        List<(IRenderSystem, List<(Entity, Transform, IComponent)>)> queue, bool cull)
+        List<(RenderSystemInfo, List<RenderEntry>)> queue, bool cull)
     {
         CurrentCamera = (camera, cameraTransform);
 
@@ -131,23 +153,25 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         for (var i = 0; i < queueLength; i++)
         {
-            var (system, content) = queue[i];
+            var (systemInfo, content) = queue[i];
 
             if (content.Count == 0)
             {
                 continue;
             }
 
-            system.Prepare();
+            systemInfo.system.Prepare();
 
-            system.Preprocess(CollectionsMarshal.AsSpan(content), camera, cameraTransform);
+            systemInfo.system.Preprocess(CollectionsMarshal.AsSpan(content), camera, cameraTransform);
 
-            var contentLength = content.Count;
-
-            for (var j = 0; j < contentLength; j++)
+            if(systemInfo.isRenderable)
             {
-                if (content[j].Item3 is Renderable renderable)
+                var contentLength = content.Count;
+
+                for (var j = 0; j < contentLength; j++)
                 {
+                    var renderable = (Renderable)content[j].component;
+
                     renderable.isVisible = renderable.enabled &&
                         renderable.forceRenderingOff == false &&
                         renderable.cullingState != CullingState.Invisible;
@@ -169,19 +193,19 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 }
             }
 
-            system.Process(CollectionsMarshal.AsSpan(content), camera, cameraTransform);
+            systemInfo.system.Process(CollectionsMarshal.AsSpan(content), camera, cameraTransform);
         }
 
         for (var i = 0; i < queueLength; i++)
         {
-            var (system, content) = queue[i];
+            var (systemInfo, content) = queue[i];
 
             if (content.Count == 0)
             {
                 continue;
             }
 
-            system.Submit();
+            systemInfo.system.Submit();
         }
     }
 
@@ -203,48 +227,50 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         CurrentCamera = (camera, cameraTransform);
 
-        var systems = new List<IRenderSystem>();
+        var systems = new List<RenderSystemInfo>();
 
         lock (lockObject)
         {
             systems.AddRange(renderSystems);
         }
 
-        foreach (var system in systems)
+        foreach (var systemInfo in systems)
         {
-            if (system.UsesOwnRenderProcess)
+            if (systemInfo.system.UsesOwnRenderProcess)
             {
                 continue;
             }
 
-            system.Prepare();
+            systemInfo.system.Prepare();
         }
 
-        var systemQueues = new Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>>();
+        var systemQueues = new Dictionary<RenderSystemInfo, List<RenderEntry>>();
 
         void Handle(Entity e, Transform t)
         {
-            foreach (var system in systems)
+            foreach (var systemInfo in systems)
             {
-                if (system.UsesOwnRenderProcess)
+                if (systemInfo.system.UsesOwnRenderProcess)
                 {
                     continue;
                 }
 
-                if (systemQueues.TryGetValue(system, out var queue) == false)
+                if (systemQueues.TryGetValue(systemInfo, out var queue) == false)
                 {
                     queue = [];
 
-                    systemQueues.Add(system, queue);
+                    systemQueues.Add(systemInfo, queue);
                 }
 
-                if (system.RelatedComponent != null &&
-                    e.TryGetComponent(system.RelatedComponent, out var related))
+                if (systemInfo.system.RelatedComponent != null &&
+                    e.TryGetComponent(systemInfo.system.RelatedComponent, out var related))
                 {
-                    system.Preprocess([(e, t, related)], camera, cameraTransform);
+                    systemInfo.system.Preprocess([new(e, t, related)], camera, cameraTransform);
 
-                    if (related is Renderable renderable)
+                    if (systemInfo.isRenderable)
                     {
+                        var renderable = (Renderable)related;
+
                         renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
 
                         if (renderable.isVisible && cull)
@@ -258,7 +284,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                         }
                     }
 
-                    queue.Add((e, t, related));
+                    queue.Add(new(e, t, related));
                 }
             }
 
@@ -274,9 +300,9 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         foreach (var pair in systemQueues)
         {
-            pair.Key.Process(CollectionsMarshal.AsSpan(pair.Value), camera, cameraTransform);
+            pair.Key.system.Process(CollectionsMarshal.AsSpan(pair.Value), camera, cameraTransform);
 
-            pair.Key.Submit();
+            pair.Key.system.Submit();
         }
 
         CurrentCamera = (c.Item1, c.Item2);
@@ -292,21 +318,21 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     {
         CurrentCamera = (camera, cameraTransform);
 
-        var systems = new List<IRenderSystem>();
+        var systems = new List<RenderSystemInfo>();
 
         lock (lockObject)
         {
             systems.AddRange(renderSystems);
         }
 
-        foreach (var system in systems)
+        foreach (var systemInfo in systems)
         {
-            if (system.UsesOwnRenderProcess)
+            if (systemInfo.system.UsesOwnRenderProcess)
             {
                 continue;
             }
 
-            system.Prepare();
+            systemInfo.system.Prepare();
         }
 
         var alpha = accumulator / Time.fixedDeltaTime;
@@ -340,11 +366,11 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                         stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
                     }
 
-                    foreach (var system in systems)
+                    foreach (var systemInfo in systems)
                     {
-                        if (call.relatedComponent.GetType() == system.RelatedComponent)
+                        if (call.relatedComponent.GetType() == systemInfo.system.RelatedComponent)
                         {
-                            system.Process([(call.entity, stagingTransform, call.relatedComponent)],
+                            systemInfo.system.Process([new(call.entity, stagingTransform, call.relatedComponent)],
                                 camera, cameraTransform);
                         }
                     }
@@ -354,9 +380,9 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         PrepareCamera(cameraEntity, camera, cameraTransform);
 
-        foreach (var system in systems)
+        foreach (var systemInfo in systems)
         {
-            system.Submit();
+            systemInfo.system.Submit();
         }
     }
 }

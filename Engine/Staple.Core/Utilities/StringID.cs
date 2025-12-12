@@ -21,6 +21,8 @@ public readonly struct StringID : IEquatable<StringID>
         stringCache.AddOrSetKey(ID, name);
     }
 
+    public static implicit operator StringID(string s) => new(s);
+
     public override readonly string ToString()
     {
         var name = stringCache.TryGetValue(ID, out var n) ? n : "(invalid)";

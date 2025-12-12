@@ -108,11 +108,11 @@ namespace Staple
             }
             else
             {
-                material.ApplyProperties(Material.ApplyMode.All, ref renderState);
-
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
                 material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                material.ApplyProperties(Material.ApplyMode.All, ref renderState);
             }
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();

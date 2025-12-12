@@ -50,20 +50,17 @@ public class TextRenderSystem : IRenderSystem
         }
     }
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
         texts.Clear();
 
-        foreach (var (_, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            if (relatedComponent is not Text text)
-            {
-                continue;
-            }
+            var text = (Text)entry.component;
 
             text.text ??= "";
 
@@ -76,7 +73,7 @@ public class TextRenderSystem : IRenderSystem
             {
                 text = text.text,
                 fontSize = text.fontSize,
-                transform = transform,
+                transform = entry.transform,
                 fontAsset = text.font,
                 scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (Screen.Height / (float)(activeCamera.orthographicSize * 2)) : 1,
             });

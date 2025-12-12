@@ -25,7 +25,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
     {
     }
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
@@ -34,11 +34,11 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
     }
     #endregion
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (entity, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            var animator = relatedComponent as SkinnedMeshAnimator;
+            var animator = entry.component as SkinnedMeshAnimator;
 
             if (animator.mesh == null ||
                 animator.mesh.meshAsset == null ||
@@ -54,7 +54,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
             {
                 animator.transformCache = new Transform[animator.mesh.meshAsset.nodes.Length];
 
-                SkinnedMeshRenderSystem.GatherNodeTransforms(transform, animator.transformCache, animator.mesh.meshAsset.nodes);
+                SkinnedMeshRenderSystem.GatherNodeTransforms(entry.transform, animator.transformCache, animator.mesh.meshAsset.nodes);
             }
 
             if (Platform.IsPlaying)
@@ -85,7 +85,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
                 if(animator.evaluator?.Evaluate() ?? false)
                 {
-                    animator.modifiers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
+                    animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
 
                     foreach(var (t, modifier) in animator.modifiers.Contents)
                     {
@@ -101,7 +101,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
                     animator.evaluator = null;
 
-                    animator.modifiers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
+                    animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
 
                     foreach (var (t, modifier) in animator.modifiers.Contents)
                     {

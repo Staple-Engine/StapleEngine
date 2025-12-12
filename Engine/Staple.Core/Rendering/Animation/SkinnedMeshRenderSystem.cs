@@ -33,11 +33,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public Type RelatedComponent => typeof(SkinnedMeshRenderer);
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (_, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            var renderer = relatedComponent as SkinnedMeshRenderer;
+            var renderer = entry.component as SkinnedMeshRenderer;
 
             if (renderer.mesh == null ||
                 renderer.mesh.meshAsset == null ||
@@ -66,28 +66,29 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if (transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
+            if (entry.transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
             {
-                var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(transform.LocalRotation));
+                var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.LocalRotation));
 
-                var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(transform.Rotation));
+                var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.Rotation));
 
-                renderer.localBounds = new(transform.LocalPosition + renderer.mesh.bounds.center.Transformed(transform.LocalRotation) * transform.LocalScale,
-                    localSize * transform.LocalScale);
+                renderer.localBounds = new(entry.transform.LocalPosition +
+                    renderer.mesh.bounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
+                    localSize * entry.transform.LocalScale);
 
-                renderer.bounds = new(transform.Position + renderer.mesh.bounds.center.Transformed(transform.Rotation) * transform.Scale,
-                    globalSize * transform.Scale);
+                renderer.bounds = new(entry.transform.Position + renderer.mesh.bounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
+                    globalSize * entry.transform.Scale);
             }
         }
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
         renderers.Clear();
 
-        foreach (var (entity, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            var renderer = relatedComponent as SkinnedMeshRenderer;
+            var renderer = entry.component as SkinnedMeshRenderer;
 
             if (renderer.isVisible == false ||
                 renderer.mesh?.MeshAssetMesh == null ||
@@ -118,7 +119,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             if (renderer.instance == null)
             {
-                var rootTransform = FindRootTransform(transform, renderer.mesh.meshAsset.nodes.FirstOrDefault());
+                var rootTransform = FindRootTransform(entry.transform, renderer.mesh.meshAsset.nodes.FirstOrDefault());
 
                 if (rootTransform != null)
                 {
@@ -135,13 +136,13 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     }
                 }
 
-                renderer.instance ??= new(entity, EntityQueryMode.Parent, false);
+                renderer.instance ??= new(entry.entity, EntityQueryMode.Parent, false);
             }
 
             renderers.Add(new()
             {
                 renderer = renderer,
-                transform = transform,
+                transform = entry.transform,
             });
         }
 

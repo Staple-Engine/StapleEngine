@@ -30,19 +30,19 @@ public interface IRenderSystem
     /// Pre-processes an entity.
     /// Use this to prepare information before the rendering pass, such as updating bounds.
     /// </summary>
-    /// <param name="entities">A list of all entities, transforms, and the related component</param>
+    /// <param name="renderQueue">A list of all entities, transforms, and the related component</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
-    void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform);
+    void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform);
 
     /// <summary>
     /// Processes the entity.
     /// This is when you should handle the entity's data in order to render.
     /// </summary>
-    /// <param name="entities">A list of all entities, transforms, and the related component</param>
+    /// <param name="renderQueue">A list of all entities, transforms, and the related component</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
-    void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform);
+    void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform);
 
     /// <summary>
     /// Submits all rendering commands to the renderer
