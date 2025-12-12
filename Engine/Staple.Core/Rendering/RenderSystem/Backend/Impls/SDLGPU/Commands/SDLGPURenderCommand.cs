@@ -3,14 +3,13 @@ using System.Collections.Generic;
 
 namespace Staple.Internal;
 
-internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.GPUTextureSamplerBinding[] vertexSamplers,
-    SDL.GPUTextureSamplerBinding[] fragmentSamplers, List<SDLGPURendererBackend.StapleShaderUniform> vertexUniformData,
-    List<SDLGPURendererBackend.StapleShaderUniform> fragmentUniformData, SDLGPUShaderProgram program) : IRenderCommand
+internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] vertexTextures, Texture[] fragmentTextures,
+    List<SDLGPURendererBackend.StapleShaderUniform> vertexUniformData, List<SDLGPURendererBackend.StapleShaderUniform> fragmentUniformData, SDLGPUShaderProgram program) : IRenderCommand
 {
     public RenderState state = state;
     public nint pipeline = pipeline;
-    public SDL.GPUTextureSamplerBinding[] vertexSamplers = vertexSamplers;
-    public SDL.GPUTextureSamplerBinding[] fragmentSamplers = fragmentSamplers;
+    public Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
+    public Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
     public List<SDLGPURendererBackend.StapleShaderUniform> vertexUniformData = vertexUniformData;
     public List<SDLGPURendererBackend.StapleShaderUniform> fragmentUniformData = fragmentUniformData;
     public SDLGPUShaderProgram program = program;
@@ -18,12 +17,13 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.GPUText
     public void Update(IRendererBackend rendererBackend)
     {
         var backend = (SDLGPURendererBackend)rendererBackend;
-        var shaderInstance = state.shader.instances.TryGetValue(state.shaderVariant, out var sv) ? sv : null;
         var vertex = (SDLGPUVertexBuffer)state.vertexBuffer;
         var index = (SDLGPUIndexBuffer)state.indexBuffer;
 
         if (backend.TryGetVertexBuffer(vertex.handle, out var vertexBuffer) == false ||
-            backend.TryGetIndexBuffer(index.handle, out var indexBuffer) == false)
+            backend.TryGetIndexBuffer(index.handle, out var indexBuffer) == false ||
+            backend.TryGetTextureSamplers(vertexTextures, fragmentTextures, state.shaderInstance,
+                out var vertexSamplers, out var fragmentSamplers) == false)
         {
             return;
         }
@@ -103,7 +103,7 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, SDL.GPUText
                 var bufferArray = buffers.ToArray();
 
                 SDL.BindGPUVertexStorageBuffers(renderPass,
-                    (uint)(shaderInstance.vertexShaderMetrics.samplerCount + shaderInstance.vertexShaderMetrics.storageTextureCount),
+                    (uint)(state.shaderInstance.vertexShaderMetrics.samplerCount + state.shaderInstance.vertexShaderMetrics.storageTextureCount),
                     bufferArray, (uint)buffers.Count);
             }
         }

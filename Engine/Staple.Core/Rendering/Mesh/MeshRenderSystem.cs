@@ -91,17 +91,14 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         lightSystem?.ApplyMaterialLighting(material, lighting);
 
-        var program = material.ShaderProgram;
-
-        if (program != null)
+        if (material.ShaderProgram == null)
         {
-            renderState.shader = material.shader;
-            renderState.shaderVariant = material.ShaderVariantKey;
-
-            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
-
-            RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
+            return;
         }
+
+        lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+
+        RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
     }
 
     public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
@@ -355,9 +352,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     if(program != null)
                     {
-                        renderState.shader = material.shader;
-                        renderState.shaderVariant = material.ShaderVariantKey;
-
                         RenderSystem.Submit(renderState, renderData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
                     }
                 }

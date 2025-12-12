@@ -4,6 +4,8 @@ internal interface IShaderProgram
 {
     ShaderType Type { get; }
 
+    int StateKey { get; }
+
     bool TryGetVertexUniformData(ShaderUniformField field, out byte[] data);
 
     bool TryGetVertexUniformData(ShaderUniformMapping mapping, out byte[] data);

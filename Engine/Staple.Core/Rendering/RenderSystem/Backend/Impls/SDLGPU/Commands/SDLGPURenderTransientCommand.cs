@@ -4,16 +4,15 @@ using System.Collections.Generic;
 
 namespace Staple.Internal;
 
-internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline,
-    SDL.GPUTextureSamplerBinding[] vertexSamplers, SDL.GPUTextureSamplerBinding[] fragmentSamplers,
+internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Texture[] vertexTextures, Texture[] fragmentTextures,
     List<SDLGPURendererBackend.StapleShaderUniform> vertexUniformData, List<SDLGPURendererBackend.StapleShaderUniform> fragmentUniformData,
     SDLGPUShaderProgram program, SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
 {
     public RenderState state = state;
     public nint pipeline = pipeline;
-    public SDL.GPUTextureSamplerBinding[] vertexSamplers = vertexSamplers;
-    public SDL.GPUTextureSamplerBinding[] fragmentSamplers = fragmentSamplers;
     public SDLGPURendererBackend.TransientEntry entry = entry;
+    public Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
+    public Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
     public List<SDLGPURendererBackend.StapleShaderUniform> vertexUniformData = vertexUniformData;
     public List<SDLGPURendererBackend.StapleShaderUniform> fragmentUniformData = fragmentUniformData;
     public SDLGPUShaderProgram program = program;
@@ -21,9 +20,10 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline,
     public void Update(IRendererBackend rendererBackend)
     {
         var backend = (SDLGPURendererBackend)rendererBackend;
-        var shaderInstance = state.shader.instances.TryGetValue(state.shaderVariant, out var sv) ? sv : null;
 
-        if (entry.vertexBuffer == nint.Zero)
+        if (entry.vertexBuffer == nint.Zero ||
+            backend.TryGetTextureSamplers(vertexTextures, fragmentTextures, state.shaderInstance,
+                out var vertexSamplers, out var fragmentSamplers) == false)
         {
             return;
         }
@@ -111,7 +111,7 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline,
                 var bufferArray = buffers.ToArray();
 
                 SDL.BindGPUVertexStorageBuffers(renderPass,
-                    (uint)(shaderInstance.vertexShaderMetrics.samplerCount + shaderInstance.vertexShaderMetrics.storageTextureCount),
+                    (uint)(state.shaderInstance.vertexShaderMetrics.samplerCount + state.shaderInstance.vertexShaderMetrics.storageTextureCount),
                     bufferArray, (uint)buffers.Count);
             }
         }

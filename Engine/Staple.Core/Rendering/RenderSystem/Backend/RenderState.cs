@@ -5,14 +5,17 @@ namespace Staple.Internal;
 
 internal struct RenderState
 {
-    public Shader shader;
-    public ComputeShader computeShader;
-    public StringID shaderVariant;
     public MeshTopology primitiveType;
     public CullingMode cull;
     public bool wireframe;
     public bool enableDepth;
     public bool depthWrite;
+    public BlendMode sourceBlend;
+    public BlendMode destinationBlend;
+
+    public Shader shader;
+    public ComputeShader computeShader;
+    public Shader.ShaderInstance shaderInstance;
     public VertexBuffer vertexBuffer;
     public IndexBuffer indexBuffer;
     public InstanceBuffer instanceBuffer;
@@ -21,8 +24,6 @@ internal struct RenderState
     public int startIndex;
     public int indexCount;
     public RenderTarget renderTarget;
-    public BlendMode sourceBlend;
-    public BlendMode destinationBlend;
     public Rect scissor;
     public Texture[] vertexTextures;
     public Texture[] fragmentTextures;
@@ -34,7 +35,6 @@ internal struct RenderState
         {
             var hashCode = new HashCode();
 
-            hashCode.Add(shaderVariant);
             hashCode.Add(primitiveType);
             hashCode.Add(cull);
             hashCode.Add(wireframe);
@@ -43,53 +43,7 @@ internal struct RenderState
             hashCode.Add(vertexBuffer?.layout);
             hashCode.Add(sourceBlend);
             hashCode.Add(destinationBlend);
-
-            if(storageBuffers != null)
-            {
-                foreach(var t in storageBuffers)
-                {
-                    hashCode.Add(t);
-                }
-            }
-
-            if (vertexTextures != null)
-            {
-                foreach(var t in vertexTextures)
-                {
-                    hashCode.Add(t);
-                }
-            }
-
-            if (fragmentTextures != null)
-            {
-                foreach (var t in fragmentTextures)
-                {
-                    hashCode.Add(t);
-                }
-            }
-
-            if ((renderTarget?.Disposed ?? true) == false)
-            {
-                for(var i = 0; i < renderTarget.ColorTextureCount; i++)
-                {
-                    var texture = renderTarget.GetColorTexture(i);
-
-                    if((texture?.Disposed ?? true) || texture.impl is not SDLGPUTexture t)
-                    {
-                        continue;
-                    }
-
-                    hashCode.Add(t.handle);
-                }
-
-                {
-                    if ((renderTarget.DepthTexture?.Disposed ?? true) == false &&
-                        renderTarget.DepthTexture.impl is SDLGPUTexture t)
-                    {
-                        hashCode.Add(t.handle);
-                    }
-                }
-            }
+            hashCode.Add(shaderInstance?.program?.StateKey ?? 0);
 
             return hashCode.ToHashCode();
         }

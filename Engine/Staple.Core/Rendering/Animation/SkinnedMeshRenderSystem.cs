@@ -321,10 +321,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 var buffer = instance.boneBuffer;
 
-                renderState.shader = material.shader;
-
-                renderState.shaderVariant = material.ShaderVariantKey;
-
                 renderState.storageBuffers = [(0, buffer)];
 
                 RenderSystem.Submit(renderState, renderer.mesh.SubmeshTriangleCount(j), 1);

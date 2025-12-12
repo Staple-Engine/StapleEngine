@@ -8,6 +8,7 @@ namespace Staple.Internal;
 internal class SDLGPUShaderProgram : IShaderProgram
 {
     public ShaderType Type { get; private set; }
+    public int StateKey => HashCode.Combine(device, vertex, fragment, compute, disposed);
 
     public readonly nint device;
     public nint vertex;

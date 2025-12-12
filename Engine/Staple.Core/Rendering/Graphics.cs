@@ -60,28 +60,25 @@ namespace Staple
             }
             else
             {
-                material.ApplyProperties(Material.ApplyMode.All, ref renderState);
-
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
                 material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                material.ApplyProperties(Material.ApplyMode.All, ref renderState);
             }
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
             lightSystem?.ApplyMaterialLighting(material, lighting);
 
-            var program = material.ShaderProgram;
-
-            if(program != null)
+            if (material.ShaderProgram == null)
             {
-                renderState.shader = material.shader;
-                renderState.shaderVariant = material.ShaderVariantKey;
-
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
-
-                RenderSystem.Submit(renderState, Mesh.TriangleCount(topology, indexCount), 1);
+                return;
             }
+
+            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+
+            RenderSystem.Submit(renderState, Mesh.TriangleCount(topology, indexCount), 1);
         }
 
         public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, Material material, Vector3 position,
@@ -119,15 +116,10 @@ namespace Staple
 
             lightSystem?.ApplyMaterialLighting(material, lighting);
 
-            var program = material.ShaderProgram;
-
-            if (program == null)
+            if (material.ShaderProgram == null)
             {
                 return;
             }
-
-            renderState.shader = material.shader;
-            renderState.shaderVariant = material.ShaderVariantKey;
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
@@ -158,26 +150,21 @@ namespace Staple
             }
             else
             {
-                material.ApplyProperties(Material.ApplyMode.All, ref renderState);
-
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
                 material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                material.ApplyProperties(Material.ApplyMode.All, ref renderState);
             }
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
             lightSystem?.ApplyMaterialLighting(material, lighting);
 
-            var program = material.ShaderProgram;
-
-            if (program == null)
+            if (material.ShaderProgram == null)
             {
                 return;
             }
-
-            renderState.shader = material.shader;
-            renderState.shaderVariant = material.ShaderVariantKey;
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 

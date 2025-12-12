@@ -992,4 +992,52 @@ internal partial class SDLGPURendererBackend
 
         return false;
     }
+
+    internal bool TryGetTextureSamplers(Texture[] vertexTextures, Texture[] fragmentTextures, Shader.ShaderInstance instance,
+        out SDL.GPUTextureSamplerBinding[] vertexSamplers, out SDL.GPUTextureSamplerBinding[] fragmentSamplers)
+    {
+        var vertexSamplerCount = instance.vertexTextureBindings.Count;
+        var fragmentSamplerCount = instance.fragmentTextureBindings.Count;
+
+        vertexSamplers = vertexSamplerCount > 0 ? new SDL.GPUTextureSamplerBinding[vertexSamplerCount] : null;
+        fragmentSamplers = fragmentSamplerCount > 0 ? new SDL.GPUTextureSamplerBinding[fragmentSamplerCount] : null;
+
+        if (vertexSamplers != null)
+        {
+            for (var i = 0; i < vertexSamplers.Length; i++)
+            {
+                if (vertexTextures[i]?.impl is not SDLGPUTexture texture ||
+                    texture.Disposed ||
+                    TryGetTexture(texture.handle, out var resource) == false)
+                {
+                    vertexSamplers = fragmentSamplers = default;
+
+                    return false;
+                }
+
+                vertexSamplers[i].Texture = resource.texture;
+                vertexSamplers[i].Sampler = GetSampler(texture.flags);
+            }
+        }
+
+        if (fragmentSamplers != null)
+        {
+            for (var i = 0; i < fragmentSamplers.Length; i++)
+            {
+                if (fragmentTextures[i]?.impl is not SDLGPUTexture texture ||
+                    texture.Disposed ||
+                    TryGetTexture(texture.handle, out var resource) == false)
+                {
+                    vertexSamplers = fragmentSamplers = default;
+
+                    return false;
+                }
+
+                fragmentSamplers[i].Texture = resource.texture;
+                fragmentSamplers[i].Sampler = GetSampler(texture.flags);
+            }
+        }
+
+        return true;
+    }
 }

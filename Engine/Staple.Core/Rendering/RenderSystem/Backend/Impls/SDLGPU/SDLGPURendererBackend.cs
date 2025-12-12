@@ -446,7 +446,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     internal readonly MemoryAllocator frameAllocator = new();
 
     private SDL3RenderWindow window;
-    private readonly Dictionary<int, (nint, SDL.GPUTextureSamplerBinding[], SDL.GPUTextureSamplerBinding[])> graphicsPipelines = [];
+    private readonly Dictionary<int, nint> graphicsPipelines = [];
     private readonly Dictionary<TextureFlags, nint> textureSamplers = [];
     private bool needsDepthTextureUpdate = false;
     private readonly List<IRenderCommand> commands = [];
@@ -672,7 +672,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         {
             foreach(var pair in graphicsPipelines)
             {
-                SDL.ReleaseGPUGraphicsPipeline(device, pair.Value.Item1);
+                SDL.ReleaseGPUGraphicsPipeline(device, pair.Value);
             }
 
             graphicsPipelines.Clear();
@@ -1152,17 +1152,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             GetTextureUsage(flags));
     }
 
-    private bool TryGetRenderPipeline(RenderState state, SDLGPUVertexLayout vertexLayout,
-        out SDL.GPUTextureSamplerBinding[] vertexSamplers,
-        out SDL.GPUTextureSamplerBinding[] fragmentSamplers, out nint pipeline)
+    private bool TryGetRenderPipeline(RenderState state, SDLGPUVertexLayout vertexLayout, out nint pipeline)
     {
         if (state.shader == null ||
-            state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
-            instance.program is not SDLGPUShaderProgram shader ||
-            state.shader == null ||
+            state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment)
         {
-            vertexSamplers = fragmentSamplers = default;
             pipeline = nint.Zero;
 
             return false;
@@ -1170,17 +1165,16 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         var hash = state.StateKey;
 
-        if (graphicsPipelines.TryGetValue(hash, out var content) == false)
+        if (graphicsPipelines.TryGetValue(hash, out pipeline) == false)
         {
             unsafe
             {
                 var vertexSamplerCount = state.vertexTextures?.Length ?? 0;
                 var fragmentSamplerCount = state.fragmentTextures?.Length ?? 0;
 
-                if (vertexSamplerCount < instance.vertexTextureBindings.Count ||
-                    fragmentSamplerCount < instance.fragmentTextureBindings.Count)
+                if (vertexSamplerCount < state.shaderInstance.vertexTextureBindings.Count ||
+                    fragmentSamplerCount < state.shaderInstance.fragmentTextureBindings.Count)
                 {
-                    vertexSamplers = fragmentSamplers = default;
                     pipeline = nint.Zero;
 
                     return false;
@@ -1190,7 +1184,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 {
                     var outValue = new List<VertexAttribute>();
 
-                    foreach (var attribute in instance.attributes)
+                    foreach (var attribute in state.shaderInstance.attributes)
                     {
                         if (vertexLayout.vertexAttributes.IndexOf(attribute) < 0)
                         {
@@ -1201,10 +1195,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     return outValue;
                 }
 
-                if (vertexLayout.attributes.Length < instance.attributes.Length)
+                if (vertexLayout.attributes.Length < state.shaderInstance.attributes.Length)
                 {
                     var message = $"Failed to render: Vertex Layout is missing attributes ({vertexLayout.attributes.Length} attributes vs " +
-                        $"required {instance.attributes.Length} shader attributes)";
+                        $"required {state.shaderInstance.attributes.Length} shader attributes)";
 
                     var attributes = GetMissingAttributes();
 
@@ -1218,77 +1212,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                         Log.Error(message);
                     }
 
-                    vertexSamplers = fragmentSamplers = default;
                     pipeline = nint.Zero;
 
                     return false;
-                }
-
-                for (var i = 0; i < vertexSamplerCount; i++)
-                {
-                    if (state.vertexTextures[i]?.impl is not SDLGPUTexture texture ||
-                        texture.Disposed ||
-                        TryGetTexture(texture.handle, out _) == false)
-                    {
-                        vertexSamplers = fragmentSamplers = default;
-                        pipeline = nint.Zero;
-
-                        return false;
-                    }
-                }
-
-                for (var i = 0; i < fragmentSamplerCount; i++)
-                {
-                    if (state.fragmentTextures[i]?.impl is not SDLGPUTexture texture ||
-                        texture.Disposed ||
-                        TryGetTexture(texture.handle, out _) == false)
-                    {
-                        vertexSamplers = fragmentSamplers = default;
-                        pipeline = nint.Zero;
-
-                        return false;
-                    }
-                }
-
-                vertexSamplers = vertexSamplerCount > 0 ? new SDL.GPUTextureSamplerBinding[vertexSamplerCount] : null;
-                fragmentSamplers = fragmentSamplerCount > 0 ? new SDL.GPUTextureSamplerBinding[fragmentSamplerCount] : null;
-
-                if (vertexSamplers != null)
-                {
-                    for (var i = 0; i < vertexSamplers.Length; i++)
-                    {
-                        if (state.vertexTextures[i]?.impl is not SDLGPUTexture texture ||
-                            texture.Disposed ||
-                            TryGetTexture(texture.handle, out var resource) == false)
-                        {
-                            vertexSamplers = fragmentSamplers = default;
-                            pipeline = nint.Zero;
-
-                            return false;
-                        }
-
-                        vertexSamplers[i].Texture = resource.texture;
-                        vertexSamplers[i].Sampler = GetSampler(texture.flags);
-                    }
-                }
-
-                if (fragmentSamplers != null)
-                {
-                    for (var i = 0; i < fragmentSamplers.Length; i++)
-                    {
-                        if (state.fragmentTextures[i]?.impl is not SDLGPUTexture texture ||
-                            texture.Disposed ||
-                            TryGetTexture(texture.handle, out var resource) == false)
-                        {
-                            vertexSamplers = fragmentSamplers = default;
-                            pipeline = nint.Zero;
-
-                            return false;
-                        }
-
-                        fragmentSamplers[i].Texture = resource.texture;
-                        fragmentSamplers[i].Sampler = GetSampler(texture.flags);
-                    }
                 }
 
                 var depthStencilFormat = DepthStencilFormat;
@@ -1302,9 +1228,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                 var shaderAttributes = new List<SDL.GPUVertexAttribute>();
 
-                for (var i = 0; i < instance.attributes.Length; i++)
+                for (var i = 0; i < state.shaderInstance.attributes.Length; i++)
                 {
-                    var attributeIndex = vertexLayout.vertexAttributes.IndexOf(instance.attributes[i]);
+                    var attributeIndex = vertexLayout.vertexAttributes.IndexOf(state.shaderInstance.attributes[i]);
 
                     if (attributeIndex < 0)
                     {
@@ -1316,7 +1242,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                                 string.Join('\n', attributes.Select(x => x.ToString().ToUpperInvariant())));
                         }
 
-                        vertexSamplers = fragmentSamplers = default;
                         pipeline = nint.Zero;
 
                         return false;
@@ -1324,7 +1249,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                     var attribute = vertexLayout.attributes[attributeIndex];
 
-                    attributeIndex = instance.attributes.IndexOf(vertexLayout.vertexAttributes[attributeIndex]);
+                    attributeIndex = state.shaderInstance.attributes.IndexOf(vertexLayout.vertexAttributes[attributeIndex]);
 
                     shaderAttributes.Add(new()
                     {
@@ -1494,28 +1419,14 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                             pipeline = SDL.CreateGPUGraphicsPipeline(device, in info);
 
-                            content = (pipeline, vertexSamplers, fragmentSamplers);
-
-                            graphicsPipelines.Add(hash, content);
+                            graphicsPipelines.Add(hash, pipeline);
                         }
                     }
                 }
             }
         }
 
-        if (content.Item1 == nint.Zero)
-        {
-            vertexSamplers = fragmentSamplers = default;
-            pipeline = nint.Zero;
-
-            return false;
-        }
-
-        pipeline = content.Item1;
-        vertexSamplers = content.Item2;
-        fragmentSamplers = content.Item3;
-
-        return true;
+        return pipeline != nint.Zero;
     }
 
     public void Render(RenderState state)
@@ -1523,13 +1434,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         state.renderTarget = currentRenderTarget;
 
         if (state.shader == null ||
-            state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
-            instance.program is not SDLGPUShaderProgram shader ||
+            state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment ||
             state.vertexBuffer is not SDLGPUVertexBuffer vertex ||
             vertex.layout is not SDLGPUVertexLayout vertexLayout ||
             state.indexBuffer is not SDLGPUIndexBuffer index ||
-            TryGetRenderPipeline(state, vertexLayout, out var vertexSamplers, out var fragmentSamplers, out var pipeline) == false)
+            TryGetRenderPipeline(state, vertexLayout, out var pipeline) == false)
         {
             return;
         }
@@ -1643,7 +1553,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
         }
 
-        AddCommand(new SDLGPURenderCommand(state, pipeline, vertexSamplers, fragmentSamplers, vertexUniformData, fragmentUniformData, shader));
+        AddCommand(new SDLGPURenderCommand(state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData, fragmentUniformData, shader));
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
@@ -1652,11 +1562,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         state.renderTarget = currentRenderTarget;
 
         if (layout is not SDLGPUVertexLayout vertexLayout ||
-            state.shader == null ||
-            state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
-            instance.program is not SDLGPUShaderProgram shader ||
+            state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment ||
-            TryGetRenderPipeline(state, vertexLayout, out var vertexSamplers, out var fragmentSamplers, out var pipeline) == false)
+            TryGetRenderPipeline(state, vertexLayout, out var pipeline) == false)
         {
             return;
         }
@@ -1810,8 +1718,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
         }
 
-        AddCommand(new SDLGPURenderTransientCommand(state, pipeline, vertexSamplers, fragmentSamplers, vertexUniformData, fragmentUniformData,
-            shader, entry));
+        AddCommand(new SDLGPURenderTransientCommand(state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
+            fragmentUniformData, shader, entry));
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state)
@@ -1820,11 +1728,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         state.renderTarget = currentRenderTarget;
 
         if (layout is not SDLGPUVertexLayout vertexLayout ||
-            state.shader == null ||
-            state.shader.instances.TryGetValue(state.shaderVariant, out var instance) == false ||
-            instance.program is not SDLGPUShaderProgram shader ||
+            state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment ||
-            TryGetRenderPipeline(state, vertexLayout, out var vertexSamplers, out var fragmentSamplers, out var pipeline) == false)
+            TryGetRenderPipeline(state, vertexLayout, out var pipeline) == false)
         {
             return;
         }
@@ -1978,7 +1884,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
         }
 
-        AddCommand(new SDLGPURenderTransientUIntCommand(state, pipeline, vertexSamplers, fragmentSamplers, vertexUniformData, fragmentUniformData,
-            shader, entry));
+        AddCommand(new SDLGPURenderTransientUIntCommand(state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
+            fragmentUniformData, shader, entry));
     }
 }
