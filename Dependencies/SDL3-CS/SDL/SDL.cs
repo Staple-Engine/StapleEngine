@@ -22,6 +22,7 @@
 #endregion
 
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace SDL3;
@@ -55,7 +56,7 @@ public static partial class SDL
     /// <seealso cref="PointerToStringArray(nint)"/>
     /// <seealso cref="PointerToStringArray(nint, int)"/>
     /// <seealso cref="PointerToStructureArray{T}"/>
-    public static T? PointerToStructure<T>(IntPtr pointer) where T : struct
+    public static T? PointerToStructure<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr pointer) where T : struct
     {
         return pointer == IntPtr.Zero ? null : Marshal.PtrToStructure<T>(pointer);
     }
@@ -145,7 +146,7 @@ public static partial class SDL
     /// <seealso cref="PointerToStructureArray{T}"/>
     public static IntPtr StructureArrayToPointer<T>(T[] array) where T : struct
     {
-        if (array == null || array.Length == 0) return IntPtr.Zero;
+        if (array.Length == 0) return IntPtr.Zero;
 
         var sizeOfT = Marshal.SizeOf<T>();
         var unmanagedPointer = Marshal.AllocHGlobal(sizeOfT * array.Length);
@@ -351,6 +352,15 @@ public static partial class SDL
         Marshal.Copy(utf8Bytes, 0, unmanagedPointer, utf8Bytes.Length);
         return unmanagedPointer;
     }
+
+
+    /// <summary>
+    /// Converts a unmanaged pointer to an UTF-8 string
+    /// </summary>
+    public static string? PointerToString(IntPtr pointer)
+    {
+        return Marshal.PtrToStringUTF8(pointer);
+    }
     
     
     /// <summary>
@@ -387,7 +397,7 @@ public static partial class SDL
     /// <seealso cref="PointerToPointerArray"/>
     /// <seealso cref="PointerToStringArray(nint)"/>
     /// <seealso cref="PointerToStringArray(nint, int)"/>
-    public static unsafe T[]? PointerToStructureArray<T>(IntPtr pointer, int count) where T : struct
+    public static unsafe T[]? PointerToStructureArray<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors | DynamicallyAccessedMemberTypes.NonPublicConstructors)] T>(IntPtr pointer, int count) where T : struct
     {
         if (pointer == IntPtr.Zero || count < 0) return null;
 
@@ -405,11 +415,58 @@ public static partial class SDL
             for (var i = 0; i < count; i++)
             {
                 var elementPtr = Marshal.ReadIntPtr(pointer, i * sizePtr);
-                array[i] = Marshal.PtrToStructure<T>(elementPtr)!;
+                array[i] = Marshal.PtrToStructure<T>(elementPtr);
             }
         }
     
         return array;
+    }
+    
+    
+    /// <summary>
+    /// Allocates unmanaged memory for an array of UTF-8 string pointers (char*).
+    /// Each string is converted via <see cref="StringToPointer(string?)"/>.
+    /// — The array is terminated with a trailing <see cref="IntPtr.Zero"/>.
+    /// </summary>
+    /// <param name="array">
+    /// — The managed array of strings. Can be <c>null</c> or empty.
+    /// </param>
+    /// <returns>
+    /// — A pointer to unmanaged memory containing an array of <see cref="IntPtr"/> pointers,
+    /// — each pointing to a UTF-8 null-terminated string.  
+    /// — Returns <see cref="IntPtr.Zero"/> for <c>null</c> or empty arrays.
+    /// </returns>
+    /// <remarks>
+    /// The caller is responsible for freeing all allocated memory:
+    /// 1. Free each individual string pointer using <see cref="Marshal.FreeHGlobal"/>.
+    /// 2. Free the returned array pointer using <see cref="Marshal.FreeHGlobal"/>.
+    /// Failure to do so will cause memory leaks.
+    /// </remarks>
+    public static IntPtr StringArrayToPointer(string[]? array)
+    {
+        unsafe
+        {
+            if (array == null || array.Length == 0)
+                return IntPtr.Zero;
+        
+            var total = array.Length + 1;
+            var size = IntPtr.Size * total;
+
+            var blockPtr = Marshal.AllocHGlobal(size);
+        
+            var zeroInit = new Span<byte>((void*)blockPtr, size);
+            zeroInit.Clear();
+
+            for (var i = 0; i < array.Length; i++)
+            {
+                var strPtr = StringToPointer(array[i]);
+                Marshal.WriteIntPtr(blockPtr, i * IntPtr.Size, strPtr);
+            }
+        
+            Marshal.WriteIntPtr(blockPtr, array.Length * IntPtr.Size, IntPtr.Zero);
+
+            return blockPtr;
+        }
     }
     
     

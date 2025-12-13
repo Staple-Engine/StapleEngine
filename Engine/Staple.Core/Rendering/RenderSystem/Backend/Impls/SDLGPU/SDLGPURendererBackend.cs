@@ -1,4 +1,5 @@
-﻿using SDL3;
+﻿using Evergine.Bindings.Vulkan;
+using SDL3;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -529,6 +530,25 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             {
                 VulkanApiVersion = MakeVulkanVersion(VulkanVersionMajor, VulkanVersionMinor, VulkanVersionPatch),
             };
+
+            var deviceExtensions = new string[]
+            {
+                "VK_KHR_shader_draw_parameters",
+            };
+
+            createOptions.DeviceExtensionCount = (uint)deviceExtensions.Length;
+
+            createOptions.DeviceExtensionNames = SDL.StringArrayToPointer(deviceExtensions);
+
+            var drawParametersStruct = new VkPhysicalDeviceShaderDrawParametersFeatures()
+            {
+                sType = VkStructureType.VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
+                shaderDrawParameters = true,
+            };
+
+            void* drawPtr = &drawParametersStruct;
+
+            createOptions.FeatureList = (nint)drawPtr;
 
             switch (renderer)
             {

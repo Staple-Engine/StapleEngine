@@ -32,7 +32,7 @@ public static partial class SDL
     /// <para>When no such structure is provided, SDL will use Vulkan API version 1.0 and
     /// a minimal set of features. The requested API version influences how the
     /// feature_list is processed by SDL. When requesting API version 1.0, the
-    /// feature_list is ignored. Only the vulkan_10_phyisical_device_features and
+    /// feature_list is ignored. Only the vulkan_10_physical_device_features and
     /// the extension lists are used. When requesting API version 1.1, the
     /// feature_list is scanned for feature structures introduced in Vulkan 1.1.
     /// When requesting Vulkan 1.2 or higher, the feature_list is additionally
@@ -42,6 +42,8 @@ public static partial class SDL
     /// </summary>
     /// <since>This struct is available since SDL 3.4.0.</since>
     /// <seealso cref="SetGPUViewport"/>
+    /// <seealso cref="SDL.PointerToStringArray(System.IntPtr)"/>
+    /// <seealso cref="SDL.StringArrayToPointer"/>
     [StructLayout(LayoutKind.Sequential)]
     public struct GPUVulkanOptions
     {
@@ -65,23 +67,19 @@ public static partial class SDL
         /// </summary>
         public uint DeviceExtensionCount;
         
-        private IntPtr device_extension_names;
+        /// <summary>
+        /// Pointer to a list of additional device extensions to require.
+        /// </summary>
+        public IntPtr DeviceExtensionNames;
         
         /// <summary>
         /// Number of additional instance extensions to require.
         /// </summary>
         public uint InstanceExtensionCount;
         
-        private IntPtr instance_extension_names;
-
-        /// <summary>
-        /// Pointer to a list of additional device extensions to require.
-        /// </summary>
-        public string[] DeviceExtensionNames => PointerToStringArray(device_extension_names)!;
-        
         /// <summary>
         /// Pointer to a list of additional instance extensions to require.
         /// </summary>
-        public string[] InstanceExtensionNames => PointerToStringArray(instance_extension_names)!;
+        public IntPtr InstanceExtensionNames;
     }
 }
