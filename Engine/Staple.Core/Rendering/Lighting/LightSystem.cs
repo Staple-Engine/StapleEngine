@@ -19,20 +19,14 @@ public sealed class LightSystem : IRenderSystem
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    private struct LightData
-    {
-        public Color ambientColor;
-        public float lightCount;
-        public Vector3 viewPosition;
-    }
-
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
     private struct LightDetails
     {
         public LightType type;
         public Vector3 position;
-        public Color diffuse;
-        public Color specular;
+        public Vector3 diffuse;
+        public Vector3 specular;
+        public Vector3 spotDirection;
+        public Vector3 padding;
     }
 
     /// <summary>
@@ -55,23 +49,23 @@ public sealed class LightSystem : IRenderSystem
     /// </summary>
     public static Color? OverrideAmbientColor = null;
 
-    private static readonly string LightAmbientKey = "u_lightAmbient";
-    private static readonly string LightCountKey = "u_lightCount";
-    private static readonly string LightDiffuseKey = "u_lightDiffuse";
-    private static readonly string LightSpecularKey = "u_lightSpecular";
-    private static readonly string LightTypePositionKey = "u_lightTypePosition";
-    private static readonly string LightSpotDirectionKey = "u_lightSpotDirection";
-    private static readonly string LightSpotValuesKey = "u_lightSpotValues";
-    private static readonly string ViewPosKey = "u_viewPos";
-
     private readonly SceneQuery<Transform, Light> lightQuery = new();
 
-    private readonly Vector4[] cachedLightTypePositions = new Vector4[MaxLights];
-    private readonly Vector4[] cachedLightDiffuse = new Vector4[MaxLights];
-    private readonly Vector4[] cachedLightSpotDirection = new Vector4[MaxLights];
+    private readonly LightDetails[] cachedLights = new LightDetails[MaxLights];
 
-    private readonly Dictionary<int, ShaderHandle[]> cachedMaterialInfo = [];
     private readonly Dictionary<int, ShaderHandle[]> cachedInstancedMaterialInfo = [];
+
+    private VertexBuffer lightDataBuffer;
+
+    private readonly Lazy<VertexLayout> lightDataBufferLayout = new(() =>
+    {
+        return VertexLayoutBuilder.CreateNew()
+            .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float4)
+            .Add(VertexAttribute.TexCoord1, VertexAttributeType.Float4)
+            .Add(VertexAttribute.TexCoord2, VertexAttributeType.Float4)
+            .Add(VertexAttribute.TexCoord3, VertexAttributeType.Float4)
+            .Build();
+    });
 
     public bool UsesOwnRenderProcess => false;
 
@@ -83,53 +77,6 @@ public sealed class LightSystem : IRenderSystem
 
     public LightSystem()
     {
-        Shader.DefaultUniforms.Add(new()
-        {
-            name = LightAmbientKey,
-            type = ShaderUniformType.Color,
-        });
-
-        Shader.DefaultUniforms.Add(new()
-        {
-            name = LightCountKey,
-            type = ShaderUniformType.Vector4,
-        });
-
-        Shader.DefaultUniforms.Add(new()
-        {
-            name = $"{LightDiffuseKey}[{MaxLights}]",
-            type = ShaderUniformType.Vector4,
-        });
-
-        Shader.DefaultUniforms.Add(new()
-        {
-            name = $"{LightSpecularKey}[{MaxLights}]",
-            type = ShaderUniformType.Vector4,
-        });
-
-        Shader.DefaultUniforms.Add(new()
-        {
-            name = $"{LightTypePositionKey}[{MaxLights}]",
-            type = ShaderUniformType.Vector4,
-        });
-
-        Shader.DefaultUniforms.Add(new()
-        {
-            name = $"{LightSpotDirectionKey}[{MaxLights}]",
-            type = ShaderUniformType.Vector4,
-        });
-
-        Shader.DefaultUniforms.Add(new()
-        {
-            name = $"{LightSpotValuesKey}[{MaxLights}]",
-            type = ShaderUniformType.Vector4,
-        });
-
-        Shader.DefaultUniforms.Add(new()
-        {
-            name = ViewPosKey,
-            type = ShaderUniformType.Vector3,
-        });
     }
 
     #region Lifecycle
@@ -165,16 +112,13 @@ public sealed class LightSystem : IRenderSystem
     /// <param name="lighting">The lighting type</param>
     public void ApplyMaterialLighting(Material material, MaterialLighting lighting)
     {
-        if(Enabled == false || true) //TODO
+        if(Enabled == false)
         {
             material.DisableShaderKeyword(Shader.LitKeyword);
             material.DisableShaderKeyword(Shader.HalfLambertKeyword);
 
             return;
         }
-
-        //TODO
-        return;
 
         switch (lighting)
         {
@@ -207,18 +151,33 @@ public sealed class LightSystem : IRenderSystem
     /// <param name="material">The material to use</param>
     /// <param name="cameraPosition">The position of the camera</param>
     /// <param name="lighting">What lighting to use</param>
-    public void ApplyLightProperties(Material material, Vector3 cameraPosition,
-        MaterialLighting lighting)
+    /// <param name="state">The current rendering state</param>
+    internal bool ApplyLightProperties(Material material, Vector3 cameraPosition,
+        MaterialLighting lighting, ref RenderState state)
     {
-        if (Enabled == false ||
-            lighting == MaterialLighting.Unlit ||
-            (material?.IsValid ?? false) == false)
+        void EnsureStorageBuffer(ref RenderState state)
         {
-            return;
+            lightDataBuffer ??= VertexBuffer.Create(cachedLights.AsSpan(), lightDataBufferLayout.Value, RenderBufferFlags.GraphicsRead);
+
+            if (lightDataBuffer == null)
+            {
+                return;
+            }
+
+            lightDataBuffer.Update(cachedLights.AsSpan());
+
+            state.ApplyStorageBufferIfNeeded("StapleLights", lightDataBuffer);
         }
 
-        //TODO
-        return;
+        if (Enabled == false ||
+            lighting == MaterialLighting.Unlit ||
+            (material?.IsValid ?? false) == false ||
+            state.shaderInstance?.program == null)
+        {
+            EnsureStorageBuffer(ref state);
+
+            return false;
+        }
 
         var targets = Lights;
 
@@ -230,7 +189,7 @@ public sealed class LightSystem : IRenderSystem
         }
 
         var lightAmbient = AmbientColor;
-        var lightCountValue = new Vector4(targets.Length);
+        var lightCountValue = targets.Length;
 
         for (var i = 0; i < lightCount; i++)
         {
@@ -245,11 +204,10 @@ public sealed class LightSystem : IRenderSystem
                 p = -forward;
             }
 
-            cachedLightTypePositions[i] = new((float)light.type, p.X, p.Y, p.Z);
-
-            cachedLightDiffuse[i] = light.color;
-
-            cachedLightSpotDirection[i] = forward.ToVector4();
+            cachedLights[i].type = light.type;
+            cachedLights[i].position = p;
+            cachedLights[i].diffuse = (Vector3)light.color;
+            cachedLights[i].spotDirection = forward;
         }
 
         var key = material.shader.Guid.GuidHash;
@@ -269,32 +227,33 @@ public sealed class LightSystem : IRenderSystem
 
         if (cachedInstancedMaterialInfo.TryGetValue(key, out var handles) == false || HandlesValid(handles) == false)
         {
-            handles = [material.GetShaderHandle(ViewPosKey),
-                material.GetShaderHandle(LightAmbientKey),
-                material.GetShaderHandle(LightCountKey),
-                material.GetShaderHandle(LightTypePositionKey),
-                material.GetShaderHandle(LightDiffuseKey),
-                material.GetShaderHandle(LightSpecularKey),
-                material.GetShaderHandle(LightSpotDirectionKey),
-                material.GetShaderHandle(LightSpotValuesKey)];
+            handles = [
+                material.GetShaderHandle("StapleLightViewPosition"),
+                material.GetShaderHandle("StapleLightAmbientColor"),
+                material.GetShaderHandle("StapleLightCount")
+            ];
 
             cachedInstancedMaterialInfo.AddOrSetKey(key, handles);
+        }
+
+        if((handles?.Length ?? 0) != 3 ||
+            HandlesValid(handles) == false)
+        {
+            EnsureStorageBuffer(ref state);
+
+            return false;
         }
 
         var viewPosHandle = handles[0];
         var lightAmbientHandle = handles[1];
         var lightCountHandle = handles[2];
-        var lightTypePositionHandle = handles[3];
-        var lightDiffuseHandle = handles[4];
-        var lightSpecularHandle = handles[5];
-        var lightSpotDirectionHandle = handles[6];
-        var lightSpotValues = handles[7];
 
         material.shader.SetVector3(material.ShaderVariantKey, viewPosHandle, cameraPosition);
         material.shader.SetColor(material.ShaderVariantKey, lightAmbientHandle, lightAmbient);
-        material.shader.SetVector4(material.ShaderVariantKey, lightCountHandle, lightCountValue);
-        material.shader.SetVector4(material.ShaderVariantKey, lightTypePositionHandle, cachedLightTypePositions);
-        material.shader.SetVector4(material.ShaderVariantKey, lightDiffuseHandle, cachedLightDiffuse);
-        material.shader.SetVector4(material.ShaderVariantKey, lightSpotDirectionHandle, cachedLightSpotDirection);
+        material.shader.SetFloat(material.ShaderVariantKey, lightCountHandle, lightCountValue);
+
+        EnsureStorageBuffer(ref state);
+
+        return true;
     }
 }

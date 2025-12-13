@@ -97,6 +97,8 @@ public struct Color
 
     public static implicit operator Vector4(Color v) => new(v.r, v.g, v.b, v.a);
 
+    public static implicit operator Vector3(Color v) => new(v.r, v.g, v.b);
+
     public static Color operator+(Color a, Color b) => new(a.r + b.r, a.g + b.g, a.b + b.b, a.a + b.a);
 
     public static Color operator-(Color a, Color b) => new(a.r - b.r, a.g - b.g, a.b - b.b, a.a - b.a);

@@ -1,6 +1,5 @@
 ﻿using SDL3;
 using System;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Staple.Internal;
 

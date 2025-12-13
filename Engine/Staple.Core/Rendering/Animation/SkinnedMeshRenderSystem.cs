@@ -317,11 +317,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 renderer.mesh.SetActive(ref renderState, j);
 
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting, ref renderState);
 
-                var buffer = instance.boneBuffer;
-
-                renderState.storageBuffers = [(0, buffer)];
+                renderState.ApplyStorageBufferIfNeeded("StapleBoneMatrices", instance.boneBuffer);
 
                 RenderSystem.Submit(renderState, renderer.mesh.SubmeshTriangleCount(j), 1);
             }

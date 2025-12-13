@@ -917,12 +917,9 @@ static partial class Program
 
                                     shaderObject.vertexMetrics?.samplerCount = vertexReflectionData.textures.Count;
 
-                                    shaderObject.vertexMetrics?.uniformBufferCount = vertexReflectionData.uniforms
-                                        .Where(x =>
-                                            x.type != ShaderUniformType.ReadWriteBuffer &&
-                                            x.type != ShaderUniformType.ReadOnlyBuffer &&
-                                            x.type != ShaderUniformType.WriteOnlyBuffer)
-                                        .Count();
+                                    shaderObject.vertexMetrics?.storageBufferCount = vertexReflectionData.storageBuffers.Count;
+
+                                    shaderObject.vertexMetrics?.uniformBufferCount = vertexReflectionData.uniforms.Count;
                                 }
 
                                 if (fragmentReflectionData != null)
@@ -931,12 +928,9 @@ static partial class Program
 
                                     shaderObject.fragmentMetrics?.samplerCount = fragmentReflectionData.textures.Count;
 
-                                    shaderObject.fragmentMetrics?.uniformBufferCount = fragmentReflectionData.uniforms
-                                        .Where(x =>
-                                            x.type != ShaderUniformType.ReadWriteBuffer &&
-                                            x.type != ShaderUniformType.ReadOnlyBuffer &&
-                                            x.type != ShaderUniformType.WriteOnlyBuffer)
-                                        .Count();
+                                    shaderObject.fragmentMetrics?.storageBufferCount = fragmentReflectionData.storageBuffers.Count;
+
+                                    shaderObject.fragmentMetrics?.uniformBufferCount = fragmentReflectionData.uniforms.Count;
                                 }
 
                                 lock (entryLock)

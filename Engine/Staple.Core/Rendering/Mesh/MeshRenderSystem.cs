@@ -96,7 +96,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             return;
         }
 
-        lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+        lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting, ref renderState);
 
         RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
     }
@@ -286,7 +286,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                 material.ApplyProperties(Material.ApplyMode.All, ref renderState);
 
                 lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
-                    contents.instanceInfos.Contents[0].lighting);
+                    contents.instanceInfos.Contents[0].lighting, ref renderState);
             }
 
             if (contents.instanceInfos.Contents.Length > 1)

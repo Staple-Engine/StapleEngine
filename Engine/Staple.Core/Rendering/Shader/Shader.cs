@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -80,6 +79,7 @@ public partial class Shader : IGuidAsset
         public Dictionary<StringID, ShaderUniformField> fragmentFields = [];
         public Dictionary<StringID, int> vertexTextureBindings = [];
         public Dictionary<StringID, int> fragmentTextureBindings = [];
+        public readonly Dictionary<StringID, UniformInfo> uniforms = [];
     }
 
     internal readonly ShaderMetadata metadata;
@@ -88,8 +88,6 @@ public partial class Shader : IGuidAsset
     internal static readonly List<DefaultUniform> DefaultUniforms = [];
 
     internal readonly Dictionary<StringID, ShaderInstance> instances = [];
-
-    private Dictionary<StringID, UniformInfo> uniforms = [];
 
     [GeneratedRegex("\\[([0-9]+)\\]")]
     private static partial Regex UniformCountRegex();
@@ -163,7 +161,7 @@ public partial class Shader : IGuidAsset
                 fragmentTextureBindings.Add(texture.name, texture.binding);
             }
 
-            instances.AddOrSetKey(new(pair.Key), new()
+            var instance = new ShaderInstance()
             {
                 keyPieces = pair.Key.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => x.GetHashCode()).ToArray(),
                 vertexShaderSource = pair.Value.vertexShader,
@@ -181,7 +179,9 @@ public partial class Shader : IGuidAsset
                 fragmentMappings = fragmentMappings,
                 fragmentFields = fragmentFields,
                 fragmentTextureBindings = fragmentTextureBindings,
-            });
+            };
+
+            instances.AddOrSetKey(pair.Key, instance);
         }
 
         sourceBlend = metadata.sourceBlend;
@@ -231,28 +231,28 @@ public partial class Shader : IGuidAsset
             {
                 return false;
             }
-        }
 
-        if (uniforms.Count == 0)
-        {
-            foreach (var uniform in metadata.uniforms)
+            if (pair.Value.uniforms.Count == 0)
             {
-                AddUniform(DefaultUniform.FromShaderUniform(uniform));
-            }
-
-            void EnsureUniform(DefaultUniform u)
-            {
-                var uniform = GetUniform(u.name);
-
-                if (uniform == null)
+                foreach (var uniform in metadata.uniforms)
                 {
-                    AddUniform(u);
+                    AddUniform(DefaultUniform.FromShaderUniform(uniform), pair.Value);
                 }
-            }
 
-            foreach(var uniform in DefaultUniforms)
-            {
-                EnsureUniform(uniform);
+                void EnsureUniform(DefaultUniform u)
+                {
+                    var uniform = GetUniform(u.name, pair.Value);
+
+                    if (uniform == null)
+                    {
+                        AddUniform(u, pair.Value);
+                    }
+                }
+
+                foreach (var uniform in DefaultUniforms)
+                {
+                    EnsureUniform(uniform);
+                }
             }
         }
 
@@ -261,11 +261,11 @@ public partial class Shader : IGuidAsset
         return true;
     }
 
-    internal void AddUniform(DefaultUniform uniform)
+    internal void AddUniform(DefaultUniform uniform, ShaderInstance instance)
     {
         var normalizedName = NormalizeUniformName(uniform.name, uniform.type);
 
-        if(uniforms.ContainsKey(uniform.name) || uniforms.ContainsKey(normalizedName))
+        if(instance.uniforms.ContainsKey(uniform.name) || instance.uniforms.ContainsKey(normalizedName))
         {
             return;
         }
@@ -285,11 +285,11 @@ public partial class Shader : IGuidAsset
             count = NormalizeUniformCount(uniform.name),
         };
 
-        uniforms.Add(normalizedName, u);
+        instance.uniforms.Add(normalizedName, u);
 
-        if (uniforms.ContainsKey(uniform.name) == false)
+        if (instance.uniforms.ContainsKey(uniform.name) == false)
         {
-            uniforms.Add(uniform.name, new()
+            instance.uniforms.Add(uniform.name, new()
             {
                 count = u.count,
                 isAlias = true,
@@ -307,19 +307,82 @@ public partial class Shader : IGuidAsset
         }
     }
 
-    internal UniformInfo GetUniform(StringID name)
+    internal UniformInfo GetUniform(StringID name, ShaderInstance instance)
     {
         if (Disposed)
         {
             return null;
         }
 
-        return uniforms.TryGetValue(name, out var u) ? u : null;
+        if(instance.uniforms.TryGetValue(name, out var u))
+        {
+            return u;
+        }
+
+        foreach(var uniform in instance.vertexUniforms.uniforms)
+        {
+            if(uniform.name == name)
+            {
+                return new()
+                {
+                    uniform = new()
+                    {
+                        name = uniform.name,
+                        type = uniform.type,
+                    },
+                    handle = name,
+                };
+            }
+        }
+
+        foreach (var uniform in instance.fragmentUniforms.uniforms)
+        {
+            if (uniform.name == name)
+            {
+                return new()
+                {
+                    uniform = new()
+                    {
+                        name = uniform.name,
+                        type = uniform.type,
+                    },
+                    handle = name,
+                };
+            }
+        }
+
+        foreach (var pair in instance.vertexFields)
+        {
+            if (pair.Key == name)
+            {
+                return new()
+                {
+                    uniform = new()
+                    {
+                        name = pair.Value.name,
+                        type = pair.Value.type,
+                    },
+                    handle = pair.Key,
+                };
+            }
+        }
+
+        return null;
     }
 
-    internal ShaderHandle GetUniformHandle(StringID name)
+    internal UniformInfo GetUniform(StringID name, StringID variantKey)
     {
-        var uniform = GetUniform(name);
+        if (Disposed || instances.TryGetValue(variantKey, out var instance) == false)
+        {
+            return null;
+        }
+
+        return GetUniform(name, instance);
+    }
+
+    internal ShaderHandle GetUniformHandle(StringID name, StringID variantKey)
+    {
+        var uniform = GetUniform(name, variantKey);
 
         if(uniform == null)
         {

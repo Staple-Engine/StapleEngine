@@ -13,7 +13,6 @@ texture displacementTexture
 texture emissiveTexture
 texture heightTexture
 texture specularTexture
-float3 viewPosition;
 color diffuseColor = #FFFFFFFF
 color emissiveColor
 color specularColor
@@ -41,7 +40,6 @@ Begin Common
 [[vk::binding(StapleUniformBufferStart, StapleUniformBufferSet)]]
 cbuffer Uniforms
 {
-	float3 viewPosition;
 	float4 diffuseColor;
 	float4 emissiveColor;
 	float4 specularColor;
@@ -53,7 +51,9 @@ struct VertexOutput
 {
 	float4 position : SV_Position;
 	float3 worldPosition;
+#ifdef LIT
 	float3 lightNormal;
+#endif
 	float2 coords;
 	float3 normal;
 #ifdef NORMALMAP
@@ -111,26 +111,25 @@ VertexOutput VertexMain(Input input)
 
 	output.coords = input.coords;
 	output.normal = input.normal;
+
 #ifdef NORMALMAP
 	output.tangent = input.tangent;
 	output.bitangent = input.bitangent;
 #endif
+
+#ifdef LIT
 	output.lightNormal = StapleLightNormal(input.normal, model);
+#endif
+
 	output.instanceID = input.instanceID;
 	
-//TODO: handle light array
-/*
 #if defined(LIT) && defined(PER_VERTEX_LIGHTING)
-	output.color = float4x4(diffuseColor.rgb * StapleProcessLights(viewPosition, output.worldPosition, input.normal), diffuseColor.a);
+	output.color = float4(diffuseColor.rgb * StapleProcessLights(output.worldPosition, output.lightNormal), diffuseColor.a);
 	
 	#ifdef VERTEX_COLORS
 		output.color = input.color * output.color;
 	#endif
-#else
-	output.color = input.color;
-#endif
-*/
-#if defined(VERTEX_COLORS) || defined(PER_VERTEX_LIGHTING)
+#elif defined(VERTEX_COLORS) || defined(PER_VERTEX_LIGHTING)
 	output.color = input.color;
 #endif
 
@@ -168,8 +167,6 @@ float4 FragmentMain(VertexOutput input) : SV_Target
 	}
 #endif
 	
-//TODO: handle light array
-/*
 #if defined(LIT) && defined(PER_VERTEX_LIGHTING)
 	return diffuse;
 #elif defined(LIT)
@@ -177,19 +174,17 @@ float4 FragmentMain(VertexOutput input) : SV_Target
 #ifdef NORMALMAP
 	float3x3 tbn = float3x3(normalize(input.tangent), normalize(input.bitangent), normalize(input.normal));
 
-	float3 normalMapNormal = normalize(normalTexture.Sample(v_texcoord0).xyz * 2.0 - 1.0);
+	float3 normalMapNormal = normalize(normalTexture.Sample(input.coords).xyz * 2.0 - 1.0);
 
-	float3 light = StapleProcessLightsTangent(viewPosition, input.worldPosition, normalMapNormal, tbn);
+	float3 light = StapleProcessLightsTangent(input.worldPosition, normalMapNormal, tbn);
 #else
-	float3 light = StapleProcessLights(viewPosition, input.worldPosition, input.lightNormal);
+	float3 light = StapleProcessLights(input.worldPosition, input.lightNormal);
 #endif
 
 	return float4(light, 1) * diffuse;
 #else
 	return diffuse;
 #endif
-*/
-	return diffuse;
 }
 
 End Fragment

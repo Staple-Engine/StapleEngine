@@ -98,6 +98,8 @@ public struct Color32
 
     public static implicit operator Vector4(Color32 v) => new(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f, v.a / 255.0f);
 
+    public static implicit operator Vector3(Color32 v) => new(v.r / 255.0f, v.g / 255.0f, v.b / 255.0f);
+
     public static Color32 operator+(Color32 a, Color32 b) => new((byte)Math.Clamp(a.r + b.r, 0, 255),
         (byte)Math.Clamp(a.g + b.g, 0, 255),
         (byte)Math.Clamp(a.b + b.b, 0, 255),

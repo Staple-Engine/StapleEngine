@@ -452,6 +452,11 @@ public sealed class Material : IGuidAsset
 
             UpdateTextureBindingData();
 
+            foreach(var parameter in parameters)
+            {
+                parameter.Value.shaderHandle = shader.GetUniformHandle(parameter.Key, ShaderVariantKey);
+            }
+
             break;
         }
     }
@@ -531,7 +536,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Color,
                     colorValue = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -551,7 +555,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Color,
                     colorValue = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -594,7 +597,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Int,
                     intValue = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 };
 
                 parameters.AddOrSetKey(name, parameter);
@@ -628,7 +630,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Int,
                     intValue = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -671,7 +672,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Float,
                     floatValue = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 };
 
                 parameters.AddOrSetKey(name, parameter);
@@ -705,7 +705,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Float,
                     floatValue = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -736,7 +735,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Vector2,
                     vector2Value = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -756,7 +754,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Vector2,
                     vector2Value = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -787,7 +784,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Vector3,
                     vector3Value = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -807,7 +803,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Vector3,
                     vector3Value = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -838,7 +833,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Vector4,
                     vector4Value = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -858,7 +852,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Vector4,
                     vector4Value = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -902,25 +895,9 @@ public sealed class Material : IGuidAsset
         }
         else
         {
-            var handle = shader.GetUniformHandle(name);
-
             if (value == null)
             {
-                if (string.IsNullOrEmpty(handle.DefaultValue) == false)
-                {
-                    if (handle.DefaultValue == WhiteTexture.Guid.Guid)
-                    {
-                        value = WhiteTexture;
-                    }
-                    else
-                    {
-                        value = ResourceManager.instance.LoadTexture(handle.DefaultValue);
-                    }
-                }
-                else
-                {
-                    value = WhiteTexture;
-                }
+                value = WhiteTexture;
             }
 
             parameters.AddOrSetKey(name, new ParameterInfo()
@@ -929,7 +906,6 @@ public sealed class Material : IGuidAsset
                 type = MaterialParameterType.Texture,
                 textureValue = value,
                 hasTexture = value != null,
-                shaderHandle = handle,
             });
         }
     }
@@ -959,7 +935,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Matrix3x3,
                     matrix3x3Value = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -979,7 +954,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Matrix3x3,
                     matrix3x3Value = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -1010,7 +984,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Matrix4x4,
                     matrix4x4Value = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -1030,7 +1003,6 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Matrix4x4,
                     matrix4x4Value = value,
-                    shaderHandle = shader.GetUniformHandle(name),
                 });
             }
         }
@@ -1048,7 +1020,7 @@ public sealed class Material : IGuidAsset
             return shaderHandle;
         }
 
-        shaderHandle = shader.GetUniformHandle(name);
+        shaderHandle = shader.GetUniformHandle(name, ShaderVariantKey);
 
         if(shaderHandle.IsValid)
         {
