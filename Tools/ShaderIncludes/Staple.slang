@@ -45,3 +45,10 @@ public float4x4 StapleGetSkinningMatrix(float4x4 world, float4 indices, float4 w
         weights.w * StapleGetBoneMatrix(int(indices.w)));
 }
 #endif
+
+#ifdef INSTANCING
+public float4x4 StapleGetInstancedTransform(uint index)
+{
+    return StapleInstancingTransforms[index];
+}
+#endif

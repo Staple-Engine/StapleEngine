@@ -73,16 +73,6 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
 
         SDL.BindGPUGraphicsPipeline(renderPass, pipeline);
 
-        var vertexBinding = new SDL.GPUBufferBinding()
-        {
-            Buffer = vertexBuffer.buffer,
-        };
-
-        var indexBinding = new SDL.GPUBufferBinding()
-        {
-            Buffer = indexBuffer.buffer,
-        };
-
         if (state.scissor != default)
         {
             var scissor = new SDL.Rect()
@@ -95,6 +85,16 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
 
             SDL.SetGPUScissor(renderPass, in scissor);
         }
+
+        var vertexBinding = new SDL.GPUBufferBinding()
+        {
+            Buffer = vertexBuffer.buffer,
+        };
+
+        var indexBinding = new SDL.GPUBufferBinding()
+        {
+            Buffer = indexBuffer.buffer,
+        };
 
         SDL.BindGPUVertexBuffers(renderPass, 0, [vertexBinding], 1);
 
@@ -170,6 +170,7 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
             }
         }
 
-        SDL.DrawGPUIndexedPrimitives(renderPass, (uint)state.indexCount, 1, (uint)state.startIndex, state.startVertex, 0);
+        SDL.DrawGPUIndexedPrimitives(renderPass, (uint)state.indexCount, (uint)(state.instanceCount > 1 ? state.instanceCount : 1),
+            (uint)state.startIndex, state.startVertex, 0);
     }
 }

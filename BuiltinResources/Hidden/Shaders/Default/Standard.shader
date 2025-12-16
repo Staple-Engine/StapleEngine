@@ -86,18 +86,23 @@ struct Input
 	float4 indices : BLENDINDICES;
 	float4 weights : BLENDWEIGHTS;
 #endif
-	uint instanceID : SV_InstanceID;
 };
 
 [shader("vertex")]
-VertexOutput VertexMain(Input input)
+VertexOutput VertexMain(Input input, uint instanceID : SV_InstanceID)
 {
 	VertexOutput output;
 
-#ifdef SKINNING
-	float4x4 model = StapleGetSkinningMatrix(world, input.indices, input.weights);
+	float4x4 model;
+
+#ifdef INSTANCING
+	model = StapleGetInstancedTransform(instanceID);
 #else
-	float4x4 model = world;
+	model = world;
+#endif
+
+#ifdef SKINNING
+	model = StapleGetSkinningMatrix(model, input.indices, input.weights);
 #endif
 
 	float4x4 projectionViewWorld = ProjectionViewWorld(model);
@@ -121,7 +126,7 @@ VertexOutput VertexMain(Input input)
 	output.lightNormal = StapleLightNormal(input.normal, model);
 #endif
 
-	output.instanceID = input.instanceID;
+	output.instanceID = instanceID;
 	
 #if defined(LIT) && defined(PER_VERTEX_LIGHTING)
 	output.color = float4(diffuseColor.rgb * StapleProcessLights(output.worldPosition, output.lightNormal), diffuseColor.a);

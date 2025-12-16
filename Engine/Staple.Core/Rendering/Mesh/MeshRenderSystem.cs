@@ -27,9 +27,20 @@ public sealed class MeshRenderSystem : IRenderSystem
     {
         public ExpandableContainer<InstanceInfo> instanceInfos = new();
         public Matrix4x4[] transformMatrices = [];
+        public VertexBuffer instanceBuffer;
     }
 
     private readonly Dictionary<int, InstanceData> instanceCache = [];
+
+    private readonly Lazy<VertexLayout> instanceLayout = new(() =>
+    {
+        return VertexLayoutBuilder.CreateNew()
+            .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float4)
+            .Add(VertexAttribute.TexCoord1, VertexAttributeType.Float4)
+            .Add(VertexAttribute.TexCoord2, VertexAttributeType.Float4)
+            .Add(VertexAttribute.TexCoord3, VertexAttributeType.Float4)
+            .Build();
+    });
 
     public bool UsesOwnRenderProcess => false;
 
@@ -238,11 +249,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     public void Submit()
     {
-        Material lastMaterial = null;
-        MaterialLighting lastLighting = MaterialLighting.Unlit;
-        var lastInstances = 0;
-        var forceDiscard = false;
-
         var renderState = new RenderState()
         {
             depthWrite = true,
@@ -256,38 +262,17 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            var renderData = contents.instanceInfos.Contents[0];
+            renderState.ClearStorageBuffers();
 
-            var needsDiscard = forceDiscard ||
-                lastMaterial != renderData.material ||
-                lastLighting != renderData.lighting ||
-                (contents.instanceInfos.Contents.Length == 1) != (lastInstances == 1);
+            var renderData = contents.instanceInfos.Contents[0];
 
             var material = renderData.material;
 
             var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
-            if (needsDiscard)
-            {
-                lastMaterial = material;
-                lastLighting = renderData.lighting;
-                lastInstances = contents.instanceInfos.Contents.Length;
-                forceDiscard = false;
+            material.DisableShaderKeyword(Shader.SkinningKeyword);
 
-                material.DisableShaderKeyword(Shader.SkinningKeyword);
-
-                lightSystem?.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
-
-                if (material.ShaderProgram == null)
-                {
-                    continue;
-                }
-
-                material.ApplyProperties(Material.ApplyMode.All, ref renderState);
-
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
-                    contents.instanceInfos.Contents[0].lighting, ref renderState);
-            }
+            lightSystem?.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
 
             if (contents.instanceInfos.Contents.Length > 1)
             {
@@ -298,45 +283,54 @@ public sealed class MeshRenderSystem : IRenderSystem
                 material.DisableShaderKeyword(Shader.InstancingKeyword);
             }
 
-            if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword) && false)
+            if (material.ShaderProgram == null)
             {
-                /*
-                bgfx.set_state((ulong)(material.shader.StateFlags |
-                    contents.instanceInfos.Contents[0].mesh.PrimitiveFlag() |
-                    material.CullingFlag), 0);
+                continue;
+            }
 
-                contents.instanceInfos.Contents[0].mesh.SetActive(contents.instanceInfos.Contents[0].submeshIndex);
+            material.ApplyProperties(Material.ApplyMode.All, ref renderState);
 
+            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
+                contents.instanceInfos.Contents[0].lighting, ref renderState);
+
+            if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword))
+            {
                 var program = material.ShaderProgram;
+
+                if(program == null)
+                {
+                    continue;
+                }
+
+                contents.instanceInfos.Contents[0].mesh.SetActive(ref renderState, contents.instanceInfos.Contents[0].submeshIndex);
 
                 for (var i = 0; i < contents.instanceInfos.Length; i++)
                 {
                     contents.transformMatrices[i] = contents.instanceInfos.Contents[i].transform.Matrix;
                 }
 
-                var instanceBuffer = InstanceBuffer.Create(contents.transformMatrices.Length, Marshal.SizeOf<Matrix4x4>());
-
-                if (instanceBuffer != null)
+                if(contents.instanceBuffer == null)
                 {
-                    instanceBuffer.SetData(contents.transformMatrices.AsSpan());
+                    contents.instanceBuffer = VertexBuffer.Create(contents.transformMatrices, instanceLayout.Value, RenderBufferFlags.GraphicsRead);
+                }
+                else
+                {
+                    contents.instanceBuffer.Update(contents.transformMatrices);
+                }
 
-                    instanceBuffer.Bind(0, instanceBuffer.count);
+                if (contents.instanceBuffer != null)
+                {
+                    renderState.instanceCount = contents.transformMatrices.Length;
 
-                    var flags = bgfx.DiscardFlags.State;
+                    renderState.ApplyStorageBufferIfNeeded("StapleInstancingTransforms", contents.instanceBuffer);
 
-                    RenderSystem.Submit(viewID, program, flags,
-                        renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
-                        instanceBuffer.count);
+                    RenderSystem.Submit(renderState, renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
+                        contents.instanceInfos.Length);
                 }
                 else
                 {
                     Log.Error($"[MeshRenderSystem] Failed to render {contents.instanceInfos.Contents[0].mesh.Guid}: Instance buffer creation failed");
-
-                    forceDiscard = true;
-
-                    bgfx.discard((byte)bgfx.DiscardFlags.All);
                 }
-                */
             }
             else
             {

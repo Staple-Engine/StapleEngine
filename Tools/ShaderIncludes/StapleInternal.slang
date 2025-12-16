@@ -44,42 +44,83 @@ public static const int StapleReadWriteBufferSet = 0;
 public static const int StapleUniformBufferSet = 0;
 #endif
 
-#if defined(SKINNING) && defined(LIT)
-#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 2
-#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 3
-#elif defined(SKINNING) || defined(LIT)
-#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 1
-#ifdef LIT
-#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 3
+#if defined(SKINNING) && defined(LIT) && defined(INSTANCING)
+
+	#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 3
+	#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 3
+
+	#define SKINNING_BUFFER_INDEX 0
+	#define LIGHTING_BUFFER_INDEX 1
+	#define INSTANCING_BUFFER_INDEX 2
+
+#elif (defined(SKINNING) && defined(LIT)) || (defined(SKINNING) && defined(INSTANCING)) || (defined(LIT) && defined(INSTANCING))
+
+	#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 2
+
+	#ifdef LIT
+		#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 3
+	#else
+		#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 2
+	#endif
+
+	#if defined(SKINNING) && defined(LIT)
+
+		#define SKINNING_BUFFER_INDEX 0
+		#define LIGHTING_BUFFER_INDEX 1
+
+	#elif defined(SKINNING) && defined(INSTANCING)
+
+		#define SKINNING_BUFFER_INDEX 0
+		#define INSTANCING_BUFFER_INDEX 1
+
+	#else
+		#define LIGHTING_BUFFER_INDEX 0
+		#define INSTANCING_BUFFER_INDEX 1
+	#endif
+
 #else
-#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 2
-#endif
-#else
-#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 0
-#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 2
+	#ifdef LIT
+
+		#define LIGHTING_BUFFER_INDEX 0
+
+		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 1
+		#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 3
+
+	#elif defined(SKINNING) || defined(INSTANCING)
+
+		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 1
+		#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 2
+
+		#ifdef SKINNING
+		#define SKINNING_BUFFER_INDEX 0
+		#endif
+
+		#ifdef INSTANCING
+		#define INSTANCING_BUFFER_INDEX 0
+		#endif
+
+	#else
+
+		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 0
+		#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 2
+
+	#endif
 #endif
 
 public static const int StapleStorageBufferStart = StapleInternalStorageBufferStart + STAPLE_INTERNAL_STORAGE_BUFFER_COUNT;
 public static const int StapleUniformBufferStart = STAPLE_INTERNAL_UNIFORM_BUFFER_START;
 
-#if defined(SKINNING) && defined(LIT)
-
-[[vk::binding(StapleInternalStorageBufferStart, StapleSamplerStorageBufferSet)]]
-public StructuredBuffer<float4> StapleBoneMatrices;
-
-[[vk::binding(StapleInternalStorageBufferStart + 1, StapleSamplerStorageBufferSet)]]
-public StructuredBuffer<Light> StapleLights;
-
-#else
 #ifdef SKINNING
-
-[[vk::binding(StapleInternalStorageBufferStart, StapleSamplerStorageBufferSet)]]
+[[vk::binding(StapleInternalStorageBufferStart + SKINNING_BUFFER_INDEX, StapleSamplerStorageBufferSet)]]
 public StructuredBuffer<float4> StapleBoneMatrices;
-
-#elif defined(LIT)
-
-[[vk::binding(StapleInternalStorageBufferStart, StapleSamplerStorageBufferSet)]]
-public StructuredBuffer<Light> StapleLights;
-
 #endif
+
+#ifdef LIT
+[[vk::binding(StapleInternalStorageBufferStart + LIGHTING_BUFFER_INDEX, StapleSamplerStorageBufferSet)]]
+public StructuredBuffer<Light> StapleLights;
+#endif
+
+#ifdef INSTANCING
+[[vk::binding(StapleInternalStorageBufferStart + INSTANCING_BUFFER_INDEX, StapleSamplerStorageBufferSet)]]
+public StructuredBuffer<float4x4> StapleInstancingTransforms;
 #endif

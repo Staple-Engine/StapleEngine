@@ -16,14 +16,11 @@ internal struct RenderState
     public BlendMode destinationBlend;
 
     public Shader shader;
-    public ComputeShader computeShader;
     public Shader.ShaderInstance shaderInstance;
     public VertexBuffer vertexBuffer;
     public IndexBuffer indexBuffer;
-    public InstanceBuffer instanceBuffer;
     public Dictionary<int, VertexBuffer> vertexStorageBuffers;
     public Dictionary<int, VertexBuffer> fragmentStorageBuffers;
-    public Dictionary<int, VertexBuffer> computeStorageBuffers;
     public int startVertex;
     public int startIndex;
     public int indexCount;
@@ -32,13 +29,12 @@ internal struct RenderState
     public Texture[] vertexTextures;
     public Texture[] fragmentTextures;
     public Matrix4x4 world;
+    public int instanceCount;
 
     public readonly RenderState Clone()
     {
         return new()
         {
-            computeShader = computeShader,
-            computeStorageBuffers = computeStorageBuffers != null ? new(computeStorageBuffers) : null,
             cull = cull,
             depthWrite = depthWrite,
             destinationBlend = destinationBlend,
@@ -47,7 +43,6 @@ internal struct RenderState
             fragmentTextures = (Texture[])fragmentTextures?.Clone(),
             indexBuffer = indexBuffer,
             indexCount = indexCount,
-            instanceBuffer = instanceBuffer,
             primitiveType = primitiveType,
             renderTarget = renderTarget,
             scissor = scissor,
@@ -61,6 +56,7 @@ internal struct RenderState
             vertexTextures = (Texture[])vertexTextures?.Clone(),
             wireframe = wireframe,
             world = world,
+            instanceCount = instanceCount,
         };
     }
 
@@ -82,6 +78,12 @@ internal struct RenderState
 
             return hashCode.ToHashCode();
         }
+    }
+
+    public readonly void ClearStorageBuffers()
+    {
+        vertexStorageBuffers?.Clear();
+        fragmentStorageBuffers?.Clear();
     }
 
     public void ApplyStorageBufferIfNeeded(string name, VertexBuffer buffer)
@@ -157,7 +159,5 @@ internal struct RenderState
 
             Apply(ref fragmentStorageBuffers);
         }
-
-        //TODO: Compute Shaders
     }
 }
