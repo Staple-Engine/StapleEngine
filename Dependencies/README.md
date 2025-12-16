@@ -1,5 +1,10 @@
 # Dependencies
 
+These are the dependencies used by Staple, and their license info.
+
+Some dependencies are set here rather than NuGet because of issues when building, as either NativeAOT wouldn't find the assemblies,
+or the built app would fail to load the DLL even when built as single file.
+
 ## .NET-Ogg-Vorbis-Encoder
 
 - Upstream: https://github.com/SteveLillis/.NET-Ogg-Vorbis-Encoder/
