@@ -25,6 +25,7 @@ public enum ShaderUniformType
     ReadOnlyBuffer,
     WriteOnlyBuffer,
     ReadWriteBuffer,
+    Structure,
 }
 
 [MessagePackObject]
@@ -69,6 +70,19 @@ public class ShaderUniformField
 }
 
 [MessagePackObject]
+public class ShaderUniformTypeInfo
+{
+    [Key(0)]
+    public ShaderUniformType type;
+
+    [Key(1)]
+    public int size;
+
+    [Key(2)]
+    public List<ShaderUniformField> fields;
+}
+
+[MessagePackObject]
 public class ShaderUniformMapping
 {
     [Key(0)]
@@ -87,7 +101,7 @@ public class ShaderUniformMapping
     public ShaderUniformType type;
 
     [Key(5)]
-    public ShaderUniformType elementType;
+    public ShaderUniformTypeInfo elementType;
 }
 
 [MessagePackObject]

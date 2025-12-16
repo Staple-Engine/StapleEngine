@@ -21,12 +21,9 @@ public sealed class LightSystem : IRenderSystem
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     private struct LightDetails
     {
-        public LightType type;
-        public Vector3 position;
-        public Vector3 diffuse;
-        public Vector3 specular;
-        public Vector3 spotDirection;
-        public Vector3 padding;
+        public Vector4 positionType;
+        public Color diffuse;
+        public Color specular;
     }
 
     /// <summary>
@@ -63,7 +60,6 @@ public sealed class LightSystem : IRenderSystem
             .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float4)
             .Add(VertexAttribute.TexCoord1, VertexAttributeType.Float4)
             .Add(VertexAttribute.TexCoord2, VertexAttributeType.Float4)
-            .Add(VertexAttribute.TexCoord3, VertexAttributeType.Float4)
             .Build();
     });
 
@@ -157,14 +153,12 @@ public sealed class LightSystem : IRenderSystem
     {
         void EnsureStorageBuffer(ref RenderState state)
         {
-            lightDataBuffer ??= VertexBuffer.Create(cachedLights.AsSpan(), lightDataBufferLayout.Value, RenderBufferFlags.GraphicsRead);
+            lightDataBuffer ??= VertexBuffer.Create(cachedLights, lightDataBufferLayout.Value, RenderBufferFlags.GraphicsRead);
 
             if (lightDataBuffer == null)
             {
                 return;
             }
-
-            lightDataBuffer.Update(cachedLights.AsSpan());
 
             state.ApplyStorageBufferIfNeeded("StapleLights", lightDataBuffer);
         }
@@ -189,7 +183,6 @@ public sealed class LightSystem : IRenderSystem
         }
 
         var lightAmbient = AmbientColor;
-        var lightCountValue = targets.Length;
 
         for (var i = 0; i < lightCount; i++)
         {
@@ -204,13 +197,22 @@ public sealed class LightSystem : IRenderSystem
                 p = -forward;
             }
 
-            cachedLights[i].type = light.type;
-            cachedLights[i].position = p;
-            cachedLights[i].diffuse = (Vector3)light.color;
-            cachedLights[i].spotDirection = forward;
+            cachedLights[i].positionType = new((float)light.type, p.X, p.Y, p.Z);
+            cachedLights[i].diffuse = light.color;
+            cachedLights[i].specular = Color.White;
+            //cachedLights[i].spotDirection = forward;
         }
 
-        var key = material.shader.Guid.GuidHash;
+        EnsureStorageBuffer(ref state);
+
+        if(lightDataBuffer?.Disposed ?? true)
+        {
+            return false;
+        }
+
+        lightDataBuffer.Update(cachedLights);
+
+        var key = HashCode.Combine(material.shader.Guid.GuidHash, material.ShaderVariantKey);
 
         static bool HandlesValid(Span<ShaderHandle> handles)
         {
@@ -228,15 +230,14 @@ public sealed class LightSystem : IRenderSystem
         if (cachedInstancedMaterialInfo.TryGetValue(key, out var handles) == false || HandlesValid(handles) == false)
         {
             handles = [
-                material.GetShaderHandle("StapleLightViewPosition"),
-                material.GetShaderHandle("StapleLightAmbientColor"),
-                material.GetShaderHandle("StapleLightCount")
+                material.GetShaderHandle("StapleLightCountViewPosition"),
+                material.GetShaderHandle("StapleLightAmbientColor")
             ];
 
             cachedInstancedMaterialInfo.AddOrSetKey(key, handles);
         }
 
-        if((handles?.Length ?? 0) != 3 ||
+        if((handles?.Length ?? 0) != 2 ||
             HandlesValid(handles) == false)
         {
             EnsureStorageBuffer(ref state);
@@ -246,11 +247,9 @@ public sealed class LightSystem : IRenderSystem
 
         var viewPosHandle = handles[0];
         var lightAmbientHandle = handles[1];
-        var lightCountHandle = handles[2];
 
-        material.shader.SetVector3(material.ShaderVariantKey, viewPosHandle, cameraPosition);
+        material.shader.SetVector4(material.ShaderVariantKey, viewPosHandle, new Vector4(lightCount, cameraPosition.X, cameraPosition.Y, cameraPosition.Z));
         material.shader.SetColor(material.ShaderVariantKey, lightAmbientHandle, lightAmbient);
-        material.shader.SetFloat(material.ShaderVariantKey, lightCountHandle, lightCountValue);
 
         EnsureStorageBuffer(ref state);
 

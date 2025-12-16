@@ -136,6 +136,12 @@ public class ShaderReflectionData
                     }
 
                     break;
+
+                case "struct":
+
+                    type = ShaderUniformType.Structure;
+
+                    return true;
             }
 
             type = default;
@@ -230,22 +236,107 @@ public class ShaderReflectionData
 
                 if((parameterUniformType == ShaderUniformType.ReadOnlyBuffer ||
                     parameterUniformType == ShaderUniformType.ReadWriteBuffer ||
-                    parameterUniformType == ShaderUniformType.WriteOnlyBuffer) &&
-                    parameter.type.resultType.TryGetUniformType(out var elementType))
+                    parameterUniformType == ShaderUniformType.WriteOnlyBuffer))
                 {
-                    data.elementType = elementType;
+                    FieldType fieldType = null;
+
+                    ShaderUniformType? elementType = null;
+
+                    if(parameter.type.resultType != null)
+                    {
+                        if(parameter.type.resultType.TryGetUniformType(out var type))
+                        {
+                            elementType = type;
+                            fieldType = parameter.type.resultType;
+
+                            data.elementType = new()
+                            {
+                                type = type,
+                                size = type switch
+                                {
+                                    ShaderUniformType.Int or ShaderUniformType.Float => sizeof(int),
+                                    ShaderUniformType.Color or ShaderUniformType.Vector4 => Marshal.SizeOf<Vector4>(),
+                                    ShaderUniformType.Vector3 => Marshal.SizeOf<Vector3>(),
+                                    ShaderUniformType.Vector2 => Marshal.SizeOf<Vector2>(),
+                                    ShaderUniformType.Matrix3x3 => Marshal.SizeOf<Matrix3x3>(),
+                                    ShaderUniformType.Matrix4x4 => Marshal.SizeOf<Matrix4x4>(),
+                                    _ => 0,
+                                },
+                            };
+                        }
+                    }
+                    
+                    if(elementType == null && parameter.type.elementType != null)
+                    {
+                        if(parameter.type.elementType.TryGetUniformType(out var type))
+                        {
+                            elementType = type;
+                            fieldType = parameter.type.elementType;
+
+                            data.elementType = new()
+                            {
+                                type = type,
+                                size = type switch
+                                {
+                                    ShaderUniformType.Int or ShaderUniformType.Float => sizeof(int),
+                                    ShaderUniformType.Color or ShaderUniformType.Vector4 => Marshal.SizeOf<Vector4>(),
+                                    ShaderUniformType.Vector3 => Marshal.SizeOf<Vector3>(),
+                                    ShaderUniformType.Vector2 => Marshal.SizeOf<Vector2>(),
+                                    ShaderUniformType.Matrix3x3 => Marshal.SizeOf<Matrix3x3>(),
+                                    ShaderUniformType.Matrix4x4 => Marshal.SizeOf<Matrix4x4>(),
+                                    _ => 0,
+                                },
+                            };
+                        }
+                    }
+
+                    if (elementType == ShaderUniformType.Structure)
+                    {
+                        data.elementType.fields = [];
+
+                        var last = fieldType.fields.LastOrDefault();
+
+                        data.elementType.size = last.binding.offset + last.binding.size;
+
+                        foreach (var field in fieldType.fields)
+                        {
+                            if (field.type.TryGetUniformType(out var uniformType) == false)
+                            {
+                                continue;
+                            }
+
+                            if (uniformType == ShaderUniformType.Texture)
+                            {
+                                continue;
+                            }
+
+                            data.elementType.fields.Add(new()
+                            {
+                                binding = parameter.binding.index,
+                                name = field.name,
+                                offset = field.binding.offset,
+                                size = field.binding.size,
+                                type = uniformType,
+                            });
+                        }
+                    }
                 }
 
-                data.size = parameterUniformType switch
+                if(parameterUniformType != ShaderUniformType.ReadOnlyBuffer &&
+                    parameterUniformType != ShaderUniformType.WriteOnlyBuffer &&
+                    parameterUniformType != ShaderUniformType.ReadWriteBuffer)
                 {
-                    ShaderUniformType.Int or ShaderUniformType.Float => sizeof(int),
-                    ShaderUniformType.Color or ShaderUniformType.Vector4 => Marshal.SizeOf<Vector4>(),
-                    ShaderUniformType.Vector3 => Marshal.SizeOf<Vector3>(),
-                    ShaderUniformType.Vector2 => Marshal.SizeOf<Vector2>(),
-                    ShaderUniformType.Matrix3x3 => Marshal.SizeOf<Matrix3x3>(),
-                    ShaderUniformType.Matrix4x4 => Marshal.SizeOf<Matrix4x4>(),
-                    _ => 0,
-                };
+                    data.size = parameterUniformType switch
+                    {
+                        ShaderUniformType.Int or ShaderUniformType.Float => sizeof(int),
+                        ShaderUniformType.Color or ShaderUniformType.Vector4 => Marshal.SizeOf<Vector4>(),
+                        ShaderUniformType.Vector3 => Marshal.SizeOf<Vector3>(),
+                        ShaderUniformType.Vector2 => Marshal.SizeOf<Vector2>(),
+                        ShaderUniformType.Matrix3x3 => Marshal.SizeOf<Matrix3x3>(),
+                        ShaderUniformType.Matrix4x4 => Marshal.SizeOf<Matrix4x4>(),
+                        _ => 0,
+                    };
+                }
             }
 
             if(data.type == ShaderUniformType.Texture)

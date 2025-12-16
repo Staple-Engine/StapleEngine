@@ -11,22 +11,25 @@ public struct LightSample
 
 public enum LightType
 {
+    Spot,
     Directional,
     Point,
-    Spotlight,
 };
 
 public struct Light
 {
-    LightType type;
-    float3 position;
-    float3 diffuse;
-    float3 specular;
-    float2 padding;
+    float4 positionType;
+    float4 diffuseRaw;
+    float4 specularRaw;
 
     LightSample Sample(float3 target)
     {
         LightSample sample;
+
+        LightType type = (LightType)positionType.x;
+        float3 position = positionType.yzw;
+        float3 diffuse = diffuseRaw.rgb;
+        float3 specular = specularRaw.rgb;
 
         switch (type)
         {
@@ -47,7 +50,10 @@ public struct Light
 
             break;
 
-        default:
+        default: //Defaults to directional
+
+            sample.direction = normalize(position);
+            sample.diffuse = diffuse;
 
             break;
         }
@@ -59,10 +65,19 @@ public struct Light
 [[vk::binding(2, StapleUniformBufferSet)]]
 public cbuffer StapleLightInfo
 {
-    float3 StapleLightViewPosition;
+    float4 StapleLightCountViewPosition;
     float4 StapleLightAmbientColor;
-    int StapleLightCount;
 };
+
+public int StapleLightCount()
+{
+    return int(StapleLightCountViewPosition.x);
+}
+
+public float3 StapleLightViewPosition()
+{
+    return StapleLightCountViewPosition.yzw;
+}
 
 public float3 StapleLightNormal(float3 normal, float4x4 modelView)
 {
@@ -106,14 +121,16 @@ public float3 StapleLightDiffuseTangent(float3 position, float3 normal, float3x3
 
 public float3 StapleProcessLights(float3 worldPosition, float3 normal)
 {
-    if (StapleLightCount == 0)
+    int count = StapleLightCount();
+
+    if (count == 0)
     {
         return StapleLightAmbientColor.rgb;
     }
 
-    float3 diffuse;
+    float3 diffuse = float3(0, 0, 0);
 
-    for (int i = 0; i < StapleLightCount; i++)
+    for (int i = 0; i < count; i++)
     {
         diffuse += StapleLightDiffuse(worldPosition, normal, StapleLights[i]);
     }
@@ -123,14 +140,16 @@ public float3 StapleProcessLights(float3 worldPosition, float3 normal)
 
 public float3 StapleProcessLightsTangent(float3 worldPosition, float3 normal, float3x3 tbn)
 {
-    if (StapleLightCount == 0)
+    int count = StapleLightCount();
+
+    if (count == 0)
     {
         return StapleLightAmbientColor.rgb;
     }
 
     float3 diffuse;
 
-    for (int i = 0; i < StapleLightCount; i++)
+    for (int i = 0; i < count; i++)
     {
         diffuse += StapleLightDiffuseTangent(worldPosition, normal, tbn, StapleLights[i]);
     }

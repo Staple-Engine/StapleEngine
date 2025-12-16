@@ -12,7 +12,7 @@ namespace Staple.Internal;
 internal partial class SDLGPURendererBackend : IRendererBackend
 {
     const uint VulkanVersionMajor = 1;
-    const uint VulkanVersionMinor = 1;
+    const uint VulkanVersionMinor = 2;
     const uint VulkanVersionPatch = 0;
 
     internal static string StapleRenderDataUniformName = "StapleRenderData";
@@ -550,6 +550,15 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
             createOptions.FeatureList = (nint)drawPtr;
 
+            var physicalDeviceFeatures = new VkPhysicalDeviceFeatures()
+            {
+                robustBufferAccess = true,
+            };
+
+            void *physicalDevicePtr = &physicalDeviceFeatures;
+
+            createOptions.Vulkan10PhysicalDeviceFeatures = (nint)physicalDevicePtr;
+
             switch (renderer)
             {
                 case RendererType.Vulkan:
@@ -967,18 +976,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         var depthTarget = new SDL.GPUDepthStencilTargetInfo()
         {
             ClearDepth = 1,
-            LoadOp = viewData.clearMode switch
-            {
-                CameraClearMode.None => SDL.GPULoadOp.Load,
-                _ => SDL.GPULoadOp.Clear,
-            },
+            LoadOp = SDL.GPULoadOp.Load,
             StoreOp = SDL.GPUStoreOp.Store,
             Texture = depthTextureResource.texture,
-            StencilLoadOp = viewData.clearMode switch
-            {
-                CameraClearMode.None => SDL.GPULoadOp.Load,
-                _ => SDL.GPULoadOp.Clear,
-            },
+            StencilLoadOp = SDL.GPULoadOp.Load,
             StencilStoreOp = SDL.GPUStoreOp.Store,
         };
 
