@@ -27,6 +27,40 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
             return;
         }
 
+        if ((state.vertexStorageBuffers?.Count ?? 0) > 0)
+        {
+            foreach (var pair in state.vertexStorageBuffers)
+            {
+                if (pair.Value == null ||
+                    pair.Value.Flags.HasFlag(RenderBufferFlags.GraphicsRead) == false ||
+                    pair.Value.Disposed ||
+                    pair.Value is not SDLGPUVertexBuffer v ||
+                    backend.TryGetVertexBuffer(v.handle, out var resource) == false ||
+                    resource.used == false ||
+                    resource.buffer == nint.Zero)
+                {
+                    return;
+                }
+            }
+        }
+
+        if ((state.fragmentStorageBuffers?.Count ?? 0) > 0)
+        {
+            foreach (var pair in state.fragmentStorageBuffers)
+            {
+                if (pair.Value == null ||
+                    pair.Value.Flags.HasFlag(RenderBufferFlags.GraphicsRead) == false ||
+                    pair.Value.Disposed ||
+                    pair.Value is not SDLGPUVertexBuffer v ||
+                    backend.TryGetVertexBuffer(v.handle, out var resource) == false ||
+                    resource.used == false ||
+                    resource.buffer == nint.Zero)
+                {
+                    return;
+                }
+            }
+        }
+
         var renderPass = backend.renderPass;
 
         if (renderPass == nint.Zero)
@@ -91,16 +125,9 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
         {
             foreach (var pair in state.vertexStorageBuffers)
             {
-                if (pair.Value == null ||
-                    pair.Value.Flags.HasFlag(RenderBufferFlags.GraphicsRead) == false ||
-                    pair.Value.Disposed ||
-                    pair.Value is not SDLGPUVertexBuffer v ||
-                    backend.TryGetVertexBuffer(v.handle, out var resource) == false ||
-                    resource.used == false ||
-                    resource.buffer == nint.Zero)
-                {
-                    continue;
-                }
+                var buffer = pair.Value as SDLGPUVertexBuffer;
+
+                backend.TryGetVertexBuffer(buffer.handle, out var resource);
 
                 singleBuffer[0] = resource.buffer;
 
@@ -112,16 +139,9 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
         {
             foreach (var pair in state.fragmentStorageBuffers)
             {
-                if (pair.Value == null ||
-                    pair.Value.Flags.HasFlag(RenderBufferFlags.GraphicsRead) == false ||
-                    pair.Value.Disposed ||
-                    pair.Value is not SDLGPUVertexBuffer v ||
-                    backend.TryGetVertexBuffer(v.handle, out var resource) == false ||
-                    resource.used == false ||
-                    resource.buffer == nint.Zero)
-                {
-                    continue;
-                }
+                var buffer = pair.Value as SDLGPUVertexBuffer;
+
+                backend.TryGetVertexBuffer(buffer.handle, out var resource);
 
                 singleBuffer[0] = resource.buffer;
 

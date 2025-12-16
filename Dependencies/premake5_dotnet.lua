@@ -40,6 +40,15 @@ project "xxHash"
 		"xxHash/**.cs"
 	}
 
+project "Evergine.Bindings.Vulkan"
+	kind "SharedLib"
+	language "C#"
+	clr "Unsafe"
+	
+	files {
+		"Vulkan.NET/**.cs"
+	}
+
 project "SDL3-CS"
 	kind "SharedLib"
 	language "C#"

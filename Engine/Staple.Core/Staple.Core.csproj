@@ -83,6 +83,9 @@
 		<Reference Include="xxHash">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\xxHash.dll</HintPath>
 		</Reference>
+		<Reference Include="Evergine.Bindings.Vulkan">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\Evergine.Bindings.Vulkan.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 	
 	<ItemGroup>
@@ -486,6 +489,5 @@
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
-	  <PackageReference Include="Evergine.Bindings.Vulkan" Version="2025.10.20.38" />
 	</ItemGroup>
 </Project>
