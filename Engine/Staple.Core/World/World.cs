@@ -176,6 +176,7 @@ public partial class World
 
     private EntityInfo[] cachedEntityList = [];
     private bool needsEmitWorldChange = false;
+    private readonly HashSet<int> deadEntities = [];
 
     private static readonly WorldChangeBox worldChangeReceivers = new();
     private static readonly SceneQueryBox sceneQueries = new();
@@ -376,6 +377,8 @@ public partial class World
                     info.prefabLocalID = 0;
 
                     entityCount--;
+
+                    deadEntities.Add(e.Identifier.ID - 1);
                 }
             }
 

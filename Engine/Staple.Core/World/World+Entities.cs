@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Staple;
 
@@ -132,31 +133,37 @@ public partial class World
         {
             entityCount++;
 
-            for (var i = 0; i < cachedEntityList.Length; i++)
+            while(deadEntities.Count > 0)
             {
-                if (cachedEntityList[i].alive == false)
+                var first = deadEntities.FirstOrDefault();
+
+                deadEntities.Remove(first);
+
+                var other = entities[first];
+
+                if(other.alive)
                 {
-                    var other = entities[i];
-
-                    other.name = DefaultEntityName;
-                    other.generation++;
-                    other.layer = 0;
-
-                    other.alive = true;
-                    other.enabled = true;
-                    other.enabledInHierarchy = true;
-
-                    needsEmitWorldChange = true;
-
-                    return new Entity()
-                    {
-                        Identifier = new()
-                        {
-                            ID = other.ID,
-                            generation = other.generation,
-                        },
-                    };
+                    throw new System.InvalidOperationException("Somehow creating an entity into an alive entity! This should not be possible!");
                 }
+
+                other.name = DefaultEntityName;
+                other.generation++;
+                other.layer = 0;
+
+                other.alive = true;
+                other.enabled = true;
+                other.enabledInHierarchy = true;
+
+                needsEmitWorldChange = true;
+
+                return new Entity()
+                {
+                    Identifier = new()
+                    {
+                        ID = other.ID,
+                        generation = other.generation,
+                    },
+                };
             }
 
             var newEntity = new EntityInfo()
