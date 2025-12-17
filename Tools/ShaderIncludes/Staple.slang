@@ -10,6 +10,7 @@ public cbuffer StapleRenderData
     public float4x4 world;
     public float4x4 view;
     public float4x4 projection;
+    public int instanceOffset;
 };
 
 [[vk::binding(1, StapleUniformBufferSet)]]
@@ -49,6 +50,6 @@ public float4x4 StapleGetSkinningMatrix(float4x4 world, float4 indices, float4 w
 #ifdef INSTANCING
 public float4x4 StapleGetInstancedTransform(uint index)
 {
-    return StapleInstancingTransforms[index];
+    return StapleInstancingTransforms[index + instanceOffset];
 }
 #endif

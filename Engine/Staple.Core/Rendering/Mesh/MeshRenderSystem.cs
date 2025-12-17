@@ -24,12 +24,14 @@ public sealed class MeshRenderSystem : IRenderSystem
     private class InstanceData
     {
         public ExpandableContainer<InstanceInfo> instanceInfos = new();
-        public Matrix4x4[] transformMatrices = [];
     }
 
     private readonly Dictionary<int, InstanceData> instanceCache = [];
 
-    private readonly Dictionary<int, VertexBuffer> instanceBuffers = [];
+    private VertexBuffer instanceBuffer;
+    private int instanceOffset;
+    private int instanceCount;
+    private Matrix4x4[] transformMatrices = [];
 
     private readonly Lazy<VertexLayout> instanceLayout = new(() =>
     {
@@ -58,27 +60,6 @@ public sealed class MeshRenderSystem : IRenderSystem
     {
     }
     #endregion
-
-    private VertexBuffer GetInstanceBuffer(int count)
-    {
-        if (instanceBuffers.TryGetValue(count, out var buffer) && buffer.Disposed == false)
-        {
-            return buffer;
-        }
-
-        buffer = VertexBuffer.Create(new Matrix4x4[count], instanceLayout.Value, RenderBufferFlags.GraphicsRead);
-
-        if((buffer?.Disposed ?? true))
-        {
-            instanceBuffers.Remove(count);
-
-            return null;
-        }
-
-        instanceBuffers.AddOrSetKey(count, buffer);
-
-        return buffer;
-    }
 
     /// <summary>
     /// Renders a mesh
@@ -258,13 +239,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             }
         }
 
-        foreach (var p in instanceCache)
-        {
-            if(p.Value.instanceInfos.Length != p.Value.transformMatrices.Length)
-            {
-                Array.Resize(ref p.Value.transformMatrices, p.Value.instanceInfos.Length);
-            }
-        }
+        instanceOffset = 0;
     }
 
     public void Submit()
@@ -275,6 +250,50 @@ public sealed class MeshRenderSystem : IRenderSystem
             enableDepth = true,
         };
 
+        if(instanceBuffer?.Disposed ?? true)
+        {
+            instanceBuffer = VertexBuffer.Create(new Matrix4x4[1], instanceLayout.Value, RenderBufferFlags.GraphicsRead);
+        }
+
+        instanceCount = instanceOffset = 0;
+
+        foreach (var (_, contents) in instanceCache)
+        {
+            if (contents.instanceInfos.Length <= 1)
+            {
+                continue;
+            }
+
+            instanceCount += contents.instanceInfos.Length;
+        }
+
+        if (instanceCount > 0)
+        {
+            if(instanceCount > transformMatrices.Length)
+            {
+                Array.Resize(ref transformMatrices, instanceCount);
+            }
+
+            foreach (var (_, contents) in instanceCache)
+            {
+                if (contents.instanceInfos.Length <= 1)
+                {
+                    continue;
+                }
+
+                for(var i = 0; i < contents.instanceInfos.Length; i++)
+                {
+                    transformMatrices[instanceOffset++] = contents.instanceInfos.Contents[i].transform.Matrix;
+                }
+            }
+
+            instanceOffset = 0;
+
+            var span = new Span<Matrix4x4>(transformMatrices, 0, instanceCount);
+
+            instanceBuffer.Update(span);
+        }
+
         foreach (var (_, contents) in instanceCache)
         {
             if (contents.instanceInfos.Length == 0)
@@ -283,6 +302,9 @@ public sealed class MeshRenderSystem : IRenderSystem
             }
 
             renderState.ClearStorageBuffers();
+
+            renderState.instanceCount = 1;
+            renderState.instanceOffset = 0;
 
             var renderData = contents.instanceInfos.Contents[0];
 
@@ -324,25 +346,14 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 contents.instanceInfos.Contents[0].mesh.SetActive(ref renderState, contents.instanceInfos.Contents[0].submeshIndex);
 
-                for (var i = 0; i < contents.instanceInfos.Length; i++)
+                if (instanceBuffer != null)
                 {
-                    contents.transformMatrices[i] = contents.instanceInfos.Contents[i].transform.Matrix;
-                }
+                    renderState.instanceOffset = instanceOffset;
+                    renderState.instanceCount = contents.instanceInfos.Length;
 
-                var buffer = GetInstanceBuffer(contents.transformMatrices.Length);
+                    instanceOffset += renderState.instanceCount;
 
-                if(buffer == null)
-                {
-                    continue;
-                }
-
-                buffer.Update(contents.transformMatrices);
-
-                if (buffer != null)
-                {
-                    renderState.instanceCount = contents.transformMatrices.Length;
-
-                    renderState.ApplyStorageBufferIfNeeded("StapleInstancingTransforms", buffer);
+                    renderState.ApplyStorageBufferIfNeeded("StapleInstancingTransforms", instanceBuffer);
 
                     RenderSystem.Submit(renderState, renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
                         contents.instanceInfos.Length);

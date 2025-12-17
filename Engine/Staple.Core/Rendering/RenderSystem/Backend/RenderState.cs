@@ -29,6 +29,7 @@ internal struct RenderState
     public Texture[] vertexTextures;
     public Texture[] fragmentTextures;
     public Matrix4x4 world;
+    public int instanceOffset;
     public int instanceCount;
 
     public readonly RenderState Clone()
@@ -56,6 +57,7 @@ internal struct RenderState
             vertexTextures = (Texture[])vertexTextures?.Clone(),
             wireframe = wireframe,
             world = world,
+            instanceOffset = instanceOffset,
             instanceCount = instanceCount,
         };
     }

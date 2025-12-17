@@ -30,6 +30,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         public Matrix4x4 world;
         public Matrix4x4 view;
         public Matrix4x4 projection;
+        public int instanceOffset;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
@@ -1471,6 +1472,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 unsafe
                 {
                     viewData.renderData.world = state.world;
+                    viewData.renderData.instanceOffset = state.instanceOffset > 0 ? state.instanceOffset : 0;
 
                     fixed (void* ptr = &viewData.renderData)
                     {
@@ -1636,6 +1638,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 unsafe
                 {
                     viewData.renderData.world = state.world;
+                    viewData.renderData.instanceOffset = 0;
 
                     fixed (void* ptr = &viewData.renderData)
                     {
@@ -1802,6 +1805,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 unsafe
                 {
                     viewData.renderData.world = state.world;
+                    viewData.renderData.instanceOffset = 0;
 
                     fixed (void* ptr = &viewData.renderData)
                     {
