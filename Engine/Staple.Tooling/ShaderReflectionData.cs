@@ -142,6 +142,12 @@ public class ShaderReflectionData
                     type = ShaderUniformType.Structure;
 
                     return true;
+
+                case "array":
+
+                    type = ShaderUniformType.Array;
+
+                    return true;
             }
 
             type = default;
@@ -203,25 +209,45 @@ public class ShaderReflectionData
                         continue;
                     }
 
-                    if(uniformType == ShaderUniformType.Texture)
+                    switch(uniformType)
                     {
-                        outValue.textures.Add(new()
-                        {
-                            name = field.name,
-                            binding = field.binding.index,
-                            type = uniformType,
-                        });
-                    }
-                    else
-                    {
-                        data.fields.Add(new()
-                        {
-                            binding = parameter.binding.index,
-                            name = field.name,
-                            offset = field.binding.offset,
-                            size = field.binding.size,
-                            type = uniformType,
-                        });
+                        case ShaderUniformType.Texture:
+
+                            outValue.textures.Add(new()
+                            {
+                                name = field.name,
+                                binding = field.binding.index,
+                                type = uniformType,
+                            });
+
+                            break;
+
+                        case ShaderUniformType.Array:
+
+                            data.fields.Add(new()
+                            {
+                                binding = parameter.binding.index,
+                                name = field.name,
+                                offset = field.binding.offset,
+                                size = field.binding.size,
+                                type = uniformType,
+                                count = field.type.elementCount,
+                            });
+
+                            break;
+
+                        default:
+
+                            data.fields.Add(new()
+                            {
+                                binding = parameter.binding.index,
+                                name = field.name,
+                                offset = field.binding.offset,
+                                size = field.binding.size,
+                                type = uniformType,
+                            });
+
+                            break;
                     }
                 }
 
@@ -234,95 +260,107 @@ public class ShaderReflectionData
             {
                 data.type = parameterUniformType;
 
-                if((parameterUniformType == ShaderUniformType.ReadOnlyBuffer ||
-                    parameterUniformType == ShaderUniformType.ReadWriteBuffer ||
-                    parameterUniformType == ShaderUniformType.WriteOnlyBuffer))
+                switch(parameterUniformType)
                 {
-                    FieldType fieldType = null;
+                    case ShaderUniformType.Array:
 
-                    ShaderUniformType? elementType = null;
+                        data.count = parameter.type.elementCount;
 
-                    if(parameter.type.resultType != null)
-                    {
-                        if(parameter.type.resultType.TryGetUniformType(out var type))
+                        break;
+
+                    case ShaderUniformType.ReadOnlyBuffer:
+                    case ShaderUniformType.ReadWriteBuffer:
+                    case ShaderUniformType.WriteOnlyBuffer:
                         {
-                            elementType = type;
-                            fieldType = parameter.type.resultType;
+                            FieldType fieldType = null;
 
-                            data.elementType = new()
+                            ShaderUniformType? elementType = null;
+
+                            if (parameter.type.resultType != null)
                             {
-                                type = type,
-                                size = type switch
+                                if (parameter.type.resultType.TryGetUniformType(out var type))
                                 {
-                                    ShaderUniformType.Int or ShaderUniformType.Float => sizeof(int),
-                                    ShaderUniformType.Color or ShaderUniformType.Vector4 => Marshal.SizeOf<Vector4>(),
-                                    ShaderUniformType.Vector3 => Marshal.SizeOf<Vector3>(),
-                                    ShaderUniformType.Vector2 => Marshal.SizeOf<Vector2>(),
-                                    ShaderUniformType.Matrix3x3 => Marshal.SizeOf<Matrix3x3>(),
-                                    ShaderUniformType.Matrix4x4 => Marshal.SizeOf<Matrix4x4>(),
-                                    _ => 0,
-                                },
-                            };
-                        }
-                    }
-                    
-                    if(elementType == null && parameter.type.elementType != null)
-                    {
-                        if(parameter.type.elementType.TryGetUniformType(out var type))
-                        {
-                            elementType = type;
-                            fieldType = parameter.type.elementType;
+                                    elementType = type;
+                                    fieldType = parameter.type.resultType;
 
-                            data.elementType = new()
-                            {
-                                type = type,
-                                size = type switch
-                                {
-                                    ShaderUniformType.Int or ShaderUniformType.Float => sizeof(int),
-                                    ShaderUniformType.Color or ShaderUniformType.Vector4 => Marshal.SizeOf<Vector4>(),
-                                    ShaderUniformType.Vector3 => Marshal.SizeOf<Vector3>(),
-                                    ShaderUniformType.Vector2 => Marshal.SizeOf<Vector2>(),
-                                    ShaderUniformType.Matrix3x3 => Marshal.SizeOf<Matrix3x3>(),
-                                    ShaderUniformType.Matrix4x4 => Marshal.SizeOf<Matrix4x4>(),
-                                    _ => 0,
-                                },
-                            };
-                        }
-                    }
-
-                    if (elementType == ShaderUniformType.Structure)
-                    {
-                        data.elementType.fields = [];
-
-                        var last = fieldType.fields.LastOrDefault();
-
-                        data.elementType.size = last.binding.offset + last.binding.size;
-
-                        foreach (var field in fieldType.fields)
-                        {
-                            if (field.type.TryGetUniformType(out var uniformType) == false)
-                            {
-                                continue;
+                                    data.elementType = new()
+                                    {
+                                        type = type,
+                                        size = type switch
+                                        {
+                                            ShaderUniformType.Int or ShaderUniformType.Float => sizeof(int),
+                                            ShaderUniformType.Color or ShaderUniformType.Vector4 => Marshal.SizeOf<Vector4>(),
+                                            ShaderUniformType.Vector3 => Marshal.SizeOf<Vector3>(),
+                                            ShaderUniformType.Vector2 => Marshal.SizeOf<Vector2>(),
+                                            ShaderUniformType.Matrix3x3 => Marshal.SizeOf<Matrix3x3>(),
+                                            ShaderUniformType.Matrix4x4 => Marshal.SizeOf<Matrix4x4>(),
+                                            _ => 0,
+                                        },
+                                    };
+                                }
                             }
 
-                            if (uniformType == ShaderUniformType.Texture)
+                            if (elementType == null && parameter.type.elementType != null)
                             {
-                                continue;
+                                if (parameter.type.elementType.TryGetUniformType(out var type))
+                                {
+                                    elementType = type;
+                                    fieldType = parameter.type.elementType;
+
+                                    data.elementType = new()
+                                    {
+                                        type = type,
+                                        size = type switch
+                                        {
+                                            ShaderUniformType.Int or ShaderUniformType.Float => sizeof(int),
+                                            ShaderUniformType.Color or ShaderUniformType.Vector4 => Marshal.SizeOf<Vector4>(),
+                                            ShaderUniformType.Vector3 => Marshal.SizeOf<Vector3>(),
+                                            ShaderUniformType.Vector2 => Marshal.SizeOf<Vector2>(),
+                                            ShaderUniformType.Matrix3x3 => Marshal.SizeOf<Matrix3x3>(),
+                                            ShaderUniformType.Matrix4x4 => Marshal.SizeOf<Matrix4x4>(),
+                                            _ => 0,
+                                        },
+                                    };
+                                }
                             }
 
-                            data.elementType.fields.Add(new()
+                            if (elementType == ShaderUniformType.Structure)
                             {
-                                binding = parameter.binding.index,
-                                name = field.name,
-                                offset = field.binding.offset,
-                                size = field.binding.size,
-                                type = uniformType,
-                            });
+                                data.elementType.fields = [];
+
+                                var last = fieldType.fields.LastOrDefault();
+
+                                data.elementType.size = last.binding.offset + last.binding.size;
+
+                                foreach (var field in fieldType.fields)
+                                {
+                                    if (field.type.TryGetUniformType(out var uniformType) == false)
+                                    {
+                                        continue;
+                                    }
+
+                                    if (uniformType == ShaderUniformType.Texture)
+                                    {
+                                        continue;
+                                    }
+
+                                    data.elementType.fields.Add(new()
+                                    {
+                                        binding = parameter.binding.index,
+                                        name = field.name,
+                                        offset = field.binding.offset,
+                                        size = field.binding.size,
+                                        type = uniformType,
+                                        count = uniformType == ShaderUniformType.Array ? field.type.elementCount : 0,
+                                    });
+                                }
+                            }
                         }
-                    }
+
+                        break;
                 }
 
-                if(parameterUniformType != ShaderUniformType.ReadOnlyBuffer &&
+                if (parameterUniformType != ShaderUniformType.ReadOnlyBuffer &&
                     parameterUniformType != ShaderUniformType.WriteOnlyBuffer &&
                     parameterUniformType != ShaderUniformType.ReadWriteBuffer)
                 {

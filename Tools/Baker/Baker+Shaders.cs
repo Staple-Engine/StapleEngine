@@ -465,7 +465,7 @@ static partial class Program
                                 reflectionData = JsonConvert.DeserializeObject<ShaderReflectionData>(text);
 
                                 //For debugging
-                                //File.Copy(reflectionJsonFileName, $"{outputFile}.reflection.json", true);
+                                //File.Copy(reflectionJsonFileName, $"{outputFile}.{shaderType}.reflection.json", true);
                             }
                             catch (Exception e)
                             {

@@ -4831,12 +4831,13 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(5);
+            writer.WriteArrayHeader(6);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformType>().Serialize(ref writer, value.type, options);
             writer.Write(value.offset);
             writer.Write(value.size);
             writer.Write(value.binding);
+            writer.Write(value.count);
         }
 
         public global::Staple.Internal.ShaderUniformField Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -4870,6 +4871,9 @@ namespace MessagePack.Formatters.Staple.Internal
                     case 4:
                         ____result.binding = reader.ReadInt32();
                         break;
+                    case 5:
+                        ____result.count = reader.ReadInt32();
+                        break;
                     default:
                         reader.Skip();
                         break;
@@ -4893,13 +4897,14 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(6);
+            writer.WriteArrayHeader(7);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniformField>>().Serialize(ref writer, value.fields, options);
             writer.Write(value.binding);
             writer.Write(value.size);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformType>().Serialize(ref writer, value.type, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformTypeInfo>().Serialize(ref writer, value.elementType, options);
+            writer.Write(value.count);
         }
 
         public global::Staple.Internal.ShaderUniformMapping Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -4935,6 +4940,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 5:
                         ____result.elementType = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.ShaderUniformTypeInfo>().Deserialize(ref reader, options);
+                        break;
+                    case 6:
+                        ____result.count = reader.ReadInt32();
                         break;
                     default:
                         reader.Skip();

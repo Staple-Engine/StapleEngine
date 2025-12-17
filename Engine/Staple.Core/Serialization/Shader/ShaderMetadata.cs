@@ -1,7 +1,6 @@
 ﻿using MessagePack;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Staple.Internal;
 
@@ -26,6 +25,7 @@ public enum ShaderUniformType
     WriteOnlyBuffer,
     ReadWriteBuffer,
     Structure,
+    Array,
 }
 
 [MessagePackObject]
@@ -67,6 +67,9 @@ public class ShaderUniformField
 
     [Key(4)]
     public int binding;
+
+    [Key(5)]
+    public int count;
 }
 
 [MessagePackObject]
@@ -102,6 +105,9 @@ public class ShaderUniformMapping
 
     [Key(5)]
     public ShaderUniformTypeInfo elementType;
+
+    [Key(6)]
+    public int count;
 }
 
 [MessagePackObject]

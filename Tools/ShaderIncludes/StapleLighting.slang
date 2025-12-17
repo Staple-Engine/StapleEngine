@@ -2,6 +2,8 @@ implementing Staple;
 
 __include StapleInternal;
 
+#define STAPLE_LIGHT_COUNT 16
+
 #ifdef LIT
 public struct LightSample
 {
@@ -67,6 +69,8 @@ public cbuffer StapleLightInfo
 {
     float4 StapleLightCountViewPosition;
     float4 StapleLightAmbientColor;
+    float4 StapleLightTypePosition[STAPLE_LIGHT_COUNT];
+    float4 StapleLightDiffuse[STAPLE_LIGHT_COUNT];
 };
 
 public int StapleLightCount()
@@ -99,7 +103,7 @@ public float StapleLightScaling(float nDotL)
 #endif
 }
 
-public float3 StapleLightDiffuse(float3 position, float3 normal, Light light)
+public float3 StapleLightDiffuseFactor(float3 position, float3 normal, Light light)
 {
     LightSample sample = light.Sample(position);
 
@@ -108,7 +112,7 @@ public float3 StapleLightDiffuse(float3 position, float3 normal, Light light)
     return sample.diffuse * nDotL;
 }
 
-public float3 StapleLightDiffuseTangent(float3 position, float3 normal, float3x3 tbn, Light light)
+public float3 StapleLightDiffuseFactorTangent(float3 position, float3 normal, float3x3 tbn, Light light)
 {
     LightSample sample = light.Sample(position);
 
@@ -132,7 +136,13 @@ public float3 StapleProcessLights(float3 worldPosition, float3 normal)
 
     for (int i = 0; i < count; i++)
     {
-        diffuse += StapleLightDiffuse(worldPosition, normal, StapleLights[i]);
+        Light light;
+
+        light.positionType = StapleLightTypePosition[i];
+        light.diffuseRaw = StapleLightDiffuse[i];
+        light.specularRaw = float4(0, 0, 0, 0); // TODO
+
+        diffuse += StapleLightDiffuseFactor(worldPosition, normal, light);
     }
 
     return StapleLightAmbientColor.rgb + diffuse;
@@ -151,7 +161,13 @@ public float3 StapleProcessLightsTangent(float3 worldPosition, float3 normal, fl
 
     for (int i = 0; i < count; i++)
     {
-        diffuse += StapleLightDiffuseTangent(worldPosition, normal, tbn, StapleLights[i]);
+        Light light;
+
+        light.positionType = StapleLightTypePosition[i];
+        light.diffuseRaw = StapleLightDiffuse[i];
+        light.specularRaw = float4(0, 0, 0, 0); //TODO
+
+        diffuse += StapleLightDiffuseFactorTangent(worldPosition, normal, tbn, light);
     }
 
     return StapleLightAmbientColor.rgb + diffuse;

@@ -76,7 +76,7 @@ namespace Staple
                 return;
             }
 
-            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting, ref renderState);
+            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
             RenderSystem.Submit(renderState, Mesh.TriangleCount(topology, indexCount), 1);
         }
@@ -121,7 +121,7 @@ namespace Staple
                 return;
             }
 
-            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting, ref renderState);
+            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
             RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }
@@ -166,7 +166,7 @@ namespace Staple
                 return;
             }
 
-            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting, ref renderState);
+            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
             RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }

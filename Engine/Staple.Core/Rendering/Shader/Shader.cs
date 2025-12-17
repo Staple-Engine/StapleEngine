@@ -282,7 +282,7 @@ public partial class Shader : IGuidAsset
                 slot = uniform.slot,
             },
             handle = new(normalizedName),
-            count = NormalizeUniformCount(uniform.name),
+            count = 1,
         };
 
         instance.uniforms.Add(normalizedName, u);
@@ -331,6 +331,7 @@ public partial class Shader : IGuidAsset
                         type = uniform.type,
                     },
                     handle = name,
+                    count = uniform.count,
                 };
             }
         }
@@ -347,6 +348,7 @@ public partial class Shader : IGuidAsset
                         type = uniform.type,
                     },
                     handle = name,
+                    count = uniform.count,
                 };
             }
         }
@@ -363,6 +365,24 @@ public partial class Shader : IGuidAsset
                         type = pair.Value.type,
                     },
                     handle = pair.Key,
+                    count = pair.Value.count,
+                };
+            }
+        }
+
+        foreach (var pair in instance.fragmentFields)
+        {
+            if (pair.Key == name)
+            {
+                return new()
+                {
+                    uniform = new()
+                    {
+                        name = pair.Value.name,
+                        type = pair.Value.type,
+                    },
+                    handle = pair.Key,
+                    count = pair.Value.count,
                 };
             }
         }
