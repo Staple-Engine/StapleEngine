@@ -19,20 +19,7 @@ internal class SDLGPUReadTextureCommand(SDLGPUTexture texture, Action<byte[]> on
             return;
         }
 
-        if (resource.transferBuffer != nint.Zero)
-        {
-            SDL.ReleaseGPUTransferBuffer(backend.device, resource.transferBuffer);
-
-            resource.transferBuffer = nint.Zero;
-        }
-
-        var info = new SDL.GPUTransferBufferCreateInfo()
-        {
-            Size = (uint)resource.length,
-            Usage = SDL.GPUTransferBufferUsage.Download,
-        };
-
-        resource.transferBuffer = SDL.CreateGPUTransferBuffer(backend.device, in info);
+        resource.transferBuffer = backend.GetTransferBuffer(true, resource.length);
 
         if (resource.transferBuffer == nint.Zero)
         {

@@ -25,8 +25,6 @@ internal partial class SDLGPURendererBackend
 
         if (resource.transferBuffer != nint.Zero)
         {
-            SDL.ReleaseGPUTransferBuffer(device, resource.transferBuffer);
-
             resource.transferBuffer = nint.Zero;
         }
 

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -27,10 +25,11 @@ public sealed class MeshRenderSystem : IRenderSystem
     {
         public ExpandableContainer<InstanceInfo> instanceInfos = new();
         public Matrix4x4[] transformMatrices = [];
-        public VertexBuffer instanceBuffer;
     }
 
     private readonly Dictionary<int, InstanceData> instanceCache = [];
+
+    private readonly Dictionary<int, VertexBuffer> instanceBuffers = [];
 
     private readonly Lazy<VertexLayout> instanceLayout = new(() =>
     {
@@ -59,6 +58,27 @@ public sealed class MeshRenderSystem : IRenderSystem
     {
     }
     #endregion
+
+    private VertexBuffer GetInstanceBuffer(int count)
+    {
+        if (instanceBuffers.TryGetValue(count, out var buffer) && buffer.Disposed == false)
+        {
+            return buffer;
+        }
+
+        buffer = VertexBuffer.Create(new Matrix4x4[count], instanceLayout.Value, RenderBufferFlags.GraphicsRead);
+
+        if((buffer?.Disposed ?? true))
+        {
+            instanceBuffers.Remove(count);
+
+            return null;
+        }
+
+        instanceBuffers.AddOrSetKey(count, buffer);
+
+        return buffer;
+    }
 
     /// <summary>
     /// Renders a mesh
@@ -309,20 +329,20 @@ public sealed class MeshRenderSystem : IRenderSystem
                     contents.transformMatrices[i] = contents.instanceInfos.Contents[i].transform.Matrix;
                 }
 
-                if(contents.instanceBuffer == null)
+                var buffer = GetInstanceBuffer(contents.transformMatrices.Length);
+
+                if(buffer == null)
                 {
-                    contents.instanceBuffer = VertexBuffer.Create(contents.transformMatrices, instanceLayout.Value, RenderBufferFlags.GraphicsRead);
-                }
-                else
-                {
-                    contents.instanceBuffer.Update(contents.transformMatrices);
+                    continue;
                 }
 
-                if (contents.instanceBuffer != null)
+                buffer.Update(contents.transformMatrices);
+
+                if (buffer != null)
                 {
                     renderState.instanceCount = contents.transformMatrices.Length;
 
-                    renderState.ApplyStorageBufferIfNeeded("StapleInstancingTransforms", contents.instanceBuffer);
+                    renderState.ApplyStorageBufferIfNeeded("StapleInstancingTransforms", buffer);
 
                     RenderSystem.Submit(renderState, renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
                         contents.instanceInfos.Length);

@@ -21,18 +21,10 @@ internal class SDLGPUUpdateTextureCommand(ResourceHandle<Texture> handle, byte[]
         {
             if(resource.transferBuffer != nint.Zero)
             {
-                SDL.ReleaseGPUTransferBuffer(backend.device, resource.transferBuffer);
-
                 resource.transferBuffer = nint.Zero;
             }
 
-            var info = new SDL.GPUTransferBufferCreateInfo()
-            {
-                Size = (uint)data.Length,
-                Usage = SDL.GPUTransferBufferUsage.Upload,
-            };
-
-            resource.transferBuffer = SDL.CreateGPUTransferBuffer(backend.device, in info);
+            resource.transferBuffer = backend.GetTransferBuffer(false, data.Length);
 
             if (resource.transferBuffer == nint.Zero)
             {
@@ -55,7 +47,7 @@ internal class SDLGPUUpdateTextureCommand(ResourceHandle<Texture> handle, byte[]
             return;
         }
 
-        var mapData = SDL.MapGPUTransferBuffer(backend.device, resource.transferBuffer, false);
+        var mapData = SDL.MapGPUTransferBuffer(backend.device, resource.transferBuffer, true);
 
         unsafe
         {

@@ -5,6 +5,31 @@ namespace Staple.Internal;
 
 internal partial class SDLGPURendererBackend
 {
+    internal nint GetTransferBuffer(bool download, int length)
+    {
+        var key = new TransferBufferCacheKey(download, length);
+
+        if(cachedTransferBuffers.TryGetValue(key, out var buffer))
+        {
+            return buffer;
+        }
+
+        var transferInfo = new SDL.GPUTransferBufferCreateInfo()
+        {
+            Size = (uint)length,
+            Usage = download ? SDL.GPUTransferBufferUsage.Download : SDL.GPUTransferBufferUsage.Upload,
+        };
+
+        buffer = SDL.CreateGPUTransferBuffer(device, in transferInfo);
+
+        if (buffer != nint.Zero)
+        {
+            cachedTransferBuffers.Add(key, buffer);
+        }
+
+        return buffer;
+    }
+
     internal void ReleaseBufferResource(BufferResource resource)
     {
         if ((resource?.used ?? false) == false)
@@ -14,8 +39,6 @@ internal partial class SDLGPURendererBackend
 
         if (resource.transferBuffer != nint.Zero)
         {
-            SDL.ReleaseGPUTransferBuffer(device, resource.transferBuffer);
-
             resource.transferBuffer = nint.Zero;
         }
 

@@ -83,6 +83,17 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         public StapleFragmentRenderData fragmentData;
     }
 
+    private readonly struct TransferBufferCacheKey(bool download, int length)
+    {
+        public readonly bool download = download;
+        public readonly int length = length;
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(download, length);
+        }
+    }
+
     internal class TransientEntry
     {
         public readonly List<byte> vertices = [];
@@ -158,13 +169,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     return;
                 }
 
-                var transferInfo = new SDL.GPUTransferBufferCreateInfo()
-                {
-                    Size = (uint)vertices.Count,
-                    Usage = SDL.GPUTransferBufferUsage.Upload,
-                };
-
-                var transferBuffer = SDL.CreateGPUTransferBuffer(backend.device, in transferInfo);
+                var transferBuffer = backend.GetTransferBuffer(false, vertices.Count);
 
                 if (transferBuffer == nint.Zero)
                 {
@@ -218,8 +223,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 };
 
                 SDL.UploadToGPUBuffer(backend.copyPass, in location, in region, false);
-
-                SDL.ReleaseGPUTransferBuffer(backend.device, transferBuffer);
             }
 
             if(indices.Count > 0)
@@ -239,13 +242,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     return;
                 }
 
-                var transferInfo = new SDL.GPUTransferBufferCreateInfo()
-                {
-                    Size = (uint)(indices.Count * sizeof(ushort)),
-                    Usage = SDL.GPUTransferBufferUsage.Upload,
-                };
-
-                var transferBuffer = SDL.CreateGPUTransferBuffer(backend.device, in transferInfo);
+                var transferBuffer = backend.GetTransferBuffer(false, indices.Count * sizeof(ushort));
 
                 if (transferBuffer == nint.Zero)
                 {
@@ -299,8 +296,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 };
 
                 SDL.UploadToGPUBuffer(backend.copyPass, in location, in region, false);
-
-                SDL.ReleaseGPUTransferBuffer(backend.device, transferBuffer);
             }
 
             if (uintIndices.Count > 0)
@@ -320,13 +315,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     return;
                 }
 
-                var transferInfo = new SDL.GPUTransferBufferCreateInfo()
-                {
-                    Size = (uint)(uintIndices.Count * sizeof(uint)),
-                    Usage = SDL.GPUTransferBufferUsage.Upload,
-                };
-
-                var transferBuffer = SDL.CreateGPUTransferBuffer(backend.device, in transferInfo);
+                var transferBuffer = backend.GetTransferBuffer(false, uintIndices.Count * sizeof(uint));
 
                 if (transferBuffer == nint.Zero)
                 {
@@ -386,8 +375,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 };
 
                 SDL.UploadToGPUBuffer(backend.copyPass, in location, in region, false);
-
-                SDL.ReleaseGPUTransferBuffer(backend.device, transferBuffer);
             }
         }
     }
@@ -458,6 +445,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private readonly Dictionary<VertexLayout, TransientEntry> transientBuffers = [];
     private readonly TextureResource[] textures = new TextureResource[ushort.MaxValue - 1];
     private readonly List<SDLGPUShaderProgram> shaders = [];
+    private readonly Dictionary<TransferBufferCacheKey, nint> cachedTransferBuffers = [];
     private RenderTarget currentRenderTarget;
 
     private bool iteratingCommands = false;

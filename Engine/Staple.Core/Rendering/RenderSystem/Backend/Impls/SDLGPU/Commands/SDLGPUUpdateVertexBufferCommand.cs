@@ -24,7 +24,6 @@ internal class SDLGPUUpdateVertexBufferCommand(ResourceHandle<VertexBuffer> hand
             if (buffer.buffer != nint.Zero)
             {
                 SDL.ReleaseGPUBuffer(backend.device, buffer.buffer);
-                SDL.ReleaseGPUTransferBuffer(backend.device, buffer.transferBuffer);
 
                 buffer.transferBuffer = nint.Zero;
                 buffer.buffer = nint.Zero;
@@ -60,13 +59,7 @@ internal class SDLGPUUpdateVertexBufferCommand(ResourceHandle<VertexBuffer> hand
                 return;
             }
 
-            var transferInfo = new SDL.GPUTransferBufferCreateInfo()
-            {
-                Size = (uint)data.Length,
-                Usage = SDL.GPUTransferBufferUsage.Upload,
-            };
-
-            buffer.transferBuffer = SDL.CreateGPUTransferBuffer(backend.device, in transferInfo);
+            buffer.transferBuffer = backend.GetTransferBuffer(false, data.Length);
 
             if (buffer.transferBuffer == nint.Zero)
             {
@@ -93,7 +86,7 @@ internal class SDLGPUUpdateVertexBufferCommand(ResourceHandle<VertexBuffer> hand
             return;
         }
 
-        var mapData = SDL.MapGPUTransferBuffer(backend.device, buffer.transferBuffer, false);
+        var mapData = SDL.MapGPUTransferBuffer(backend.device, buffer.transferBuffer, true);
 
         unsafe
         {
