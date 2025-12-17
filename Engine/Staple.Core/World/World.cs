@@ -92,6 +92,11 @@ public partial class World
                 }
             };
         }
+
+        public override string ToString()
+        {
+            return alive ? $"{name} ({ID}:{generation})" : "Invalid Entity (Dead)";
+        }
     }
 
     /// <summary>
@@ -176,7 +181,7 @@ public partial class World
 
     private EntityInfo[] cachedEntityList = [];
     private bool needsEmitWorldChange = false;
-    private readonly HashSet<int> deadEntities = [];
+    private readonly SortedSet<int> deadEntities = [];
 
     private static readonly WorldChangeBox worldChangeReceivers = new();
     private static readonly SceneQueryBox sceneQueries = new();
