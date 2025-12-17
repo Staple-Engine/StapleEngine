@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Staple;
@@ -20,7 +21,7 @@ public partial class World
         lock (lockObject)
         {
             if (localID >= 0 &&
-                localID < entities.Count &&
+                localID < entities.Length &&
                 entities[localID].alive &&
                 entities[localID].generation == entity.Identifier.generation)
             {
@@ -44,7 +45,7 @@ public partial class World
         lock (lockObject)
         {
             if (localID < 0 ||
-                localID >= entities.Count ||
+                localID >= entities.Length ||
                 entities[localID].alive == false ||
                 entities[localID].generation != entity.Identifier.generation)
             {
@@ -168,14 +169,39 @@ public partial class World
 
             var newEntity = new EntityInfo()
             {
-                ID = entities.Count + 1,
+                ID = entities.Length + 1,
                 alive = true,
                 enabled = true,
                 enabledInHierarchy = true,
                 name = DefaultEntityName,
             };
 
-            entities.Add(newEntity);
+            var current = entities.Length;
+
+            if(entities.Length == 0)
+            {
+                entities = new EntityInfo[64];
+            }
+            else
+            {
+                Array.Resize(ref entities, entities.Length * 2);
+            }
+
+            entities[current] = newEntity;
+
+            for(var i = current + 1; i < entities.Length; i++)
+            {
+                entities[i] = new()
+                {
+                    ID = i + 1,
+                    alive = false,
+                    enabled = true,
+                    enabledInHierarchy = true,
+                    name = DefaultEntityName,
+                };
+
+                deadEntities.Add(i);
+            }
 
             needsEmitWorldChange = true;
 

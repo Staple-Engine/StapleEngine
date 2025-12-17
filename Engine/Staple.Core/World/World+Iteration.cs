@@ -461,7 +461,7 @@ public partial class World
 
         lock (lockObject)
         {
-            if(localID < 0 || localID >= entities.Count)
+            if(localID < 0 || localID >= entities.Length)
             {
                 return default;
             }

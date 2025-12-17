@@ -159,7 +159,7 @@ public partial class World
     private readonly Lock lockObject = new();
     private static readonly Lock globalLockObject = new();
 
-    private readonly List<EntityInfo> entities = [];
+    private EntityInfo[] entities = [];
     private readonly Dictionary<int, HashSet<int>> componentCompatibilityCache = [];
     private readonly Dictionary<int, string> componentNameHashes = [];
     private readonly HashSet<int> callableComponentTypes = [];
@@ -243,11 +243,11 @@ public partial class World
     {
         if(Current != null)
         {
-            if(Current.cachedEntityList.Length != Current.entities.Count)
+            if(Current.cachedEntityList.Length != Current.entities.Length)
             {
-                Array.Resize(ref Current.cachedEntityList, Current.entities.Count);
+                Array.Resize(ref Current.cachedEntityList, Current.entities.Length);
 
-                for(var i = 0; i < Current.entities.Count; i++)
+                for(var i = 0; i < Current.entities.Length; i++)
                 {
                     Current.cachedEntityList[i] = Current.entities[i];
                 }
@@ -418,7 +418,7 @@ public partial class World
                 entity.components.Clear();
             }
 
-            entities.Clear();
+            entities = [];
             destroyedEntities.Clear();
             removedComponents.Clear();
 
