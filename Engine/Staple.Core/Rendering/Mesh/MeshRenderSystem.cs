@@ -117,7 +117,7 @@ public sealed class MeshRenderSystem : IRenderSystem
     {
         foreach (var entry in renderQueue)
         {
-            var renderer = entry.component as MeshRenderer;
+            var renderer = (MeshRenderer)entry.component;
 
             if (renderer.mesh == null ||
                 renderer.materials == null ||
@@ -171,7 +171,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         foreach (var entry in renderQueue)
         {
-            var renderer = entry.component as MeshRenderer;
+            var renderer = (MeshRenderer)entry.component;
 
             if (renderer.isVisible == false ||
                 renderer.mesh == null ||

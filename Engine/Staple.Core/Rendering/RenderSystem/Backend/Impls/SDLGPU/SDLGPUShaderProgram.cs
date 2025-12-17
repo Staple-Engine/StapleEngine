@@ -15,12 +15,15 @@ internal class SDLGPUShaderProgram : IShaderProgram
     public nint fragment;
     public nint compute;
     public bool disposed = false;
-    public Dictionary<ShaderUniformMapping, byte[]> vertexUniforms;
-    public Dictionary<ShaderUniformMapping, byte[]> fragmentUniforms;
-    public Dictionary<ShaderUniformMapping, byte[]> computeUniforms;
     public readonly Dictionary<byte, ulong> vertexDataHashes = [];
     public readonly Dictionary<byte, ulong> fragmentDataHashes = [];
     public readonly Dictionary<byte, ulong> computeDataHashes = [];
+    public readonly Dictionary<ShaderUniformField, byte[]> vertexFields = [];
+    public readonly Dictionary<ShaderUniformField, byte[]> fragmentFields = [];
+    public readonly Dictionary<ShaderUniformField, byte[]> computeFields = [];
+    public readonly Dictionary<ShaderUniformMapping, byte[]> vertexMappings = [];
+    public readonly Dictionary<ShaderUniformMapping, byte[]> fragmentMappings = [];
+    public readonly Dictionary<ShaderUniformMapping, byte[]> computeMappings = [];
 
     public SDLGPUShaderProgram(nint device, nint vertex, nint fragment, ShaderUniformContainer vertexUniforms,
         ShaderUniformContainer fragmentUniforms)
@@ -30,17 +33,29 @@ internal class SDLGPUShaderProgram : IShaderProgram
         this.device = device;
         this.vertex = vertex;
         this.fragment = fragment;
-        this.vertexUniforms = [];
-        this.fragmentUniforms = [];
 
         foreach(var uniform in vertexUniforms.uniforms)
         {
-            this.vertexUniforms.Add(uniform, new byte[uniform.size]);
+            var data = new byte[uniform.size];
+
+            vertexMappings.Add(uniform, data);
+
+            foreach(var field in uniform.fields)
+            {
+                vertexFields.Add(field, data);
+            }
         }
 
         foreach (var uniform in fragmentUniforms.uniforms)
         {
-            this.fragmentUniforms.Add(uniform, new byte[uniform.size]);
+            var data = new byte[uniform.size];
+
+            fragmentMappings.Add(uniform, data);
+
+            foreach (var field in uniform.fields)
+            {
+                fragmentFields.Add(field, data);
+            }
         }
     }
 
@@ -50,12 +65,17 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
         this.device = device;
         this.compute = compute;
-        
-        computeUniforms = [];
 
         foreach(var uniform in uniforms.uniforms)
         {
-            computeUniforms.Add(uniform, new byte[uniform.size]);
+            var data = new byte[uniform.size];
+
+            computeMappings.Add(uniform, data);
+
+            foreach (var field in uniform.fields)
+            {
+                computeFields.Add(field, data);
+            }
         }
     }
 
@@ -153,22 +173,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
             return false;
         }
 
-        foreach(var pair in vertexUniforms)
-        {
-            foreach(var f in pair.Key.fields)
-            {
-                if(f == field)
-                {
-                    data = pair.Value;
-
-                    return true;
-                }
-            }
-        }
-
-        data = default;
-
-        return false;
+        return vertexFields.TryGetValue(field, out data);
     }
 
     public bool TryGetVertexUniformData(ShaderUniformMapping mapping, out byte[] data)
@@ -180,19 +185,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
             return false;
         }
 
-        foreach (var pair in vertexUniforms)
-        {
-            if(pair.Key == mapping)
-            {
-                data = pair.Value;
-
-                return true;
-            }
-        }
-
-        data = default;
-
-        return false;
+        return vertexMappings.TryGetValue(mapping, out data);
     }
 
     public bool TryGetFragmentUniformData(ShaderUniformField field, out byte[] data)
@@ -204,22 +197,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
             return false;
         }
 
-        foreach (var pair in fragmentUniforms)
-        {
-            foreach (var f in pair.Key.fields)
-            {
-                if (f == field)
-                {
-                    data = pair.Value;
-
-                    return true;
-                }
-            }
-        }
-
-        data = default;
-
-        return false;
+        return fragmentFields.TryGetValue(field, out data);
     }
 
     public bool TryGetFragmentUniformData(ShaderUniformMapping mapping, out byte[] data)
@@ -231,19 +209,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
             return false;
         }
 
-        foreach (var pair in fragmentUniforms)
-        {
-            if (pair.Key == mapping)
-            {
-                data = pair.Value;
-
-                return true;
-            }
-        }
-
-        data = default;
-
-        return false;
+        return fragmentMappings.TryGetValue(mapping, out data);
     }
 
     public bool TryGetComputeUniformData(ShaderUniformField field, out byte[] data)
@@ -255,22 +221,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
             return false;
         }
 
-        foreach (var pair in computeUniforms)
-        {
-            foreach (var f in pair.Key.fields)
-            {
-                if (f == field)
-                {
-                    data = pair.Value;
-
-                    return true;
-                }
-            }
-        }
-
-        data = default;
-
-        return false;
+        return computeFields.TryGetValue(field, out data);
     }
 
     public bool TryGetComputeUniformData(ShaderUniformMapping mapping, out byte[] data)
@@ -282,19 +233,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
             return false;
         }
 
-        foreach (var pair in computeUniforms)
-        {
-            if (pair.Key == mapping)
-            {
-                data = pair.Value;
-
-                return true;
-            }
-        }
-
-        data = default;
-
-        return false;
+        return computeMappings.TryGetValue(mapping, out data);
     }
 
     public void Destroy()

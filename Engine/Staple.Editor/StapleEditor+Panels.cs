@@ -658,8 +658,6 @@ internal partial class StapleEditor
                         {
                             transform.Entity.Destroy();
 
-                            ImGui.EndMenu();
-
                             ImGui.EndPopup();
 
                             skip = true;

@@ -1457,7 +1457,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         var vertexUniformData = new List<StapleShaderUniform>();
         var fragmentUniformData = new List<StapleShaderUniform>();
 
-        foreach (var pair in shader.vertexUniforms)
+        foreach (var pair in shader.vertexMappings)
         {
             if(pair.Key.name == StapleRenderDataUniformName)
             {
@@ -1511,7 +1511,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
         }
 
-        foreach (var pair in shader.fragmentUniforms)
+        foreach (var pair in shader.fragmentMappings)
         {
             if (pair.Key.name == StapleFragmentDataUniformName)
             {
@@ -1623,7 +1623,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         var vertexUniformData = new List<StapleShaderUniform>();
         var fragmentUniformData = new List<StapleShaderUniform>();
 
-        foreach (var pair in shader.vertexUniforms)
+        foreach (var pair in shader.vertexMappings)
         {
             if (pair.Key.name == StapleRenderDataUniformName)
             {
@@ -1677,7 +1677,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
         }
 
-        foreach (var pair in shader.fragmentUniforms)
+        foreach (var pair in shader.fragmentMappings)
         {
             if (pair.Key.name == StapleFragmentDataUniformName)
             {
@@ -1790,7 +1790,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         var vertexUniformData = new List<StapleShaderUniform>();
         var fragmentUniformData = new List<StapleShaderUniform>();
 
-        foreach (var pair in shader.vertexUniforms)
+        foreach (var pair in shader.vertexMappings)
         {
             if (pair.Key.name == StapleRenderDataUniformName)
             {
@@ -1844,7 +1844,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
         }
 
-        foreach (var pair in shader.fragmentUniforms)
+        foreach (var pair in shader.fragmentMappings)
         {
             if (pair.Key.name == StapleFragmentDataUniformName)
             {

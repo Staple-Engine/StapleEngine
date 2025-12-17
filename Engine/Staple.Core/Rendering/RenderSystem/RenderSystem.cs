@@ -28,6 +28,16 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
         {
             return obj is RenderSystemInfo info && info.system == system && info.isRenderable == isRenderable;
         }
+
+        public static bool operator ==(RenderSystemInfo left, RenderSystemInfo right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(RenderSystemInfo left, RenderSystemInfo right)
+        {
+            return !(left == right);
+        }
     }
 
     public SubsystemType type { get; } = SubsystemType.Update;

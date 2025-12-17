@@ -111,6 +111,11 @@ public partial class World
 
                 entityInfo.components.Add(hash, component);
 
+                if(t == typeof(Transform))
+                {
+                    transforms[entityInfo.ID - 1] = (Transform)component;
+                }
+
                 if (Scene.InstancingComponent == false)
                 {
                     EmitAddComponentEvent(entity, ref component);
@@ -347,6 +352,35 @@ public partial class World
     }
 
     /// <summary>
+    /// Attempts to get a component from an internal entity, without locking
+    /// </summary>
+    /// <param name="info">The entity info</param>
+    /// <param name="t">The type</param>
+    /// <param name="component">The component</param>
+    /// <returns>Whether the component was found</returns>
+    internal bool TryGetComponentNoLock(EntityInfo info, Type t, out IComponent component)
+    {
+        if (componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility) == false)
+        {
+            component = default;
+
+            return false;
+        }
+
+        foreach (var typeName in compatibility)
+        {
+            if (info.components.TryGetValue(typeName, out component))
+            {
+                return true;
+            }
+        }
+
+        component = default;
+
+        return false;
+    }
+
+    /// <summary>
     /// Attempts to get a component from an entity
     /// </summary>
     /// <param name="entity">The entity to get from</param>
@@ -365,24 +399,7 @@ public partial class World
 
         lock (lockObject)
         {
-            if (componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility) == false)
-            {
-                component = default;
-
-                return false;
-            }
-
-            foreach (var typeName in compatibility)
-            {
-                if (entityInfo.components.TryGetValue(typeName, out component))
-                {
-                    return true;
-                }
-            }
-
-            component = default;
-
-            return false;
+            return TryGetComponentNoLock(entityInfo, t, out component);
         }
     }
 

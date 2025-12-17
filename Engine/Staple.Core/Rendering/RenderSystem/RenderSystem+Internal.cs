@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -78,6 +77,11 @@ public sealed partial class RenderSystem
     /// The entity query for every entity with a transform
     /// </summary>
     private readonly SceneQuery<Transform> entityQuery = new();
+
+    /// <summary>
+    /// All renderables
+    /// </summary>
+    private readonly List<Renderable> renderables = [];
 
     /// <summary>
     /// The renderer backend
@@ -247,20 +251,9 @@ public sealed partial class RenderSystem
     /// </summary>
     internal void ClearCullingStates()
     {
-        foreach (var pair in renderQueue)
+        for (var i = 0; i < renderables.Count; i++)
         {
-            foreach (var item in pair.Item2)
-            {
-                foreach (var entry in item.Item2)
-                {
-                    if (entry.component is not Renderable r)
-                    {
-                        continue;
-                    }
-
-                    r.cullingState = CullingState.None;
-                }
-            }
+            renderables[i].cullingState = CullingState.None;
         }
     }
 
@@ -289,6 +282,23 @@ public sealed partial class RenderSystem
         lock (lockObject)
         {
             renderQueue.Clear();
+            renderables.Clear();
+
+            foreach (var systemInfo in renderSystems)
+            {
+                if(systemInfo.isRenderable == false)
+                {
+                    continue;
+                }
+
+                foreach (var entityInfo in entityQuery.Contents)
+                {
+                    if (entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                    {
+                        renderables.Add((Renderable)component);
+                    }
+                }
+            }
 
             var cameras = World.Current.SortedCameras;
 

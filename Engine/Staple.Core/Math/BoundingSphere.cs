@@ -40,18 +40,15 @@ public readonly struct BoundingSphere(Vector3 center, float radius)
     public static BoundingSphere CreateFromAABB(AABB aabb)
     {
         var center = aabb.center;
-        var maxDistanceSquare = 0.0f;
 
-        void Handle(Vector3 p)
-        {
-            var temp = p - center;
-            var distanceSquare = Vector3.Dot(temp, temp);
+        var temp = aabb.min - center;
+        var distanceSquare = Vector3.Dot(temp, temp);
+        var maxDistanceSquare = distanceSquare;
 
-            maxDistanceSquare = Math.Max(maxDistanceSquare, distanceSquare);
-        }
+        temp = aabb.max - center;
+        distanceSquare = Vector3.Dot(temp, temp);
 
-        Handle(aabb.min);
-        Handle(aabb.max);
+        maxDistanceSquare = Math.Max(maxDistanceSquare, distanceSquare);
 
         return new(center, Math.Sqrt(maxDistanceSquare));
     }
