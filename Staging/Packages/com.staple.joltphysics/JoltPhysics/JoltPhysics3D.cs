@@ -1386,14 +1386,14 @@ public class JoltPhysics3D : IPhysics3D
     {
         lock (threadLock)
         {
-            while(bodies.Count > 0)
+            foreach (var pair in bodies)
             {
-                DestroyBody(bodies[0]);
+                DestroyBody(pair.Value);
             }
 
-            while (characters.Count > 0)
+            foreach (var pair in characters)
             {
-                DestroyBody(characters[0]);
+                DestroyBody(pair.Value);
             }
 
             bodies.Clear();

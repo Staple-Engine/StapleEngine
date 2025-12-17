@@ -160,7 +160,6 @@ public partial class World
     private static readonly Lock globalLockObject = new();
 
     private EntityInfo[] entities = [];
-    private Transform[] transforms = [];
     private readonly Dictionary<int, HashSet<int>> componentCompatibilityCache = [];
     private readonly Dictionary<int, string> componentNameHashes = [];
     private readonly HashSet<int> callableComponentTypes = [];
@@ -324,17 +323,6 @@ public partial class World
         lock(lockObject)
         {
             cameras ??= new();
-
-            for(var i = 0; i < entities.Length; i++)
-            {
-                if (entities[i].alive == false ||
-                    transforms[i] == null)
-                {
-                    continue;
-                }
-
-                transforms[i].changedThisFrame = false;
-            }
 
             if (removedComponents.Count > 0)
             {

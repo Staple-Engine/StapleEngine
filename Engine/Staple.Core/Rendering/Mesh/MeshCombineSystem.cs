@@ -31,6 +31,8 @@ public sealed class MeshCombineSystem : IRenderSystem
 
     private readonly ExpandableContainer<RenderInfo> renderers = new();
 
+    private readonly ComponentVersionTracker transformVersions = new();
+
     #region Lifecycle
     public void Prepare()
     {
@@ -257,7 +259,7 @@ public sealed class MeshCombineSystem : IRenderSystem
                 }
             }
 
-            if (entry.transform.ChangedThisFrame || combine.localBounds.size == Vector3.Zero)
+            if (transformVersions.ShouldUpdateComponent(entry.entity, in entry.transform))
             {
                 var localSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(entry.transform.LocalRotation));
 

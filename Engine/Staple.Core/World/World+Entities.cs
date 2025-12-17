@@ -181,12 +181,10 @@ public partial class World
             if(entities.Length == 0)
             {
                 entities = new EntityInfo[64];
-                transforms = new Transform[entities.Length];
             }
             else
             {
                 Array.Resize(ref entities, entities.Length * 2);
-                Array.Resize(ref transforms, entities.Length);
             }
 
             entities[current] = newEntity;
@@ -232,8 +230,6 @@ public partial class World
             }
 
             destroyedEntities.Add(entity);
-
-            transforms[entity.Identifier.ID - 1] = null;
         }
     }
 

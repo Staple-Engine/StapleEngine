@@ -111,11 +111,6 @@ public partial class World
 
                 entityInfo.components.Add(hash, component);
 
-                if(t == typeof(Transform))
-                {
-                    transforms[entityInfo.ID - 1] = (Transform)component;
-                }
-
                 if (Scene.InstancingComponent == false)
                 {
                     EmitAddComponentEvent(entity, ref component);

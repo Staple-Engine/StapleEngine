@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -28,6 +29,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     private readonly ExpandableContainer<RenderInfo> renderers = new();
 
     private readonly SceneQuery<SkinnedMeshInstance, Transform> instances = new();
+
+    private readonly ComponentVersionTracker transformVersions = new();
 
     public bool UsesOwnRenderProcess => false;
 
@@ -66,7 +69,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if (entry.transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
+            if (transformVersions.ShouldUpdateComponent(entry.entity, in entry.transform))
             {
                 var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.LocalRotation));
 

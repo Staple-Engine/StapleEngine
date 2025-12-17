@@ -43,6 +43,8 @@ public sealed class MeshRenderSystem : IRenderSystem
             .Build();
     });
 
+    private readonly ComponentVersionTracker transformVersions = new();
+
     public bool UsesOwnRenderProcess => false;
 
     public Type RelatedComponent => typeof(MeshRenderer);
@@ -145,7 +147,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             renderer.mesh.UploadMeshData();
 
-            if (entry.transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
+            if (transformVersions.ShouldUpdateComponent(entry.entity, in entry.transform))
             {
                 var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.LocalRotation));
 

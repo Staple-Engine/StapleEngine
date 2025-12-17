@@ -180,7 +180,7 @@ internal partial class StapleEditor
                                     RenderSystem.RenderStats.culledDrawCalls++;
                                 }
 
-                                if (transform.ChangedThisFrame)
+                                if (sceneTransformTracker.ShouldUpdateComponent(entity, in transform))
                                 {
                                     ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
                                 }
@@ -223,11 +223,6 @@ internal partial class StapleEditor
                     {
                         Log.Error($"[{pair.Key.GetType()}] {e}");
                     }
-                }
-
-                foreach (var (_, transform) in renderQueue.transforms.Contents)
-                {
-                    transform.changedThisFrame = false;
                 }
 
                 if (hasGizmos)
