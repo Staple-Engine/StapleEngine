@@ -1309,6 +1309,8 @@ internal partial class StapleEditor
 
             SubsystemManager.instance.Destroy();
 
+            Physics3D.Instance.Shutdown();
+
             ResourceManager.instance.Destroy(ResourceManager.DestroyMode.Final);
         };
 
