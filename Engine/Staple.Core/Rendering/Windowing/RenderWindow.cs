@@ -131,18 +131,19 @@ internal class RenderWindow
 
             CheckEvents();
 
-            RenderSystem.Backend.BeginFrame();
-
             lock (renderLock)
             {
-                shouldRender = window.Unavailable == false && (AppSettings.Current.runInBackground == true || window.IsFocused == true);
+                shouldRender = window.Unavailable == false && (AppSettings.Current.runInBackground || window.IsFocused);
             }
 
             if (window.Unavailable)
             {
-                RenderSystem.Backend.EndFrame();
-
                 continue;
+            }
+
+            if(Paused == false)
+            {
+                RenderSystem.Backend.BeginFrame();
             }
 
             var size = window.Size;
@@ -317,7 +318,7 @@ internal class RenderWindow
 
             lock (renderLock)
             {
-                shouldRender = window.Unavailable == false && (AppSettings.Current.runInBackground == true || window.IsFocused == true);
+                shouldRender = window.Unavailable == false && (AppSettings.Current.runInBackground || window.IsFocused);
             }
 
             if (window.Unavailable)
@@ -662,8 +663,6 @@ internal class RenderWindow
         {
             lastTime = current;
 
-            RenderSystem.Backend.EndFrame();
-
             return;
         }
 
@@ -729,7 +728,10 @@ internal class RenderWindow
                 continue;
             }
 
-            RenderSystem.Backend.BeginFrame();
+            if(Paused == false)
+            {
+                RenderSystem.Backend.BeginFrame();
+            }
 
             RenderFrame(ref last);
         }

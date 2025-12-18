@@ -54,18 +54,6 @@ internal class AppPlayer
         }
     }
 
-    public void ResetRendering(bool hasFocus)
-    {
-        var flags = RenderSystem.RenderFlags(playerSettings.videoFlags);
-
-        if(hasFocus == false && AppSettings.Current.runInBackground == false)
-        {
-            flags |= RenderModeFlags.Suspend;
-        }
-
-        AppEventQueue.instance.Add(AppEvent.ResetFlags(flags));
-    }
-
     public void Create()
     {
         playerSettings = PlayerSettings.Load(AppSettings.Current);
@@ -118,13 +106,6 @@ internal class AppPlayer
                 }
 
                 Time.fixedDeltaTime = 1 / (float)AppSettings.Current.fixedTimeFrameRate;
-
-                bool hasFocus = renderWindow.window.IsFocused;
-
-                if (AppSettings.Current.runInBackground == false && hasFocus == false)
-                {
-                    ResetRendering(hasFocus);
-                }
 
                 if(skipFlow == false)
                 {
@@ -283,8 +264,6 @@ internal class AppPlayer
 
             playerSettings.monitorIndex = renderWindow.MonitorIndex;
             playerSettings.maximized = renderWindow.Maximized;
-
-            ResetRendering(focus);
 
             PlayerSettings.Save(playerSettings);
         };

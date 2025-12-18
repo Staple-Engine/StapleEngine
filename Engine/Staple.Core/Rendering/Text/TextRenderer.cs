@@ -445,15 +445,9 @@ public class TextRenderer
 
     public void DrawText(string text, Matrix4x4 transform, TextParameters parameters, Material material, float scale, bool flipY)
     {
-        if(text == null)
-        {
-            throw new ArgumentNullException("text");
-        }
+        ArgumentNullException.ThrowIfNull(text);
 
-        if(material == null)
-        {
-            throw new ArgumentNullException("material");
-        }
+        ArgumentNullException.ThrowIfNull(material);
 
         var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
 

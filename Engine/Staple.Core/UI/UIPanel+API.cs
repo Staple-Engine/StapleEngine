@@ -191,7 +191,10 @@ public partial class UIPanel
 
         material.MainTexture = texture;
 
-        Graphics.RenderSimple(textVertices, TextRenderer.VertexLayout.Value, textIndices, material, Vector3.Zero,
+        var vertexSpan = new Span<TextRenderer.PosTexVertex>(textVertices, 0, vertexCount);
+        var indexSpan = new Span<ushort>(textIndices, 0, indexCount);
+
+        Graphics.RenderSimple(vertexSpan, TextRenderer.VertexLayout.Value, indexSpan, material, Vector3.Zero,
             Matrix4x4.Identity, MeshTopology.Triangles, MaterialLighting.Unlit);
     }
 }

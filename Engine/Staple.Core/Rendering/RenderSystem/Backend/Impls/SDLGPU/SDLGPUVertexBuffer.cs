@@ -34,12 +34,8 @@ internal class SDLGPUVertexBuffer : VertexBuffer
         if (Disposed ||
             data == nint.Zero ||
             lengthInBytes == 0 ||
-            lengthInBytes % layout.Stride != 0)
-        {
-            return;
-        }
-
-        if (IsValid == false || backend.commandBuffer == nint.Zero)
+            lengthInBytes % layout.Stride != 0 ||
+            IsValid == false)
         {
             return;
         }
@@ -58,17 +54,13 @@ internal class SDLGPUVertexBuffer : VertexBuffer
 
         if (Disposed ||
             data.Length == 0 ||
-            size % layout.Stride != 0)
+            size % layout.Stride != 0 ||
+            IsValid == false)
         {
             return;
         }
 
         var byteSize = data.Length * size;
-
-        if (IsValid == false || backend.commandBuffer == nint.Zero)
-        {
-            return;
-        }
 
         unsafe
         {
@@ -85,12 +77,8 @@ internal class SDLGPUVertexBuffer : VertexBuffer
     {
         if (Disposed ||
             data.Length == 0 ||
-            data.Length % layout.Stride != 0)
-        {
-            return;
-        }
-
-        if (IsValid == false || backend.commandBuffer == nint.Zero)
+            data.Length % layout.Stride != 0 ||
+            IsValid == false)
         {
             return;
         }

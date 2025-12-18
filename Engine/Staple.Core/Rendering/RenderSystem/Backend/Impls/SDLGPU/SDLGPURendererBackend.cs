@@ -751,6 +751,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return;
         }
 
+        frameAllocator.Clear();
+    }
+
+    public void EndFrame()
+    {
         commandBuffer = SDL.AcquireGPUCommandBuffer(device);
 
         if (commandBuffer == nint.Zero)
@@ -773,11 +778,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         UpdateDepthTextureIfNeeded(false);
 
-        frameAllocator.Clear();
-    }
-
-    public void EndFrame()
-    {
         foreach (var pair in transientBuffers)
         {
             pair.Value.CreateBuffers();
@@ -809,51 +809,48 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             shader.ClearUniformHashes();
         }
 
-        if (commandBuffer != nint.Zero)
+        var fences = new nint[1];
+
+        fences[0] = SDL.SubmitGPUCommandBufferAndAcquireFence(commandBuffer);
+
+        if (SDL.WaitForGPUFences(device, true, fences, (uint)fences.Length) == false)
         {
-            var fences = new nint[1];
+            Log.Error($"[SDL GPU] Failed to wait for GPU Fences: {SDL.GetError()}");
+        }
 
-            fences[0] = SDL.SubmitGPUCommandBufferAndAcquireFence(commandBuffer);
+        SDL.ReleaseGPUFence(device, fences[0]);
 
-            if (SDL.WaitForGPUFences(device, true, fences, (uint)fences.Length) == false)
+        for(var i = readTextureQueue.Count - 1; i >= 0; i--)
+        {
+            var item = readTextureQueue[i];
+
+            readTextureQueue.RemoveAt(i);
+
+            if (item.Item1 == null ||
+                item.Item1.Disposed ||
+                TryGetTexture(item.Item1.handle, out var resource) == false ||
+                resource.used == false ||
+                resource.transferBuffer == nint.Zero)
             {
-                Log.Error($"[SDL GPU] Failed to wait for GPU Fences: {SDL.GetError()}");
+                continue;
             }
 
-            SDL.ReleaseGPUFence(device, fences[0]);
-
-            for(var i = readTextureQueue.Count - 1; i >= 0; i--)
+            unsafe
             {
-                var item = readTextureQueue[i];
+                var buffer = new byte[resource.length];
 
-                readTextureQueue.RemoveAt(i);
+                var map = SDL.MapGPUTransferBuffer(device, resource.transferBuffer, false);
 
-                if (item.Item1 == null ||
-                    item.Item1.Disposed ||
-                    TryGetTexture(item.Item1.handle, out var resource) == false ||
-                    resource.used == false ||
-                    resource.transferBuffer == nint.Zero)
-                {
-                    continue;
-                }
+                var from = new Span<byte>((void *)map, buffer.Length);
+                var to = new Span<byte>(buffer);
 
-                unsafe
-                {
-                    var buffer = new byte[resource.length];
+                from.CopyTo(to);
 
-                    var map = SDL.MapGPUTransferBuffer(device, resource.transferBuffer, false);
+                SDL.UnmapGPUTransferBuffer(device, resource.transferBuffer);
 
-                    var from = new Span<byte>((void *)map, buffer.Length);
-                    var to = new Span<byte>(buffer);
+                resource.transferBuffer = nint.Zero;
 
-                    from.CopyTo(to);
-
-                    SDL.UnmapGPUTransferBuffer(device, resource.transferBuffer);
-
-                    resource.transferBuffer = nint.Zero;
-
-                    item.Item2?.Invoke(buffer);
-                }
+                item.Item2?.Invoke(buffer);
             }
 
             commandBuffer = nint.Zero;
@@ -911,6 +908,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     internal void ResumeRenderPass()
     {
         FinishPasses();
+
+        if(commandBuffer == nint.Zero)
+        {
+            return;
+        }
 
         var texture = nint.Zero;
         var width = 0;

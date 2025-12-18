@@ -7,5 +7,4 @@ internal enum RenderModeFlags
     TripleBuffering = (1 << 2),
     sRGB = (1 << 3),
     HDR10 = (1 << 6),
-    Suspend = (1 << 7),
 }
