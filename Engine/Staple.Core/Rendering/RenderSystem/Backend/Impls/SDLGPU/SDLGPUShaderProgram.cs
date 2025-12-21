@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using Standart.Hash.xxHash;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -106,16 +107,11 @@ internal class SDLGPUShaderProgram : IShaderProgram
     {
         var hash = MakeDataHash(data);
 
-        if(vertexDataHashes.TryGetValue(binding, out var last) == false)
-        {
-            vertexDataHashes.Add(binding, hash);
+        ref var container = ref CollectionsMarshal.GetValueRefOrAddDefault(vertexDataHashes, binding, out var exists);
 
-            return true;
-        }
-
-        if(last != hash)
+        if(exists == false || container != hash)
         {
-            vertexDataHashes[binding] = hash;
+            container = hash;
 
             return true;
         }
@@ -127,16 +123,11 @@ internal class SDLGPUShaderProgram : IShaderProgram
     {
         var hash = MakeDataHash(data);
 
-        if (fragmentDataHashes.TryGetValue(binding, out var last) == false)
-        {
-            fragmentDataHashes.Add(binding, hash);
+        ref var container = ref CollectionsMarshal.GetValueRefOrAddDefault(fragmentDataHashes, binding, out var exists);
 
-            return true;
-        }
-
-        if (last != hash)
+        if (exists == false || container != hash)
         {
-            fragmentDataHashes[binding] = hash;
+            container = hash;
 
             return true;
         }
@@ -148,16 +139,11 @@ internal class SDLGPUShaderProgram : IShaderProgram
     {
         var hash = MakeDataHash(data);
 
-        if (computeDataHashes.TryGetValue(binding, out var last) == false)
-        {
-            computeDataHashes.Add(binding, hash);
+        ref var container = ref CollectionsMarshal.GetValueRefOrAddDefault(computeDataHashes, binding, out var exists);
 
-            return true;
-        }
-
-        if (last != hash)
+        if (exists == false || container != hash)
         {
-            computeDataHashes[binding] = hash;
+            container = hash;
 
             return true;
         }
