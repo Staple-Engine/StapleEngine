@@ -4,7 +4,7 @@ namespace Staple;
 
 public class ComponentVersionTracker<T> where T: IComponent, IComponentVersion
 {
-    private ulong[] versions = [1024];
+    private ulong[] versions = new ulong[1024];
 
     public bool ShouldUpdateComponent(Entity entity, in T component)
     {
@@ -15,13 +15,21 @@ public class ComponentVersionTracker<T> where T: IComponent, IComponentVersion
 
         if(versions.Length < entity.Identifier.ID)
         {
-            Array.Resize(ref versions, entity.Identifier.ID);
+            Array.Resize(ref versions, versions.Length * 2);
         }
 
-        var version = versions[entity.Identifier.ID - 1];
+        var componentVersion = component.Version;
+        var index = entity.Identifier.ID - 1;
 
-        versions[entity.Identifier.ID - 1] = component.Version;
+        var version = versions[index];
 
-        return version != component.Version;
+        if(version != componentVersion)
+        {
+            versions[index] = componentVersion;
+
+            return true;
+        }
+
+        return false;
     }
 }
