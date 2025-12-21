@@ -8,6 +8,7 @@ namespace Staple.Internal;
 internal class SDLGPUShaderProgram : IShaderProgram
 {
     public ShaderType Type { get; private set; }
+
     public int StateKey => HashCode.Combine(device, vertex, fragment, compute, disposed);
 
     public readonly nint device;
@@ -166,73 +167,31 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
     public bool TryGetVertexUniformData(ShaderUniformField field, out byte[] data)
     {
-        if(disposed || Type != ShaderType.VertexFragment)
-        {
-            data = default;
-
-            return false;
-        }
-
         return vertexFields.TryGetValue(field, out data);
     }
 
     public bool TryGetVertexUniformData(ShaderUniformMapping mapping, out byte[] data)
     {
-        if (disposed || Type != ShaderType.VertexFragment)
-        {
-            data = default;
-
-            return false;
-        }
-
         return vertexMappings.TryGetValue(mapping, out data);
     }
 
     public bool TryGetFragmentUniformData(ShaderUniformField field, out byte[] data)
     {
-        if (disposed || Type != ShaderType.VertexFragment)
-        {
-            data = default;
-
-            return false;
-        }
-
         return fragmentFields.TryGetValue(field, out data);
     }
 
     public bool TryGetFragmentUniformData(ShaderUniformMapping mapping, out byte[] data)
     {
-        if (disposed || Type != ShaderType.VertexFragment)
-        {
-            data = default;
-
-            return false;
-        }
-
         return fragmentMappings.TryGetValue(mapping, out data);
     }
 
     public bool TryGetComputeUniformData(ShaderUniformField field, out byte[] data)
     {
-        if (disposed || Type != ShaderType.Compute)
-        {
-            data = default;
-
-            return false;
-        }
-
         return computeFields.TryGetValue(field, out data);
     }
 
     public bool TryGetComputeUniformData(ShaderUniformMapping mapping, out byte[] data)
     {
-        if (disposed || Type != ShaderType.Compute)
-        {
-            data = default;
-
-            return false;
-        }
-
         return computeMappings.TryGetValue(mapping, out data);
     }
 
