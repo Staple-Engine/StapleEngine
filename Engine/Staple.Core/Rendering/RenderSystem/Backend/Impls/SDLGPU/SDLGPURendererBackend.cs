@@ -384,18 +384,27 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     {
         private byte[] buffer = new byte[1024];
 
-        public int Position { get; private set; }
+        internal int position;
 
         public Span<byte> Allocate(int size)
         {
-            if (Position + size >= buffer.Length)
+            var targetSize = position + size;
+
+            if (targetSize >= buffer.Length)
             {
-                Array.Resize(ref buffer, Position + size + 1024);
+                var newSize = buffer.Length * 2;
+
+                while(newSize < targetSize)
+                {
+                    newSize *= 2;
+                }
+
+                Array.Resize(ref buffer, newSize);
             }
 
-            var p = Position;
+            var p = position;
 
-            Position += size;
+            position += size;
 
             return new(buffer, p, size);
         }
@@ -412,7 +421,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         public void Clear()
         {
-            Position = 0;
+            position = 0;
         }
     }
 
@@ -1486,14 +1495,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if (shader.ShouldPushVertexUniform((byte)pair.Key.binding, pair.Value) == false)
-            {
-                continue;
-            }
-
             unsafe
             {
-                var position = frameAllocator.Position;
+                var position = frameAllocator.position;
                 var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
@@ -1539,14 +1543,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if (shader.ShouldPushFragmentUniform((byte)pair.Key.binding, pair.Value) == false)
-            {
-                continue;
-            }
-
             unsafe
             {
-                var position = frameAllocator.Position;
+                var position = frameAllocator.position;
                 var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
@@ -1652,14 +1651,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if(shader.ShouldPushVertexUniform((byte)pair.Key.binding, pair.Value) == false)
-            {
-                continue;
-            }
-
             unsafe
             {
-                var position = frameAllocator.Position;
+                var position = frameAllocator.position;
                 var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
@@ -1705,14 +1699,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if (shader.ShouldPushFragmentUniform((byte)pair.Key.binding, pair.Value) == false)
-            {
-                continue;
-            }
-
             unsafe
             {
-                var position = frameAllocator.Position;
+                var position = frameAllocator.position;
                 var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
@@ -1819,14 +1808,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if (shader.ShouldPushVertexUniform((byte)pair.Key.binding, pair.Value) == false)
-            {
-                continue;
-            }
-
             unsafe
             {
-                var position = frameAllocator.Position;
+                var position = frameAllocator.position;
                 var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
@@ -1872,14 +1856,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if (shader.ShouldPushFragmentUniform((byte)pair.Key.binding, pair.Value) == false)
-            {
-                continue;
-            }
-
             unsafe
             {
-                var position = frameAllocator.Position;
+                var position = frameAllocator.position;
                 var copy = frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void *source = pair.Value)

@@ -305,7 +305,7 @@ internal partial class StapleEditor
 
     private Mesh gridMesh;
 
-    private readonly ComponentVersionTracker sceneTransformTracker = new();
+    private readonly ComponentVersionTracker<Transform> sceneTransformTracker = new();
 
     private readonly RenderQueue renderQueue = new();
     #endregion
