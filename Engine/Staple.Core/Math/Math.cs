@@ -133,22 +133,23 @@ public static class Math
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Max(params float[] f)
     {
-        float t;
-
-        if(f.Length > 0)
-        {
-            t = f[0];
-        }
-        else
+        if(f.Length == 0)
         {
             return 0;
         }
+
+        float t = f[0];
 
         var length = f.Length;
 
         for(var i = 1; i < length; i++)
         {
-            t = System.Math.Max(t, f[i]);
+            var value = f[i];
+
+            if (value > t)
+            {
+                t = value;
+            }
         }
 
         return t;
@@ -157,22 +158,23 @@ public static class Math
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Min(params float[] f)
     {
-        float t;
-
-        if (f.Length > 0)
-        {
-            t = f[0];
-        }
-        else
+        if (f.Length == 0)
         {
             return 0;
         }
+
+        float t = f[0];
 
         var length = f.Length;
 
         for (var i = 1; i < length; i++)
         {
-            t = System.Math.Min(t, f[i]);
+            var value = f[i];
+
+            if (value < t)
+            {
+                t = value;
+            }
         }
 
         return t;

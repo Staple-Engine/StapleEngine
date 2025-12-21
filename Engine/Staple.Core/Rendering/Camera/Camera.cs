@@ -164,11 +164,7 @@ public sealed class Camera : IComponent
     /// <returns>Whether it's visible</returns>
     public bool IsVisible(AABB bounds)
     {
-#if FRUSTUM_TEST_AABB
         return frustumCuller.AABBTest(bounds) != FrustumResult.Invisible;
-#else
-        return frustumCuller.SphereTest(BoundingSphere.CreateFromAABB(bounds)) != FrustumResult.Invisible;
-#endif
     }
 
     /// <summary>

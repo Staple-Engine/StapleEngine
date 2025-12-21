@@ -48,7 +48,7 @@ public readonly struct BoundingSphere(Vector3 center, float radius)
         temp = aabb.max - center;
         distanceSquare = Vector3.Dot(temp, temp);
 
-        maxDistanceSquare = Math.Max(maxDistanceSquare, distanceSquare);
+        maxDistanceSquare = distanceSquare > maxDistanceSquare ? distanceSquare : maxDistanceSquare;
 
         return new(center, Math.Sqrt(maxDistanceSquare));
     }

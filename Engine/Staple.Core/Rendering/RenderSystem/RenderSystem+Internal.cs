@@ -81,7 +81,12 @@ public sealed partial class RenderSystem
     /// <summary>
     /// All renderables
     /// </summary>
-    private readonly List<Renderable> renderables = [];
+    private Renderable[] renderables = new Renderable[1024];
+
+    /// <summary>
+    /// Amount of renderables used
+    /// </summary>
+    private int renderableCount;
 
     /// <summary>
     /// The renderer backend
@@ -251,7 +256,7 @@ public sealed partial class RenderSystem
     /// </summary>
     internal void ClearCullingStates()
     {
-        for (var i = 0; i < renderables.Count; i++)
+        for (var i = 0; i < renderableCount; i++)
         {
             renderables[i].cullingState = CullingState.None;
         }
@@ -282,7 +287,8 @@ public sealed partial class RenderSystem
         lock (lockObject)
         {
             renderQueue.Clear();
-            renderables.Clear();
+
+            renderableCount = 0;
 
             foreach (var systemInfo in renderSystems)
             {
@@ -295,7 +301,14 @@ public sealed partial class RenderSystem
                 {
                     if (entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                     {
-                        renderables.Add((Renderable)component);
+                        renderableCount++;
+
+                        if(renderableCount > renderables.Length)
+                        {
+                            Array.Resize(ref renderables, renderables.Length * 2);
+                        }
+
+                        renderables[renderableCount - 1] = (Renderable)component;
                     }
                 }
             }
