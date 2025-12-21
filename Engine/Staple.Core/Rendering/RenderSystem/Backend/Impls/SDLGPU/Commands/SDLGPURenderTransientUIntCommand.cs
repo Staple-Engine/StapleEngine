@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Staple.Internal;
 
 internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline, Texture[] vertexTextures, Texture[] fragmentTextures,
-    List<SDLGPURendererBackend.StapleShaderUniform> vertexUniformData, List<SDLGPURendererBackend.StapleShaderUniform> fragmentUniformData,
+    SDLGPURendererBackend.StapleShaderUniform[] vertexUniformData, SDLGPURendererBackend.StapleShaderUniform[] fragmentUniformData,
     SDLGPUShaderProgram program, SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
 {
     public RenderState state = state.Clone();
@@ -12,8 +12,8 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
     public SDLGPURendererBackend.TransientEntry entry = entry;
     public Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
     public Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
-    public List<SDLGPURendererBackend.StapleShaderUniform> vertexUniformData = vertexUniformData;
-    public List<SDLGPURendererBackend.StapleShaderUniform> fragmentUniformData = fragmentUniformData;
+    public SDLGPURendererBackend.StapleShaderUniform[] vertexUniformData = vertexUniformData;
+    public SDLGPURendererBackend.StapleShaderUniform[] fragmentUniformData = fragmentUniformData;
     public SDLGPUShaderProgram program = program;
 
     public void Update(IRendererBackend rendererBackend)
@@ -149,32 +149,22 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
             }
         }
 
-        for (var i = 0; i < vertexUniformData.Count; i++)
+        for (var i = 0; i < vertexUniformData.Length; i++)
         {
             var uniform = vertexUniformData[i];
-            var span = backend.frameAllocator.Get(uniform.position, uniform.size);
 
-            unsafe
-            {
-                fixed(void *ptr = span)
-                {
-                    SDL.PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, (nint)ptr, (uint)uniform.size);
-                }
-            }
+            var target = backend.frameAllocator.Get(uniform.position);
+
+            SDL.PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }
 
-        for (var i = 0; i < fragmentUniformData.Count; i++)
+        for (var i = 0; i < fragmentUniformData.Length; i++)
         {
             var uniform = fragmentUniformData[i];
-            var span = backend.frameAllocator.Get(uniform.position, uniform.size);
 
-            unsafe
-            {
-                fixed (void* ptr = span)
-                {
-                    SDL.PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, (nint)ptr, (uint)uniform.size);
-                }
-            }
+            var target = backend.frameAllocator.Get(uniform.position);
+
+            SDL.PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }
 
         SDL.DrawGPUIndexedPrimitives(renderPass, (uint)state.indexCount, (uint)(state.instanceCount > 1 ? state.instanceCount : 1),

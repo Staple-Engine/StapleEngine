@@ -121,26 +121,7 @@ public sealed class MeshRenderSystem : IRenderSystem
         {
             var renderer = (MeshRenderer)entry.component;
 
-            if (renderer.mesh == null ||
-                renderer.materials == null ||
-                renderer.materials.Count == 0)
-            {
-                continue;
-            }
-
-            var skip = false;
-
-            for (var i = 0; i < renderer.materials.Count; i++)
-            {
-                if ((renderer.materials[i]?.IsValid ?? false) == false)
-                {
-                    skip = true;
-
-                    break;
-                }
-            }
-
-            if(skip)
+            if (renderer.mesh == null)
             {
                 continue;
             }

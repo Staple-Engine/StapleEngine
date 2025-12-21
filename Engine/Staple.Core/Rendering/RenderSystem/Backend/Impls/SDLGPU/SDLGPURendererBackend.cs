@@ -382,11 +382,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     internal class MemoryAllocator
     {
-        private byte[] buffer = new byte[1024];
+        public byte[] buffer = new byte[1024];
 
         internal int position;
 
-        public Span<byte> Allocate(int size)
+        public void Allocate(int size)
         {
             var targetSize = position + size;
 
@@ -399,24 +399,27 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     newSize *= 2;
                 }
 
+                newSize *= 2;
+
                 Array.Resize(ref buffer, newSize);
             }
 
-            var p = position;
-
             position += size;
-
-            return new(buffer, p, size);
         }
 
-        public Span<byte> Get(int position, int size)
+        public nint Get(int position)
         {
-            if(position < 0 || position + size >= buffer.Length)
+            unsafe
             {
-                return default;
-            }
+                fixed (void* target = buffer)
+                {
+                    byte* p = (byte*)target;
 
-            return new(buffer, position, size);
+                    p += position;
+
+                    return (nint)p;
+                }
+            }
         }
 
         public void Clear()
@@ -1465,14 +1468,16 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return;
         }
 
-        var vertexUniformData = new List<StapleShaderUniform>();
-        var fragmentUniformData = new List<StapleShaderUniform>();
+        var vertexUniformData = new StapleShaderUniform[shader.vertexMappings.Count];
+        var fragmentUniformData = new StapleShaderUniform[shader.fragmentMappings.Count];
+
+        var counter = 0;
 
         foreach (var pair in shader.vertexMappings)
         {
-            if(pair.Key.name == StapleRenderDataUniformName)
+            if (pair.Key.name == StapleRenderDataUniformName)
             {
-                if(pair.Value.Length != Marshal.SizeOf<StapleRenderData>())
+                if (pair.Value.Length != Marshal.SizeOf<StapleRenderData>())
                 {
                     Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
                         + $"Should be {Marshal.SizeOf<StapleRenderData>()}!");
@@ -1498,24 +1503,30 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             unsafe
             {
                 var position = frameAllocator.position;
-                var copy = frameAllocator.Allocate(pair.Value.Length);
+
+                frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
                 {
-                    fixed (void* target = copy)
+                    fixed (void* target = frameAllocator.buffer)
                     {
-                        Buffer.MemoryCopy(source, target, pair.Value.Length, pair.Value.Length);
+                        byte* p = (byte*)target;
+
+                        p += position;
+
+                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
                     }
                 }
 
-                vertexUniformData.Add(new()
-                {
-                    binding = (byte)pair.Key.binding,
-                    position = position,
-                    size = pair.Value.Length,
-                });
+                ref StapleShaderUniform uniformEntry = ref vertexUniformData[counter++];
+
+                uniformEntry.binding = (byte)pair.Key.binding;
+                uniformEntry.position = position;
+                uniformEntry.size = pair.Value.Length;
             }
         }
+
+        counter = 0;
 
         foreach (var pair in shader.fragmentMappings)
         {
@@ -1546,26 +1557,31 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             unsafe
             {
                 var position = frameAllocator.position;
-                var copy = frameAllocator.Allocate(pair.Value.Length);
+
+                frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
                 {
-                    fixed (void* target = copy)
+                    fixed (void* target = frameAllocator.buffer)
                     {
-                        Buffer.MemoryCopy(source, target, pair.Value.Length, pair.Value.Length);
+                        byte* p = (byte*)target;
+
+                        p += position;
+
+                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
                     }
                 }
 
-                fragmentUniformData.Add(new()
-                {
-                    binding = (byte)pair.Key.binding,
-                    position = position,
-                    size = pair.Value.Length,
-                });
+                ref StapleShaderUniform uniformEntry = ref fragmentUniformData[counter++];
+
+                uniformEntry.binding = (byte)pair.Key.binding;
+                uniformEntry.position = position;
+                uniformEntry.size = pair.Value.Length;
             }
         }
 
-        AddCommand(new SDLGPURenderCommand(state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData, fragmentUniformData, shader));
+        AddCommand(new SDLGPURenderCommand(state, pipeline, state.vertexTextures, state.fragmentTextures,
+            vertexUniformData, fragmentUniformData, shader));
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
@@ -1621,8 +1637,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndex += indices.Length;
 
-        var vertexUniformData = new List<StapleShaderUniform>();
-        var fragmentUniformData = new List<StapleShaderUniform>();
+        var vertexUniformData = new StapleShaderUniform[shader.vertexMappings.Count];
+        var fragmentUniformData = new StapleShaderUniform[shader.fragmentMappings.Count];
+
+        var counter = 0;
 
         foreach (var pair in shader.vertexMappings)
         {
@@ -1639,7 +1657,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 unsafe
                 {
                     viewData.renderData.world = state.world;
-                    viewData.renderData.instanceOffset = 0;
+                    viewData.renderData.instanceOffset = state.instanceOffset > 0 ? state.instanceOffset : 0;
 
                     fixed (void* ptr = &viewData.renderData)
                     {
@@ -1654,24 +1672,30 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             unsafe
             {
                 var position = frameAllocator.position;
-                var copy = frameAllocator.Allocate(pair.Value.Length);
+
+                frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
                 {
-                    fixed (void* target = copy)
+                    fixed (void* target = frameAllocator.buffer)
                     {
-                        Buffer.MemoryCopy(source, target, pair.Value.Length, pair.Value.Length);
+                        byte* p = (byte*)target;
+
+                        p += position;
+
+                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
                     }
                 }
 
-                vertexUniformData.Add(new()
-                {
-                    binding = (byte)pair.Key.binding,
-                    position = position,
-                    size = pair.Value.Length,
-                });
+                ref StapleShaderUniform uniformEntry = ref vertexUniformData[counter++];
+
+                uniformEntry.binding = (byte)pair.Key.binding;
+                uniformEntry.position = position;
+                uniformEntry.size = pair.Value.Length;
             }
         }
+
+        counter = 0;
 
         foreach (var pair in shader.fragmentMappings)
         {
@@ -1702,22 +1726,26 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             unsafe
             {
                 var position = frameAllocator.position;
-                var copy = frameAllocator.Allocate(pair.Value.Length);
+
+                frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
                 {
-                    fixed (void* target = copy)
+                    fixed (void* target = frameAllocator.buffer)
                     {
-                        Buffer.MemoryCopy(source, target, pair.Value.Length, pair.Value.Length);
+                        byte* p = (byte*)target;
+
+                        p += position;
+
+                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
                     }
                 }
 
-                fragmentUniformData.Add(new()
-                {
-                    binding = (byte)pair.Key.binding,
-                    position = position,
-                    size = pair.Value.Length,
-                });
+                ref StapleShaderUniform uniformEntry = ref fragmentUniformData[counter++];
+
+                uniformEntry.binding = (byte)pair.Key.binding;
+                uniformEntry.position = position;
+                uniformEntry.size = pair.Value.Length;
             }
         }
 
@@ -1778,8 +1806,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndexUInt += indices.Length;
 
-        var vertexUniformData = new List<StapleShaderUniform>();
-        var fragmentUniformData = new List<StapleShaderUniform>();
+        var vertexUniformData = new StapleShaderUniform[shader.vertexMappings.Count];
+        var fragmentUniformData = new StapleShaderUniform[shader.fragmentMappings.Count];
+
+        var counter = 0;
 
         foreach (var pair in shader.vertexMappings)
         {
@@ -1796,7 +1826,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 unsafe
                 {
                     viewData.renderData.world = state.world;
-                    viewData.renderData.instanceOffset = 0;
+                    viewData.renderData.instanceOffset = state.instanceOffset > 0 ? state.instanceOffset : 0;
 
                     fixed (void* ptr = &viewData.renderData)
                     {
@@ -1811,24 +1841,30 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             unsafe
             {
                 var position = frameAllocator.position;
-                var copy = frameAllocator.Allocate(pair.Value.Length);
+
+                frameAllocator.Allocate(pair.Value.Length);
 
                 fixed (void* source = pair.Value)
                 {
-                    fixed (void* target = copy)
+                    fixed (void* target = frameAllocator.buffer)
                     {
-                        Buffer.MemoryCopy(source, target, pair.Value.Length, pair.Value.Length);
+                        byte* p = (byte*)target;
+
+                        p += position;
+
+                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
                     }
                 }
 
-                vertexUniformData.Add(new()
-                {
-                    binding = (byte)pair.Key.binding,
-                    position = position,
-                    size = pair.Value.Length,
-                });
+                ref StapleShaderUniform uniformEntry = ref vertexUniformData[counter++];
+
+                uniformEntry.binding = (byte)pair.Key.binding;
+                uniformEntry.position = position;
+                uniformEntry.size = pair.Value.Length;
             }
         }
+
+        counter = 0;
 
         foreach (var pair in shader.fragmentMappings)
         {
@@ -1859,22 +1895,26 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             unsafe
             {
                 var position = frameAllocator.position;
-                var copy = frameAllocator.Allocate(pair.Value.Length);
 
-                fixed (void *source = pair.Value)
+                frameAllocator.Allocate(pair.Value.Length);
+
+                fixed (void* source = pair.Value)
                 {
-                    fixed(void *target = copy)
+                    fixed (void* target = frameAllocator.buffer)
                     {
-                        Buffer.MemoryCopy(source, target, pair.Value.Length, pair.Value.Length);
+                        byte* p = (byte*)target;
+
+                        p += position;
+
+                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
                     }
                 }
 
-                fragmentUniformData.Add(new()
-                {
-                    binding = (byte)pair.Key.binding,
-                    position = position,
-                    size = pair.Value.Length,
-                });
+                ref StapleShaderUniform uniformEntry = ref fragmentUniformData[counter++];
+
+                uniformEntry.binding = (byte)pair.Key.binding;
+                uniformEntry.position = position;
+                uniformEntry.size = pair.Value.Length;
             }
         }
 
