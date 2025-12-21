@@ -1,32 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Staple;
 
-public class ComponentVersionTracker
+public class ComponentVersionTracker<T> where T: IComponent, IComponentVersion
 {
-    private readonly Dictionary<int, ulong> versions = [];
+    private ulong[] versions = [1024];
 
-    public void Clear()
-    {
-        versions.Clear();
-    }
-
-    public bool ShouldUpdateComponent<T>(Entity entity, in T component) where T : IComponent, IComponentVersion
+    public bool ShouldUpdateComponent(Entity entity, in T component)
     {
         if (component == null)
         {
             throw new ArgumentNullException(nameof(component), "Component can't be null");
         }
 
-        var hashCode = HashCode.Combine(entity, component.GetType().FullName.GetHashCode());
-
-        if (versions.TryGetValue(hashCode, out var version) == false)
+        if(versions.Length < entity.Identifier.ID)
         {
-            versions.Add(hashCode, component.Version);
-
-            return true;
+            Array.Resize(ref versions, entity.Identifier.ID);
         }
+
+        var version = versions[entity.Identifier.ID - 1];
+
+        versions[entity.Identifier.ID - 1] = component.Version;
 
         return version != component.Version;
     }

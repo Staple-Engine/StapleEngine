@@ -43,7 +43,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             .Build();
     });
 
-    private readonly ComponentVersionTracker transformVersions = new();
+    private readonly ComponentVersionTracker<Transform> transformVersions = new();
 
     public bool UsesOwnRenderProcess => false;
 

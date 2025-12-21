@@ -31,7 +31,7 @@ public sealed class MeshCombineSystem : IRenderSystem
 
     private readonly ExpandableContainer<RenderInfo> renderers = new();
 
-    private readonly ComponentVersionTracker transformVersions = new();
+    private readonly ComponentVersionTracker<Transform> transformVersions = new();
 
     #region Lifecycle
     public void Prepare()

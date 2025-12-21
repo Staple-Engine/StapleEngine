@@ -30,7 +30,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     private readonly SceneQuery<SkinnedMeshInstance, Transform> instances = new();
 
-    private readonly ComponentVersionTracker transformVersions = new();
+    private readonly ComponentVersionTracker<Transform> transformVersions = new();
 
     public bool UsesOwnRenderProcess => false;
 
