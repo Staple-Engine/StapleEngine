@@ -20,22 +20,8 @@ public class Transform : IComponent, IComponentVersion
     /// </summary>
     public ulong Version
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         get => version;
-
-        private set
-        {
-            var previous = version;
-
-            version = value;
-
-            if(previous != version)
-            {
-                for(var i = 0; i < Children.Length; i++)
-                {
-                    Children[i].Version++;
-                }
-            }
-        }
     }
 
     /// <summary>
@@ -126,7 +112,7 @@ public class Transform : IComponent, IComponentVersion
 
             if(target != position)
             {
-                Version++;
+                BumpVersion();
             }
 
             position = target;
@@ -144,7 +130,7 @@ public class Transform : IComponent, IComponentVersion
         {
             if(value != position)
             {
-                Version++;
+                BumpVersion();
             }
 
             position = value;
@@ -171,7 +157,7 @@ public class Transform : IComponent, IComponentVersion
 
             if (target != scale)
             {
-                Version++;
+                BumpVersion();
             }
 
             scale = target;
@@ -189,7 +175,7 @@ public class Transform : IComponent, IComponentVersion
         {
             if (value != scale)
             {
-                Version++;
+                BumpVersion();
             }
 
             scale = value;
@@ -216,7 +202,7 @@ public class Transform : IComponent, IComponentVersion
 
             if (target != rotation)
             {
-                Version++;
+                BumpVersion();
             }
 
             rotation = target;
@@ -234,7 +220,7 @@ public class Transform : IComponent, IComponentVersion
         {
             if (value != rotation)
             {
-                Version++;
+                BumpVersion();
             }
 
             rotation = value;
@@ -353,7 +339,7 @@ public class Transform : IComponent, IComponentVersion
 
         parent?.AttachChild(this);
 
-        Version++;
+        BumpVersion();
 
         Scene.RequestWorldUpdate();
     }
@@ -463,6 +449,20 @@ public class Transform : IComponent, IComponentVersion
         Scene.RequestWorldUpdate();
 
         return true;
+    }
+
+    /// <summary>
+    /// Increases the transform's version
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void BumpVersion()
+    {
+        version++;
+
+        for (var i = 0; i < Children.Length; i++)
+        {
+            Children[i].BumpVersion();
+        }
     }
 
     /// <summary>
