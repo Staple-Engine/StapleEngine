@@ -1289,7 +1289,8 @@ public partial class ProjectManager
     /// <param name="nativeAOT">Whether to build natively</param>
     /// <param name="debugRedists">Whether to use debug dependencies</param>
     /// <param name="publishSingleFile">Whether to build to a single file</param>
-    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists, bool publishSingleFile)
+    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists,
+        bool publishSingleFile)
     {
         var platform = backend.platform;
 
@@ -1362,6 +1363,21 @@ public partial class ProjectManager
             { "InvariantGlobalization", "true" },
             { "IsAOTCompatible", "true" },
         };
+
+        if(nativeAOT)
+        {
+            var cpuInstructions = projectAppSettings.overrideNativeInstructionSetX64 ?
+                projectAppSettings.x64InstructionLevel switch
+                {
+                    X64InstructionLevel.x86_64v1 => "x86-64-v1",
+                    X64InstructionLevel.x86_64v2 => "x86-64-v2",
+                    X64InstructionLevel.x86_64v3 => "x86-64-v3",
+                    X64InstructionLevel.x86_64v4 => "x86-64-v4",
+                    _ => "x86-64-v3",
+                } : "x86-64-v3";
+
+            projectProperties.Add("IlcInstructionSet", cpuInstructions);
+        }
 
         var platformUsesSeparateProjects = platform switch
         {

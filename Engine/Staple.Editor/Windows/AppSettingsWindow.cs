@@ -42,19 +42,34 @@ internal class AppSettingsWindow : EditorWindow
     {
         projectAppSettings.appName = EditorGUI.TextField("App name", "AppSettings.General.AppName", projectAppSettings.appName ?? "");
 
-        projectAppSettings.companyName = EditorGUI.TextField("Company name", "AppSettings.General.CompanyName", projectAppSettings.companyName ?? "");
+        projectAppSettings.companyName = EditorGUI.TextField("Company name", "AppSettings.General.CompanyName",
+            projectAppSettings.companyName ?? "");
 
-        projectAppSettings.appBundleID = EditorGUI.TextField("App bundle ID", "AppSettings.General.BundleID", projectAppSettings.appBundleID ?? "");
+        projectAppSettings.appBundleID = EditorGUI.TextField("App bundle ID", "AppSettings.General.BundleID",
+            projectAppSettings.appBundleID ?? "");
 
-        projectAppSettings.appDisplayVersion = EditorGUI.TextField("App display version", "AppSettings.General.DisplayVersion", projectAppSettings.appDisplayVersion ?? "");
+        projectAppSettings.appDisplayVersion = EditorGUI.TextField("App display version", "AppSettings.General.DisplayVersion",
+            projectAppSettings.appDisplayVersion ?? "");
 
         projectAppSettings.appVersion = EditorGUI.IntField("App version ID", "AppSettings.General.VersionID", projectAppSettings.appVersion);
 
-        projectAppSettings.profilingMode = EditorGUI.EnumDropdown("Profiling", "AppSettings.General.Profiling", projectAppSettings.profilingMode);
+        projectAppSettings.profilingMode = EditorGUI.EnumDropdown("Profiling", "AppSettings.General.Profiling",
+            projectAppSettings.profilingMode);
+
+        projectAppSettings.overrideNativeInstructionSetX64 = EditorGUI.Toggle(
+            "Override x86_64 native instruction level (default is x86_64-v3)", "AppSettings.General.Overridex64",
+            projectAppSettings.overrideNativeInstructionSetX64);
+
+        if(projectAppSettings.overrideNativeInstructionSetX64)
+        {
+            projectAppSettings.x64InstructionLevel = EditorGUI.EnumDropdown("Native Instruction Level (x86_64)",
+                "AppSettings.General.NativeFlagsX64", projectAppSettings.x64InstructionLevel);
+        }
 
         var lastUnsafeCode = projectAppSettings.allowUnsafeCode;
 
-        projectAppSettings.allowUnsafeCode = EditorGUI.Toggle("Allow unsafe code", "AppSettings.General.AllowUnsafeCode", projectAppSettings.allowUnsafeCode);
+        projectAppSettings.allowUnsafeCode = EditorGUI.Toggle("Allow unsafe code", "AppSettings.General.AllowUnsafeCode",
+            projectAppSettings.allowUnsafeCode);
 
         if (lastUnsafeCode != projectAppSettings.allowUnsafeCode)
         {
@@ -72,8 +87,8 @@ internal class AppSettingsWindow : EditorWindow
             projectAppSettings.fixedTimeFrameRate = 1;
         }
 
-        projectAppSettings.maximumFixedTimestepTime = EditorGUI.FloatField("Maximum time spent on fixed timesteps", "AppSettings.Timing.MaximumTimestep",
-            projectAppSettings.maximumFixedTimestepTime);
+        projectAppSettings.maximumFixedTimestepTime = EditorGUI.FloatField("Maximum time spent on fixed timesteps",
+            "AppSettings.Timing.MaximumTimestep", projectAppSettings.maximumFixedTimestepTime);
 
         if (projectAppSettings.maximumFixedTimestepTime <= 0)
         {
@@ -153,7 +168,8 @@ internal class AppSettingsWindow : EditorWindow
                 }
             }
 
-            LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(projectAppSettings.sortingLayers));
+            LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers),
+                CollectionsMarshal.AsSpan(projectAppSettings.sortingLayers));
 
             StapleEditor.instance.AddEditorLayers();
         }
@@ -183,7 +199,8 @@ internal class AppSettingsWindow : EditorWindow
         {
             var current = projectAppSettings.ambientLight;
 
-            projectAppSettings.ambientLight = EditorGUI.ColorField("Ambient color", "AppSettings.Lighting.AmbientColor", projectAppSettings.ambientLight);
+            projectAppSettings.ambientLight = EditorGUI.ColorField("Ambient color", "AppSettings.Lighting.AmbientColor",
+                projectAppSettings.ambientLight);
 
             if (projectAppSettings.ambientLight != current)
             {
@@ -194,7 +211,8 @@ internal class AppSettingsWindow : EditorWindow
 
     private void Rendering()
     {
-        projectAppSettings.runInBackground = EditorGUI.Toggle("Run in background", $"AppSettings.Rendering.Background", projectAppSettings.runInBackground);
+        projectAppSettings.runInBackground = EditorGUI.Toggle("Run in background", $"AppSettings.Rendering.Background",
+            projectAppSettings.runInBackground);
 
         projectAppSettings.multiThreadedRenderer = EditorGUI.Toggle("Multithreaded renderer (experimental)", $"AppSettings.Rendering.Multithreaded",
             projectAppSettings.multiThreadedRenderer);
@@ -211,28 +229,28 @@ internal class AppSettingsWindow : EditorWindow
                     backend.platform == AppPlatform.Linux ||
                     backend.platform == AppPlatform.MacOSX)
                 {
-                    projectAppSettings.defaultWindowMode = EditorGUI.EnumDropdown("Window mode *", $"AppSettings.Rendering.Backend{index}.WindowMode",
-                        projectAppSettings.defaultWindowMode);
+                    projectAppSettings.defaultWindowMode = EditorGUI.EnumDropdown("Window mode *",
+                        $"AppSettings.Rendering.Backend{index}.WindowMode", projectAppSettings.defaultWindowMode);
 
-                    projectAppSettings.defaultWindowWidth = EditorGUI.IntField("Window width *", $"AppSettings.Rendering.Backend{index}.WindowWidth",
-                        projectAppSettings.defaultWindowWidth);
+                    projectAppSettings.defaultWindowWidth = EditorGUI.IntField("Window width *",
+                        $"AppSettings.Rendering.Backend{index}.WindowWidth", projectAppSettings.defaultWindowWidth);
 
-                    projectAppSettings.defaultWindowHeight = EditorGUI.IntField("Window height *", $"AppSettings.Rendering.Backend{index}.WindowHeight",
-                        projectAppSettings.defaultWindowHeight);
+                    projectAppSettings.defaultWindowHeight = EditorGUI.IntField("Window height *",
+                        $"AppSettings.Rendering.Backend{index}.WindowHeight", projectAppSettings.defaultWindowHeight);
                 }
                 else if (backend.platform == AppPlatform.Android ||
                     backend.platform == AppPlatform.iOS)
                 {
-                    projectAppSettings.portraitOrientation = EditorGUI.Toggle("Portrait orientation *", $"AppSettings.Rendering.Backend{index}.Portrait",
-                        projectAppSettings.portraitOrientation);
+                    projectAppSettings.portraitOrientation = EditorGUI.Toggle("Portrait orientation *",
+                        $"AppSettings.Rendering.Backend{index}.Portrait", projectAppSettings.portraitOrientation);
 
-                    projectAppSettings.landscapeOrientation = EditorGUI.Toggle("Landscape orientation *", $"AppSettings.Rendering.Backend{index}.Landscape",
-                        projectAppSettings.landscapeOrientation);
+                    projectAppSettings.landscapeOrientation = EditorGUI.Toggle("Landscape orientation *",
+                        $"AppSettings.Rendering.Backend{index}.Landscape", projectAppSettings.landscapeOrientation);
 
                     if (backend.platform == AppPlatform.Android)
                     {
-                        projectAppSettings.androidMinSDK = EditorGUI.IntField("Minimum Android SDK", $"AppSettings.Rendering.Backend{index}.AndroidSDK",
-                            projectAppSettings.androidMinSDK);
+                        projectAppSettings.androidMinSDK = EditorGUI.IntField("Minimum Android SDK",
+                            $"AppSettings.Rendering.Backend{index}.AndroidSDK", projectAppSettings.androidMinSDK);
 
                         if (projectAppSettings.androidMinSDK < 26)
                         {
@@ -241,8 +259,8 @@ internal class AppSettingsWindow : EditorWindow
                     }
                     else if (backend.platform == AppPlatform.iOS)
                     {
-                        projectAppSettings.iOSDeploymentTarget = EditorGUI.IntField("iOS deployment target", $"AppSettings.Rendering.Backend{index}.iOSDeploymentTarget",
-                            projectAppSettings.iOSDeploymentTarget);
+                        projectAppSettings.iOSDeploymentTarget = EditorGUI.IntField("iOS deployment target",
+                            $"AppSettings.Rendering.Backend{index}.iOSDeploymentTarget", projectAppSettings.iOSDeploymentTarget);
 
                         if (projectAppSettings.iOSDeploymentTarget < 13)
                         {
@@ -262,7 +280,8 @@ internal class AppSettingsWindow : EditorWindow
 
                 for (var i = 0; i < renderers.Count; i++)
                 {
-                    var result = EditorGUI.EnumDropdown("Renderer", $"AppSettings.Rendering.Renderer{index}{i}", renderers[i], backend.renderers);
+                    var result = EditorGUI.EnumDropdown("Renderer", $"AppSettings.Rendering.Renderer{index}{i}", renderers[i],
+                        backend.renderers);
 
                     if (result != renderers[i] && renderers.All(x => x != result))
                     {

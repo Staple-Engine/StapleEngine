@@ -175,6 +175,18 @@ public class AppSettings
     [Key(26)]
     public bool usePhysicsInterpolation = false;
 
+    /// <summary>
+    /// Whether to override the x64 Native Instruction Set
+    /// </summary>
+    [Key(27)]
+    public bool overrideNativeInstructionSetX64 = false;
+
+    /// <summary>
+    /// x64 Instruction Level
+    /// </summary>
+    [Key(28)]
+    public X64InstructionLevel x64InstructionLevel = X64InstructionLevel.x86_64v3;
+
     [IgnoreMember]
     public static AppSettings Default
     {
@@ -280,6 +292,7 @@ public class AppSettings
 [JsonSourceGenerationOptions(IncludeFields = true)]
 [JsonSerializable(typeof(List<string>))]
 [JsonSerializable(typeof(Dictionary<AppPlatform, List<RendererType>>))]
+[JsonSerializable(typeof(JsonStringEnumConverter<X64InstructionLevel>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<AppProfilingMode>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<AppPlatform>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<RendererType>))]

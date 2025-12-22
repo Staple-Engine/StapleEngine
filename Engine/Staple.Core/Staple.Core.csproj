@@ -95,6 +95,7 @@
 
 	<ItemGroup>
 		<Compile Include="AppSettings\AppProfilingMode.cs" />
+		<Compile Include="AppSettings\X64InstructionLevel.cs" />
 		<Compile Include="Assets\IAssetDatabaseObserver.cs" />
 		<Compile Include="Assets\NoiseGeneratorSettings.cs" />
 		<Compile Include="Assets\TextAsset.cs" />
