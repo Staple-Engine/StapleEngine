@@ -142,7 +142,7 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
         {
             var uniform = vertexUniformData[i];
 
-            var target = backend.frameAllocator.Get(uniform.position);
+            var target = backend.frameAllocator.pinAddress + uniform.position;
 
             SDL.PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }
@@ -151,7 +151,7 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
         {
             var uniform = fragmentUniformData[i];
 
-            var target = backend.frameAllocator.Get(uniform.position);
+            var target = backend.frameAllocator.pinAddress + uniform.position;
 
             SDL.PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }

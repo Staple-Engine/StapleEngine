@@ -155,7 +155,7 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
         {
             var uniform = vertexUniformData[i];
 
-            var target = backend.frameAllocator.Get(uniform.position);
+            var target = backend.frameAllocator.pinAddress + uniform.position;
 
             SDL.PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }
@@ -164,7 +164,7 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
         {
             var uniform = fragmentUniformData[i];
 
-            var target = backend.frameAllocator.Get(uniform.position);
+            var target = backend.frameAllocator.pinAddress + uniform.position;
 
             SDL.PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }

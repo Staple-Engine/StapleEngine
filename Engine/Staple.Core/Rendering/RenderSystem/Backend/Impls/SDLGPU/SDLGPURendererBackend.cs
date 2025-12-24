@@ -401,6 +401,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     {
         public byte[] buffer = new byte[1024];
 
+        public GCHandle pinHandle;
+
+        public nint pinAddress;
+
         internal int position;
 
         public void Allocate(int size)
@@ -419,23 +423,30 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 newSize *= 2;
 
                 Array.Resize(ref buffer, newSize);
+
+                Repin();
             }
 
             position += size;
         }
 
-        public nint Get(int position)
+        private void Repin()
         {
-            unsafe
+            if (pinHandle.IsAllocated)
             {
-                fixed (void* target = buffer)
-                {
-                    byte* p = (byte*)target;
+                pinHandle.Free();
+            }
 
-                    p += position;
+            pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 
-                    return (nint)p;
-                }
+            pinAddress = pinHandle.AddrOfPinnedObject();
+        }
+
+        public void EnsurePin()
+        {
+            if(pinHandle.IsAllocated == false)
+            {
+                pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             }
         }
 
@@ -809,6 +820,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         swapchainHeight = (int)h;
 
         UpdateDepthTextureIfNeeded(false);
+
+        frameAllocator.EnsurePin();
 
         foreach (var pair in transientBuffers)
         {
