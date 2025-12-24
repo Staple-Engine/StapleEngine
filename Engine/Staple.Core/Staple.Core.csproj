@@ -286,6 +286,7 @@
 		<Compile Include="UI\UIPanel+API.cs" />
 		<Compile Include="UI\UIPanel+Internal.cs" />
 		<Compile Include="UI\UIPanel.cs" />
+		<Compile Include="UI\UIPerformanceDisplayer.cs" />
 		<Compile Include="UI\UIRenderStats.cs" />
 		<Compile Include="UI\UIScrollableFrame.cs" />
 		<Compile Include="UI\UIScrollBar.cs" />

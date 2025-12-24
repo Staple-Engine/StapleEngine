@@ -57,7 +57,7 @@ internal class AppSettingsWindow : EditorWindow
             projectAppSettings.profilingMode);
 
         projectAppSettings.overrideNativeInstructionSetX64 = EditorGUI.Toggle(
-            "Override x86_64 native instruction level (default is x86_64-v3)", "AppSettings.General.Overridex64",
+            "Override x86_64 native instruction level (default is x86_64-v2)", "AppSettings.General.Overridex64",
             projectAppSettings.overrideNativeInstructionSetX64);
 
         if(projectAppSettings.overrideNativeInstructionSetX64)

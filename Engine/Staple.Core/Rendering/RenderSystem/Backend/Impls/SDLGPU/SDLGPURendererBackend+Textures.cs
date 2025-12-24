@@ -1002,6 +1002,13 @@ internal partial class SDLGPURendererBackend
 
         if (vertexSamplers != null)
         {
+            if(vertexTextures == null)
+            {
+                vertexSamplers = fragmentSamplers = default;
+
+                return false;
+            }
+
             for (var i = 0; i < vertexSamplers.Length; i++)
             {
                 if (vertexTextures[i]?.impl is not SDLGPUTexture texture ||
@@ -1020,6 +1027,13 @@ internal partial class SDLGPURendererBackend
 
         if (fragmentSamplers != null)
         {
+            if (fragmentTextures == null)
+            {
+                vertexSamplers = fragmentSamplers = default;
+
+                return false;
+            }
+
             for (var i = 0; i < fragmentSamplers.Length; i++)
             {
                 if (fragmentTextures[i]?.impl is not SDLGPUTexture texture ||

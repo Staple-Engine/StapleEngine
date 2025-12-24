@@ -185,7 +185,7 @@ public class AppSettings
     /// x64 Instruction Level
     /// </summary>
     [Key(28)]
-    public X64InstructionLevel x64InstructionLevel = X64InstructionLevel.x86_64v3;
+    public X64InstructionLevel x64InstructionLevel = X64InstructionLevel.x86_64v2;
 
     [IgnoreMember]
     public static AppSettings Default
@@ -285,6 +285,8 @@ public class AppSettings
             enableLighting = enableLighting,
             allowUnsafeCode = allowUnsafeCode,
             usePhysicsInterpolation = usePhysicsInterpolation,
+            overrideNativeInstructionSetX64 = overrideNativeInstructionSetX64,
+            x64InstructionLevel = x64InstructionLevel,
         };
     }
 }

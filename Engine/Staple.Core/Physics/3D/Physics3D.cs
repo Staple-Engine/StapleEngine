@@ -132,6 +132,8 @@ public sealed class Physics3D : ISubsystem
             return default;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         return Impl.CreateBody(entity, world);
     }
 
@@ -165,6 +167,8 @@ public sealed class Physics3D : ISubsystem
 
             return false;
         }
+
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
         return Impl.CreateBox(entity, extents, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
@@ -200,6 +204,8 @@ public sealed class Physics3D : ISubsystem
 
             return false;
         }
+
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
         return Impl.CreateSphere(entity, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
@@ -237,6 +243,8 @@ public sealed class Physics3D : ISubsystem
             return false;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         return Impl.CreateCapsule(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
@@ -273,6 +281,8 @@ public sealed class Physics3D : ISubsystem
             return false;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         return Impl.CreateCylinder(entity, height, radius, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
@@ -308,6 +318,8 @@ public sealed class Physics3D : ISubsystem
             return false;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         return Impl.CreateMesh(entity, mesh, position, rotation, motionType, layer, isTrigger, gravityFactor,
             friction, restitution, freezeX, freezeY, freezeZ, is2DPlane, mass, out body);
     }
@@ -337,6 +349,8 @@ public sealed class Physics3D : ISubsystem
             return false;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         return Impl.CreateHeightMap(entity, heights, offset, scale, position, rotation, layer, friction, restitution, mass, out body);
     }
 
@@ -351,6 +365,8 @@ public sealed class Physics3D : ISubsystem
             return;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         Impl.DestroyBody(body);
     }
 
@@ -363,6 +379,8 @@ public sealed class Physics3D : ISubsystem
         {
             return;
         }
+
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
         Impl.DestroyAllBodies();
     }
@@ -379,6 +397,8 @@ public sealed class Physics3D : ISubsystem
             return;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         Impl.AddBody(body, activated);
     }
 
@@ -392,6 +412,8 @@ public sealed class Physics3D : ISubsystem
         {
             return;
         }
+
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
         Impl.RemoveBody(body);
     }
@@ -416,6 +438,8 @@ public sealed class Physics3D : ISubsystem
             return false;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         return Impl.RayCast(ray, out body, out fraction, layerMask, triggerQuery, maxDistance);
     }
 
@@ -430,6 +454,8 @@ public sealed class Physics3D : ISubsystem
         {
             return default;
         }
+
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
         return Impl.GravityFactor(body);
     }
@@ -446,6 +472,8 @@ public sealed class Physics3D : ISubsystem
             return;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         Impl.SetGravityFactor(body, factor);
     }
 
@@ -460,6 +488,8 @@ public sealed class Physics3D : ISubsystem
         {
             return;
         }
+
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
         Impl.SetBodyPosition(body, newPosition);
     }
@@ -476,6 +506,8 @@ public sealed class Physics3D : ISubsystem
             return;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         Impl.SetBodyRotation(body, newRotation);
     }
 
@@ -490,6 +522,8 @@ public sealed class Physics3D : ISubsystem
         {
             return;
         }
+
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
         Impl.SetBodyTrigger(body, value);
     }
@@ -506,6 +540,8 @@ public sealed class Physics3D : ISubsystem
             return default;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         return Impl.GetBody(entity);
     }
 
@@ -520,6 +556,8 @@ public sealed class Physics3D : ISubsystem
         {
             return;
         }
+
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
         Impl.AddForce(body, force);
     }
@@ -536,6 +574,8 @@ public sealed class Physics3D : ISubsystem
             return;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         Impl.AddImpulse(body, impulse);
     }
 
@@ -551,6 +591,8 @@ public sealed class Physics3D : ISubsystem
             return;
         }
 
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         Impl.AddAngularImpulse(body, impulse);
     }
 
@@ -565,7 +607,9 @@ public sealed class Physics3D : ISubsystem
             return;
         }
 
-        if(entity.TryGetComponent<RigidBody3D>(out var rigidBody))
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
+        if (entity.TryGetComponent<RigidBody3D>(out var rigidBody))
         {
             if (rigidBody.body != null)
             {
@@ -609,6 +653,8 @@ public sealed class Physics3D : ISubsystem
                 return;
             }
 
+            using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
             var rigidBody = (RigidBody3D)component;
 
             rigidBody.body = CreateBody(entity, world);
@@ -621,6 +667,8 @@ public sealed class Physics3D : ISubsystem
                 return;
             }
 
+            using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
             var character = (Character3D)component;
 
             character.body = CreateBody(entity, world);
@@ -632,6 +680,8 @@ public sealed class Physics3D : ISubsystem
             {
                 return;
             }
+
+            using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
             var rigidBody = (RigidBody3D)component;
 
@@ -646,6 +696,8 @@ public sealed class Physics3D : ISubsystem
             {
                 return;
             }
+
+            using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
             var character = (Character3D)component;
 
@@ -683,7 +735,9 @@ public sealed class Physics3D : ISubsystem
             return;
         }
 
-        if(needsSubsystemCheck)
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
+        if (needsSubsystemCheck)
         {
             needsSubsystemCheck = false;
 
@@ -698,6 +752,8 @@ public sealed class Physics3D : ISubsystem
 
     public void BodyActivated(IBody3D body)
     {
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         lock (lockObject)
         {
             foreach (var system in physicsReceivers)
@@ -709,6 +765,8 @@ public sealed class Physics3D : ISubsystem
 
     public void BodyDeactivated(IBody3D body)
     {
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         lock (lockObject)
         {
             foreach (var system in physicsReceivers)
@@ -720,6 +778,8 @@ public sealed class Physics3D : ISubsystem
 
     public void ContactAdded(IBody3D A, IBody3D B)
     {
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         lock (lockObject)
         {
             foreach (var system in physicsReceivers)
@@ -731,6 +791,8 @@ public sealed class Physics3D : ISubsystem
 
     public void ContactPersisted(IBody3D A, IBody3D B)
     {
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         lock (lockObject)
         {
             foreach (var system in physicsReceivers)
@@ -742,6 +804,8 @@ public sealed class Physics3D : ISubsystem
 
     public void ContactRemoved(IBody3D A, IBody3D B)
     {
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         lock (lockObject)
         {
             foreach (var system in physicsReceivers)
@@ -753,6 +817,8 @@ public sealed class Physics3D : ISubsystem
 
     public bool ContactValidate(IBody3D A, IBody3D B)
     {
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
         lock (lockObject)
         {
             foreach (var system in physicsReceivers)
