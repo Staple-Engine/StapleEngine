@@ -89,6 +89,23 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         public readonly bool download = download;
         public readonly int length = length;
 
+        public static bool operator==(TransferBufferCacheKey lhs, TransferBufferCacheKey rhs)
+        {
+            return lhs.download == rhs.download &&
+                lhs.length == rhs.length;
+        }
+
+        public static bool operator !=(TransferBufferCacheKey lhs, TransferBufferCacheKey rhs)
+        {
+            return lhs.download != rhs.download ||
+                lhs.length != rhs.length;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is TransferBufferCacheKey key && this == key;
+        }
+
         public override int GetHashCode()
         {
             return HashCode.Combine(download, length);
@@ -463,6 +480,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     private bool iteratingCommands = false;
     private int commandIndex;
+
+    internal static nint lastVertexBuffer;
+    internal static nint lastIndexBuffer;
     #endregion
 
     public bool SupportsTripleBuffering => SDL.WindowSupportsGPUPresentMode(device, window.window,
@@ -810,6 +830,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         commands.Clear();
         frameAllocator.Clear();
+
+        lastVertexBuffer = nint.Zero;
+        lastIndexBuffer = nint.Zero;
 
         foreach (var pair in transientBuffers)
         {

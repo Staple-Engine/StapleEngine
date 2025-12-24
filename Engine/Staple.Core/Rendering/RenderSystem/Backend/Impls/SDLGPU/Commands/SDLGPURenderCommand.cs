@@ -15,6 +15,10 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
     public SDLGPURendererBackend.StapleShaderUniform[] fragmentUniformData = fragmentUniformData;
     public SDLGPUShaderProgram program = program;
 
+    internal static SDL.GPUBufferBinding[] vertexBinding = [new SDL.GPUBufferBinding()];
+    internal static SDL.GPUBufferBinding indexBinding;
+    internal static SDL.Rect scissor;
+
     public void Update(IRendererBackend rendererBackend)
     {
         var backend = (SDLGPURendererBackend)rendererBackend;
@@ -74,34 +78,25 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
 
         SDL.BindGPUGraphicsPipeline(renderPass, pipeline);
 
-        if (state.scissor != default)
-        {
-            var scissor = new SDL.Rect()
-            {
-                X = state.scissor.left,
-                Y = state.scissor.top,
-                W = state.scissor.Width,
-                H = state.scissor.Height,
-            };
+        vertexBinding[0].Buffer = vertexBuffer.buffer;
 
-            SDL.SetGPUScissor(renderPass, in scissor);
+        indexBinding.Buffer = indexBuffer.buffer;
+
+        if (SDLGPURendererBackend.lastVertexBuffer != vertexBuffer.buffer)
+        {
+            SDLGPURendererBackend.lastVertexBuffer = vertexBuffer.buffer;
+
+            SDL.BindGPUVertexBuffers(renderPass, 0, vertexBinding, 1);
         }
 
-        var vertexBinding = new SDL.GPUBufferBinding()
+        if (SDLGPURendererBackend.lastIndexBuffer != indexBuffer.buffer)
         {
-            Buffer = vertexBuffer.buffer,
-        };
+            SDLGPURendererBackend.lastIndexBuffer = indexBuffer.buffer;
 
-        var indexBinding = new SDL.GPUBufferBinding()
-        {
-            Buffer = indexBuffer.buffer,
-        };
-
-        SDL.BindGPUVertexBuffers(renderPass, 0, [vertexBinding], 1);
-
-        SDL.BindGPUIndexBuffer(renderPass, in indexBinding, index.Is32Bit ?
-            SDL.GPUIndexElementSize.IndexElementSize32Bit :
-            SDL.GPUIndexElementSize.IndexElementSize16Bit);
+            SDL.BindGPUIndexBuffer(renderPass, in indexBinding, index.Is32Bit ?
+                SDL.GPUIndexElementSize.IndexElementSize32Bit :
+                SDL.GPUIndexElementSize.IndexElementSize16Bit);
+        }
 
         if (vertexSamplers != null)
         {
