@@ -7,6 +7,12 @@ namespace Staple.Internal;
 
 internal struct RenderState
 {
+    public struct BufferBinding
+    {
+        public int binding;
+        public VertexBuffer buffer;
+    }
+
     public MeshTopology primitiveType;
     public CullingMode cull;
     public bool wireframe;
@@ -19,8 +25,8 @@ internal struct RenderState
     public Shader.ShaderInstance shaderInstance;
     public VertexBuffer vertexBuffer;
     public IndexBuffer indexBuffer;
-    public Dictionary<int, VertexBuffer> vertexStorageBuffers;
-    public Dictionary<int, VertexBuffer> fragmentStorageBuffers;
+    public List<BufferBinding> vertexStorageBuffers;
+    public List<BufferBinding> fragmentStorageBuffers;
     public int startVertex;
     public int startIndex;
     public int indexCount;
@@ -34,6 +40,19 @@ internal struct RenderState
 
     public readonly RenderState Clone()
     {
+        var vertexTextures = this.vertexTextures != null ? new Texture[this.vertexTextures.Length] : null;
+        var fragmentTextures = this.fragmentTextures != null ? new Texture[this.fragmentTextures.Length] : null;
+
+        if(vertexTextures != null)
+        {
+            Array.Copy(this.vertexTextures, vertexTextures, vertexTextures.Length);
+        }
+
+        if(fragmentTextures != null)
+        {
+            Array.Copy(this.fragmentTextures, fragmentTextures, fragmentTextures.Length);
+        }
+
         return new()
         {
             cull = cull,
@@ -41,7 +60,7 @@ internal struct RenderState
             destinationBlend = destinationBlend,
             enableDepth = enableDepth,
             fragmentStorageBuffers = fragmentStorageBuffers != null ? new(fragmentStorageBuffers) : null,
-            fragmentTextures = (Texture[])fragmentTextures?.Clone(),
+            fragmentTextures = fragmentTextures,
             indexBuffer = indexBuffer,
             indexCount = indexCount,
             primitiveType = primitiveType,
@@ -54,7 +73,7 @@ internal struct RenderState
             startIndex = startIndex,
             startVertex = startVertex,
             vertexBuffer = vertexBuffer,
-            vertexTextures = (Texture[])vertexTextures?.Clone(),
+            vertexTextures = vertexTextures,
             wireframe = wireframe,
             world = world,
             instanceOffset = instanceOffset,
@@ -97,47 +116,15 @@ internal struct RenderState
 
         var binding = -1;
 
-        void Apply(ref Dictionary<int, VertexBuffer> storageBuffers)
+        void Apply(ref List<BufferBinding> storageBuffers)
         {
             storageBuffers ??= [];
 
-            if (storageBuffers.Count == 0)
+            storageBuffers.Add(new()
             {
-                storageBuffers.AddOrSetKey(binding, buffer);
-            }
-            else
-            {
-                var found = false;
-
-                foreach (var pair in storageBuffers)
-                {
-                    if ((pair.Key == binding || pair.Value == buffer) &&
-                        pair.Key != binding && pair.Value != buffer)
-                    {
-                        found = true;
-
-                        break;
-                    }
-                }
-
-                if (found)
-                {
-                    var keys = storageBuffers.Keys.ToArray();
-
-                    foreach (var key in keys)
-                    {
-                        var value = storageBuffers[key];
-
-                        if ((key == binding || value == buffer) &&
-                            key != binding && value != buffer)
-                        {
-                            storageBuffers.Remove(key);
-                        }
-                    }
-                }
-
-                storageBuffers.AddOrSetKey(binding, buffer);
-            }
+                binding = binding,
+                buffer = buffer
+            });
         }
 
         var localIndex = shaderInstance.vertexUniforms.storageBuffers.FindIndex(x => x.name == name);

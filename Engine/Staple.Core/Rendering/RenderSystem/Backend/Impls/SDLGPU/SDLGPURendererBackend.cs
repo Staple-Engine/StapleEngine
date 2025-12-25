@@ -1,5 +1,6 @@
 ﻿using Evergine.Bindings.Vulkan;
 using SDL3;
+using Standart.Hash.xxHash;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -487,13 +488,20 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private readonly TextureResource[] textures = new TextureResource[ushort.MaxValue - 1];
     private readonly List<SDLGPUShaderProgram> shaders = [];
     private readonly Dictionary<TransferBufferCacheKey, nint> cachedTransferBuffers = [];
+    private readonly ulong[] lastVertexShaderUniformHashes = new ulong[20];
+    private readonly ulong[] lastFragmentShaderUniformHashes = new ulong[20];
     private RenderTarget currentRenderTarget;
 
     private bool iteratingCommands = false;
     private int commandIndex;
+    #endregion
 
+    #region Command Support Fields
     internal static nint lastVertexBuffer;
     internal static nint lastIndexBuffer;
+    internal static nint lastGraphicsPipeline;
+    internal static nint lastQueuedGraphicsPipeline;
+    internal static nint[] singleBuffer = new nint[1];
     #endregion
 
     public bool SupportsTripleBuffering => SDL.WindowSupportsGPUPresentMode(device, window.window,
@@ -846,6 +854,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         lastVertexBuffer = nint.Zero;
         lastIndexBuffer = nint.Zero;
+        lastGraphicsPipeline = nint.Zero;
+        lastQueuedGraphicsPipeline = nint.Zero;
+
+        Array.Clear(lastVertexShaderUniformHashes);
+        Array.Clear(lastFragmentShaderUniformHashes);
 
         foreach (var pair in transientBuffers)
         {
@@ -913,6 +926,70 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
     }
 
+    private void CheckQueuedPipeline(nint newPipeline)
+    {
+        if(lastQueuedGraphicsPipeline != newPipeline)
+        {
+            lastQueuedGraphicsPipeline = newPipeline;
+
+            Array.Clear(lastVertexShaderUniformHashes);
+            Array.Clear(lastFragmentShaderUniformHashes);
+        }
+    }
+
+    private static ulong UniformDataHash(Span<byte> data)
+    {
+        return xxHash64.ComputeHash(data, data.Length);
+    }
+
+    private bool ShouldPushVertexUniform(int binding, Span<byte> data)
+    {
+        //TODO: Figure this out
+        /*
+        if(binding < 0 || binding >= lastVertexShaderUniformHashes.Length)
+        {
+            return false;
+        }
+
+        var hash = UniformDataHash(data);
+
+        if (lastVertexShaderUniformHashes[binding] != hash)
+        {
+            lastVertexShaderUniformHashes[binding] = hash;
+
+            return true;
+        }
+
+        return false;
+        */
+
+        return true;
+    }
+
+    private bool ShouldPushFragmentUniform(int binding, Span<byte> data)
+    {
+        //TODO: Figure this out
+        /*
+        if (binding < 0 || binding >= lastFragmentShaderUniformHashes.Length)
+        {
+            return false;
+        }
+
+        var hash = UniformDataHash(data);
+
+        if (lastFragmentShaderUniformHashes[binding] != hash)
+        {
+            lastFragmentShaderUniformHashes[binding] = hash;
+
+            return true;
+        }
+
+        return false;
+        */
+
+        return true;
+    }
+
     internal void UpdateDepthTextureIfNeeded(bool force)
     {
         if((needsDepthTextureUpdate == false && force == false) ||
@@ -950,6 +1027,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             SDL.EndGPURenderPass(renderPass);
 
             renderPass = nint.Zero;
+            lastGraphicsPipeline = nint.Zero;
+            lastVertexBuffer = nint.Zero;
+            lastIndexBuffer = nint.Zero;
+            lastQueuedGraphicsPipeline = nint.Zero;
         }
     }
 
@@ -1504,6 +1585,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return;
         }
 
+        CheckQueuedPipeline(pipeline);
+
         var vertexUniformData = new StapleShaderUniform[shader.vertexMappings.Count];
         var fragmentUniformData = new StapleShaderUniform[shader.fragmentMappings.Count];
 
@@ -1534,6 +1617,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                         source.CopyTo(target);
                     }
                 }
+            }
+
+            if (ShouldPushVertexUniform(pair.Key.binding, pair.Value) == false)
+            {
+                continue;
             }
 
             unsafe
@@ -1590,6 +1678,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            if (ShouldPushFragmentUniform(pair.Key.binding, pair.Value) == false)
+            {
+                continue;
+            }
+
             unsafe
             {
                 var position = frameAllocator.position;
@@ -1639,6 +1732,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         {
             return;
         }
+
+        CheckQueuedPipeline(pipeline);
 
         if (transientBuffers.TryGetValue(layout, out var entry) == false)
         {
@@ -1705,6 +1800,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            if (ShouldPushVertexUniform(pair.Key.binding, pair.Value) == false)
+            {
+                continue;
+            }
+
             unsafe
             {
                 var position = frameAllocator.position;
@@ -1759,6 +1859,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            if (ShouldPushFragmentUniform(pair.Key.binding, pair.Value) == false)
+            {
+                continue;
+            }
+
             unsafe
             {
                 var position = frameAllocator.position;
@@ -1808,6 +1913,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         {
             return;
         }
+
+        CheckQueuedPipeline(pipeline);
 
         if (transientBuffers.TryGetValue(layout, out var entry) == false)
         {
@@ -1874,6 +1981,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            if(ShouldPushVertexUniform(pair.Key.binding, pair.Value) == false)
+            {
+                continue;
+            }
+
             unsafe
             {
                 var position = frameAllocator.position;
@@ -1926,6 +2038,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                         source.CopyTo(target);
                     }
                 }
+            }
+
+            if (ShouldPushFragmentUniform(pair.Key.binding, pair.Value) == false)
+            {
+                continue;
             }
 
             unsafe
