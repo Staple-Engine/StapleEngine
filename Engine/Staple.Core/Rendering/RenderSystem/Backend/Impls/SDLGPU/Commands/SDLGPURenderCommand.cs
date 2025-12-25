@@ -89,21 +89,11 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
 
         indexBinding.Buffer = indexBuffer.buffer;
 
-        if (SDLGPURendererBackend.lastVertexBuffer != vertexBuffer.buffer)
-        {
-            SDLGPURendererBackend.lastVertexBuffer = vertexBuffer.buffer;
+        SDL.BindGPUVertexBuffers(renderPass, 0, vertexBinding, 1);
 
-            SDL.BindGPUVertexBuffers(renderPass, 0, vertexBinding, 1);
-        }
-
-        if (SDLGPURendererBackend.lastIndexBuffer != indexBuffer.buffer)
-        {
-            SDLGPURendererBackend.lastIndexBuffer = indexBuffer.buffer;
-
-            SDL.BindGPUIndexBuffer(renderPass, in indexBinding, index.Is32Bit ?
-                SDL.GPUIndexElementSize.IndexElementSize32Bit :
-                SDL.GPUIndexElementSize.IndexElementSize16Bit);
-        }
+        SDL.BindGPUIndexBuffer(renderPass, in indexBinding, index.Is32Bit ?
+            SDL.GPUIndexElementSize.IndexElementSize32Bit :
+            SDL.GPUIndexElementSize.IndexElementSize16Bit);
 
         if (vertexSamplers != null)
         {

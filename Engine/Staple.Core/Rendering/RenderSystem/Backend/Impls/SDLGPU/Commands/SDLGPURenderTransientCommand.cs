@@ -103,19 +103,9 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
 
         indexBinding.Buffer = entry.indexBuffer;
 
-        if (SDLGPURendererBackend.lastVertexBuffer != entry.vertexBuffer)
-        {
-            SDLGPURendererBackend.lastVertexBuffer = entry.vertexBuffer;
+        SDL.BindGPUVertexBuffers(renderPass, 0, vertexBinding, 1);
 
-            SDL.BindGPUVertexBuffers(renderPass, 0, vertexBinding, 1);
-        }
-
-        if (SDLGPURendererBackend.lastIndexBuffer != entry.indexBuffer)
-        {
-            SDLGPURendererBackend.lastIndexBuffer = entry.indexBuffer;
-
-            SDL.BindGPUIndexBuffer(renderPass, in indexBinding, SDL.GPUIndexElementSize.IndexElementSize16Bit);
-        }
+        SDL.BindGPUIndexBuffer(renderPass, in indexBinding, SDL.GPUIndexElementSize.IndexElementSize16Bit);
 
         if (vertexSamplers != null)
         {

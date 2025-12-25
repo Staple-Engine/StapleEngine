@@ -497,8 +497,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     #endregion
 
     #region Command Support Fields
-    internal static nint lastVertexBuffer;
-    internal static nint lastIndexBuffer;
     internal static nint lastGraphicsPipeline;
     internal static nint lastQueuedGraphicsPipeline;
     internal static nint[] singleBuffer = new nint[1];
@@ -852,8 +850,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         commands.Clear();
         frameAllocator.Clear();
 
-        lastVertexBuffer = nint.Zero;
-        lastIndexBuffer = nint.Zero;
         lastGraphicsPipeline = nint.Zero;
         lastQueuedGraphicsPipeline = nint.Zero;
 
@@ -1028,8 +1024,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
             renderPass = nint.Zero;
             lastGraphicsPipeline = nint.Zero;
-            lastVertexBuffer = nint.Zero;
-            lastIndexBuffer = nint.Zero;
             lastQueuedGraphicsPipeline = nint.Zero;
         }
     }
