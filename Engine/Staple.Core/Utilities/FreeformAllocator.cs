@@ -15,6 +15,8 @@ internal class FreeformAllocator<T> where T: unmanaged
 
     internal readonly List<Entry> freeEntries = [];
 
+    internal readonly int elementSize = Marshal.SizeOf<T>();
+
     private readonly List<Entry> entries = [];
 
     public T[] buffer = [];
@@ -22,8 +24,6 @@ internal class FreeformAllocator<T> where T: unmanaged
     private GCHandle pinHandle;
 
     internal nint pinAddress;
-
-    private readonly int elementSize = Marshal.SizeOf<T>();
 
     private void Repin()
     {
@@ -42,7 +42,51 @@ internal class FreeformAllocator<T> where T: unmanaged
         if (pinHandle.IsAllocated == false)
         {
             pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+
+            pinAddress = pinHandle.AddrOfPinnedObject();
         }
+    }
+
+    public void Compact(int extraLength = 0)
+    {
+        var compactedLength = buffer.Length;
+
+        foreach (var entry in freeEntries)
+        {
+            compactedLength -= entry.length;
+        }
+
+        var newBuffer = new T[compactedLength + extraLength];
+
+        var newPosition = 0;
+
+        foreach (var entry in entries)
+        {
+            entry.start = newPosition;
+
+            newPosition += entry.length;
+        }
+
+        newPosition = 0;
+
+        var position = 0;
+
+        foreach (var entry in freeEntries)
+        {
+            var l = entry.start - position;
+
+            Array.Copy(buffer, position, newBuffer, newPosition, l);
+
+            position = entry.start + entry.length;
+            newPosition += l;
+        }
+
+        if (newPosition < compactedLength)
+        {
+            Array.Copy(buffer, position, newBuffer, newPosition, compactedLength - newPosition);
+        }
+
+        buffer = newBuffer;
     }
 
     public Entry Allocate(int length)
@@ -100,48 +144,11 @@ internal class FreeformAllocator<T> where T: unmanaged
             }
         }
 
-        var compactedLength = buffer.Length;
-
-        foreach(var entry in freeEntries)
-        {
-            compactedLength -= entry.length;
-        }
-
-        var newBuffer = new T[compactedLength + length];
-
-        var newPosition = 0;
-
-        foreach (var entry in entries)
-        {
-            entry.start = newPosition;
-
-            newPosition += entry.length;
-        }
-
-        newPosition = 0;
-
-        var position = 0;
-
-        foreach (var entry in freeEntries)
-        {
-            var l = entry.start - position;
-
-            Array.Copy(buffer, position, newBuffer, newPosition, l);
-
-            position = entry.start + entry.length;
-            newPosition += l;
-        }
-
-        if(newPosition < compactedLength)
-        {
-            Array.Copy(buffer, position, newBuffer, newPosition, compactedLength - newPosition);
-        }
-
-        buffer = newBuffer;
+        Compact(length);
 
         outValue = new Entry()
         {
-            start = compactedLength,
+            start = buffer.Length - length,
             length = length,
         };
 
