@@ -1150,14 +1150,20 @@ public sealed partial class Mesh : IGuidAsset
     /// </summary>
     internal void UploadMeshData()
     {
-        if (changed == false &&
-            (vertexBuffer?.Disposed ?? true) == false &&
-            (indexBuffer?.Disposed ?? true) == false)
+        if (changed == false ||
+            (IsStaticMesh == false && (vertexBuffer?.Disposed ?? true) == false && (indexBuffer?.Disposed ?? true) == false))
         {
             return;
         }
 
         changed = false;
+
+        if(IsStaticMesh)
+        {
+            UpdateStaticMeshData();
+
+            return;
+        }
 
         vertexBuffer?.Destroy();
         indexBuffer?.Destroy();

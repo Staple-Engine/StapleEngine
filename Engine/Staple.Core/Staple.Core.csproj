@@ -203,6 +203,7 @@
 		<Compile Include="Rendering\Mesh\MeshCombine.cs" />
 		<Compile Include="Rendering\Mesh\MeshCombineSystem.cs" />
 		<Compile Include="Rendering\Mesh\MeshInstanceOptions.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\BufferAttributeContainer.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUBeginRenderPassCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUDestroyIndexBufferCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUDestroyTextureCommand.cs" />
@@ -225,10 +226,14 @@
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexLayoutBuilder.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\IRenderCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\IRendererBackend.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\BufferAttributeSource.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\RenderState.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderEntry.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderQueue.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderQueueItem.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderStats.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
+		<Compile Include="Rendering\RenderSystem\StapleShaderUniform.cs" />
 		<Compile Include="Rendering\Shader\ComputeShader.cs" />
 		<Compile Include="Rendering\Shader\IShaderProgram.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />

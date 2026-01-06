@@ -275,6 +275,10 @@ public sealed partial class Mesh
 
     internal bool HasBoneWeights => (boneWeights?.Length ?? 0) > 0;
 
+    internal bool IsStaticMesh = false;
+
+    internal BufferAttributeContainer.Entries staticMeshEntries;
+
     /// <summary>
     /// List of default meshes
     /// </summary>
@@ -481,6 +485,13 @@ public sealed partial class Mesh
     /// </summary>
     public void Destroy()
     {
+        if(IsStaticMesh && staticMeshEntries != null)
+        {
+            RenderSystem.Backend.StaticMeshData.Free(staticMeshEntries);
+
+            staticMeshEntries = null;
+        }
+
         vertexBuffer?.Destroy();
         indexBuffer?.Destroy();
 
@@ -870,10 +881,12 @@ public sealed partial class Mesh
     /// <returns>Whether it was set active</returns>
     internal bool SetActive(ref RenderState state, int submeshIndex = 0)
     {
-        if(vertexBuffer == null || indexBuffer == null)
+        if(IsStaticMesh == false && (vertexBuffer == null || indexBuffer == null))
         {
             return false;
         }
+
+        state.staticMeshEntries = null;
 
         state.primitiveType = MeshTopology;
 
@@ -881,6 +894,7 @@ public sealed partial class Mesh
         {
             state.vertexBuffer = vertexBuffer;
             state.indexBuffer = indexBuffer;
+            state.staticMeshEntries = staticMeshEntries;
             state.indexCount = indices.Length;
         }
         else if(submeshIndex >= 0 && submeshIndex < submeshes.Count)
@@ -889,6 +903,7 @@ public sealed partial class Mesh
 
             state.vertexBuffer = vertexBuffer;
             state.indexBuffer = indexBuffer;
+            state.staticMeshEntries = staticMeshEntries;
             state.startVertex = submesh.startVertex;
             state.startIndex = submesh.startIndex;
             state.indexCount = submesh.indexCount;
@@ -925,6 +940,173 @@ public sealed partial class Mesh
             //Can't calculate for other modes
             _ => indexCount,
         };
+    }
+
+    internal void MarkStaticMesh()
+    {
+        if(IsStaticMesh ||
+            (vertices?.Length ?? 0) == 0 ||
+            (indices?.Length ?? 0) == 0)
+        {
+            return;
+        }
+
+        IsStaticMesh = true;
+
+        UpdateStaticMeshData();
+    }
+
+    internal void UpdateStaticMeshData()
+    {
+        if(staticMeshEntries == null)
+        {
+            var vertexCount = vertices.Length;
+            var indexCount = indices.Length;
+
+            staticMeshEntries = RenderSystem.Backend.StaticMeshData.Allocate(vertexCount, indexCount);
+        }
+
+        if ((vertices?.Length ?? 0) > staticMeshEntries.positionEntry.length ||
+            (indices?.Length ?? 0) > staticMeshEntries.indicesEntry.length)
+        {
+            RenderSystem.Backend.StaticMeshData.Free(staticMeshEntries);
+
+            RenderSystem.Backend.StaticMeshData.Allocate(vertices.Length, indices.Length);
+        }
+
+        if (RenderSystem.Backend.StaticMeshData.TryGetPositions(staticMeshEntries, out var positions, true))
+        {
+            var source = vertices.AsSpan();
+
+            source.CopyTo(positions);
+        }
+
+        if (HasNormals && RenderSystem.Backend.StaticMeshData.TryGetNormals(staticMeshEntries, out var normals, true))
+        {
+            var source = this.normals.AsSpan();
+
+            source.CopyTo(normals);
+        }
+
+        if (HasTangents && RenderSystem.Backend.StaticMeshData.TryGetTangents(staticMeshEntries, out var tangents, true))
+        {
+            var source = this.tangents.AsSpan();
+
+            source.CopyTo(tangents);
+        }
+
+        if (HasBitangents && RenderSystem.Backend.StaticMeshData.TryGetBitangents(staticMeshEntries, out var bitangents, true))
+        {
+            var source = this.bitangents.AsSpan();
+
+            source.CopyTo(bitangents);
+        }
+
+        if (HasBoneIndices && RenderSystem.Backend.StaticMeshData.TryGetBlendIndices(staticMeshEntries, out var boneIndices, true))
+        {
+            var source = this.boneIndices.AsSpan();
+
+            source.CopyTo(boneIndices);
+        }
+
+        if (HasBoneWeights && RenderSystem.Backend.StaticMeshData.TryGetBlendWeights(staticMeshEntries, out var boneWeights, true))
+        {
+            var source = this.boneWeights.AsSpan();
+
+            source.CopyTo(boneWeights);
+        }
+
+        if (HasColors && RenderSystem.Backend.StaticMeshData.TryGetColor0(staticMeshEntries, out var colors, true))
+        {
+            var source = this.colors.AsSpan();
+
+            source.CopyTo(colors);
+        }
+
+        if (HasColors2 && RenderSystem.Backend.StaticMeshData.TryGetColor1(staticMeshEntries, out var colors2, true))
+        {
+            var source = this.colors2.AsSpan();
+
+            source.CopyTo(colors2);
+        }
+
+        if (HasColors3 && RenderSystem.Backend.StaticMeshData.TryGetColor2(staticMeshEntries, out var colors3, true))
+        {
+            var source = this.colors3.AsSpan();
+
+            source.CopyTo(colors3);
+        }
+
+        if (HasColors4 && RenderSystem.Backend.StaticMeshData.TryGetColor3(staticMeshEntries, out var colors4, true))
+        {
+            var source = this.colors4.AsSpan();
+
+            source.CopyTo(colors4);
+        }
+
+        if (HasUV && RenderSystem.Backend.StaticMeshData.TryGetTexCoord0(staticMeshEntries, out var uv0, true))
+        {
+            var source = this.uv.AsSpan();
+
+            source.CopyTo(uv0);
+        }
+
+        if (HasUV2 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord1(staticMeshEntries, out var uv1, true))
+        {
+            var source = this.uv2.AsSpan();
+
+            source.CopyTo(uv1);
+        }
+
+        if (HasUV3 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord2(staticMeshEntries, out var uv2, true))
+        {
+            var source = this.uv3.AsSpan();
+
+            source.CopyTo(uv2);
+        }
+
+        if (HasUV4 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord3(staticMeshEntries, out var uv3, true))
+        {
+            var source = this.uv4.AsSpan();
+
+            source.CopyTo(uv3);
+        }
+
+        if (HasUV5 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord4(staticMeshEntries, out var uv4, true))
+        {
+            var source = this.uv5.AsSpan();
+
+            source.CopyTo(uv4);
+        }
+
+        if (HasUV6 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord5(staticMeshEntries, out var uv5, true))
+        {
+            var source = this.uv6.AsSpan();
+
+            source.CopyTo(uv5);
+        }
+
+        if (HasUV7 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord6(staticMeshEntries, out var uv6, true))
+        {
+            var source = this.uv7.AsSpan();
+
+            source.CopyTo(uv6);
+        }
+
+        if (HasUV8 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord7(staticMeshEntries, out var uv7, true))
+        {
+            var source = this.uv8.AsSpan();
+
+            source.CopyTo(uv7);
+        }
+
+        if(RenderSystem.Backend.StaticMeshData.TryGetIndices(staticMeshEntries, out var meshIndices, true))
+        {
+            for(var i = 0; i < meshIndices.Length; i++)
+            {
+                meshIndices[i] = (uint)indices[i];
+            }
+        }
     }
 
     internal int SubmeshTriangleCount(int submeshIndex)

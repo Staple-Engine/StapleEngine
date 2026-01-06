@@ -13,6 +13,8 @@ internal interface IRendererBackend
 
     TextureFormat? DepthStencilFormat { get; }
 
+    BufferAttributeContainer StaticMeshData { get; }
+
     bool Initialize(RendererType renderer, bool debug, IRenderWindow window, RenderModeFlags renderFlags);
 
     void Destroy();
@@ -69,4 +71,8 @@ internal interface IRendererBackend
     void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state) where T : unmanaged;
 
     void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state) where T : unmanaged;
+
+    void UpdateStaticMeshVertexBuffer<T>(BufferAttributeSource<T, VertexBuffer> buffer) where T : unmanaged;
+
+    void UpdateStaticMeshIndexBuffer(BufferAttributeSource<uint, IndexBuffer> buffer);
 }

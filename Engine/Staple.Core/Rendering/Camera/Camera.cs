@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple;
@@ -80,6 +81,26 @@ public sealed class Camera : IComponent
     /// The frustum culler for this camera
     /// </summary>
     private readonly FrustumCuller frustumCuller = new();
+
+    /// <summary>
+    /// The opaque render queue for this camera
+    /// </summary>
+    internal readonly Dictionary<int, RenderQueue> opaqueRenderQueue = [];
+
+    /// <summary>
+    /// The transparent render queue for this camera
+    /// </summary>
+    internal readonly Dictionary<int, RenderQueue> transparentRenderQueue = [];
+
+    /// <summary>
+    /// The static opaque render queue for this camera
+    /// </summary>
+    internal readonly Dictionary<int, RenderQueue> staticOpaqueRenderQueue = [];
+
+    /// <summary>
+    /// The static transparent render queue for this camera
+    /// </summary>
+    internal readonly Dictionary<int, RenderQueue> staticTransparentRenderQueue = [];
 
     /// <summary>
     /// Gets the camera's frustum corners

@@ -121,6 +121,19 @@ public sealed partial class RenderSystem
 
         return resetFlags;
     }
+
+    /// <summary>
+    /// Returns whether a combination of blend modes results in opaque geometry
+    /// </summary>
+    /// <param name="sourceBlend">The source blend mode</param>
+    /// <param name="destinationBlend">The destination blend mode</param>
+    /// <returns>Whether it's opaque</returns>
+    internal static bool IsOpaque(BlendMode sourceBlend, BlendMode destinationBlend)
+    {
+        return (sourceBlend == BlendMode.Off && destinationBlend == BlendMode.Off) ||
+                (sourceBlend == BlendMode.One && destinationBlend == BlendMode.Zero) ||
+                (sourceBlend == BlendMode.Zero && destinationBlend == BlendMode.One);
+    }
     #endregion
 
     #region Frame Callbacks

@@ -25,6 +25,7 @@ internal struct RenderState
     public Shader.ShaderInstance shaderInstance;
     public VertexBuffer vertexBuffer;
     public IndexBuffer indexBuffer;
+    public BufferAttributeContainer.Entries staticMeshEntries;
     public List<BufferBinding> vertexStorageBuffers;
     public List<BufferBinding> fragmentStorageBuffers;
     public int startVertex;
@@ -70,6 +71,7 @@ internal struct RenderState
             shader = shader,
             shaderInstance = shaderInstance,
             sourceBlend = sourceBlend,
+            staticMeshEntries = staticMeshEntries,
             startIndex = startIndex,
             startVertex = startVertex,
             vertexBuffer = vertexBuffer,

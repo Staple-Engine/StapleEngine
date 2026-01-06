@@ -15,10 +15,6 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
     public SDLGPURendererBackend.StapleShaderUniform[] fragmentUniformData = fragmentUniformData;
     public SDLGPUShaderProgram program = program;
 
-    internal static SDL.GPUBufferBinding[] vertexBinding = [new SDL.GPUBufferBinding()];
-    internal static SDL.GPUBufferBinding indexBinding;
-    internal static SDL.Rect scissor;
-
     public void Update(IRendererBackend rendererBackend)
     {
         var backend = (SDLGPURendererBackend)rendererBackend;
@@ -85,27 +81,38 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
 
         if (state.scissor != default)
         {
-            scissor.X = state.scissor.left;
-            scissor.Y = state.scissor.top;
-            scissor.W = state.scissor.Width;
-            scissor.H = state.scissor.Height;
+            SDLGPURenderCommand.scissor.X = state.scissor.left;
+            SDLGPURenderCommand.scissor.Y = state.scissor.top;
+            SDLGPURenderCommand.scissor.W = state.scissor.Width;
+            SDLGPURenderCommand.scissor.H = state.scissor.Height;
         }
         else
         {
-            scissor.X = scissor.Y = 0;
-            scissor.W = backend.renderSize.X;
-            scissor.H = backend.renderSize.Y;
+            SDLGPURenderCommand.scissor.X = SDLGPURenderCommand.scissor.Y = 0;
+            SDLGPURenderCommand.scissor.W = backend.renderSize.X;
+            SDLGPURenderCommand.scissor.H = backend.renderSize.Y;
         }
 
-        SDL.SetGPUScissor(renderPass, in scissor);
+        SDL.SetGPUScissor(renderPass, in SDLGPURenderCommand.scissor);
 
-        vertexBinding[0].Buffer = entry.vertexBuffer;
+        SDLGPURenderCommand.vertexBinding[0].Buffer = entry.vertexBuffer;
 
-        indexBinding.Buffer = entry.indexBuffer;
+        SDLGPURenderCommand.indexBinding.Offset = 0;
+        SDLGPURenderCommand.indexBinding.Buffer = entry.indexBuffer;
 
-        SDL.BindGPUVertexBuffers(renderPass, 0, vertexBinding, 1);
+        if (SDLGPURendererBackend.lastVertexBuffer != entry.vertexBuffer)
+        {
+            SDLGPURendererBackend.lastVertexBuffer = entry.vertexBuffer;
 
-        SDL.BindGPUIndexBuffer(renderPass, in indexBinding, SDL.GPUIndexElementSize.IndexElementSize16Bit);
+            SDL.BindGPUVertexBuffers(renderPass, 0, SDLGPURenderCommand.vertexBinding, 1);
+        }
+
+        if (SDLGPURendererBackend.lastIndexBuffer != entry.indexBuffer)
+        {
+            SDLGPURendererBackend.lastIndexBuffer = entry.indexBuffer;
+
+            SDL.BindGPUIndexBuffer(renderPass, in SDLGPURenderCommand.indexBinding, SDL.GPUIndexElementSize.IndexElementSize16Bit);
+        }
 
         if (vertexSamplers != null)
         {
