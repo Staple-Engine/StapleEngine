@@ -348,7 +348,7 @@ public partial class World
             {
                 needsEmitWorldChange = true;
 
-                if (TryGetEntity(e, out var info) == false)
+                if (!TryGetEntity(e, out var info))
                 {
                     return;
                 }

@@ -212,7 +212,7 @@ internal partial class StapleEditor
                     continue;
                 }
 
-                if(entity.EnabledInHierarchy == false)
+                if(!entity.EnabledInHierarchy)
                 {
                     disabledEntities.Add(entity);
 
@@ -226,7 +226,7 @@ internal partial class StapleEditor
                         continue;
                     }
 
-                    if (renderQueue.TryGetValue(systemInfo.system, out var content) == false)
+                    if (!renderQueue.TryGetValue(systemInfo.system, out var content))
                     {
                         content = ([], []);
 
@@ -491,7 +491,7 @@ internal partial class StapleEditor
 
         buildBackend = PlayerBackendManager.Instance.GetBackend(currentPlatform).name;
 
-        if (ResourceManager.instance.LoadPak(Path.Combine(Storage.StapleBasePath, "DefaultResources", $"DefaultResources-{Platform.CurrentPlatform.Value}.pak")) == false)
+        if (!ResourceManager.instance.LoadPak(Path.Combine(Storage.StapleBasePath, "DefaultResources", $"DefaultResources-{Platform.CurrentPlatform.Value}.pak")))
         {
             Log.Error("Failed to load default resources pak");
 
@@ -661,7 +661,7 @@ internal partial class StapleEditor
 
                 LoadProjectForBuilding(projectToLoad, (result) =>
                 {
-                    if (result == false)
+                    if (!result)
                     {
                         Environment.Exit(1);
                     }
@@ -736,7 +736,7 @@ internal partial class StapleEditor
 
                 window.Title = $"Staple Editor - {RenderWindow.CurrentRenderer}";
 
-                if (ImGuiProxy.instance.Initialize() == false)
+                if (!ImGuiProxy.instance.Initialize())
                 {
                     ImGuiProxy.instance.Destroy();
 
@@ -839,7 +839,7 @@ internal partial class StapleEditor
         {
             lock (backgroundLock)
             {
-                if (initialized == false)
+                if (!initialized)
                 {
                     return;
                 }
@@ -868,7 +868,7 @@ internal partial class StapleEditor
 
             if (viewportType == ViewportType.Scene && Cursor.LockState == CursorLockMode.None)
             {
-                if (io.WantTextInput == false)
+                if (!io.WantTextInput)
                 {
                     var axis = Vector3.Zero;
 
@@ -896,7 +896,7 @@ internal partial class StapleEditor
                         (Input.GetKey(KeyCode.LeftShift) ? 2 : Input.GetKey(KeyCode.LeftControl) ? 0.5f : 1);
                 }
 
-                if (io.WantTextInput == false && Input.GetMouseButton(MouseButton.Right))
+                if (!io.WantTextInput && Input.GetMouseButton(MouseButton.Right))
                 {
                     var rotation = cameraTransform.LocalRotation.ToEulerAngles();
 
@@ -951,7 +951,7 @@ internal partial class StapleEditor
                 SetSelectedEntity(selectedEntity);
             }
 
-            if(io.WantTextInput == false)
+            if(!io.WantTextInput)
             {
                 if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyUp(KeyCode.Z))
                 {
@@ -1012,7 +1012,7 @@ internal partial class StapleEditor
 
                         try
                         {
-                            if (Directory.Exists(item.path) == false)
+                            if (!Directory.Exists(item.path))
                             {
                                 continue;
                             }
@@ -1079,12 +1079,12 @@ internal partial class StapleEditor
 
                 var flags = ImGuiWindowFlags.None;
 
-                if (window.windowFlags.HasFlag(EditorWindowFlags.Dockable) == false)
+                if (!window.windowFlags.HasFlag(EditorWindowFlags.Dockable))
                 {
                     flags |= ImGuiWindowFlags.NoDocking;
                 }
 
-                if (window.windowFlags.HasFlag(EditorWindowFlags.Resizable) == false)
+                if (!window.windowFlags.HasFlag(EditorWindowFlags.Resizable))
                 {
                     flags |= ImGuiWindowFlags.NoResize;
                 }
@@ -1113,7 +1113,7 @@ internal partial class StapleEditor
                     case EditorWindowType.Modal:
                     case EditorWindowType.Popup:
 
-                        if (window.opened == false)
+                        if (!window.opened)
                         {
                             window.opened = true;
 
@@ -1132,7 +1132,7 @@ internal partial class StapleEditor
                             shouldShow = ImGui.BeginPopupModal($"{window.title}##Popup{window.GetType().Name}", otherFlags);
                         }
 
-                        if (shouldShow == false)
+                        if (!shouldShow)
                         {
                             ImGui.CloseCurrentPopup();
 
@@ -1179,7 +1179,7 @@ internal partial class StapleEditor
                             break;
                     }
 
-                    if (isOpen == false)
+                    if (!isOpen)
                     {
                         window.Close();
                     }
@@ -1192,7 +1192,7 @@ internal partial class StapleEditor
 
             lock (backgroundLock)
             {
-                if (window.HasFocus && showingProgress == false && (backgroundHandles.Count == 0 || backgroundHandles.All(x => x.Completed)))
+                if (window.HasFocus && !showingProgress && (backgroundHandles.Count == 0 || backgroundHandles.All(x => x.Completed)))
                 {
                     if ((editorSettings.autoRecompile || forceGameRecompile) && needsGameRecompile)
                     {
@@ -1200,7 +1200,7 @@ internal partial class StapleEditor
 
                         UnloadGame();
 
-                        RefreshStaging(currentPlatform, null, true, forceGameRecompile == false);
+                        RefreshStaging(currentPlatform, null, true, !forceGameRecompile);
 
                         forceGameRecompile = false;
                     }
@@ -1220,8 +1220,8 @@ internal partial class StapleEditor
 
             if (World.Current != null &&
                 Input.GetMouseButton(MouseButton.Left) &&
-                mouseIsHoveringImGui == false &&
-                ImGuizmo.IsUsingAny() == false &&
+                !mouseIsHoveringImGui &&
+                !ImGuizmo.IsUsingAny() &&
                 viewportType == ViewportType.Scene)
             {
                 var ray = Camera.ScreenPointToRay(Input.MousePosition, default, camera, cameraTransform);
@@ -1273,7 +1273,7 @@ internal partial class StapleEditor
 
             if (hadFocus != hasFocus && hasFocus)
             {
-                if (RefreshingAssets == false && ProjectManager.Instance.NeedsGameRecompile())
+                if (!RefreshingAssets && ProjectManager.Instance.NeedsGameRecompile())
                 {
                     needsGameRecompile = true;
                 }
@@ -1368,7 +1368,7 @@ internal partial class StapleEditor
 
         EditorUtils.CreateDirectory(Path.Combine(path, "Assets"));
 
-        if(EditorUtils.CopyDirectory(Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "ProjectSettings"), Path.Combine(path, "Settings")) == false)
+        if(!EditorUtils.CopyDirectory(Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "ProjectSettings"), Path.Combine(path, "Settings")))
         {
             Log.Error($"Failed to create project: Failed to copy editor resources");
 

@@ -35,7 +35,7 @@ internal class SDLGPUVertexBuffer : VertexBuffer
             data == nint.Zero ||
             lengthInBytes == 0 ||
             lengthInBytes % layout.Stride != 0 ||
-            IsValid == false)
+            !IsValid)
         {
             return;
         }
@@ -55,7 +55,7 @@ internal class SDLGPUVertexBuffer : VertexBuffer
         if (Disposed ||
             data.Length == 0 ||
             size % layout.Stride != 0 ||
-            IsValid == false)
+            !IsValid)
         {
             return;
         }
@@ -78,7 +78,7 @@ internal class SDLGPUVertexBuffer : VertexBuffer
         if (Disposed ||
             data.Length == 0 ||
             data.Length % layout.Stride != 0 ||
-            IsValid == false)
+            !IsValid)
         {
             return;
         }

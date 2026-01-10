@@ -90,7 +90,7 @@ internal class BufferAttributeContainer
 
     private static void UpdateVertexBuffer<T>(BufferAttributeSource<T, VertexBuffer> buffer) where T: unmanaged
     {
-        if (buffer.Changed == false)
+        if (!buffer.Changed)
         {
             return;
         }
@@ -102,7 +102,7 @@ internal class BufferAttributeContainer
 
     private static void UpdateIndexBuffer(BufferAttributeSource<uint, IndexBuffer> buffer)
     {
-        if (buffer.Changed == false)
+        if (!buffer.Changed)
         {
             return;
         }

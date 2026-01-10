@@ -79,17 +79,17 @@ public struct Ray(Vector3 position, Vector3 direction)
             return true;
         }
 
-        if(RaySlabIntersect(ray.position.X, ray.direction.X, aabb.min.X, aabb.max.X) == false)
+        if(!RaySlabIntersect(ray.position.X, ray.direction.X, aabb.min.X, aabb.max.X))
         {
             return false;
         }
 
-        if (RaySlabIntersect(ray.position.Y, ray.direction.Y, aabb.min.Y, aabb.max.Y) == false)
+        if (!RaySlabIntersect(ray.position.Y, ray.direction.Y, aabb.min.Y, aabb.max.Y))
         {
             return false;
         }
 
-        if (RaySlabIntersect(ray.position.Z, ray.direction.Z, aabb.min.Z, aabb.max.Z) == false)
+        if (!RaySlabIntersect(ray.position.Z, ray.direction.Z, aabb.min.Z, aabb.max.Z))
         {
             return false;
         }

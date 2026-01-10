@@ -258,7 +258,7 @@ public sealed class Camera : IComponent
 
         var p = Projection(entity, camera);
 
-        if (Matrix4x4.Invert(p, out var invP) == false)
+        if (!Matrix4x4.Invert(p, out var invP))
         {
             return default;
         }
@@ -287,7 +287,7 @@ public sealed class Camera : IComponent
 
         var p = Projection(entity, camera);
 
-        if(Matrix4x4.Invert(p, out var invP) == false)
+        if(!Matrix4x4.Invert(p, out var invP))
         {
             return new Ray();
         }

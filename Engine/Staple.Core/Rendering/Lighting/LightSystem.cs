@@ -90,7 +90,7 @@ public sealed class LightSystem : IRenderSystem
     /// <param name="lighting">The lighting type</param>
     public void ApplyMaterialLighting(Material material, MaterialLighting lighting)
     {
-        if(Enabled == false)
+        if(!Enabled)
         {
             material.DisableShaderKeyword(Shader.LitKeyword);
             material.DisableShaderKeyword(Shader.HalfLambertKeyword);
@@ -133,9 +133,9 @@ public sealed class LightSystem : IRenderSystem
     internal bool ApplyLightProperties(Material material, Vector3 cameraPosition,
         MaterialLighting lighting)
     {
-        if (Enabled == false ||
+        if (!Enabled ||
             lighting == MaterialLighting.Unlit ||
-            (material?.IsValid ?? false) == false)
+            !(material?.IsValid ?? false))
         {
             return false;
         }
@@ -174,7 +174,7 @@ public sealed class LightSystem : IRenderSystem
         {
             for (var i = 0; i < handles.Length; i++)
             {
-                if (handles[i].IsValid == false)
+                if (!handles[i].IsValid)
                 {
                     return false;
                 }
@@ -183,7 +183,7 @@ public sealed class LightSystem : IRenderSystem
             return true;
         }
 
-        if (cachedInstancedMaterialInfo.TryGetValue(key, out var handles) == false || HandlesValid(handles) == false)
+        if (!cachedInstancedMaterialInfo.TryGetValue(key, out var handles) || !HandlesValid(handles))
         {
             handles = [
                 material.GetShaderHandle("StapleLightCountViewPosition"),
@@ -196,7 +196,7 @@ public sealed class LightSystem : IRenderSystem
         }
 
         if((handles?.Length ?? 0) != 4 ||
-            HandlesValid(handles) == false)
+            !HandlesValid(handles))
         {
             return false;
         }

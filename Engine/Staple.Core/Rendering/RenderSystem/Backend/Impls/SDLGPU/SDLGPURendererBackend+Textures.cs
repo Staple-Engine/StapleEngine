@@ -7,7 +7,7 @@ internal partial class SDLGPURendererBackend
 {
     internal void ReleaseTextureResource(TextureResource resource)
     {
-        if ((resource?.used ?? false) == false)
+        if (!(resource?.used ?? false))
         {
             return;
         }
@@ -71,8 +71,8 @@ internal partial class SDLGPURendererBackend
 
     internal bool TryGetTexture(ResourceHandle<Texture> handle, out TextureResource resource)
     {
-        if (handle.IsValid == false ||
-            (textures[handle.handle]?.used ?? false) == false)
+        if (!handle.IsValid ||
+            !(textures[handle.handle]?.used ?? false))
         {
             resource = default;
 
@@ -86,7 +86,7 @@ internal partial class SDLGPURendererBackend
 
     internal nint GetSampler(TextureFlags flags)
     {
-        if (textureSamplers.TryGetValue(flags, out var sampler) == false)
+        if (!textureSamplers.TryGetValue(flags, out var sampler))
         {
             SDL.GPUSamplerAddressMode GetAddressModeU()
             {
@@ -197,7 +197,7 @@ internal partial class SDLGPURendererBackend
     {
         var format = asset.metadata.Format;
 
-        if (TryGetTextureFormat(format, flags, out var textureFormat) == false)
+        if (!TryGetTextureFormat(format, flags, out var textureFormat))
         {
             return null;
         }
@@ -222,7 +222,7 @@ internal partial class SDLGPURendererBackend
 
         var handle = ReserveTextureResource(textures, texture, asset.width, asset.height, format, flags);
 
-        if (handle.IsValid == false)
+        if (!handle.IsValid)
         {
             SDL.ReleaseGPUTexture(device, texture);
 
@@ -238,7 +238,7 @@ internal partial class SDLGPURendererBackend
 
     public ITexture CreatePixelTexture(byte[] data, int width, int height, TextureFormat format, TextureFlags flags)
     {
-        if (TryGetTextureFormat(format, flags, out var textureFormat) == false)
+        if (!TryGetTextureFormat(format, flags, out var textureFormat))
         {
             return null;
         }
@@ -263,7 +263,7 @@ internal partial class SDLGPURendererBackend
 
         var handle = ReserveTextureResource(textures, texture, width, height, format, flags);
 
-        if(handle.IsValid == false)
+        if(!handle.IsValid)
         {
             SDL.ReleaseGPUTexture(device, texture);
 
@@ -279,7 +279,7 @@ internal partial class SDLGPURendererBackend
 
     public ITexture CreateEmptyTexture(int width, int height, TextureFormat format, TextureFlags flags)
     {
-        if (TryGetTextureFormat(format, flags, out var textureFormat) == false)
+        if (!TryGetTextureFormat(format, flags, out var textureFormat))
         {
             return null;
         }
@@ -304,7 +304,7 @@ internal partial class SDLGPURendererBackend
 
         var handle = ReserveTextureResource(textures, texture, width, height, format, flags);
 
-        if (handle.IsValid == false || TryGetTexture(handle, out var resource) == false)
+        if (!handle.IsValid || !TryGetTexture(handle, out var resource))
         {
             SDL.ReleaseGPUTexture(device, texture);
 
@@ -1013,7 +1013,7 @@ internal partial class SDLGPURendererBackend
             {
                 if (vertexTextures[i]?.impl is not SDLGPUTexture texture ||
                     texture.Disposed ||
-                    TryGetTexture(texture.handle, out var resource) == false)
+                    !TryGetTexture(texture.handle, out var resource))
                 {
                     vertexSamplers = fragmentSamplers = default;
 
@@ -1038,7 +1038,7 @@ internal partial class SDLGPURendererBackend
             {
                 if (fragmentTextures[i]?.impl is not SDLGPUTexture texture ||
                     texture.Disposed ||
-                    TryGetTexture(texture.handle, out var resource) == false)
+                    !TryGetTexture(texture.handle, out var resource))
                 {
                     vertexSamplers = fragmentSamplers = default;
 

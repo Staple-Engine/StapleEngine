@@ -204,7 +204,7 @@ public class ShaderReflectionData
 
                 foreach (var field in parameter.type.elementType.fields)
                 {
-                    if (field.type.TryGetUniformType(out var uniformType) == false)
+                    if (!field.type.TryGetUniformType(out var uniformType))
                     {
                         continue;
                     }
@@ -334,7 +334,7 @@ public class ShaderReflectionData
 
                                 foreach (var field in fieldType.fields)
                                 {
-                                    if (field.type.TryGetUniformType(out var uniformType) == false)
+                                    if (!field.type.TryGetUniformType(out var uniformType))
                                     {
                                         continue;
                                     }

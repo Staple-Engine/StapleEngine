@@ -49,7 +49,7 @@ internal class SubsystemManager
     {
         lock (lockObject)
         {
-            if (subsystems.TryGetValue(priority, out var list) == false)
+            if (!subsystems.TryGetValue(priority, out var list))
             {
                 list = [];
 

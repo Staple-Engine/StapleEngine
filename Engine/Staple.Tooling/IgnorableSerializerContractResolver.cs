@@ -16,7 +16,7 @@ public class IgnorableSerializerContractResolver : DefaultContractResolver
 
     public void Ignore(Type type, params string[] propertyName)
     {
-        if (Ignores.TryGetValue(type, out var value) == false)
+        if (!Ignores.TryGetValue(type, out var value))
         {
             value = [];
 

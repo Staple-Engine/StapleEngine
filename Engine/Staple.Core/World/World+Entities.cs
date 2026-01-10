@@ -46,7 +46,7 @@ public partial class World
         {
             if (localID < 0 ||
                 localID >= entities.Length ||
-                entities[localID].alive == false ||
+                !entities[localID].alive ||
                 entities[localID].generation != entity.Identifier.generation)
             {
                 info = default;
@@ -67,7 +67,7 @@ public partial class World
     /// <returns>Whether the entity is enabled</returns>
     public bool IsEntityEnabled(Entity entity, bool checkParent = false)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (!TryGetEntity(entity, out var entityInfo))
         {
             return false;
         }
@@ -90,7 +90,7 @@ public partial class World
     /// <param name="enabled">Whether it should be enabled</param>
     public void SetEntityEnabled(Entity entity, bool enabled)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (!TryGetEntity(entity, out var entityInfo))
         {
             return;
         }
@@ -224,7 +224,7 @@ public partial class World
     {
         lock(lockObject)
         {
-            if(IsValidEntity(entity) == false)
+            if(!IsValidEntity(entity))
             {
                 return;
             }
@@ -240,7 +240,7 @@ public partial class World
     /// <returns>The current name of the entity</returns>
     public string GetEntityName(Entity entity)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (!TryGetEntity(entity, out var entityInfo))
         {
             return default;
         }
@@ -258,7 +258,7 @@ public partial class World
     /// <param name="name">The new name</param>
     public void SetEntityName(Entity entity, string name)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (!TryGetEntity(entity, out var entityInfo))
         {
             return;
         }
@@ -276,7 +276,7 @@ public partial class World
     /// <returns>The current layer of the entity</returns>
     public uint GetEntityLayer(Entity entity)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (!TryGetEntity(entity, out var entityInfo))
         {
             return default;
         }
@@ -294,7 +294,7 @@ public partial class World
     /// <param name="layer">The new layter</param>
     public void SetEntityLayer(Entity entity, uint layer)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (!TryGetEntity(entity, out var entityInfo))
         {
             return;
         }
@@ -315,7 +315,7 @@ public partial class World
     /// <param name="localID">the local entity ID in the prefab</param>
     public void SetEntityPrefab(Entity entity, string guid, int localID)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (!TryGetEntity(entity, out var entityInfo))
         {
             return;
         }
@@ -336,7 +336,7 @@ public partial class World
     /// <returns>Whether the prefab data was found</returns>
     public bool TryGetEntityPrefab(Entity entity, out string guid, out int localID)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (!TryGetEntity(entity, out var entityInfo))
         {
             guid = default;
             localID = default;
@@ -368,7 +368,7 @@ public partial class World
     /// <returns>The flags, or <see cref="EntityHierarchyVisibility.None"/></returns>
     public EntityHierarchyVisibility GetEntityHierarchyVisibility(Entity entity)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (!TryGetEntity(entity, out var entityInfo))
         {
             return EntityHierarchyVisibility.None;
         }
@@ -383,7 +383,7 @@ public partial class World
     /// <param name="mode">The mode</param>
     public void SetEntityHierarchyVisibility(Entity entity, EntityHierarchyVisibility mode)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false)
+        if (!TryGetEntity(entity, out var entityInfo))
         {
             return;
         }

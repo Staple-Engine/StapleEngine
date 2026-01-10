@@ -116,7 +116,7 @@ public sealed class EntityQuery<T> : ISceneQuery
         contents = [];
         contentEntities = [];
 
-        if (target.IsValid == false)
+        if (!target.IsValid)
         {
             return;
         }
@@ -264,7 +264,7 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
         contents = [];
         contentEntities = [];
 
-        if (target.IsValid == false)
+        if (!target.IsValid)
         {
             return;
         }

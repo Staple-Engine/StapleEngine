@@ -9,10 +9,10 @@ internal class SDLGPUUpdateIndexBufferCommand(ResourceHandle<IndexBuffer> handle
     {
         if (rendererBackend is not SDLGPURendererBackend backend ||
             backend.commandBuffer == nint.Zero ||
-            handle.IsValid == false ||
+            !handle.IsValid ||
             data == null ||
             data.Length == 0 ||
-            backend.TryGetIndexBuffer(handle, out var buffer) == false)
+            !backend.TryGetIndexBuffer(handle, out var buffer))
         {
             return;
         }

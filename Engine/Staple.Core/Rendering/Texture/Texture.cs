@@ -327,7 +327,7 @@ public class Texture : IGuidAsset
             case TextureType.Texture:
             case TextureType.Sprite:
 
-                if(metadata.isLinear == false)
+                if(!metadata.isLinear)
                 {
                     flags |= TextureFlags.SRGB;
                 }
@@ -335,7 +335,7 @@ public class Texture : IGuidAsset
                 break;
         }
 
-        if(ignoreWrap == false)
+        if(!ignoreWrap)
         {
             switch (metadata.wrapU)
             {

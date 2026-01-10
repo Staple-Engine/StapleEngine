@@ -148,11 +148,11 @@ internal class BuildWindow : EditorWindow
 
         var has = Platform.CurrentPlatform == (backend?.platform ?? StapleEditor.instance.currentPlatform);
 
-        EditorGUI.Disabled(has == false, () =>
+        EditorGUI.Disabled(!has, () =>
         {
             StapleEditor.instance.buildPlayerNativeAOT = EditorGUI.Toggle("Native build", "BuildWindowNativeBuild", StapleEditor.instance.buildPlayerNativeAOT);
 
-            if(has == false)
+            if(!has)
             {
                 StapleEditor.instance.buildPlayerNativeAOT = false;
             }

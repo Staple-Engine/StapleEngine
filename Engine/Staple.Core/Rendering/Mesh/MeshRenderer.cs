@@ -22,7 +22,7 @@ public sealed class MeshRenderer : Renderable, IComponentDisposable
     {
         if(mesh != null &&
             mesh.Guid?.Guid != null &&
-            mesh.Guid.Guid.StartsWith("Internal/") == false)
+            !mesh.Guid.Guid.StartsWith("Internal/"))
         {
             mesh.Destroy();
         }

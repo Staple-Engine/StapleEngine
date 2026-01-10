@@ -12,8 +12,8 @@ internal class SDLGPUReadTextureCommand(SDLGPUTexture texture, Action<byte[]> on
     {
         if (rendererBackend is not SDLGPURendererBackend backend ||
             (texture?.Disposed ?? true) ||
-            backend.TryGetTexture(texture.handle, out var resource) == false ||
-            resource.used == false ||
+            !backend.TryGetTexture(texture.handle, out var resource) ||
+            !resource.used ||
             resource.length == 0)
         {
             return;

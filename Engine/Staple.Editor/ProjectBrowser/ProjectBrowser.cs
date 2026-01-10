@@ -537,7 +537,7 @@ internal class ProjectBrowser
 
                     var valid = File.Exists(local) || Directory.Exists(local);
 
-                    if (valid == false)
+                    if (!valid)
                     {
                         File.Delete(file);
                     }
@@ -563,7 +563,7 @@ internal class ProjectBrowser
 
                 try
                 {
-                    if (File.Exists($"{path}.meta") == false)
+                    if (!File.Exists($"{path}.meta"))
                     {
                         missingFiles.Add(path);
                     }
@@ -693,8 +693,8 @@ internal class ProjectBrowser
                                 var jsonData = JsonConvert.SerializeObject(new MeshAssetMetadata()
                                 {
                                     guid = Hash(),
-                                    flipUVs = (path.EndsWith(".glb") ||
-                                        path.EndsWith(".gltf")) == false,
+                                    flipUVs = !(path.EndsWith(".glb") ||
+                                        path.EndsWith(".gltf")),
                                     combineSimilarMeshes = AssetSerialization.StaticMeshExtensions.Any(x => path.EndsWith($".{x}")),
                                 },
                                 Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
@@ -779,7 +779,7 @@ internal class ProjectBrowser
                                 {
                                     case ".dll":
 
-                                        if (isAssembly == false)
+                                        if (!isAssembly)
                                         {
                                             plugin.anyPlatform = false;
 
@@ -922,7 +922,7 @@ internal class ProjectBrowser
                 }
                 else
                 {
-                    if (path.EndsWith(".meta") == false)
+                    if (!path.EndsWith(".meta"))
                     {
                         try
                         {
@@ -947,7 +947,7 @@ internal class ProjectBrowser
             {
                 try
                 {
-                    if (File.Exists($"{path}.meta") == false)
+                    if (!File.Exists($"{path}.meta"))
                     {
                         var holder = new FolderAsset()
                         {
@@ -1103,7 +1103,7 @@ internal class ProjectBrowser
 
             var hasChildren = node.subnodes.Any(x => x.type == ProjectBrowserNodeType.Folder);
 
-            EditorGUI.TreeNodeIcon(folderTexture, node.name, node.name, hasChildren == false, ref node.open, () =>
+            EditorGUI.TreeNodeIcon(folderTexture, node.name, node.name, !hasChildren, ref node.open, () =>
             {
                 if (hasChildren)
                 {

@@ -85,7 +85,7 @@ public class Log
     {
         lock (lockObject)
         {
-            if (AllowedLogTypes.HasFlag(LogType.Info) == false)
+            if (!AllowedLogTypes.HasFlag(LogType.Info))
             {
                 return;
             }
@@ -107,7 +107,7 @@ public class Log
     {
         lock (lockObject)
         {
-            if (AllowedLogTypes.HasFlag(LogType.Warning) == false)
+            if (!AllowedLogTypes.HasFlag(LogType.Warning))
             {
                 return;
             }
@@ -129,7 +129,7 @@ public class Log
     {
         lock (lockObject)
         {
-            if (AllowedLogTypes.HasFlag(LogType.Error) == false)
+            if (!AllowedLogTypes.HasFlag(LogType.Error))
             {
                 return;
             }
@@ -151,7 +151,7 @@ public class Log
     {
         lock (lockObject)
         {
-            if (AllowedLogTypes.HasFlag(LogType.Debug) == false)
+            if (!AllowedLogTypes.HasFlag(LogType.Debug))
             {
                 return;
             }

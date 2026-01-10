@@ -285,7 +285,7 @@ public class Utilities
         process.BeginErrorReadLine();
         process.BeginOutputReadLine();
 
-        while(process.HasExited == false)
+        while(!process.HasExited)
         {
             Thread.Sleep(25);
         }

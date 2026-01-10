@@ -221,7 +221,7 @@ public abstract partial class UIPanel
 
             foreach(var child in children)
             {
-                if(child.Visible == false)
+                if(!child.Visible)
                 {
                     continue;
                 }
@@ -268,7 +268,7 @@ public abstract partial class UIPanel
     /// <returns>Whether this element should not be rendered</returns>
     protected bool IsCulled(Vector2Int position)
     {
-        return Visible == false ||
+        return !Visible ||
             Alpha == 0 ||
             position.X + Size.X < 0 ||
             position.Y + Size.Y < 0 ||

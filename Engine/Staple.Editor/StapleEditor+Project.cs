@@ -228,7 +228,7 @@ internal partial class StapleEditor
         {
             lock (backgroundLock)
             {
-                if (RefreshingAssets == false)
+                if (!RefreshingAssets)
                 {
                     try
                     {
@@ -239,8 +239,8 @@ internal partial class StapleEditor
                         {
                             needsGameRecompile = true;
                         }
-                        else if (Directory.Exists(e.FullPath) == false &&
-                            excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false &&
+                        else if (!Directory.Exists(e.FullPath) &&
+                            !excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) &&
                             e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")))
                         {
                             needsRefreshStaging = true;
@@ -257,7 +257,7 @@ internal partial class StapleEditor
         {
             lock (backgroundLock)
             {
-                if (RefreshingAssets == false)
+                if (!RefreshingAssets)
                 {
                     if (e.FullPath.EndsWith(".cs") ||
                         (Directory.Exists(e.FullPath) && e.ChangeType == WatcherChangeTypes.Renamed &&
@@ -266,8 +266,8 @@ internal partial class StapleEditor
                     {
                         needsGameRecompile = true;
                     }
-                    else if (Directory.Exists(e.FullPath) == false &&
-                        excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) == false &&
+                    else if (!Directory.Exists(e.FullPath) &&
+                        !excludedStagingRefreshExtensions.Any(x => e.FullPath.EndsWith(x)) &&
                         e.FullPath.StartsWith(Path.Combine(BasePath, "Assets")))
                     {
                         needsRefreshStaging = true;
@@ -612,7 +612,7 @@ internal partial class StapleEditor
                                         {
                                             projectBrowser.UpdateProjectBrowserNodes();
 
-                                            if (LoadRecordedScene() == false)
+                                            if (!LoadRecordedScene())
                                             {
                                                 if ((lastOpenScene?.Length ?? 0) > 0)
                                                 {
@@ -691,7 +691,7 @@ internal partial class StapleEditor
     /// <returns>Whether it was saved</returns>
     public static bool SaveAsset(string assetPath, IStapleAsset assetInstance)
     {
-        if(Path.IsPathRooted(assetPath) == false)
+        if(!Path.IsPathRooted(assetPath))
         {
             assetPath = Path.Combine(instance.BasePath, assetPath);
         }
@@ -741,7 +741,7 @@ internal partial class StapleEditor
         {
             Log.Debug($"Failed to save asset: {e}");
 
-            if(existed == false)
+            if(!existed)
             {
                 try
                 {

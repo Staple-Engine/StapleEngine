@@ -56,7 +56,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             for (var i = 0; i < renderer.materials.Count; i++)
             {
-                if ((renderer.materials[i]?.IsValid ?? false) == false)
+                if (!(renderer.materials[i]?.IsValid ?? false))
                 {
                     skip = true;
 
@@ -93,7 +93,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         {
             var renderer = entry.component as SkinnedMeshRenderer;
 
-            if (renderer.isVisible == false ||
+            if (!renderer.isVisible ||
                 renderer.mesh?.MeshAssetMesh == null ||
                 renderer.materials == null ||
                 renderer.materials.Count == 0)
@@ -105,7 +105,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             for (var i = 0; i < renderer.materials.Count; i++)
             {
-                if ((renderer.materials[i]?.IsValid ?? false) == false)
+                if (!(renderer.materials[i]?.IsValid ?? false))
                 {
                     skip = true;
 

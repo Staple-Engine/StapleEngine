@@ -32,7 +32,7 @@ internal partial class SDLGPURendererBackend
 
     internal void ReleaseBufferResource(BufferResource resource)
     {
-        if ((resource?.used ?? false) == false)
+        if (!(resource?.used ?? false))
         {
             return;
         }
@@ -77,8 +77,8 @@ internal partial class SDLGPURendererBackend
 
     internal bool TryGetVertexBuffer(ResourceHandle<VertexBuffer> handle, out BufferResource resource)
     {
-        if (handle.IsValid == false ||
-            (vertexBuffers[handle.handle]?.used ?? false) == false)
+        if (!handle.IsValid ||
+            !(vertexBuffers[handle.handle]?.used ?? false))
         {
             resource = default;
 
@@ -92,8 +92,8 @@ internal partial class SDLGPURendererBackend
 
     internal bool TryGetIndexBuffer(ResourceHandle<IndexBuffer> handle, out BufferResource resource)
     {
-        if (handle.IsValid == false ||
-            (indexBuffers[handle.handle]?.used ?? false) == false)
+        if (!handle.IsValid ||
+            !(indexBuffers[handle.handle]?.used ?? false))
         {
             resource = default;
 
@@ -114,7 +114,7 @@ internal partial class SDLGPURendererBackend
 
         var handle = ReserveResourceBuffer<VertexBuffer>(vertexBuffers, flags);
 
-        if (handle.IsValid == false)
+        if (!handle.IsValid)
         {
             return null;
         }
@@ -138,7 +138,7 @@ internal partial class SDLGPURendererBackend
 
         var handle = ReserveResourceBuffer<VertexBuffer>(vertexBuffers, flags);
 
-        if (handle.IsValid == false)
+        if (!handle.IsValid)
         {
             return null;
         }
@@ -157,7 +157,7 @@ internal partial class SDLGPURendererBackend
     {
         var handle = ReserveResourceBuffer<IndexBuffer>(indexBuffers, flags);
 
-        if (handle.IsValid == false)
+        if (!handle.IsValid)
         {
             return null;
         }
@@ -176,7 +176,7 @@ internal partial class SDLGPURendererBackend
     {
         var handle = ReserveResourceBuffer<IndexBuffer>(indexBuffers, flags);
 
-        if (handle.IsValid == false)
+        if (!handle.IsValid)
         {
             return null;
         }

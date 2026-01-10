@@ -555,12 +555,12 @@ internal class ImGuiProxy
 
             var needsUpdate = true;
 
-            if ((vertexBuffer?.Disposed ?? true) == true)
+            if ((vertexBuffer?.Disposed ?? true))
             {
                 needsUpdate = false;
             }
 
-            if (needsUpdate == false)
+            if (!needsUpdate)
             {
                 vertexBuffer = RenderSystem.Backend.CreateVertexBuffer(vertices, layout, RenderBufferFlags.None);
                 indexBuffer = RenderSystem.Backend.CreateIndexBuffer(indices, RenderBufferFlags.None);
@@ -598,7 +598,7 @@ internal class ImGuiProxy
 
                             Texture[] textures;
 
-                            if (drawCmd.GetTexID().IsNull == false)
+                            if (!drawCmd.GetTexID().IsNull)
                             {
                                 var index = (int)drawCmd.GetTexID().Handle;
 

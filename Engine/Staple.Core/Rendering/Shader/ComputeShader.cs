@@ -94,7 +94,7 @@ public partial class ComputeShader : IGuidAsset
 
     private static int NormalizeUniformCount(string name)
     {
-        if (uniformCountRegex.IsMatch(name) == false)
+        if (!uniformCountRegex.IsMatch(name))
         {
             return 1;
         }
@@ -273,7 +273,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetFloat(ShaderHandle handle, float value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -293,7 +293,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector2(ShaderHandle handle, Vector2 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -313,7 +313,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector2(ShaderHandle handle, ReadOnlySpan<Vector2> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -341,7 +341,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector3(ShaderHandle handle, Vector3 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -361,7 +361,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector3(ShaderHandle handle, ReadOnlySpan<Vector3> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -389,7 +389,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector4(ShaderHandle handle, Vector4 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -407,7 +407,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector4(ShaderHandle handle, ReadOnlySpan<Vector4> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -428,7 +428,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetColor(ShaderHandle handle, Color value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -448,7 +448,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetColor(ShaderHandle handle, ReadOnlySpan<Color> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -472,7 +472,7 @@ public partial class ComputeShader : IGuidAsset
         if (Disposed ||
             value == null ||
             value.Disposed ||
-            handle.TryGetUniform(this, out var uniform) == false)
+            !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -490,7 +490,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix3x3(ShaderHandle handle, Matrix3x3 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -508,7 +508,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix3x3(ShaderHandle handle, ReadOnlySpan<Matrix3x3> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -529,7 +529,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix4x4(ShaderHandle handle, Matrix4x4 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -547,7 +547,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix4x4(ShaderHandle handle, ReadOnlySpan<Matrix4x4> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }

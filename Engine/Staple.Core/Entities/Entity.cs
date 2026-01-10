@@ -70,7 +70,7 @@ public partial struct Entity
 
     public static bool operator!=(Entity a, Entity b)
     {
-        return (a == b) == false;
+        return a.Identifier != b.Identifier;
     }
 
     public override readonly bool Equals(object obj)
@@ -139,7 +139,7 @@ public partial struct Entity
 
         var entity = World.Current.CreateEntity();
 
-        if(entity.IsValid == false)
+        if(!entity.IsValid)
         {
             return default;
         }
@@ -167,7 +167,7 @@ public partial struct Entity
 
         var entity = World.Current.CreateEntity();
 
-        if (entity.IsValid == false)
+        if (!entity.IsValid)
         {
             return default;
         }

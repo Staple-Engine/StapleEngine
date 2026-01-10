@@ -107,7 +107,7 @@ internal class AppPlayer
 
                 Time.fixedDeltaTime = 1 / (float)AppSettings.Current.fixedTimeFrameRate;
 
-                if(skipFlow == false)
+                if(!skipFlow)
                 {
                     Scene.sceneList = ResourceManager.instance.LoadSceneList();
 
@@ -123,7 +123,7 @@ internal class AppPlayer
                     Log.Info("Loaded scene list");
                 }
 
-                if (Physics3D.ImplType != null && Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)) == false)
+                if (Physics3D.ImplType != null && !Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)))
                 {
                     Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D");
 
@@ -197,7 +197,7 @@ internal class AppPlayer
                         (typeof(IEntitySystemFixedUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemFixedUpdate))),
                     (instance => EntitySystemManager.Instance.RegisterSystem(instance)));
 
-                if (skipFlow == false)
+                if (!skipFlow)
                 {
                     var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
 
@@ -223,7 +223,7 @@ internal class AppPlayer
 
         renderWindow.OnFixedUpdate = () =>
         {
-            if(initialized == false)
+            if(!initialized)
             {
                 return;
             }
@@ -235,7 +235,7 @@ internal class AppPlayer
 
         renderWindow.OnUpdate = () =>
         {
-            if (initialized == false)
+            if (!initialized)
             {
                 return;
             }

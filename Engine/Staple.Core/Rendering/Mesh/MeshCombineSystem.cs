@@ -60,7 +60,7 @@ public sealed class MeshCombineSystem : IRenderSystem
                 renderer.cullingState = CullingState.Invisible;
             }
 
-            if (combine.processed == false)
+            if (!combine.processed)
             {
                 combine.processed = true;
 
@@ -71,10 +71,10 @@ public sealed class MeshCombineSystem : IRenderSystem
                 foreach (var (e, t, renderer) in combine.renderers.ContentEntities)
                 {
                     //For now support only one material
-                    if (renderer.enabled == false ||
+                    if (!renderer.enabled ||
                         renderer.mesh == null ||
                         (renderer.materials?.Count ?? 0) == 0 ||
-                        (renderer.materials[0]?.IsValid ?? false) == false ||
+                        !(renderer.materials[0]?.IsValid ?? false) ||
                         renderer.mesh.submeshes.Count > 1)
                     {
                         continue;
@@ -92,7 +92,7 @@ public sealed class MeshCombineSystem : IRenderSystem
 
                     var key = (components, renderer.mesh.MeshTopology, lighting, renderer.materials[0].Guid.GuidHash);
 
-                    if (combinableMeshes.TryGetValue(key, out var container) == false)
+                    if (!combinableMeshes.TryGetValue(key, out var container))
                     {
                         container = [];
 

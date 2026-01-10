@@ -76,7 +76,7 @@ internal class FontAssetEditor : AssetEditor
 
         EditorGUI.Label($"Character Count: {characterCount}");
 
-        if(isValid == false)
+        if(!isValid)
         {
             EditorGUI.Label("Warning: Texture size is not large enough!");
         }

@@ -92,7 +92,7 @@ public partial class PackageManager
     {
         var packageList = ParsePackages(PackagesPath);
 
-        if (packageList.dependencies.ContainsKey(name) == false)
+        if (!packageList.dependencies.ContainsKey(name))
         {
             return;
         }
@@ -145,7 +145,7 @@ public partial class PackageManager
                 version = package.version,
             });
 
-            if(StorageUtils.CopyDirectory(path, PathForPackage(package.name, package.version)) == false)
+            if(!StorageUtils.CopyDirectory(path, PathForPackage(package.name, package.version)))
             {
                 Refresh(resetAssetPaths);
 
@@ -181,7 +181,7 @@ public partial class PackageManager
         {
             var target = Path.Combine(PackagesCacheDirectory, $"{package.name}@{package.version}");
 
-            if(StorageUtils.CopyDirectory(Path.GetDirectoryName(path), target) == false)
+            if(!StorageUtils.CopyDirectory(Path.GetDirectoryName(path), target))
             {
                 Directory.Delete(target, true);
 
@@ -333,7 +333,7 @@ public partial class PackageManager
                     }
                 }
 
-                if(found == false)
+                if(!found)
                 {
                     try
                     {
@@ -391,7 +391,7 @@ public partial class PackageManager
                     dependencies.Add(dependency.name, dependency.version);
                 }
 
-                if(updatedLockFile.dependencies.ContainsKey(name) == false)
+                if(!updatedLockFile.dependencies.ContainsKey(name))
                 {
                     updatedLockFile.dependencies.Add(name, new()
                     {
@@ -465,7 +465,7 @@ public partial class PackageManager
                     }
                 }
 
-                if (Directory.Exists(directory) == false)
+                if (!Directory.Exists(directory))
                 {
                     try
                     {
@@ -524,7 +524,7 @@ public partial class PackageManager
                 {
                     if(packageState == null ||
                         packageState.source != PackageLockFile.Source.Git ||
-                        Directory.Exists(PathForPackage(name, packageState.version)) == false)
+                        !Directory.Exists(PathForPackage(name, packageState.version)))
                     {
                         packageList.dependencies.Remove(name);
                         lockFile.dependencies.Remove(name);

@@ -23,7 +23,7 @@ public static class EditorUtils
 
         try
         {
-            if (Directory.Exists(basePath) == false)
+            if (!Directory.Exists(basePath))
             {
                 basePath = Path.Combine(Storage.StapleBasePath, "Editor");
             }
@@ -145,7 +145,7 @@ public static class EditorUtils
 
         try
         {
-            if(Directory.Exists(source) == false)
+            if(!Directory.Exists(source))
             {
                 //Silently succeed
                 return true;
@@ -177,7 +177,7 @@ public static class EditorUtils
 
             foreach (var directory in directories)
             {
-                if(CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory))) == false)
+                if(!CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory))))
                 {
                     return false;
                 }
@@ -208,7 +208,7 @@ public static class EditorUtils
         {
             if (char.IsUpper(self[i]))
             {
-                if (!hadUppercase && i > 0 && char.IsDigit(self[i - 1]) == false)
+                if (!hadUppercase && i > 0 && !char.IsDigit(self[i - 1]))
                 {
                     outString.Append(self.AsSpan(lastLowercaseIndex, i - lastLowercaseIndex));
 

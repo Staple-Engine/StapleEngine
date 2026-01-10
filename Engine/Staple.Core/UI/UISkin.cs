@@ -13,7 +13,7 @@ public class UISkin
 
     public bool TryGetProperty(string className, string key, out object value)
     {
-        if(data.TryGetValue(className, out var pairs) == false)
+        if(!data.TryGetValue(className, out var pairs))
         {
             value = null;
 

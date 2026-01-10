@@ -199,8 +199,8 @@ internal class TextFont : IDisposable
 
         foreach (var value in values)
         {
-            if (includedRanges.HasFlag(value) == false ||
-                characterRanges.TryGetValue(value, out var range) == false ||
+            if (!includedRanges.HasFlag(value) ||
+                !characterRanges.TryGetValue(value, out var range) ||
                 range.Item1 > range.Item2)
             {
                 continue;
@@ -275,7 +275,7 @@ internal class TextFont : IDisposable
             return;
         }
 
-        if(MakePixelData(FontSize, textureSize, out var rgbBitmap, out var lineGap, out var glyphs) == false)
+        if(!MakePixelData(FontSize, textureSize, out var rgbBitmap, out var lineGap, out var glyphs))
         {
             failedLoads.Add(key);
 
@@ -323,7 +323,7 @@ internal class TextFont : IDisposable
     {
         FontSize = parameters.fontSize;
 
-        if (atlas.TryGetValue(Key, out var info) == false)
+        if (!atlas.TryGetValue(Key, out var info))
         {
             return FontSize;
         }
@@ -333,8 +333,8 @@ internal class TextFont : IDisposable
 
     public int Kerning(char from, char to, TextParameters parameters)
     {
-        if(atlas.TryGetValue(Key, out var info) == false ||
-            info.kerning.TryGetValue(new(from, to), out var kerning) == false)
+        if(!atlas.TryGetValue(Key, out var info) ||
+            !info.kerning.TryGetValue(new(from, to), out var kerning))
         {
             return 0;
         }
@@ -356,7 +356,7 @@ internal class TextFont : IDisposable
     {
         var fontSource = new FreeTypeFontSource();
 
-        if(fontSource.Initialize(data) == false)
+        if(!fontSource.Initialize(data))
         {
             return null;
         }

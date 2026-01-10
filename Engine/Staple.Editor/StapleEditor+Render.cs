@@ -82,7 +82,7 @@ internal partial class StapleEditor
 
             if (ImGuizmo.IsUsing())
             {
-                if (transforming == false)
+                if (!transforming)
                 {
                     transforming = true;
 
@@ -162,7 +162,7 @@ internal partial class StapleEditor
                             if (renderable.enabled)
                             {
                                 renderable.isVisible = renderable.enabled &&
-                                    renderable.forceRenderingOff == false &&
+                                    !renderable.forceRenderingOff &&
                                     renderable.cullingState != CullingState.Invisible;
 
                                 if (renderable.isVisible)
@@ -175,7 +175,7 @@ internal partial class StapleEditor
                                     }
                                 }
 
-                                if (renderable.isVisible == false)
+                                if (!renderable.isVisible)
                                 {
                                     RenderSystem.RenderStats.culledDrawCalls++;
                                 }

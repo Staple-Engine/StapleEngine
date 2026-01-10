@@ -14,12 +14,12 @@ internal class StorageUtils
 
         try
         {
-            if (Directory.Exists(basePath) == false)
+            if (!Directory.Exists(basePath))
             {
                 basePath = Path.Combine(Storage.StapleBasePath, "Editor");
             }
 
-            if (Directory.Exists(basePath) == false)
+            if (!Directory.Exists(basePath))
             {
                 return null;
             }
@@ -164,7 +164,7 @@ internal class StorageUtils
 
         try
         {
-            if (Directory.Exists(source) == false)
+            if (!Directory.Exists(source))
             {
                 //Silently succeed
                 return true;
@@ -196,7 +196,7 @@ internal class StorageUtils
 
             foreach (var directory in directories)
             {
-                if (CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory))) == false)
+                if (!CopyDirectory(directory, Path.Combine(destination, Path.GetFileName(directory))))
                 {
                     return false;
                 }

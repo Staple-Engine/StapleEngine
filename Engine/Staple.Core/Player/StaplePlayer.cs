@@ -32,7 +32,7 @@ public static class StaplePlayer
 
             foreach (var file in pakFiles)
             {
-                if (ResourceManager.instance.LoadPak(file) == false)
+                if (!ResourceManager.instance.LoadPak(file))
                 {
                     Platform.platformProvider.ConsoleLog($"Failed to load player resources");
 
@@ -47,7 +47,7 @@ public static class StaplePlayer
             Environment.Exit(1);
         }
 
-        if(skipFlow == false)
+        if(!skipFlow)
         {
             try
             {
@@ -57,7 +57,7 @@ public static class StaplePlayer
 
                 var header = MessagePackSerializer.Deserialize<AppSettingsHeader>(stream);
 
-                if (header == null || header.header.SequenceEqual(AppSettingsHeader.ValidHeader) == false ||
+                if (header == null || !header.header.SequenceEqual(AppSettingsHeader.ValidHeader) ||
                     header.version != AppSettingsHeader.ValidVersion)
                 {
                     throw new Exception($"Invalid app settings header");

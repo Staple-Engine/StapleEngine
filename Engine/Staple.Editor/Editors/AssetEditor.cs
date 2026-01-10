@@ -43,7 +43,7 @@ public class AssetEditor : Editor
 
     public void ShowAssetUI(Action refreshed)
     {
-        var hasChanges = original.Equals(target) == false;
+        var hasChanges = !original.Equals(target);
 
         if(hasChanges)
         {

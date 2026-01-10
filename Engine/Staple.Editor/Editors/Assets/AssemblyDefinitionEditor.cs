@@ -53,7 +53,7 @@ internal class AssemblyDefinitionEditor : AssetEditor
 
                             if (add)
                             {
-                                if (list.Contains(value) == false)
+                                if (!list.Contains(value))
                                 {
                                     list.Add(value);
                                 }
@@ -145,7 +145,7 @@ internal class AssemblyDefinitionEditor : AssetEditor
 
             case nameof(AssemblyDefinition.referencedPlugins):
 
-                if(asmDef.overrideReferences == false)
+                if(!asmDef.overrideReferences)
                 {
                     return true;
                 }
@@ -173,7 +173,7 @@ internal class AssemblyDefinitionEditor : AssetEditor
                                     assetPath ??= list[i] ?? "";
 
                                     if (plugin != null &&
-                                        (PluginAsset.IsAssembly(assetPath) == false ||
+                                        (!PluginAsset.IsAssembly(assetPath) ||
                                         plugin.autoReferenced))
                                     {
                                         list.RemoveAt(i);

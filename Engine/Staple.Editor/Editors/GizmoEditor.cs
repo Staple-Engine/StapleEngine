@@ -45,7 +45,7 @@ public abstract class GizmoEditor
         {
             var attribute = type.GetCustomAttribute<CustomEditorAttribute>();
 
-            if (attribute == null || type.IsSubclassOf(typeof(GizmoEditor)) == false)
+            if (attribute == null || !type.IsSubclassOf(typeof(GizmoEditor)))
             {
                 continue;
             }

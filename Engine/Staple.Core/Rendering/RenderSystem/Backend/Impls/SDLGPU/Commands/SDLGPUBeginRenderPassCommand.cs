@@ -68,7 +68,7 @@ internal class SDLGPUBeginRenderPassCommand(RenderTarget target, CameraClearMode
 
         if (texture == nint.Zero ||
             (depthTexture?.Disposed ?? true) ||
-            backend.TryGetTexture(depthTexture.handle, out var depthTextureResource) == false)
+            !backend.TryGetTexture(depthTexture.handle, out var depthTextureResource))
         {
             return;
         }

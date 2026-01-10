@@ -16,7 +16,7 @@ public static class ObjectCreation
     /// <returns>The object, or null</returns>
     public static T CreateObject<T>([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
     {
-        if(type.IsAssignableTo(typeof(T)) == false)
+        if(!type.IsAssignableTo(typeof(T)))
         {
             return default;
         }

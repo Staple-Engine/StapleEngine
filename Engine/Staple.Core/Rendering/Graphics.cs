@@ -35,7 +35,7 @@ namespace Staple
                 startIndex < 0 ||
                 indexCount <= 0 ||
                 material == null ||
-                material.IsValid == false)
+                !material.IsValid)
             {
                 throw new Exception("Invalid arguments passed");
             }
@@ -88,7 +88,7 @@ namespace Staple
             if (vertices.Length == 0||
                 indices.Length == 0 ||
                 material == null ||
-                material.IsValid == false)
+                !material.IsValid)
             {
                 throw new Exception("Invalid arguments passed");
             }
@@ -133,7 +133,7 @@ namespace Staple
             if (vertices.Length == 0 ||
                 indices.Length == 0 ||
                 material == null ||
-                material.IsValid == false)
+                !material.IsValid)
             {
                 throw new Exception("Invalid arguments passed");
             }

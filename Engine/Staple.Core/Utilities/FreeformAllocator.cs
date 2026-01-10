@@ -39,7 +39,7 @@ internal class FreeformAllocator<T> where T: unmanaged
 
     public void EnsurePin()
     {
-        if (pinHandle.IsAllocated == false)
+        if (!pinHandle.IsAllocated)
         {
             pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
 

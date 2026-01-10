@@ -55,7 +55,7 @@ internal class RenderWindow
     private CursorLockMode lastCursorLockMode;
     private uint frameCounter = 0;
 
-    public bool Paused => hasFocus == false && AppSettings.Current.runInBackground == false;
+    public bool Paused => !hasFocus && !AppSettings.Current.runInBackground;
 
     public static RendererType CurrentRenderer { get; internal set; }
 
@@ -120,7 +120,7 @@ internal class RenderWindow
 
         var fixedTimer = 0.0f;
 
-        while (window.ShouldClose == false && shouldStop == false)
+        while (!window.ShouldClose && !shouldStop)
         {
             PerformanceProfilerSystem.StartFrame();
 
@@ -132,7 +132,7 @@ internal class RenderWindow
 
             lock (renderLock)
             {
-                shouldRender = window.Unavailable == false && (AppSettings.Current.runInBackground || window.IsFocused);
+                shouldRender = !window.Unavailable && (AppSettings.Current.runInBackground || window.IsFocused);
             }
 
             if (window.Unavailable)
@@ -140,14 +140,14 @@ internal class RenderWindow
                 continue;
             }
 
-            if(Paused == false)
+            if(!Paused)
             {
                 RenderSystem.Backend.BeginFrame();
             }
 
             var size = window.Size;
 
-            if ((size.X != width || size.Y!= height) && window.ShouldClose == false)
+            if ((size.X != width || size.Y!= height) && !window.ShouldClose)
             {
                 width = size.X;
                 height = size.Y;
@@ -249,7 +249,7 @@ internal class RenderWindow
         {
             lock (renderLock)
             {
-                if (renderThread.IsAlive == false)
+                if (!renderThread.IsAlive)
                 {
                     if (renderThreadReady)
                     {
@@ -307,7 +307,7 @@ internal class RenderWindow
 
         var fixedTimer = 0.0f;
 
-        while (window.ShouldClose == false && shouldStop == false)
+        while (!window.ShouldClose && !shouldStop)
         {
             PerformanceProfilerSystem.StartFrame();
 
@@ -317,7 +317,7 @@ internal class RenderWindow
 
             lock (renderLock)
             {
-                shouldRender = window.Unavailable == false && (AppSettings.Current.runInBackground || window.IsFocused);
+                shouldRender = !window.Unavailable && (AppSettings.Current.runInBackground || window.IsFocused);
             }
 
             if (window.Unavailable)
@@ -329,7 +329,7 @@ internal class RenderWindow
 
             var size = window.Size;
 
-            if ((size.X != width || size.Y != height) && window.ShouldClose == false)
+            if ((size.X != width || size.Y != height) && !window.ShouldClose)
             {
                 width = size.X;
                 height = size.Y;
@@ -418,7 +418,7 @@ internal class RenderWindow
 
             for (; ;)
             {
-                if (renderThread.IsAlive == false)
+                if (!renderThread.IsAlive)
                 {
                     break;
                 }
@@ -465,7 +465,7 @@ internal class RenderWindow
 
         var platform = Platform.CurrentPlatform;
 
-        if (platform.HasValue == false)
+        if (!platform.HasValue)
         {
             Log.Error("[RenderWindow] Unsupported platform");
 
@@ -490,7 +490,7 @@ internal class RenderWindow
 
         currentPlatform = platform.Value;
 
-        if (AppSettings.Current.renderers.TryGetValue(currentPlatform, out renderers) == false)
+        if (!AppSettings.Current.renderers.TryGetValue(currentPlatform, out renderers))
         {
             Log.Error($"[RenderWindow] No Renderers found for platform {platform}, terminating...");
 
@@ -550,7 +550,7 @@ internal class RenderWindow
                 }
             }
 
-            if (ok == false)
+            if (!ok)
             {
                 Log.Error($"[RenderWindow] Failed to find a working renderer, terminating...");
 
@@ -621,7 +621,10 @@ internal class RenderWindow
 
                     break;
 
+                case AppEventType.ResizeWindow:
                 case AppEventType.MaximizeWindow:
+
+                    RenderSystem.Backend.UpdateViewport(width, height);
 
                     try
                     {
@@ -720,14 +723,14 @@ internal class RenderWindow
 
             CheckEvents();
 
-            if (renderNow == false)
+            if (!renderNow)
             {
                 Thread.Sleep(100);
 
                 continue;
             }
 
-            if(Paused == false)
+            if(!Paused)
             {
                 RenderSystem.Backend.BeginFrame();
             }
@@ -828,8 +831,8 @@ internal class RenderWindow
         var originalWidth = width;
         var originalHeight = height;
 
-        if (renderWindow.window.Create(ref width, ref height, AppSettings.Current.appName, resizable, windowMode, position, maximized,
-            monitorIndex) == false)
+        if (!renderWindow.window.Create(ref width, ref height, AppSettings.Current.appName, resizable, windowMode, position, maximized,
+            monitorIndex))
         {
             Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{AppSettings.Current.appName}\" with size {originalWidth}x{originalHeight}");
 
@@ -850,7 +853,7 @@ internal class RenderWindow
 #if !ANDROID
         rendererReferences++;
 
-        if (AppSettings.Current.multiThreadedRenderer == false)
+        if (!AppSettings.Current.multiThreadedRenderer)
         {
             renderWindow.InitializeRenderer();
         }

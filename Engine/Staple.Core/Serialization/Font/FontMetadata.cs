@@ -62,7 +62,7 @@ public class FontMetadata
         }
 
         return lhs.guid != rhs.guid ||
-            lhs.expectedSizes.SequenceEqual(rhs.expectedSizes) == false ||
+            !lhs.expectedSizes.SequenceEqual(rhs.expectedSizes) ||
             lhs.includedCharacterSets != rhs.includedCharacterSets ||
             lhs.textureSize != rhs.textureSize ||
             lhs.useAntiAliasing != rhs.useAntiAliasing ||

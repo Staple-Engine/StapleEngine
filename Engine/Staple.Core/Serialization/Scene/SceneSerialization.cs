@@ -259,7 +259,7 @@ internal static class SceneSerialization
     /// <returns>The entity, or null</returns>
     public static SceneObject SerializeEntity(Entity entity, StapleSerializationMode mode)
     {
-        if(entity.IsValid == false || entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
+        if(!entity.IsValid || entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
         {
             return null;
         }
@@ -329,8 +329,8 @@ internal static class SceneSerialization
     /// <returns>The prefab data, or null</returns>
     public static SerializablePrefab SerializeIntoPrefab(Entity entity)
     {
-        if(entity.IsValid == false ||
-            entity.TryGetComponent<Transform>(out var entityTransform) == false)
+        if(!entity.IsValid ||
+            !entity.TryGetComponent<Transform>(out var entityTransform))
         {
             return null;
         }
@@ -368,13 +368,13 @@ internal static class SceneSerialization
                 return;
             }
 
-            if(first == false)
+            if(!first)
             {
                 var entityObject = SerializeEntity(transform.Entity, StapleSerializationMode.Scene);
 
                 if(entityObject == null ||
-                    localIDs.TryGetValue(transform.Entity.Identifier.ID, out var localID) == false ||
-                    localIDs.TryGetValue(transform.Parent.Entity.Identifier.ID, out var localParent) == false)
+                    !localIDs.TryGetValue(transform.Entity.Identifier.ID, out var localID) ||
+                    !localIDs.TryGetValue(transform.Parent.Entity.Identifier.ID, out var localParent))
                 {
                     return;
                 }
@@ -463,7 +463,7 @@ internal static class SceneSerialization
             {
                 var componentType = TypeCache.GetType(component.type);
 
-                if(componentType == null || entity.TryGetComponent(componentType, out var componentInstance) == false)
+                if(componentType == null || !entity.TryGetComponent(componentType, out var componentInstance))
                 {
                     continue;
                 }
@@ -505,7 +505,7 @@ internal static class SceneSerialization
                                 var targetComponentType = TypeCache.GetType(pieces[1]);
 
                                 if(targetComponentType == null ||
-                                    targetComponentType.IsAssignableTo(field.FieldType) == false)
+                                    !targetComponentType.IsAssignableTo(field.FieldType))
                                 {
                                     continue;
                                 }
@@ -517,8 +517,8 @@ internal static class SceneSerialization
                                     targetEntity = Scene.FindEntity(localEntityID);
                                 }
 
-                                if(targetEntity.IsValid == false ||
-                                    targetEntity.TryGetComponent(targetComponentType, out var targetComponent) == false)
+                                if(!targetEntity.IsValid ||
+                                    !targetEntity.TryGetComponent(targetComponentType, out var targetComponent))
                                 {
                                     continue;
                                 }

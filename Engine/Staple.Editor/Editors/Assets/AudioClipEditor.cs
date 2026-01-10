@@ -23,7 +23,7 @@ internal class AudioClipEditor : AssetEditor
         if(name == nameof(AudioClipMetadata.recompression) ||
             name == nameof(AudioClipMetadata.recompressionQuality))
         {
-            return allowsRecompression == false;
+            return !allowsRecompression;
         }
 
         return false;
@@ -56,7 +56,7 @@ internal class AudioClipEditor : AssetEditor
 
         lock (lockObject)
         {
-            if (triedLoad == false && clip == null)
+            if (!triedLoad && clip == null)
             {
                 triedLoad = true;
 
@@ -93,7 +93,7 @@ internal class AudioClipEditor : AssetEditor
                             {
                                 sizeUncompressed = samples.Length * sizeof(ushort);
 
-                                if (audioSource.Bind(audioClip) == false)
+                                if (!audioSource.Bind(audioClip))
                                 {
                                     audioClip.Destroy();
 
@@ -146,7 +146,7 @@ internal class AudioClipEditor : AssetEditor
                 hours++;
             }
 
-            if(allowsRecompression == false)
+            if(!allowsRecompression)
             {
                 EditorGUI.Label("Recompression not allowed for compressed files");
             }

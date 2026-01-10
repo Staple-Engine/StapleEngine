@@ -48,7 +48,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
         foreach (var entry in renderQueue)
         {
             if(entry.component is not CullingVolume volume ||
-                volume.needsUpdate == false)
+                !volume.needsUpdate)
             {
                 continue;
             }
@@ -66,7 +66,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
 
                         foreach (var renderer in volume.renderers.Contents)
                         {
-                            if (renderer.Item2.enabled == false || renderer.Item2.forceRenderingOff)
+                            if (!renderer.Item2.enabled || renderer.Item2.forceRenderingOff)
                             {
                                 continue;
                             }
@@ -83,7 +83,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
                         {
                             var renderer = volume.renderers[i];
 
-                            if (renderer.Item2.enabled && renderer.Item2.forceRenderingOff == false)
+                            if (renderer.Item2.enabled && !renderer.Item2.forceRenderingOff)
                             {
                                 volume.boundsCoordinates[index] = renderer.Item2.bounds.min;
                                 volume.boundsCoordinates[index + 1] = renderer.Item2.bounds.max;

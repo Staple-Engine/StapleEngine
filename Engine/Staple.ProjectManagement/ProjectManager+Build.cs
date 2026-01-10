@@ -134,7 +134,7 @@ public partial class ProjectManager
             {
                 var defaultResourcesPath = Path.Combine(baseResourcesPath, $"DefaultResources-{backend.platform}.pak");
 
-                if (File.Exists(defaultResourcesPath) == false)
+                if (!File.Exists(defaultResourcesPath))
                 {
                     Log.Error($"Failed to build player: Missing DefaultResources-{backend.platform} pak file");
 
@@ -167,8 +167,8 @@ public partial class ProjectManager
 
             if (backend.dataDirIsOutput)
             {
-                if (CopyModuleRedists(Path.Combine(outPath, backend.redistOutput), projectAppSettings, backend.platform, backend.basePath,
-                    redistConfigurationName) == false)
+                if (!CopyModuleRedists(Path.Combine(outPath, backend.redistOutput), projectAppSettings, backend.platform, backend.basePath,
+                    redistConfigurationName))
                 {
                     Log.Error($"Failed to build player: Failed to copy redistributable files");
 
@@ -177,8 +177,8 @@ public partial class ProjectManager
                     return;
                 }
 
-                if (StorageUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", redistConfigurationName),
-                    Path.Combine(outPath, backend.redistOutput)) == false)
+                if (!StorageUtils.CopyDirectory(Path.Combine(backend.basePath, "Redist", redistConfigurationName),
+                    Path.Combine(outPath, backend.redistOutput)))
                 {
                     Log.Error($"Failed to build player: Failed to copy redistributable files");
 
@@ -252,7 +252,7 @@ public partial class ProjectManager
 
                 Staple.Tooling.Utilities.ExecuteAndCollectProcess(process, null);
 
-                if ((process.HasExited && process.ExitCode == 0) == false)
+                if (!(process.HasExited && process.ExitCode == 0))
                 {
                     return false;
                 }
@@ -264,7 +264,7 @@ public partial class ProjectManager
 
             foreach (var name in pakNames)
             {
-                if (PreparePak(name) == false)
+                if (!PreparePak(name))
                 {
                     Log.Error($"Failed to build player: Unable to pack resources");
 
@@ -274,7 +274,7 @@ public partial class ProjectManager
                 }
             }
 
-            if (PreparePak("Resources") == false)
+            if (!PreparePak("Resources"))
             {
                 Log.Error($"Failed to build player: Unable to pack resources");
 
@@ -309,7 +309,7 @@ public partial class ProjectManager
 
             Staple.Tooling.Utilities.ExecuteAndCollectProcess(process, null);
 
-            if ((process.HasExited && process.ExitCode == 0) == false)
+            if (!(process.HasExited && process.ExitCode == 0))
             {
                 Log.Error($"Failed to build player: Unable to complete build");
 
@@ -346,7 +346,7 @@ public partial class ProjectManager
 
             Staple.Tooling.Utilities.ExecuteAndCollectProcess(process, null);
 
-            if ((process.HasExited && process.ExitCode == 0) == false)
+            if (!(process.HasExited && process.ExitCode == 0))
             {
                 Log.Error($"Failed to build player: Unable to complete build");
 

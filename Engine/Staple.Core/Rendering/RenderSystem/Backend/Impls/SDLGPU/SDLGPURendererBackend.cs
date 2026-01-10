@@ -671,7 +671,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return false;
         }
 
-        if(DepthStencilFormat.HasValue == false)
+        if(!DepthStencilFormat.HasValue)
         {
             SDL.DestroyGPUDevice(device);
 
@@ -680,7 +680,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return false;
         }
 
-        if(SDL.ClaimWindowForGPUDevice(device, w.window) == false)
+        if(!SDL.ClaimWindowForGPUDevice(device, w.window))
         {
             SDL.DestroyGPUDevice(device);
 
@@ -865,8 +865,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return;
         }
 
-        if (SDL.WaitAndAcquireGPUSwapchainTexture(commandBuffer, window.window, out swapchainTexture,
-            out var w, out var h) == false)
+        if (!SDL.WaitAndAcquireGPUSwapchainTexture(commandBuffer, window.window, out swapchainTexture,
+            out var w, out var h))
         {
             SDL.CancelGPUCommandBuffer(commandBuffer);
 
@@ -927,7 +927,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         fences[0] = SDL.SubmitGPUCommandBufferAndAcquireFence(commandBuffer);
 
-        if (SDL.WaitForGPUFences(device, true, fences, (uint)fences.Length) == false)
+        if (!SDL.WaitForGPUFences(device, true, fences, (uint)fences.Length))
         {
             Log.Error($"[SDL GPU] Failed to wait for GPU Fences: {SDL.GetError()}");
         }
@@ -942,8 +942,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
             if (item.Item1 == null ||
                 item.Item1.Disposed ||
-                TryGetTexture(item.Item1.handle, out var resource) == false ||
-                resource.used == false ||
+                !TryGetTexture(item.Item1.handle, out var resource) ||
+                !resource.used ||
                 resource.transferBuffer == nint.Zero)
             {
                 continue;
@@ -1045,10 +1045,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     internal void UpdateDepthTextureIfNeeded(bool force)
     {
-        if((needsDepthTextureUpdate == false && force == false) ||
+        if((!needsDepthTextureUpdate && !force) ||
             swapchainWidth == 0 ||
             swapchainHeight == 0 ||
-            DepthStencilFormat.HasValue == false)
+            !DepthStencilFormat.HasValue)
         {
             return;
         }
@@ -1134,7 +1134,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         if (texture == nint.Zero ||
             (depthTexture?.Disposed ?? true) ||
-            TryGetTexture(depthTexture.handle, out var depthTextureResource) == false)
+            !TryGetTexture(depthTexture.handle, out var depthTextureResource))
         {
             return;
         }
@@ -1337,7 +1337,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     public bool SupportsTextureFormat(TextureFormat format, TextureFlags flags)
     {
-        if(TryGetTextureFormat(format, flags, out var f) == false)
+        if(!TryGetTextureFormat(format, flags, out var f))
         {
             return false;
         }
@@ -1359,7 +1359,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         var hash = state.StateKey;
 
-        if (graphicsPipelines.TryGetValue(hash, out pipeline) == false)
+        if (!graphicsPipelines.TryGetValue(hash, out pipeline))
         {
             unsafe
             {
@@ -1413,9 +1413,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                 var depthStencilFormat = DepthStencilFormat;
 
-                if (depthStencilFormat.HasValue == false ||
-                    TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
-                    out var sdlDepthFormat) == false)
+                if (!depthStencilFormat.HasValue ||
+                    !TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
+                        out var sdlDepthFormat))
                 {
                     sdlDepthFormat = SDL.GPUTextureFormat.D24Unorm;
                 }
@@ -1551,7 +1551,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                         }
 
                         if(state.renderTarget.DepthTexture != null &&
-                            state.renderTarget.DepthTexture.Disposed == false &&
+                            !state.renderTarget.DepthTexture.Disposed &&
                             TryGetTextureFormat(state.renderTarget.DepthTexture.impl.Format, state.renderTarget.flags | TextureFlags.DepthStencilTarget,
                             out var depthFormat))
                         {
@@ -1637,7 +1637,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         var hash = state.StateKey;
 
-        if (graphicsPipelines.TryGetValue(hash, out pipeline) == false)
+        if (!graphicsPipelines.TryGetValue(hash, out pipeline))
         {
             unsafe
             {
@@ -1654,9 +1654,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                 var depthStencilFormat = DepthStencilFormat;
 
-                if (depthStencilFormat.HasValue == false ||
-                    TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
-                    out var sdlDepthFormat) == false)
+                if (!depthStencilFormat.HasValue ||
+                    !TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
+                        out var sdlDepthFormat))
                 {
                     sdlDepthFormat = SDL.GPUTextureFormat.D24Unorm;
                 }
@@ -1795,7 +1795,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                         }
 
                         if (state.renderTarget.DepthTexture != null &&
-                            state.renderTarget.DepthTexture.Disposed == false &&
+                            !state.renderTarget.DepthTexture.Disposed &&
                             TryGetTextureFormat(state.renderTarget.DepthTexture.impl.Format, state.renderTarget.flags | TextureFlags.DepthStencilTarget,
                             out var depthFormat))
                         {
@@ -1907,7 +1907,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if (ShouldPushVertexUniform(pair.Key.binding, pair.Value) == false)
+            if (!ShouldPushVertexUniform(pair.Key.binding, pair.Value))
             {
                 continue;
             }
@@ -1966,7 +1966,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if (ShouldPushFragmentUniform(pair.Key.binding, pair.Value) == false)
+            if (!ShouldPushFragmentUniform(pair.Key.binding, pair.Value))
             {
                 continue;
             }
@@ -2016,12 +2016,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         if(state.staticMeshEntries != null)
         {
-            if(TryGetStaticMeshRenderPipeline(state, out pipeline) == false)
+            if(!TryGetStaticMeshRenderPipeline(state, out pipeline))
             {
                 return;
             }
         }
-        else if(TryGetRenderPipeline(state, vertexLayout, out pipeline) == false)
+        else if(!TryGetRenderPipeline(state, vertexLayout, out pipeline))
         {
             return;
         }
@@ -2045,7 +2045,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         if (layout is not SDLGPUVertexLayout vertexLayout ||
             state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment ||
-            TryGetRenderPipeline(state, vertexLayout, out var pipeline) == false)
+            !TryGetRenderPipeline(state, vertexLayout, out var pipeline))
         {
             return;
         }
@@ -2059,7 +2059,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         CheckQueuedPipeline(pipeline);
 
-        if (transientBuffers.TryGetValue(layout, out var entry) == false)
+        if (!transientBuffers.TryGetValue(layout, out var entry))
         {
             entry = new()
             {
@@ -2124,7 +2124,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if (ShouldPushVertexUniform(pair.Key.binding, pair.Value) == false)
+            if (!ShouldPushVertexUniform(pair.Key.binding, pair.Value))
             {
                 continue;
             }
@@ -2183,7 +2183,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if (ShouldPushFragmentUniform(pair.Key.binding, pair.Value) == false)
+            if (!ShouldPushFragmentUniform(pair.Key.binding, pair.Value))
             {
                 continue;
             }
@@ -2226,7 +2226,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         if (layout is not SDLGPUVertexLayout vertexLayout ||
             state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
             shader.Type != ShaderType.VertexFragment ||
-            TryGetRenderPipeline(state, vertexLayout, out var pipeline) == false)
+            !TryGetRenderPipeline(state, vertexLayout, out var pipeline))
         {
             return;
         }
@@ -2240,7 +2240,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         CheckQueuedPipeline(pipeline);
 
-        if (transientBuffers.TryGetValue(layout, out var entry) == false)
+        if (!transientBuffers.TryGetValue(layout, out var entry))
         {
             entry = new()
             {
@@ -2305,7 +2305,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if(ShouldPushVertexUniform(pair.Key.binding, pair.Value) == false)
+            if(!ShouldPushVertexUniform(pair.Key.binding, pair.Value))
             {
                 continue;
             }
@@ -2364,7 +2364,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            if (ShouldPushFragmentUniform(pair.Key.binding, pair.Value) == false)
+            if (!ShouldPushFragmentUniform(pair.Key.binding, pair.Value))
             {
                 continue;
             }

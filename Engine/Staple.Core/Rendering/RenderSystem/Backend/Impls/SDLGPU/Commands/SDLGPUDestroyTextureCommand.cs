@@ -7,8 +7,8 @@ internal class SDLGPUDestroyTextureCommand(ResourceHandle<Texture> handle) : IRe
     public void Update(IRendererBackend rendererBackend)
     {
         if (rendererBackend is not SDLGPURendererBackend backend ||
-            backend.TryGetTexture(handle, out var resource) == false ||
-            resource.used == false)
+            !backend.TryGetTexture(handle, out var resource) ||
+            !resource.used)
         {
             return;
         }

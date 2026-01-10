@@ -35,7 +35,7 @@ internal class SDLGPUTexture(ResourceHandle<Texture> handle, int width, int heig
 
     public void Update(Span<byte> data)
     {
-        if(Disposed || handle.IsValid == false)
+        if(Disposed || !handle.IsValid)
         {
             return;
         }

@@ -77,7 +77,7 @@ public sealed class MeshRenderSystem : IRenderSystem
     {
         if(mesh == null ||
             material == null ||
-            material.IsValid == false)
+            !material.IsValid)
         {
             return;
         }
@@ -156,7 +156,7 @@ public sealed class MeshRenderSystem : IRenderSystem
         {
             var renderer = (MeshRenderer)entry.component;
 
-            if (renderer.isVisible == false ||
+            if (!renderer.isVisible ||
                 renderer.mesh == null ||
                 renderer.materials == null ||
                 renderer.materials.Count == 0)
@@ -168,7 +168,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             for (var i = 0; i < renderer.materials.Count; i++)
             {
-                if ((renderer.materials[i]?.IsValid ?? false) == false)
+                if (!(renderer.materials[i]?.IsValid ?? false))
                 {
                     skip = true;
 
@@ -187,7 +187,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             {
                 var key = HashCode.Combine(renderer.mesh.Guid.GuidHash, material.Guid.GuidHash, lighting, submeshIndex);
 
-                if (instanceCache.TryGetValue(key, out var meshCache) == false)
+                if (!instanceCache.TryGetValue(key, out var meshCache))
                 {
                     meshCache = new();
 

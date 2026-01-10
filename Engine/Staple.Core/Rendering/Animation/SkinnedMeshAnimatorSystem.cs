@@ -45,7 +45,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                 animator.mesh.meshAssetIndex < 0 ||
                 animator.mesh.meshAssetIndex >= animator.mesh.meshAsset.animations.Count ||
                 (animator.animation?.Length ?? 0) == 0 ||
-                animator.mesh.meshAsset.animations.ContainsKey(animator.animation) == false)
+                !animator.mesh.meshAsset.animations.ContainsKey(animator.animation))
             {
                 return;
             }
@@ -93,7 +93,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                     }
                 }
             }
-            else if (animator.playInEditMode == false)
+            else if (!animator.playInEditMode)
             {
                 if (animator.evaluator != null)
                 {

@@ -102,9 +102,9 @@ public partial class Shader : IGuidAsset
     {
         get
         {
-            return ((sourceBlend == BlendMode.Off && destinationBlend == BlendMode.Off) ||
+            return !((sourceBlend == BlendMode.Off && destinationBlend == BlendMode.Off) ||
                 (sourceBlend == BlendMode.One && destinationBlend == BlendMode.Zero) ||
-                (sourceBlend == BlendMode.Zero && destinationBlend == BlendMode.One)) == false;
+                (sourceBlend == BlendMode.Zero && destinationBlend == BlendMode.One));
         }
     }
 
@@ -205,7 +205,7 @@ public partial class Shader : IGuidAsset
 
     private static int NormalizeUniformCount(string name)
     {
-        if(uniformCountRegex.IsMatch(name) == false)
+        if(!uniformCountRegex.IsMatch(name))
         {
             return 1;
         }
@@ -287,7 +287,7 @@ public partial class Shader : IGuidAsset
 
         instance.uniforms.Add(normalizedName, u);
 
-        if (instance.uniforms.ContainsKey(uniform.name) == false)
+        if (!instance.uniforms.ContainsKey(uniform.name))
         {
             instance.uniforms.Add(uniform.name, new()
             {
@@ -392,7 +392,7 @@ public partial class Shader : IGuidAsset
 
     internal UniformInfo GetUniform(StringID name, StringID variantKey)
     {
-        if (Disposed || instances.TryGetValue(variantKey, out var instance) == false)
+        if (Disposed || !instances.TryGetValue(variantKey, out var instance))
         {
             return null;
         }
@@ -420,8 +420,8 @@ public partial class Shader : IGuidAsset
         fragmentData = default;
 
         if (Disposed ||
-            handle.TryGetUniform(this, out uniform) == false ||
-            instances.TryGetValue(variantKey, out var shaderInstance) == false)
+            !handle.TryGetUniform(this, out uniform) ||
+            !instances.TryGetValue(variantKey, out var shaderInstance))
         {
             return false;
         }
@@ -477,7 +477,7 @@ public partial class Shader : IGuidAsset
 
     private void SetValue<T>(StringID variantKey, ShaderHandle handle, T value) where T: unmanaged
     {
-        if (TryGetUniformData(variantKey, handle, out _, out var vertexData, out var fragmentData) == false)
+        if (!TryGetUniformData(variantKey, handle, out _, out var vertexData, out var fragmentData))
         {
             return;
         }
@@ -494,7 +494,7 @@ public partial class Shader : IGuidAsset
 
     private void SetValue<T>(StringID variantKey, ShaderHandle handle, ReadOnlySpan<T> value) where T: unmanaged
     {
-        if (TryGetUniformData(variantKey, handle, out var uniform, out var vertexData, out var fragmentData) == false)
+        if (!TryGetUniformData(variantKey, handle, out var uniform, out var vertexData, out var fragmentData))
         {
             return;
         }
@@ -622,7 +622,7 @@ public partial class Shader : IGuidAsset
         if (Disposed ||
             value == null ||
             value.Disposed ||
-            handle.TryGetUniform(this, out var uniform) == false)
+            !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }

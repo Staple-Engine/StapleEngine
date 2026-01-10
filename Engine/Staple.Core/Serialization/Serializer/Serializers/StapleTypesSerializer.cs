@@ -368,7 +368,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                         var pieces = s.Split(':');
 
                         if (pieces.Length != 2 ||
-                            int.TryParse(pieces[1], out var spriteIndex) == false ||
+                            !int.TryParse(pieces[1], out var spriteIndex) ||
                             spriteIndex < 0)
                         {
                             return null;
@@ -676,7 +676,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
                     var pieces = element.GetString().Split(':');
 
                     if(pieces.Length != 2 ||
-                        int.TryParse(pieces[1], out var spriteIndex) == false ||
+                        !int.TryParse(pieces[1], out var spriteIndex) ||
                         spriteIndex < 0)
                     {
                         return null;

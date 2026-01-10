@@ -28,7 +28,7 @@ internal static class ResourceUtils
             var header = MessagePackSerializer.Deserialize<SerializableTextureHeader>(stream);
 
             if (header == null ||
-                header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) == false ||
+                !header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) ||
                 header.version != SerializableTextureHeader.ValidVersion)
             {
                 return null;

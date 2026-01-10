@@ -34,7 +34,7 @@ public class UIFrame(UIManager manager, string ID) : UIPanel(manager, ID)
             return;
         }
 
-        if((backgroundTexture?.Disposed ?? true) == false)
+        if(!(backgroundTexture?.Disposed ?? true))
         {
             DrawSpriteSliced(position, Size, backgroundTexture, textureRect, Color.White.WithAlpha(Alpha));
         }

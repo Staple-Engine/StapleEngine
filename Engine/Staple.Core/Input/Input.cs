@@ -150,12 +150,12 @@ public static class Input
 
         static bool HandleTouchAxisBehaviour(InputAction.Device device, out Vector2 axis)
         {
-            if(GetTouch(device.deviceIndex) == false)
+            if(!GetTouch(device.deviceIndex))
             {
                 device.touch.pressing = false;
             }
 
-            if(device.touch.pressing == false)
+            if(!device.touch.pressing)
             {
                 for (var i = 0; i < TouchCount; i++)
                 {
@@ -649,7 +649,7 @@ public static class Input
     {
         lock (lockObject)
         {
-            if (gamepads.TryGetValue(appEvent.gamepadConnect.index, out var gamepad) == false)
+            if (!gamepads.TryGetValue(appEvent.gamepadConnect.index, out var gamepad))
             {
                 gamepad = new();
 
@@ -666,7 +666,7 @@ public static class Input
     {
         lock (lockObject)
         {
-            if (gamepads.TryGetValue(appEvent.gamepadButton.index, out var gamepad) == false)
+            if (!gamepads.TryGetValue(appEvent.gamepadButton.index, out var gamepad))
             {
                 return;
             }
@@ -679,7 +679,7 @@ public static class Input
     {
         lock (lockObject)
         {
-            if (gamepads.TryGetValue(appEvent.gamepadMovement.index, out var gamepad) == false)
+            if (!gamepads.TryGetValue(appEvent.gamepadMovement.index, out var gamepad))
             {
                 return;
             }
@@ -980,9 +980,9 @@ public static class Input
     {
         lock (lockObject)
         {
-            if (gamepads.TryGetValue(index, out var gamepad) == false ||
+            if (!gamepads.TryGetValue(index, out var gamepad) ||
                 gamepad.state == GamepadConnectionState.Disconnected ||
-                gamepad.buttonStates.TryGetValue(button, out var state) == false)
+                !gamepad.buttonStates.TryGetValue(button, out var state))
             {
                 return false;
             }
@@ -1001,9 +1001,9 @@ public static class Input
     {
         lock (lockObject)
         {
-            if (gamepads.TryGetValue(index, out var gamepad) == false ||
+            if (!gamepads.TryGetValue(index, out var gamepad) ||
                 gamepad.state == GamepadConnectionState.Disconnected ||
-                gamepad.buttonStates.TryGetValue(button, out var state) == false)
+                !gamepad.buttonStates.TryGetValue(button, out var state))
             {
                 return false;
             }
@@ -1022,9 +1022,9 @@ public static class Input
     {
         lock (lockObject)
         {
-            if (gamepads.TryGetValue(index, out var gamepad) == false ||
+            if (!gamepads.TryGetValue(index, out var gamepad) ||
                 gamepad.state == GamepadConnectionState.Disconnected ||
-                gamepad.buttonStates.TryGetValue(button, out var state) == false)
+                !gamepad.buttonStates.TryGetValue(button, out var state))
             {
                 return false;
             }
@@ -1043,9 +1043,9 @@ public static class Input
     {
         lock (lockObject)
         {
-            if (gamepads.TryGetValue(index, out var gamepad) == false ||
+            if (!gamepads.TryGetValue(index, out var gamepad) ||
                 gamepad.state == GamepadConnectionState.Disconnected ||
-                gamepad.axis.TryGetValue(axis, out var state) == false)
+                !gamepad.axis.TryGetValue(axis, out var state))
             {
                 return 0;
             }

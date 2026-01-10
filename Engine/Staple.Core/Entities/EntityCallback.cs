@@ -104,7 +104,7 @@ public sealed class EntityCallback
                 {
                     var entity = Scene.FindEntity(callback.entityID);
 
-                    if (entity.IsValid == false)
+                    if (!entity.IsValid)
                     {
                         persistentCache.Add(null);
 
@@ -113,7 +113,7 @@ public sealed class EntityCallback
 
                     var type = TypeCache.GetType(callback.className);
 
-                    if (type == null || entity.TryGetComponent(type, out _) == false)
+                    if (type == null || !entity.TryGetComponent(type, out _))
                     {
                         persistentCache.Add(null);
 
@@ -156,7 +156,7 @@ public sealed class EntityCallback
         foreach(var callback in persistentCache)
         {
             if(callback == null ||
-                callback.entity.TryGetComponent(callback.type, out var component) == false)
+                !callback.entity.TryGetComponent(callback.type, out var component))
             {
                 continue;
             }
@@ -267,7 +267,7 @@ public sealed class EntityCallback<T>
                 {
                     var entity = Scene.FindEntity(callback.entityID);
 
-                    if (entity.IsValid == false)
+                    if (!entity.IsValid)
                     {
                         persistentCache.Add(null);
 
@@ -276,7 +276,7 @@ public sealed class EntityCallback<T>
 
                     var type = TypeCache.GetType(callback.className);
 
-                    if (type == null || entity.TryGetComponent(type, out _) == false)
+                    if (type == null || !entity.TryGetComponent(type, out _))
                     {
                         persistentCache.Add(null);
 
@@ -296,7 +296,7 @@ public sealed class EntityCallback<T>
 
                     if(parameters.Length != 1 ||
                         (parameters[0].ParameterType != typeof(T) ||
-                        parameters[0].ParameterType.IsAssignableTo(typeof(T)) == false))
+                        !parameters[0].ParameterType.IsAssignableTo(typeof(T))))
                     {
                         persistentCache.Add(null);
 
@@ -330,7 +330,7 @@ public sealed class EntityCallback<T>
         foreach (var callback in persistentCache)
         {
             if (callback == null ||
-                callback.entity.TryGetComponent(callback.type, out var component) == false)
+                !callback.entity.TryGetComponent(callback.type, out var component))
             {
                 continue;
             }
@@ -441,7 +441,7 @@ public sealed class EntityCallback<T, T2>
                 {
                     var entity = Scene.FindEntity(callback.entityID);
 
-                    if (entity.IsValid == false)
+                    if (!entity.IsValid)
                     {
                         persistentCache.Add(null);
 
@@ -450,7 +450,7 @@ public sealed class EntityCallback<T, T2>
 
                     var type = TypeCache.GetType(callback.className);
 
-                    if (type == null || entity.TryGetComponent(type, out _) == false)
+                    if (type == null || !entity.TryGetComponent(type, out _))
                     {
                         persistentCache.Add(null);
 
@@ -470,9 +470,9 @@ public sealed class EntityCallback<T, T2>
 
                     if (parameters.Length != 2 ||
                         (parameters[0].ParameterType != typeof(T) ||
-                        parameters[0].ParameterType.IsAssignableTo(typeof(T)) == false) ||
+                        !parameters[0].ParameterType.IsAssignableTo(typeof(T))) ||
                         (parameters[1].ParameterType != typeof(T2) ||
-                        parameters[1].ParameterType.IsAssignableTo(typeof(T2)) == false))
+                        !parameters[1].ParameterType.IsAssignableTo(typeof(T2))))
                     {
                         persistentCache.Add(null);
 
@@ -506,7 +506,7 @@ public sealed class EntityCallback<T, T2>
         foreach (var callback in persistentCache)
         {
             if (callback == null ||
-                callback.entity.TryGetComponent(callback.type, out var component) == false)
+                !callback.entity.TryGetComponent(callback.type, out var component))
             {
                 continue;
             }

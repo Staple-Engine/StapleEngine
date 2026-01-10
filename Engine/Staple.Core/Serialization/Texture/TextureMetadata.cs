@@ -509,11 +509,11 @@ public class TextureMetadata
             lhs.readBack != rhs.readBack ||
             lhs.keepOnCPU != rhs.keepOnCPU ||
             lhs.overrides.Keys.Count != rhs.overrides.Keys.Count &&
-            lhs.overrides.Keys.Any(x => rhs.overrides.ContainsKey(x) == false || lhs.overrides[x] != rhs.overrides[x]) ||
+            lhs.overrides.Keys.Any(x => !rhs.overrides.ContainsKey(x) || lhs.overrides[x] != rhs.overrides[x]) ||
             lhs.spriteTextureMethod != rhs.spriteTextureMethod ||
             lhs.spriteTextureGridSize != rhs.spriteTextureGridSize ||
             lhs.sprites.Count != rhs.sprites.Count ||
-            lhs.sprites.SequenceEqual(rhs.sprites) == false ||
+            !lhs.sprites.SequenceEqual(rhs.sprites) ||
             lhs.shouldPack != rhs.shouldPack ||
             lhs.padding != rhs.padding ||
             lhs.overrides != rhs.overrides ||

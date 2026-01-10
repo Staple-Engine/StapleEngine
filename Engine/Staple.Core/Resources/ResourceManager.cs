@@ -73,7 +73,7 @@ internal class ResourceManager
 
             var resourcePak = new ResourcePak();
 
-            if(resourcePak.Deserialize(stream) == false)
+            if(!resourcePak.Deserialize(stream))
             {
                 stream.Dispose();
 
@@ -107,7 +107,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedTextures)
         {
-            if(lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            if(!lockedAssets.Contains(pair.Key.GetHashCode()))
             {
                 destroyed.Add(pair.Key);
             }
@@ -115,7 +115,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedMaterials)
         {
-            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
             {
                 destroyed.Add(pair.Key);
             }
@@ -123,7 +123,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedShaders)
         {
-            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
             {
                 destroyed.Add(pair.Key);
             }
@@ -131,7 +131,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedComputeShaders)
         {
-            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
             {
                 destroyed.Add(pair.Key);
             }
@@ -139,7 +139,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedMeshes)
         {
-            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
             {
                 destroyed.Add(pair.Key);
             }
@@ -147,7 +147,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedAudioClips)
         {
-            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
             {
                 destroyed.Add(pair.Key);
             }
@@ -155,7 +155,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedMeshAssets)
         {
-            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
             {
                 destroyed.Add(pair.Key);
             }
@@ -163,7 +163,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedFonts)
         {
-            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
             {
                 destroyed.Add(pair.Key);
             }
@@ -171,7 +171,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedAssets)
         {
-            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
             {
                 destroyed.Add(pair.Key);
             }
@@ -179,7 +179,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedPrefabs)
         {
-            if (lockedAssets.Contains(pair.Key.GetHashCode()) == false)
+            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
             {
                 destroyed.Add(pair.Key);
             }
@@ -276,7 +276,7 @@ internal class ResourceManager
 
         foreach (var item in userCreatedVertexBuffers)
         {
-            if(item.TryGetTarget(out var buffer) && buffer.Disposed == false)
+            if(item.TryGetTarget(out var buffer) && !buffer.Disposed)
             {
                 buffer.Destroy();
             }
@@ -284,7 +284,7 @@ internal class ResourceManager
 
         foreach (var item in userCreatedIndexBuffers)
         {
-            if (item.TryGetTarget(out var buffer) && buffer.Disposed == false)
+            if (item.TryGetTarget(out var buffer) && !buffer.Disposed)
             {
                 buffer.Destroy();
             }
@@ -342,7 +342,7 @@ internal class ResourceManager
         {
             if (reference.TryGetTarget(out var texture))
             {
-                if (texture.Create() == false)
+                if (!texture.Create())
                 {
                     Log.Debug($"Failed to recreate a user texture");
                 }
@@ -555,7 +555,7 @@ internal class ResourceManager
         {
             var header = MessagePackSerializer.Deserialize<SceneListHeader>(stream);
 
-            if (header == null || header.header.SequenceEqual(SceneListHeader.ValidHeader) == false ||
+            if (header == null || !header.header.SequenceEqual(SceneListHeader.ValidHeader) ||
                 header.version != SceneListHeader.ValidVersion)
             {
                 return null;
@@ -669,7 +669,7 @@ internal class ResourceManager
                     var componentType = TypeCache.GetType(component.type);
 
                     if(componentType == null ||
-                        entity.TryGetComponent(componentType, out var componentInstance) == false)
+                        !entity.TryGetComponent(componentType, out var componentInstance))
                     {
                         continue;
                     }
@@ -708,15 +708,15 @@ internal class ResourceManager
                                     var targetComponentType = TypeCache.GetType(pieces[1]);
 
                                     if (targetComponentType == null ||
-                                        targetComponentType.IsAssignableTo(field.FieldType) == false)
+                                        !targetComponentType.IsAssignableTo(field.FieldType))
                                     {
                                         continue;
                                     }
 
                                     var targetEntity = Scene.FindEntity(entityID);
 
-                                    if (targetEntity.IsValid == false ||
-                                        targetEntity.TryGetComponent(targetComponentType, out var targetComponent) == false)
+                                    if (!targetEntity.IsValid ||
+                                        !targetEntity.TryGetComponent(targetComponentType, out var targetComponent))
                                     {
                                         continue;
                                     }
@@ -777,7 +777,7 @@ internal class ResourceManager
         {
             var header = MessagePackSerializer.Deserialize<SerializableSceneHeader>(stream);
 
-            if (header == null || header.header.SequenceEqual(SerializableSceneHeader.ValidHeader) == false ||
+            if (header == null || !header.header.SequenceEqual(SerializableSceneHeader.ValidHeader) ||
                 header.version != SerializableSceneHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load scene at path {path}: Invalid header");
@@ -846,7 +846,7 @@ internal class ResourceManager
                     var componentType = TypeCache.GetType(component.type);
 
                     if (componentType == null ||
-                        entity.TryGetComponent(componentType, out var componentInstance) == false)
+                        !entity.TryGetComponent(componentType, out var componentInstance))
                     {
                         continue;
                     }
@@ -883,15 +883,15 @@ internal class ResourceManager
                                     var targetComponentType = TypeCache.GetType(pieces[1]);
 
                                     if (targetComponentType == null ||
-                                        targetComponentType.IsAssignableTo(field.FieldType) == false)
+                                        !targetComponentType.IsAssignableTo(field.FieldType))
                                     {
                                         continue;
                                     }
 
                                     var targetEntity = Scene.FindEntity(entityID);
 
-                                    if (targetEntity.IsValid == false ||
-                                        targetEntity.TryGetComponent(targetComponentType, out var targetComponent) == false)
+                                    if (!targetEntity.IsValid ||
+                                        !targetEntity.TryGetComponent(targetComponentType, out var targetComponent))
                                     {
                                         continue;
                                     }
@@ -1022,7 +1022,7 @@ internal class ResourceManager
         {
             var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
 
-            if (header == null || header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) == false ||
+            if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
                 header.version != SerializableShaderHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: Invalid header");
@@ -1081,10 +1081,10 @@ internal class ResourceManager
             return null;
         }
 
-        if (ignoreCache == false &&
+        if (!ignoreCache &&
             cachedShaders.TryGetValue(path, out var shader) &&
             shader != null &&
-            shader.Disposed == false)
+            !shader.Disposed)
         {
             return shader;
         }
@@ -1106,7 +1106,7 @@ internal class ResourceManager
         {
             var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
 
-            if (header == null || header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) == false ||
+            if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
                 header.version != SerializableShaderHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid header");
@@ -1130,7 +1130,7 @@ internal class ResourceManager
                 return null;
             }
 
-            if(shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries) == false)
+            if(!shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries))
             {
                 Log.Error($"[ResourceManager] Failed to load shader at path {path}: " +
                     $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
@@ -1152,7 +1152,7 @@ internal class ResourceManager
             {
                 shader.Guid.Guid = guid;
 
-                if(ignoreCache == false)
+                if(!ignoreCache)
                 {
                     cachedShaders.AddOrSetKey(path, shader);
                 }
@@ -1190,10 +1190,10 @@ internal class ResourceManager
             return null;
         }
 
-        if (ignoreCache == false &&
+        if (!ignoreCache &&
             cachedComputeShaders.TryGetValue(path, out var shader) &&
             shader != null &&
-            shader.Disposed == false)
+            !shader.Disposed)
         {
             return shader;
         }
@@ -1215,7 +1215,7 @@ internal class ResourceManager
         {
             var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
 
-            if (header == null || header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) == false ||
+            if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
                 header.version != SerializableShaderHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid header");
@@ -1239,7 +1239,7 @@ internal class ResourceManager
                 return null;
             }
 
-            if (shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries) == false)
+            if (!shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries))
             {
                 Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: " +
                     $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
@@ -1261,7 +1261,7 @@ internal class ResourceManager
             {
                 shader.Guid.Guid = guid;
 
-                if (ignoreCache == false)
+                if (!ignoreCache)
                 {
                     cachedComputeShaders.AddOrSetKey(path, shader);
                 }
@@ -1290,10 +1290,10 @@ internal class ResourceManager
             return null;
         }
 
-        if (ignoreCache == false &&
+        if (!ignoreCache &&
             cachedMaterials.TryGetValue(path, out var material) &&
             material != null &&
-            material.Disposed == false)
+            !material.Disposed)
         {
             return material;
         }
@@ -1314,7 +1314,7 @@ internal class ResourceManager
             var header = MessagePackSerializer.Deserialize<SerializableMaterialHeader>(stream);
 
             if (header == null ||
-                header.header.SequenceEqual(SerializableMaterialHeader.ValidHeader) == false ||
+                !header.header.SequenceEqual(SerializableMaterialHeader.ValidHeader) ||
                 header.version != SerializableMaterialHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid header");
@@ -1439,7 +1439,7 @@ internal class ResourceManager
                 }
             }
 
-            if(ignoreCache == false)
+            if(!ignoreCache)
             {
                 cachedMaterials.AddOrSetKey(path, material);
             }
@@ -1468,10 +1468,10 @@ internal class ResourceManager
             return null;
         }
 
-        if(ignoreCache == false &&
+        if(!ignoreCache &&
             cachedTextures.TryGetValue(path, out var texture) &&
             texture != null &&
-            texture.Disposed == false)
+            !texture.Disposed)
         {
             return texture;
         }
@@ -1496,7 +1496,7 @@ internal class ResourceManager
             var header = MessagePackSerializer.Deserialize<SerializableTextureHeader>(stream);
 
             if (header == null ||
-                header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) == false ||
+                !header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) ||
                 header.version != SerializableTextureHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid header");
@@ -1533,7 +1533,7 @@ internal class ResourceManager
                 };
             }
 
-            if(ignoreCache == false)
+            if(!ignoreCache)
             {
                 cachedTextures.AddOrSetKey(path, texture);
             }
@@ -1561,7 +1561,7 @@ internal class ResourceManager
             return null;
         }
 
-        if (ignoreCache == false &&
+        if (!ignoreCache &&
             cachedAudioClips.TryGetValue(path, out var audioClip) &&
             audioClip != null)
         {
@@ -1588,7 +1588,7 @@ internal class ResourceManager
             var header = MessagePackSerializer.Deserialize<SerializableAudioClipHeader>(stream);
 
             if (header == null ||
-                header.header.SequenceEqual(SerializableAudioClipHeader.ValidHeader) == false ||
+                !header.header.SequenceEqual(SerializableAudioClipHeader.ValidHeader) ||
                 header.version != SerializableAudioClipHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load audio clip at path {path}: Invalid header");
@@ -1614,7 +1614,7 @@ internal class ResourceManager
 
             audioClip.Guid.Guid = path;
 
-            if(ignoreCache == false)
+            if(!ignoreCache)
             {
                 cachedAudioClips.AddOrSetKey(path, audioClip);
             }
@@ -1664,7 +1664,7 @@ internal class ResourceManager
             indexString = split[1];
         }
 
-        if (ignoreCache == false &&
+        if (!ignoreCache &&
             cachedMeshes.TryGetValue(original, out var mesh) &&
             mesh != null)
         {
@@ -1682,9 +1682,9 @@ internal class ResourceManager
 
         if (asset.meshes.Count > 0)
         {
-            if(string.IsNullOrEmpty(indexString) == false)
+            if(!string.IsNullOrEmpty(indexString))
             {
-                if(int.TryParse(indexString, out meshIndex) == false)
+                if(!int.TryParse(indexString, out meshIndex))
                 {
                     meshIndex = asset.meshes.FindIndex(x => x.name == indexString);
                 }
@@ -1767,7 +1767,7 @@ internal class ResourceManager
 
         mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{meshIndex}" : original;
 
-        if(ignoreCache == false)
+        if(!ignoreCache)
         {
             cachedMeshes.AddOrSetKey(original, mesh);
         }
@@ -1792,7 +1792,7 @@ internal class ResourceManager
 
         path = guid ?? path;
 
-        if (ignoreCache == false &&
+        if (!ignoreCache &&
             cachedMeshAssets.TryGetValue(path, out var mesh) &&
             mesh != null)
         {
@@ -1815,7 +1815,7 @@ internal class ResourceManager
             var header = MessagePackSerializer.Deserialize<SerializableMeshAssetHeader>(stream);
 
             if (header == null ||
-                header.header.SequenceEqual(SerializableMeshAssetHeader.ValidHeader) == false ||
+                !header.header.SequenceEqual(SerializableMeshAssetHeader.ValidHeader) ||
                 header.version != SerializableMeshAssetHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}: Invalid header");
@@ -2128,7 +2128,7 @@ internal class ResourceManager
                 asset.animations.AddOrSetKey(animation.name, animation);
             }
 
-            if(ignoreCache == false)
+            if(!ignoreCache)
             {
                 cachedMeshAssets.AddOrSetKey(path, asset);
             }
@@ -2195,7 +2195,7 @@ internal class ResourceManager
 
         path = guid ?? path;
 
-        if (ignoreCache == false &&
+        if (!ignoreCache &&
             cachedAssets.TryGetValue(path, out var asset) &&
             asset != null)
         {
@@ -2216,7 +2216,7 @@ internal class ResourceManager
             var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
 
             if (header == null ||
-                header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) == false ||
+                !header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) ||
                 header.version != SerializableStapleAssetHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid header");
@@ -2242,7 +2242,7 @@ internal class ResourceManager
                     guidAsset.Guid.Guid = path;
                 }
 
-                if(ignoreCache == false)
+                if(!ignoreCache)
                 {
                     cachedAssets.AddOrSetKey(path, asset);
                 }
@@ -2308,7 +2308,7 @@ internal class ResourceManager
 
         path = guid ?? path;
 
-        if (ignoreCache == false &&
+        if (!ignoreCache &&
             cachedPrefabs.TryGetValue(path, out var prefab) &&
             prefab != null)
         {
@@ -2329,7 +2329,7 @@ internal class ResourceManager
             var header = MessagePackSerializer.Deserialize<SerializablePrefabHeader>(stream);
 
             if (header == null ||
-                header.header.SequenceEqual(SerializablePrefabHeader.ValidHeader) == false ||
+                !header.header.SequenceEqual(SerializablePrefabHeader.ValidHeader) ||
                 header.version != SerializablePrefabHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load prefab at path {path}: Invalid header");
@@ -2353,7 +2353,7 @@ internal class ResourceManager
 
             prefab.Guid.Guid = guid ?? path;
 
-            if (ignoreCache == false)
+            if (!ignoreCache)
             {
                 cachedPrefabs.AddOrSetKey(path, prefab);
             }
@@ -2385,7 +2385,7 @@ internal class ResourceManager
 
         path = guid ?? path;
 
-        if (ignoreCache == false &&
+        if (!ignoreCache &&
             cachedFonts.TryGetValue(path, out var font) &&
             font != null)
         {
@@ -2406,7 +2406,7 @@ internal class ResourceManager
             var header = MessagePackSerializer.Deserialize<SerializableFontHeader>(stream);
 
             if (header == null ||
-                header.header.SequenceEqual(SerializableFontHeader.ValidHeader) == false ||
+                !header.header.SequenceEqual(SerializableFontHeader.ValidHeader) ||
                 header.version != SerializableFontHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load font at path {path}: Invalid header");
@@ -2433,7 +2433,7 @@ internal class ResourceManager
             font.font = TextFont.FromData(fontData.fontData, font.Guid.Guid, fontData.metadata.useAntiAliasing,
                 fontData.metadata.textureSize, fontData.metadata.includedCharacterSets);
 
-            if (ignoreCache == false)
+            if (!ignoreCache)
             {
                 cachedFonts.AddOrSetKey(path, font);
             }
@@ -2478,7 +2478,7 @@ internal class ResourceManager
             var header = MessagePackSerializer.Deserialize<SerializableTextAssetHeader>(stream);
 
             if (header == null ||
-                header.header.SequenceEqual(SerializableTextAssetHeader.ValidHeader) == false ||
+                !header.header.SequenceEqual(SerializableTextAssetHeader.ValidHeader) ||
                 header.version != SerializableTextAssetHeader.ValidVersion)
             {
                 Log.Error($"[ResourceManager] Failed to load text asset at path {path}: Invalid header");
@@ -2506,7 +2506,7 @@ internal class ResourceManager
 
             var extension = Path.GetExtension(assetPath ?? path);
 
-            if(string.IsNullOrEmpty(extension) == false &&
+            if(!string.IsNullOrEmpty(extension) &&
                 Array.IndexOf(AssetSerialization.TextExtensions, extension[1..]) >= 0)
             {
                 try

@@ -176,8 +176,8 @@ public partial class UIPanel
 
         parameters.Position(parameters.position + new Vector2(0, parameters.fontSize));
 
-        if (TextRenderer.instance.MakeTextGeometry(str, parameters, 1, true, ref textVertices, ref textIndices,
-            out var vertexCount, out var indexCount) == false || indexCount == 0)
+        if (!TextRenderer.instance.MakeTextGeometry(str, parameters, 1, true, ref textVertices, ref textIndices,
+            out var vertexCount, out var indexCount) || indexCount == 0)
         {
             return;
         }

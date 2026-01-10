@@ -183,7 +183,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                     var renderable = (Renderable)content[j].component;
 
                     renderable.isVisible = renderable.enabled &&
-                        renderable.forceRenderingOff == false &&
+                        !renderable.forceRenderingOff &&
                         renderable.cullingState != CullingState.Invisible;
 
                     if (renderable.isVisible && cull)
@@ -196,7 +196,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                         }
                     }
 
-                    if (renderable.isVisible == false)
+                    if (!renderable.isVisible)
                     {
                         RenderStats.culledDrawCalls++;
                     }
@@ -265,7 +265,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                     continue;
                 }
 
-                if (systemQueues.TryGetValue(systemInfo, out var queue) == false)
+                if (!systemQueues.TryGetValue(systemInfo, out var queue))
                 {
                     queue = [];
 
@@ -281,13 +281,13 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                     {
                         var renderable = (Renderable)related;
 
-                        renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
+                        renderable.isVisible = renderable.enabled && !renderable.forceRenderingOff;
 
                         if (renderable.isVisible && cull)
                         {
                             renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
 
-                            if (renderable.isVisible == false)
+                            if (!renderable.isVisible)
                             {
                                 RenderStats.culledDrawCalls++;
                             }

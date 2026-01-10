@@ -109,7 +109,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
         ref var container = ref CollectionsMarshal.GetValueRefOrAddDefault(vertexDataHashes, binding, out var exists);
 
-        if(exists == false || container != hash)
+        if(!exists || container != hash)
         {
             container = hash;
 
@@ -125,7 +125,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
         ref var container = ref CollectionsMarshal.GetValueRefOrAddDefault(fragmentDataHashes, binding, out var exists);
 
-        if (exists == false || container != hash)
+        if (!exists || container != hash)
         {
             container = hash;
 
@@ -141,7 +141,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
         ref var container = ref CollectionsMarshal.GetValueRefOrAddDefault(computeDataHashes, binding, out var exists);
 
-        if (exists == false || container != hash)
+        if (!exists || container != hash)
         {
             container = hash;
 

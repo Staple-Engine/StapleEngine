@@ -81,7 +81,7 @@ internal partial class StapleEditor
             pickEntityBodies.Remove(entity);
         }
 
-        if(wrapper.IsValid == false)
+        if(!wrapper.IsValid)
         {
             wrapper = Entity.Create(typeof(Transform));
 
@@ -118,7 +118,7 @@ internal partial class StapleEditor
             return;
         }
 
-        if (pickEntityBodies.TryGetValue(entity, out var pair) == false ||
+        if (!pickEntityBodies.TryGetValue(entity, out var pair) ||
             pair.bounds != bounds)
         {
             ReplaceEntityBody(entity, bounds);
@@ -131,7 +131,7 @@ internal partial class StapleEditor
     /// <param name="entity">The entity</param>
     public void ClearEntityBody(Entity entity)
     {
-        if(pickEntityBodies.TryGetValue(entity, out var pair) == false)
+        if(!pickEntityBodies.TryGetValue(entity, out var pair))
         {
             return;
         }

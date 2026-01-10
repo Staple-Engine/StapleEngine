@@ -104,20 +104,20 @@ public class AudioSystem : ISubsystem
     public void Startup()
     {
         if(AudioDeviceImpl == null ||
-            AudioDeviceImpl.IsAssignableTo(typeof(IAudioDevice)) == false ||
+            !AudioDeviceImpl.IsAssignableTo(typeof(IAudioDevice)) ||
             AudioListenerImpl == null ||
-            AudioListenerImpl.IsAssignableTo(typeof(IAudioListener)) == false ||
+            !AudioListenerImpl.IsAssignableTo(typeof(IAudioListener)) ||
             AudioSourceImpl == null ||
-            AudioSourceImpl.IsAssignableTo(typeof(IAudioSource)) == false ||
+            !AudioSourceImpl.IsAssignableTo(typeof(IAudioSource)) ||
             AudioClipImpl == null ||
-            AudioClipImpl.IsAssignableTo(typeof(IAudioClip)) == false)
+            !AudioClipImpl.IsAssignableTo(typeof(IAudioClip)))
         {
             return;
         }
 
         device = ObjectCreation.CreateObject<IAudioDevice>(AudioDeviceImpl);
 
-        if(device != null && device.Init() == false)
+        if(device != null && !device.Init())
         {
             device = null;
         }
@@ -131,7 +131,7 @@ public class AudioSystem : ISubsystem
 
         World.AddComponentAddedCallback(typeof(AudioListener), (World world, Entity entity, ref IComponent component) =>
         {
-            if(entity.TryGetComponent<Transform>(out var transform) == false)
+            if(!entity.TryGetComponent<Transform>(out var transform))
             {
                 return;
             }
@@ -153,7 +153,7 @@ public class AudioSystem : ISubsystem
 
             source.audioSource = ObjectCreation.CreateObject<IAudioSource>(AudioSourceImpl);
 
-            if(source.audioSource == null || source.audioSource.Init() == false)
+            if(source.audioSource == null || !source.audioSource.Init())
             {
                 Log.Debug($"[AudioSystem] Failed to create audio source for entity {entity}");
 
@@ -194,7 +194,7 @@ public class AudioSystem : ISubsystem
 
         backgroundLoadThread = new(() =>
         {
-            while(backgroundThreadCancellationSource.IsCancellationRequested == false)
+            while(!backgroundThreadCancellationSource.IsCancellationRequested)
             {
                 backgroundWorkEvent.WaitOne();
 
@@ -220,7 +220,7 @@ public class AudioSystem : ISubsystem
 
     public void Update()
     {
-        if(Platform.IsPlaying == false)
+        if(!Platform.IsPlaying)
         {
             return;
         }
@@ -249,7 +249,7 @@ public class AudioSystem : ISubsystem
 
         foreach (var item in audioSources)
         {
-            if (item.source.TryGetTarget(out var source) == false)
+            if (!item.source.TryGetTarget(out var source))
             {
                 removedAudioSources.Add(item);
 
@@ -280,7 +280,7 @@ public class AudioSystem : ISubsystem
 
                     if (clip != null && clip.Init(samples, channels, bits, sampleRate))
                     {
-                        if (source.audioSource.Bind(clip) == false)
+                        if (!source.audioSource.Bind(clip))
                         {
                             clip.Destroy();
                             source.audioSource.Destroy();

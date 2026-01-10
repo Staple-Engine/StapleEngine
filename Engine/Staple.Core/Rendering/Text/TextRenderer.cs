@@ -256,7 +256,7 @@ public class TextRenderer
 
         while (currentSize.Y < rectSize.Y)
         {
-            if (first == false)
+            if (!first)
             {
                 builder.Append(' ');
             }
@@ -273,7 +273,7 @@ public class TextRenderer
 
             if (fragments.Count > 0 && ((newLineIndex = fragments[0].IndexOf('\n')) == 0 || newLineIndex == 1))
             {
-                if (first == false)
+                if (!first)
                 {
                     var s = builder.ToString().Substring(0, builder.Length - 1);
 
@@ -326,10 +326,10 @@ public class TextRenderer
 
                 var ignoreNewline = currentText.Length > 0 && currentText[currentText.Length - 1] == '\n';
 
-                if (ignoreNewline == false)
+                if (!ignoreNewline)
                 {
                     //Remove extra space
-                    if (first == false && currentText.Length > 0)
+                    if (!first && currentText.Length > 0)
                     {
                         var s = currentText.ToString().Substring(0, currentText.Length - 1);
 

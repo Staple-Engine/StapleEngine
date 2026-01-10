@@ -119,7 +119,7 @@ public sealed class UIManager
 
     internal void RecursiveFindFocusedElement(Vector2Int parentPosition, UIPanel parent, ref UIPanel foundElement)
     {
-        if(parent.Visible == false || parent.Enabled == false || parent.AllowMouseInput == false)
+        if(!parent.Visible || !parent.Enabled || !parent.AllowMouseInput)
         {
             foundElement = null;
 
@@ -221,7 +221,7 @@ public sealed class UIManager
                 {
                     var p = drawOrderCache[j];
 
-                    if (p.panel.AllowMouseInput == false || p.drawOrder != i)
+                    if (!p.panel.AllowMouseInput || p.drawOrder != i)
                     {
                         continue;
                     }
@@ -266,7 +266,7 @@ public sealed class UIManager
             {
                 var p = drawOrderCache[j];
 
-                if(p.drawOrder != i || p.panel.Visible == false)
+                if(p.drawOrder != i || !p.panel.Visible)
                 {
                     continue;
                 }
@@ -303,7 +303,7 @@ public sealed class UIManager
                 return null;
             }
 
-            if(type.IsAssignableTo(typeof(UIPanel)) == false)
+            if(!type.IsAssignableTo(typeof(UIPanel)))
             {
                 Log.Debug($"Failed to create UI Panel: Type {typeName}/Staple.UI.{typeName} is not a UIPanel");
 
@@ -370,7 +370,7 @@ public sealed class UIManager
                 {
                     foreach(var p in drawOrderCache)
                     {
-                        if(p.panel.AllowMouseInput == false || p.drawOrder != i)
+                        if(!p.panel.AllowMouseInput || p.drawOrder != i)
                         {
                             continue;
                         }

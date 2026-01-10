@@ -39,7 +39,7 @@ public static class StapleHooks
 
         foreach (var e in hook.HookedEvents)
         {
-            if(hooks.TryGetValue(e, out var box) == false)
+            if(!hooks.TryGetValue(e, out var box))
             {
                 box = new();
 
@@ -61,7 +61,7 @@ public static class StapleHooks
 
         foreach(var e in hook.HookedEvents)
         {
-            if(hooks.TryGetValue(e, out var box) == false)
+            if(!hooks.TryGetValue(e, out var box))
             {
                 continue;
             }
@@ -72,7 +72,7 @@ public static class StapleHooks
 
     internal static void ExecuteHooks(StapleHookEvent e, object args)
     {
-        if(hooks.TryGetValue(e, out var box) == false)
+        if(!hooks.TryGetValue(e, out var box))
         {
             return;
         }

@@ -15,8 +15,8 @@ public partial struct Entity
     /// <returns>The new entity, or an invalid entity</returns>
     internal static Entity InstantiateInternal(Entity source, Transform parent, bool keepWorldPosition, bool rename)
     {
-        if (source.IsValid == false ||
-            source.TryGetComponent<Transform>(out var sourceTransform) == false)
+        if (!source.IsValid ||
+            !source.TryGetComponent<Transform>(out var sourceTransform))
         {
             return default;
         }
@@ -68,8 +68,8 @@ public partial struct Entity
     /// <returns>The new entity, or an invalid entity</returns>
     internal static Entity InstantiateInternal(Entity source, Vector3 position, Quaternion rotation, Transform parent, bool rename)
     {
-        if (source.IsValid == false ||
-            source.TryGetComponent<Transform>(out var sourceTransform) == false)
+        if (!source.IsValid ||
+            !source.TryGetComponent<Transform>(out var sourceTransform))
         {
             return default;
         }

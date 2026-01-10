@@ -240,7 +240,7 @@ internal partial class StapleEditor
                     else if((typeof(IEntitySystemLifecycle).IsAssignableFrom(v) ||
                         typeof(IEntitySystemUpdate).IsAssignableFrom(v) ||
                         typeof(IEntitySystemFixedUpdate).IsAssignableFrom(v)) &&
-                        v.IsInterface == false)
+                        !v.IsInterface)
                     {
                         try
                         {

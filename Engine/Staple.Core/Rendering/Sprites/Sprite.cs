@@ -22,7 +22,7 @@ public sealed class Sprite
     {
         get
         {
-            if(IsValid == false)
+            if(!IsValid)
             {
                 return default;
             }
@@ -38,5 +38,5 @@ public sealed class Sprite
     public TextureSpriteRotation Rotation => IsValid ? texture.metadata.sprites[spriteIndex].rotation : TextureSpriteRotation.None;
 
     [JsonIgnore]
-    public bool IsValid => texture != null && texture.Disposed == false && spriteIndex >= 0 && spriteIndex < texture.metadata.sprites.Count;
+    public bool IsValid => texture != null && !texture.Disposed && spriteIndex >= 0 && spriteIndex < texture.metadata.sprites.Count;
 }

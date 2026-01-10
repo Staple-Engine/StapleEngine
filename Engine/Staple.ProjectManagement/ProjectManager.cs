@@ -137,7 +137,7 @@ public partial class ProjectManager
                 {
                     var filePath = Path.GetFullPath(file);
 
-                    if(fileModifyStates.ContainsKey(filePath) == false ||
+                    if(!fileModifyStates.ContainsKey(filePath) ||
                         fileModifyStates[filePath] < File.GetLastWriteTime(filePath))
                     {
                         CollectGameScriptModifyStates();
@@ -229,7 +229,7 @@ public partial class ProjectManager
 
                 var plugin = JsonConvert.DeserializeObject<PluginAsset>(text, Tooling.Utilities.JsonSettings);
 
-                if(plugin.autoReferenced || (plugin.anyPlatform == false && plugin.platforms.Contains(platform) == false))
+                if(plugin.autoReferenced || (!plugin.anyPlatform && !plugin.platforms.Contains(platform)))
                 {
                     continue;
                 }
@@ -240,7 +240,7 @@ public partial class ProjectManager
                 }
                 else if(Directory.Exists(path))
                 {
-                    if(StorageUtils.CopyDirectory(path, Path.Combine(targetPath, Path.GetFileName(path))) == false)
+                    if(!StorageUtils.CopyDirectory(path, Path.Combine(targetPath, Path.GetFileName(path))))
                     {
                         return false;
                     }
@@ -505,7 +505,7 @@ public partial class ProjectManager
 
         var (p, debugProperty, releaseProperty) = MakeProject(collection, projectDefines, projectProperties);
 
-        if (flags.HasFlag(ProjectGenerationFlags.IsPlayer) == false)
+        if (!flags.HasFlag(ProjectGenerationFlags.IsPlayer))
         {
             p.AddItem("Reference", "Staple.Core", [new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleCoreFileName))]);
 
@@ -528,7 +528,7 @@ public partial class ProjectManager
 
                 foreach (var file in files)
                 {
-                    if (flags.HasFlag(ProjectGenerationFlags.ReferenceEditor) == false &&
+                    if (!flags.HasFlag(ProjectGenerationFlags.ReferenceEditor) &&
                         file.Replace(Path.DirectorySeparatorChar, '/').Contains($"/Editor/"))
                     {
                         continue;
@@ -544,11 +544,11 @@ public partial class ProjectManager
                         fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
                     }
 
-                    if (parentAsmDef != null && excludedAsmDefs.Contains(parentAsmDef) == false)
+                    if (parentAsmDef != null && !excludedAsmDefs.Contains(parentAsmDef))
                     {
                         var projectName = Path.GetFileNameWithoutExtension(parentAsmDef);
 
-                        if (projects.TryGetValue(parentAsmDef, out var pair) == false)
+                        if (!projects.TryGetValue(parentAsmDef, out var pair))
                         {
                             AssemblyDefinition def = null;
                             Project asmProj = null;
@@ -571,7 +571,7 @@ public partial class ProjectManager
                             }
 
                             if ((def.anyPlatform && def.excludedPlatforms.Contains(platform)) ||
-                                (def.anyPlatform == false && def.platforms.Contains(platform) == false))
+                                (!def.anyPlatform && !def.platforms.Contains(platform)))
                             {
                                 excludedAsmDefs.Add(parentAsmDef);
 
@@ -588,7 +588,7 @@ public partial class ProjectManager
 
                                         asmProj = p;
 
-                                        if (def.allowUnsafeCode && asmDefProperties.ContainsKey("AllowUnsafeBlocks") == false)
+                                        if (def.allowUnsafeCode && !asmDefProperties.ContainsKey("AllowUnsafeBlocks"))
                                         {
                                             asmProj.SetProperty("AllowUnsafeBlocks", "true");
                                         }
@@ -615,7 +615,7 @@ public partial class ProjectManager
                                     }
                                     else if (def.allowUnsafeCode)
                                     {
-                                        shouldAddUnsafeFlag |= projectAppSettings.allowUnsafeCode == false;
+                                        shouldAddUnsafeFlag |= !projectAppSettings.allowUnsafeCode;
                                     }
 
                                     break;
@@ -625,7 +625,7 @@ public partial class ProjectManager
                                     {
                                         asmProj = MakeCodeGeneratorProject(collection);
 
-                                        if (def.allowUnsafeCode && asmDefProperties.ContainsKey("AllowUnsafeBlocks") == false)
+                                        if (def.allowUnsafeCode && !asmDefProperties.ContainsKey("AllowUnsafeBlocks"))
                                         {
                                             asmProj.SetProperty("AllowUnsafeBlocks", "true");
                                         }
@@ -726,7 +726,7 @@ public partial class ProjectManager
 
                         Recursive(pair.Value.Item1, pair.Value.Item1, project);
 
-                        if(project.Items.Any(x => x.ItemType == "Compile") == false)
+                        if(!project.Items.Any(x => x.ItemType == "Compile"))
                         {
                             continue;
                         }
@@ -805,7 +805,7 @@ public partial class ProjectManager
             }
         }
 
-        if (flags.HasFlag(ProjectGenerationFlags.IsSandbox) == false)
+        if (!flags.HasFlag(ProjectGenerationFlags.IsSandbox))
         {
             var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
 
@@ -1302,7 +1302,7 @@ public partial class ProjectManager
 
         StorageUtils.CopyDirectory(Path.Combine(backend.basePath, "Resources"), Path.Combine(projectDirectory, "Player"));
 
-        if(backend.dataDirIsOutput == false)
+        if(!backend.dataDirIsOutput)
         {
             CopyModuleRedists(Path.Combine(projectDirectory, "Player", backend.redistOutput), projectAppSettings,
                 platform, backend.basePath, redistConfigurationName);

@@ -22,7 +22,7 @@ public class UISprite(UIManager manager, string ID) : UIPanel(manager, ID)
                 var pieces = p.GetString().Split(':');
 
                 if (pieces.Length != 2 ||
-                    int.TryParse(pieces[1], out var spriteIndex) == false ||
+                    !int.TryParse(pieces[1], out var spriteIndex) ||
                     spriteIndex < 0)
                 {
                     return;

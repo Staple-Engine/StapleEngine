@@ -339,7 +339,7 @@ public sealed class SkinnedAnimationController
 
                     foreach (var parameter in connection.parameters)
                     {
-                        if (CheckParameter(parameter) == false)
+                        if (!CheckParameter(parameter))
                         {
                             shouldTrigger = false;
 

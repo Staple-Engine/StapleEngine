@@ -271,7 +271,7 @@ internal class AppSettingsWindow : EditorWindow
 
                 EditorGUI.Label("Renderers");
 
-                if (projectAppSettings.renderers.TryGetValue(backend.platform, out var renderers) == false)
+                if (!projectAppSettings.renderers.TryGetValue(backend.platform, out var renderers))
                 {
                     renderers = [];
 

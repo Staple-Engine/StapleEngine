@@ -52,7 +52,7 @@ internal static class StapleSerializer
             return false;
         }
 
-        if(type.GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false)
+        if(type.GetCustomAttribute<SerializeInEditorAttribute>() != null && !Platform.IsEditor)
         {
             return false;
         }
@@ -360,12 +360,12 @@ internal static class StapleSerializer
             return;
         }
 
-        if (field.IsPublic == false && field.GetCustomAttribute<SerializeFieldAttribute>() == null)
+        if (!field.IsPublic && field.GetCustomAttribute<SerializeFieldAttribute>() == null)
         {
             return;
         }
 
-        if (field.FieldType.GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false)
+        if (field.FieldType.GetCustomAttribute<SerializeInEditorAttribute>() != null && !Platform.IsEditor)
         {
             return;
         }
@@ -649,7 +649,7 @@ internal static class StapleSerializer
             }
 
             //Need to describe the item
-            if (IsDirectParameter(value.GetType()) == false &&
+            if (!IsDirectParameter(value.GetType()) &&
                 field.FieldType.GetCustomAttribute<SerializableAttribute>() != null)
             {
                 try
@@ -689,7 +689,7 @@ internal static class StapleSerializer
     public static StapleSerializerContainer SerializeContainer(object instance, StapleSerializationMode mode)
     {
         if (instance == null || instance.GetType().IsNestedFamORAssem ||
-            (instance.GetType().GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false))
+            (instance.GetType().GetCustomAttribute<SerializeInEditorAttribute>() != null && !Platform.IsEditor))
         {
             return null;
         }
@@ -786,7 +786,7 @@ internal static class StapleSerializer
             }
         }
 
-        if (IsDirectParameter(fieldType) == false &&
+        if (!IsDirectParameter(fieldType) &&
             fieldType.GetCustomAttribute<SerializableAttribute>() != null &&
             element.ValueKind == JsonValueKind.Object)
         {
@@ -831,7 +831,7 @@ internal static class StapleSerializer
                 field == null ||
                 fieldInfo.value == null ||
                 ((field.GetCustomAttribute<SerializeInEditorAttribute>() != null ||
-                fieldType.GetCustomAttribute<SerializeInEditorAttribute>() != null) && Platform.IsEditor == false) ||
+                fieldType.GetCustomAttribute<SerializeInEditorAttribute>() != null) && !Platform.IsEditor) ||
                 (fieldType.ToString() != fieldInfo.typeName && valueType.GetInterface(fieldType.FullName) == null))
             {
                 return null;
@@ -899,7 +899,7 @@ internal static class StapleSerializer
                     }
                 }
             }
-            else if (IsDirectParameter(fieldType.GetType()) == false &&
+            else if (!IsDirectParameter(fieldType.GetType()) &&
                 fieldType.GetCustomAttribute<SerializableAttribute>() != null)
             {
                 {
@@ -1126,7 +1126,7 @@ internal static class StapleSerializer
                     var fail = false;
                     var elementType = fieldType.GenericTypeArguments[0];
 
-                    if (IsValidType(elementType) == false)
+                    if (!IsValidType(elementType))
                     {
                         return null;
                     }
@@ -1405,7 +1405,7 @@ internal static class StapleSerializer
         var type = TypeCache.GetType(container.typeName);
 
         if (type == null ||
-            (type.GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false))
+            (type.GetCustomAttribute<SerializeInEditorAttribute>() != null && !Platform.IsEditor))
         {
             return null;
         }
@@ -1444,7 +1444,7 @@ internal static class StapleSerializer
                         continue;
                     }
 
-                    if (value is null || value.GetType().IsAssignableTo(field.FieldType) == false)
+                    if (value is null || !value.GetType().IsAssignableTo(field.FieldType))
                     {
                         continue;
                     }
@@ -1483,7 +1483,7 @@ internal static class StapleSerializer
                 var localType = TypeCache.GetType(tName);
 
                 if (localType == null ||
-                    (localType.GetCustomAttribute<SerializeInEditorAttribute>() != null && Platform.IsEditor == false))
+                    (localType.GetCustomAttribute<SerializeInEditorAttribute>() != null && !Platform.IsEditor))
                 {
                     continue;
                 }

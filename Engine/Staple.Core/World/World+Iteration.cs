@@ -16,7 +16,7 @@ public partial class World
     {
         var tName = typeof(T).FullName.GetHashCode();
 
-        if (componentCompatibilityCache.TryGetValue(tName, out var c1) == false)
+        if (!componentCompatibilityCache.TryGetValue(tName, out var c1))
         {
             return [];
         }
@@ -27,8 +27,8 @@ public partial class World
 
             foreach (var entity in cachedEntityList)
             {
-                if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
+                if (!entity.alive ||
+                    (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
                 {
                     continue;
                 }
@@ -78,8 +78,8 @@ public partial class World
         var tName = typeof(T).FullName.GetHashCode();
         var t2Name = typeof(T2).FullName.GetHashCode();
 
-        if (componentCompatibilityCache.TryGetValue(tName, out var c1) == false ||
-            componentCompatibilityCache.TryGetValue(t2Name, out var c2) == false)
+        if (!componentCompatibilityCache.TryGetValue(tName, out var c1) ||
+            !componentCompatibilityCache.TryGetValue(t2Name, out var c2))
         {
             return [];
         }
@@ -90,8 +90,8 @@ public partial class World
 
             foreach (var entity in cachedEntityList)
             {
-                if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
+                if (!entity.alive ||
+                    (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
                 {
                     continue;
                 }
@@ -155,9 +155,9 @@ public partial class World
         var t2Name = typeof(T2).FullName.GetHashCode();
         var t3Name = typeof(T3).FullName.GetHashCode();
 
-        if (componentCompatibilityCache.TryGetValue(tName, out var c1) == false ||
-            componentCompatibilityCache.TryGetValue(t2Name, out var c2) == false ||
-            componentCompatibilityCache.TryGetValue(t3Name, out var c3) == false)
+        if (!componentCompatibilityCache.TryGetValue(tName, out var c1) ||
+            !componentCompatibilityCache.TryGetValue(t2Name, out var c2) ||
+            !componentCompatibilityCache.TryGetValue(t3Name, out var c3))
         {
             return [];
         }
@@ -168,8 +168,8 @@ public partial class World
 
             foreach (var entity in cachedEntityList)
             {
-                if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
+                if (!entity.alive ||
+                    (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
                 {
                     continue;
                 }
@@ -247,10 +247,10 @@ public partial class World
         var t3Name = typeof(T3).FullName.GetHashCode();
         var t4Name = typeof(T4).FullName.GetHashCode();
 
-        if (componentCompatibilityCache.TryGetValue(tName, out var c1) == false ||
-            componentCompatibilityCache.TryGetValue(t2Name, out var c2) == false ||
-            componentCompatibilityCache.TryGetValue(t3Name, out var c3) == false ||
-            componentCompatibilityCache.TryGetValue(t4Name, out var c4) == false)
+        if (!componentCompatibilityCache.TryGetValue(tName, out var c1) ||
+            !componentCompatibilityCache.TryGetValue(t2Name, out var c2) ||
+            !componentCompatibilityCache.TryGetValue(t3Name, out var c3) ||
+            !componentCompatibilityCache.TryGetValue(t4Name, out var c4))
         {
             return [];
         }
@@ -261,8 +261,8 @@ public partial class World
 
             foreach (var entity in cachedEntityList)
             {
-                if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
+                if (!entity.alive ||
+                    (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
                 {
                     continue;
                 }
@@ -354,11 +354,11 @@ public partial class World
         var t4Name = typeof(T4).FullName.GetHashCode();
         var t5Name = typeof(T5).FullName.GetHashCode();
 
-        if (componentCompatibilityCache.TryGetValue(tName, out var c1) == false ||
-            componentCompatibilityCache.TryGetValue(t2Name, out var c2) == false ||
-            componentCompatibilityCache.TryGetValue(t3Name, out var c3) == false ||
-            componentCompatibilityCache.TryGetValue(t4Name, out var c4) == false ||
-            componentCompatibilityCache.TryGetValue(t5Name, out var c5) == false)
+        if (!componentCompatibilityCache.TryGetValue(tName, out var c1) ||
+            !componentCompatibilityCache.TryGetValue(t2Name, out var c2) ||
+            !componentCompatibilityCache.TryGetValue(t3Name, out var c3) ||
+            !componentCompatibilityCache.TryGetValue(t4Name, out var c4) ||
+            !componentCompatibilityCache.TryGetValue(t5Name, out var c5))
         {
             return [];
         }
@@ -369,8 +369,8 @@ public partial class World
 
             foreach (var entity in cachedEntityList)
             {
-                if (entity.alive == false ||
-                    (includeDisabled == false && IsEntityEnabled(entity.ToEntity(), true) == false))
+                if (!entity.alive ||
+                    (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
                 {
                     continue;
                 }
@@ -468,7 +468,7 @@ public partial class World
 
             var e = entities[localID];
 
-            if(e.alive == false)
+            if(!e.alive)
             {
                 return default;
             }
@@ -496,7 +496,7 @@ public partial class World
         {
             foreach(var pair in entities)
             {
-                if(pair.alive == false || (pair.enabled == false && allowDisabled == false))
+                if(!pair.alive || (!pair.enabled && !allowDisabled))
                 {
                     continue;
                 }
@@ -558,7 +558,7 @@ public partial class World
         {
             foreach (var entity in cachedEntityList)
             {
-                if (entity.alive == false)
+                if (!entity.alive)
                 {
                     continue;
                 }
@@ -582,7 +582,7 @@ public partial class World
     /// <param name="callback">A callback to handle the component</param>
     internal void IterateComponents(Entity entity, IterateComponentCallback callback)
     {
-        if(TryGetEntity(entity, out var entityInfo) == false)
+        if(!TryGetEntity(entity, out var entityInfo))
         {
             return;
         }
@@ -594,7 +594,7 @@ public partial class World
 
             foreach (var pair in cache)
             {
-                if(entityInfo.alive == false)
+                if(!entityInfo.alive)
                 {
                     break;
                 }
@@ -614,7 +614,7 @@ public partial class World
     /// <param name="callback">A callback to execute with the component</param>
     internal void IterateCallableComponents(CallableComponentCallback callback)
     {
-        if (Platform.IsPlaying == false)
+        if (!Platform.IsPlaying)
         {
             return;
         }

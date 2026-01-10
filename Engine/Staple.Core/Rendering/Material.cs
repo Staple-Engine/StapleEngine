@@ -137,7 +137,7 @@ public sealed class Material : IGuidAsset
     /// </summary>
     public Texture MainTexture
     {
-        get => parameters.TryGetValue(MainTexturePropertyHash, out var p) && (p.textureValue?.Disposed ?? true) == false ?
+        get => parameters.TryGetValue(MainTexturePropertyHash, out var p) && !(p.textureValue?.Disposed ?? true) ?
             p.textureValue : WhiteTexture;
 
         set
@@ -270,9 +270,9 @@ public sealed class Material : IGuidAsset
     {
         get
         {
-            return Disposed == false &&
+            return !Disposed &&
                 shader != null &&
-                shader.Disposed == false;
+                !shader.Disposed;
         }
     }
 
@@ -354,7 +354,7 @@ public sealed class Material : IGuidAsset
 
     private void UpdateTextureBindingData()
     {
-        if (shader.instances.TryGetValue(ShaderVariantKey, out var instance) == false)
+        if (!shader.instances.TryGetValue(ShaderVariantKey, out var instance))
         {
             vertexSamplers = null;
             fragmentSamplers = null;
@@ -432,7 +432,7 @@ public sealed class Material : IGuidAsset
 
             foreach(var piece in pair.Value.keyPieces)
             {
-                found |= shaderKeywords.Contains(piece) == false;
+                found |= !shaderKeywords.Contains(piece);
 
                 if(found)
                 {
@@ -469,8 +469,8 @@ public sealed class Material : IGuidAsset
     {
         if(shader == null ||
             shader.Disposed ||
-            (shader.metadata.variants.Contains(name) == false &&
-            Shader.DefaultVariants.Contains(name) == false))
+            (!shader.metadata.variants.Contains(name) &&
+            !Shader.DefaultVariants.Contains(name)))
         {
             return;
         }
@@ -872,7 +872,7 @@ public sealed class Material : IGuidAsset
             {
                 if(value == null)
                 {
-                    if(string.IsNullOrEmpty(parameter.shaderHandle.DefaultValue) == false)
+                    if(!string.IsNullOrEmpty(parameter.shaderHandle.DefaultValue))
                     {
                         if (parameter.shaderHandle.DefaultValue == WhiteTexture.Guid.Guid)
                         {
@@ -1038,7 +1038,7 @@ public sealed class Material : IGuidAsset
     internal void ApplyProperties(ApplyMode applyMode, ref RenderState state)
     {
         if(shader == null ||
-            shader.instances.TryGetValue(ShaderVariantKey, out var shaderInstance) == false)
+            !shader.instances.TryGetValue(ShaderVariantKey, out var shaderInstance))
         {
             state.shader = null;
             state.shaderInstance = null;
@@ -1056,7 +1056,7 @@ public sealed class Material : IGuidAsset
         {
             if((applyMode == ApplyMode.IgnoreTextures && parameter.type == MaterialParameterType.Texture) ||
                 (applyMode == ApplyMode.TexturesOnly && parameter.type != MaterialParameterType.Texture) ||
-                parameter.shaderHandle.IsValid == false)
+                !parameter.shaderHandle.IsValid)
             {
                 continue;
             }

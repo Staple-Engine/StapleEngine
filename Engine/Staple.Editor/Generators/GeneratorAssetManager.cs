@@ -67,7 +67,7 @@ internal static class GeneratorAssetManager
                             if (parameters.Length != 2 ||
                                 parameters[0].ParameterType != typeof(string) ||
                                 parameters[1].ParameterType.Name != $"{nameof(IGeneratorAsset)}&" ||
-                                parameters[1].IsOut == false)
+                                !parameters[1].IsOut)
                             {
                                 continue;
                             }

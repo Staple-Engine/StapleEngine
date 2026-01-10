@@ -58,7 +58,7 @@ public class JoltPhysics3D : IPhysics3D
     {
         destroyed = false;
 
-        if(JoltPhysicsSharp.Foundation.Init() == false)
+        if(!JoltPhysicsSharp.Foundation.Init())
         {
             throw new InvalidOperationException("[JoltPhysics] Failed to initialize Foundation");
         }
@@ -291,7 +291,7 @@ public class JoltPhysics3D : IPhysics3D
 
         if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
         {
-            if(Physics3D.Instance.ContactValidate(b1, b2) == false)
+            if(!Physics3D.Instance.ContactValidate(b1, b2))
             {
                 lock (threadLock)
                 {
@@ -383,7 +383,7 @@ public class JoltPhysics3D : IPhysics3D
                 {
                     var p = pair.Value;
 
-                    if (p.body.IsActive == false)
+                    if (!p.body.IsActive)
                     {
                         continue;
                     }
@@ -405,7 +405,7 @@ public class JoltPhysics3D : IPhysics3D
                 {
                     var p = pair.Value;
 
-                    if(p.enabled == false)
+                    if(!p.enabled)
                     {
                         continue;
                     }
@@ -439,14 +439,14 @@ public class JoltPhysics3D : IPhysics3D
                     p.previousRotation = p.currentRotation;
                 }
 
-                if (p.entity.EnabledInHierarchy == false)
+                if (!p.entity.EnabledInHierarchy)
                 {
                     if (p.body.IsActive)
                     {
                         physicsSystem.BodyInterface.DeactivateBody(p.body.ID);
                     }
                 }
-                else if (p.body.IsActive == false)
+                else if (!p.body.IsActive)
                 {
                     physicsSystem.BodyInterface.ActivateBody(p.body.ID);
                 }
@@ -462,7 +462,7 @@ public class JoltPhysics3D : IPhysics3D
                     p.previousRotation = p.currentRotation;
                 }
 
-                if (p.entity.EnabledInHierarchy == false)
+                if (!p.entity.EnabledInHierarchy)
                 {
                     if (p.enabled)
                     {
@@ -471,7 +471,7 @@ public class JoltPhysics3D : IPhysics3D
                         p.character.RemoveFromPhysicsSystem();
                     }
                 }
-                else if (p.enabled == false)
+                else if (!p.enabled)
                 {
                     p.enabled = true;
 
@@ -490,7 +490,7 @@ public class JoltPhysics3D : IPhysics3D
             {
                 var p = pair.Value;
 
-                if (p.body.IsActive == false)
+                if (!p.body.IsActive)
                 {
                     continue;
                 }
@@ -498,7 +498,7 @@ public class JoltPhysics3D : IPhysics3D
                 p.currentPosition = p.body.Position;
                 p.currentRotation = p.body.Rotation;
 
-                if (Physics.InterpolatePhysics == false && p.transform != null)
+                if (!Physics.InterpolatePhysics && p.transform != null)
                 {
                     p.transform.Position = p.currentPosition;
                     p.transform.Rotation = p.currentRotation;
@@ -509,14 +509,14 @@ public class JoltPhysics3D : IPhysics3D
             {
                 var p = pair.Value;
 
-                if (p.enabled == false)
+                if (!p.enabled)
                 {
                     continue;
                 }
 
                 (p.currentPosition, p.currentRotation) = p.character.GetPositionAndRotation();
 
-                if (Physics.InterpolatePhysics == false && p.transform != null)
+                if (!Physics.InterpolatePhysics && p.transform != null)
                 {
                     p.transform.Position = p.currentPosition;
                     p.transform.Rotation = p.currentRotation;
@@ -594,22 +594,22 @@ public class JoltPhysics3D : IPhysics3D
                 AllowedDOFs.TranslationY
             };
 
-            if (freezeX == false)
+            if (!freezeX)
             {
                 dofs.Add(AllowedDOFs.RotationX);
             }
 
-            if (freezeY == false)
+            if (!freezeY)
             {
                 dofs.Add(AllowedDOFs.RotationY);
             }
 
-            if (freezeZ == false)
+            if (!freezeZ)
             {
                 dofs.Add(AllowedDOFs.RotationZ);
             }
 
-            if (is2DPlane == false)
+            if (!is2DPlane)
             {
                 dofs.Add(AllowedDOFs.TranslationZ);
             }
@@ -792,7 +792,7 @@ public class JoltPhysics3D : IPhysics3D
             throw new NullReferenceException("Mesh is null");
         }
 
-        if(mesh.isReadable == false)
+        if(!mesh.isReadable)
         {
             throw new ArgumentException("Mesh is not readable", nameof(mesh));
         }
@@ -846,14 +846,14 @@ public class JoltPhysics3D : IPhysics3D
         RigidBody3D rigidBody = null;
         Character3D character = null;
 
-        if (world.TryGetComponent(entity, out rigidBody) == false && world.TryGetComponent(entity, out character) == false)
+        if (!world.TryGetComponent(entity, out rigidBody) && !world.TryGetComponent(entity, out character))
         {
             Log.Debug($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}: No RigidBody3D or Character3D component found");
 
             return null;
         }
 
-        if (world.TryGetComponent<Transform>(entity, out var transform) == false)
+        if (!world.TryGetComponent<Transform>(entity, out var transform))
         {
             Log.Debug($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}: No Transform component found");
 
@@ -971,7 +971,7 @@ public class JoltPhysics3D : IPhysics3D
                 throw new NullReferenceException($"MeshCollider3D {world.GetEntityName(entity)} Mesh is null");
             }
 
-            if (mesh.isReadable == false)
+            if (!mesh.isReadable)
             {
                 throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh is not readable", nameof(mesh));
             }
@@ -1008,7 +1008,7 @@ public class JoltPhysics3D : IPhysics3D
             compound.AddShape(meshCollider.position, meshCollider.rotation.SafeNormalize(), settings);
         }
 
-        if(any == false)
+        if(!any)
         {
             Log.Error($"[Physics3D] Rigid Body for entity {world.GetEntityName(entity)} has no attached colliders, ignoring...");
 

@@ -18,8 +18,8 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
         var backend = (SDLGPURendererBackend)rendererBackend;
 
         if (entry.vertexBuffer == nint.Zero ||
-            backend.TryGetTextureSamplers(vertexTextures, fragmentTextures, state.shaderInstance,
-                out var vertexSamplers, out var fragmentSamplers) == false)
+            !backend.TryGetTextureSamplers(vertexTextures, fragmentTextures, state.shaderInstance,
+                out var vertexSamplers, out var fragmentSamplers))
         {
             return;
         }
@@ -35,8 +35,8 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
 
                 if (binding.buffer.Disposed ||
                     binding.buffer is not SDLGPUVertexBuffer v ||
-                    backend.TryGetVertexBuffer(v.handle, out var resource) == false ||
-                    resource.used == false ||
+                    !backend.TryGetVertexBuffer(v.handle, out var resource) ||
+                    !resource.used ||
                     resource.buffer == nint.Zero)
                 {
                     return;
@@ -52,8 +52,8 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
 
                 if (binding.buffer.Disposed ||
                     binding.buffer is not SDLGPUVertexBuffer v ||
-                    backend.TryGetVertexBuffer(v.handle, out var resource) == false ||
-                    resource.used == false ||
+                    !backend.TryGetVertexBuffer(v.handle, out var resource) ||
+                    !resource.used ||
                     resource.buffer == nint.Zero)
                 {
                     return;

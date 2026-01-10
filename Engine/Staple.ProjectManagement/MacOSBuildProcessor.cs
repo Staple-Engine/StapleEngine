@@ -17,7 +17,7 @@ public class MacOSBuildProcessor : IBuildPostprocessor
         var outPath = buildInfo.outPath;
         var projectDirectory = buildInfo.assemblyProjectPath;
 
-        if(StorageUtils.CopyFile(Path.Combine(buildInfo.backendResourcesPath, "Program.cs"), Path.Combine(projectDirectory, "Program.cs")) == false)
+        if(!StorageUtils.CopyFile(Path.Combine(buildInfo.backendResourcesPath, "Program.cs"), Path.Combine(projectDirectory, "Program.cs")))
         {
             Log.Debug($"{GetType().Name}: Failed to copy program script");
 
@@ -77,7 +77,7 @@ public class MacOSBuildProcessor : IBuildPostprocessor
 </plist>
 """;
 
-        if(StorageUtils.WriteFile(Path.Combine(appPath, "Contents", "Info.plist"), info) == false)
+        if(!StorageUtils.WriteFile(Path.Combine(appPath, "Contents", "Info.plist"), info))
         {
             return BuildProcessorResult.Failed;
         }

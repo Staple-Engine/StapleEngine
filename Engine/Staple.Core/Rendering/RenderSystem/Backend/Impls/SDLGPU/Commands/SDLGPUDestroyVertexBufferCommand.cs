@@ -7,8 +7,8 @@ internal class SDLGPUDestroyVertexBufferCommand(ResourceHandle<VertexBuffer> han
     public void Update(IRendererBackend rendererBackend)
     {
         if(rendererBackend is not SDLGPURendererBackend backend ||
-            handle.IsValid == false ||
-            backend.TryGetVertexBuffer(handle, out var resource) == false)
+            !handle.IsValid ||
+            !backend.TryGetVertexBuffer(handle, out var resource))
         {
             return;
         }

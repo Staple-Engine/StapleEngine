@@ -631,9 +631,9 @@ public class MaterialMetadata
         return lhs.guid != rhs.guid ||
             lhs.shader != rhs.shader ||
             lhs.parameters.Count != rhs.parameters.Count ||
-            lhs.parameters.Keys.Any(x => rhs.parameters.ContainsKey(x) == false || lhs.parameters[x] != rhs.parameters[x]) ||
+            lhs.parameters.Keys.Any(x => !rhs.parameters.ContainsKey(x) || lhs.parameters[x] != rhs.parameters[x]) ||
             lhs.enabledShaderVariants.Count != rhs.enabledShaderVariants.Count ||
-            lhs.enabledShaderVariants.SequenceEqual(rhs.enabledShaderVariants) == false ||
+            !lhs.enabledShaderVariants.SequenceEqual(rhs.enabledShaderVariants) ||
             lhs.cullingMode != rhs.cullingMode ||
             lhs.typeName != rhs.typeName;
     }

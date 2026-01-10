@@ -9,10 +9,10 @@ internal class SDLGPUUpdateVertexBufferCommand(ResourceHandle<VertexBuffer> hand
     {
         if (rendererBackend is not SDLGPURendererBackend backend ||
             backend.commandBuffer == nint.Zero ||
-            handle.IsValid == false ||
+            !handle.IsValid ||
             data == null ||
             data.Length == 0 ||
-            backend.TryGetVertexBuffer(handle, out var buffer) == false)
+            !backend.TryGetVertexBuffer(handle, out var buffer))
         {
             return;
         }

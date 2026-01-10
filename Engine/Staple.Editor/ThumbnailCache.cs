@@ -102,7 +102,7 @@ internal class ThumbnailCache
                 {
                     var platform = Platform.CurrentPlatform;
 
-                    if (platform.HasValue == false)
+                    if (!platform.HasValue)
                     {
                         Cleanup();
 
@@ -187,7 +187,7 @@ internal class ThumbnailCache
 
                         var tempEntity = Mesh.InstanceMesh("TEMP", mesh);
 
-                        if(tempEntity.IsValid == false)
+                        if(!tempEntity.IsValid)
                         {
                             Cleanup();
 
@@ -357,7 +357,7 @@ internal class ThumbnailCache
                 {
                     var platform = Platform.CurrentPlatform;
 
-                    if (platform.HasValue == false)
+                    if (!platform.HasValue)
                     {
                         Cleanup();
 
@@ -377,7 +377,7 @@ internal class ThumbnailCache
 
                     var material = ResourceManager.instance.LoadMaterial(cachePath, true);
 
-                    if (material == null || material.IsValid == false)
+                    if (material == null || !material.IsValid)
                     {
                         Cleanup();
 
@@ -442,7 +442,7 @@ internal class ThumbnailCache
 
                         var tempEntity = Entity.CreatePrimitive(EntityPrimitiveType.Sphere);
 
-                        if (tempEntity.IsValid == false || tempEntity.TryGetComponent<MeshRenderer>(out var meshRenderer) == false)
+                        if (!tempEntity.IsValid || !tempEntity.TryGetComponent<MeshRenderer>(out var meshRenderer))
                         {
                             Cleanup();
 
@@ -706,7 +706,7 @@ internal class ThumbnailCache
                 {
                     var platform = Platform.CurrentPlatform;
 
-                    if (platform.HasValue == false)
+                    if (!platform.HasValue)
                     {
                         Cleanup();
 
@@ -889,7 +889,7 @@ internal class ThumbnailCache
     /// <returns></returns>
     public static Texture GetTexture(string path, bool persistentCache = false, bool force = false)
     {
-        if(Path.IsPathRooted(path) == false)
+        if(!Path.IsPathRooted(path))
         {
             var t = GetTexture(Path.Combine(basePath, path));
 
@@ -990,7 +990,7 @@ internal class ThumbnailCache
     {
         lock(renderRequestLock)
         {
-            return cachedThumbnails.TryGetValue(path, out var t) && t.texture != null && t.texture.Disposed == false;
+            return cachedThumbnails.TryGetValue(path, out var t) && t.texture != null && !t.texture.Disposed;
         }
     }
 
@@ -1004,8 +1004,8 @@ internal class ThumbnailCache
         var extension = Path.GetExtension(path);
 
         if (extension.Length == 0 ||
-            (AssetSerialization.TextureExtensions.Contains(extension[1..]) == false &&
-            AssetSerialization.MeshExtensions.Contains(extension[1..]) == false &&
+            (!AssetSerialization.TextureExtensions.Contains(extension[1..]) &&
+            !AssetSerialization.MeshExtensions.Contains(extension[1..]) &&
             extension != $".{AssetSerialization.MaterialExtension}"))
         {
             return null;

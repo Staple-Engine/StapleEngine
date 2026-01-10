@@ -35,7 +35,7 @@ public static class Screen
     {
         if(AppPlayer.instance == null ||
             AppPlayer.instance.renderWindow == null ||
-            AppPlayer.instance.renderWindow.SetResolution(width, height, mode) == false)
+            !AppPlayer.instance.renderWindow.SetResolution(width, height, mode))
         {
             return;
         }

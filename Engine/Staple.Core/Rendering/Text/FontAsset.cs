@@ -51,7 +51,7 @@ public class FontAsset : IGuidAsset
 
             foreach(var size in metadata.expectedSizes)
             {
-                if(asset.font.MakePixelData(size, metadata.textureSize, out _, out _, out _) == false)
+                if(!asset.font.MakePixelData(size, metadata.textureSize, out _, out _, out _))
                 {
                     return false;
                 }

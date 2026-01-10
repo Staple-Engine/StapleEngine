@@ -881,7 +881,7 @@ public sealed partial class Mesh
     /// <returns>Whether it was set active</returns>
     internal bool SetActive(ref RenderState state, int submeshIndex = 0)
     {
-        if(IsStaticMesh == false && (vertexBuffer == null || indexBuffer == null))
+        if(!IsStaticMesh && (vertexBuffer == null || indexBuffer == null))
         {
             return false;
         }

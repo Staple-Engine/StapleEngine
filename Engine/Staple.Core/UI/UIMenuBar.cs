@@ -76,7 +76,7 @@ public class UIMenuBar(UIManager manager, string ID) : UIPanel(manager, ID)
 
             var aabb = AABB.CreateFromMinMax(new(min, 0), new(max, 0));
 
-            if(drewSelector == false && aabb.Contains(new(pointerPosiition, 0)))
+            if(!drewSelector && aabb.Contains(new(pointerPosiition, 0)))
             {
                 drewSelector = true;
 

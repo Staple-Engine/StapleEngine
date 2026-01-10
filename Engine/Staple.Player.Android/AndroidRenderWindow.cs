@@ -51,7 +51,7 @@ internal class AndroidRenderWindow : IRenderWindow
         {
             lock (lockObject)
             {
-                return isInBackground == false;
+                return !isInBackground;
             }
         }
     }

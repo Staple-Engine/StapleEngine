@@ -222,7 +222,7 @@ public sealed class SocketGameClient : IGameClient
             return;
         }
 
-        if(SocketGameServer.SocketIsConnected(socket) == false)
+        if(!SocketGameServer.SocketIsConnected(socket))
         {
             Disconnect();
 

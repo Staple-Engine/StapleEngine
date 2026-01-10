@@ -415,6 +415,12 @@ internal class SDL3RenderWindow : IRenderWindow
                     AppEventQueue.instance.Add(AppEvent.MoveWindow(new Vector2Int(winX, winY)));
 
                     break;
+                
+                case SDL.EventType.WindowResized:
+                    
+                    AppEventQueue.instance.Add(AppEvent.ResizeWindow());
+
+                    break;
 
                 case SDL.EventType.KeyDown:
                 case SDL.EventType.KeyUp:
@@ -761,7 +767,7 @@ internal class SDL3RenderWindow : IRenderWindow
         {
             case WindowMode.Windowed:
 
-                if(SDL.SetWindowFullscreen(window, false) == false)
+                if(!SDL.SetWindowFullscreen(window, false))
                 {
                     return false;
                 }
@@ -774,7 +780,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
                 SDL.SetWindowSize(window, width, height);
 
-                if(SDL.SetWindowFullscreen(window, true) == false)
+                if(!SDL.SetWindowFullscreen(window, true))
                 {
                     return false;
                 }
@@ -783,7 +789,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
             case WindowMode.BorderlessFullscreen:
 
-                if (SDL.SetWindowFullscreen(window, true) == false)
+                if (!SDL.SetWindowFullscreen(window, true))
                 {
                     return false;
                 }

@@ -58,7 +58,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false)
+            if (!isWritable)
             {
                 return;
             }
@@ -80,7 +80,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if(isWritable == false)
+            if(!isWritable)
             {
                 return;
             }
@@ -100,7 +100,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if(isReadable == false || meshDataBlob != null)
+            if(!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -110,7 +110,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if(isWritable == false || meshDataBlob != null)
+            if(!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -155,7 +155,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -165,7 +165,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -189,7 +189,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -199,7 +199,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -223,7 +223,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -233,7 +233,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -257,7 +257,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -267,7 +267,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -291,7 +291,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -301,7 +301,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -325,7 +325,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -335,7 +335,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -359,7 +359,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -369,7 +369,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -393,7 +393,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -403,7 +403,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -427,7 +427,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -437,7 +437,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -461,7 +461,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -471,7 +471,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -495,7 +495,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -505,7 +505,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -529,7 +529,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -539,7 +539,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -563,7 +563,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -573,7 +573,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -597,7 +597,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -607,7 +607,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -631,7 +631,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -641,7 +641,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -665,7 +665,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -675,7 +675,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -699,7 +699,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -709,7 +709,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -733,7 +733,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -743,7 +743,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -767,7 +767,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -777,7 +777,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -800,7 +800,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -810,7 +810,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -833,7 +833,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -843,7 +843,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -866,7 +866,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (!isReadable)
             {
                 return [];
             }
@@ -876,7 +876,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false)
+            if (!isWritable)
             {
                 return;
             }
@@ -1091,7 +1091,7 @@ public sealed partial class Mesh : IGuidAsset
         meshDataBlob = meshData.ToArray();
         meshDataVertexLayout = vertexLayout;
 
-        if(vertexBuffer != null && vertexBuffer.Disposed == false && isDynamic)
+        if(vertexBuffer != null && !vertexBuffer.Disposed && isDynamic)
         {
             vertexBuffer.Update(meshDataBlob);
         }
@@ -1135,7 +1135,7 @@ public sealed partial class Mesh : IGuidAsset
 
         meshDataVertexLayout = vertexLayout;
 
-        if (vertexBuffer != null && vertexBuffer.Disposed == false && isDynamic)
+        if (vertexBuffer != null && !vertexBuffer.Disposed && isDynamic)
         {
             vertexBuffer.Update(meshDataBlob);
         }
@@ -1150,8 +1150,8 @@ public sealed partial class Mesh : IGuidAsset
     /// </summary>
     internal void UploadMeshData()
     {
-        if (changed == false ||
-            (IsStaticMesh == false && (vertexBuffer?.Disposed ?? true) == false && (indexBuffer?.Disposed ?? true) == false))
+        if (!changed ||
+            (!IsStaticMesh && !(vertexBuffer?.Disposed ?? true) && !(indexBuffer?.Disposed ?? true)))
         {
             return;
         }
@@ -1393,7 +1393,7 @@ public sealed partial class Mesh : IGuidAsset
             {
                 var p = positions[i];
 
-                if (uniquePositions.TryGetValue(p, out var list) == false)
+                if (!uniquePositions.TryGetValue(p, out var list))
                 {
                     list = [];
 
@@ -1480,7 +1480,7 @@ public sealed partial class Mesh : IGuidAsset
             {
                 var p = positions[i];
 
-                if (uniquePositions.TryGetValue(p, out var list) == false)
+                if (!uniquePositions.TryGetValue(p, out var list))
                 {
                     list = [];
 
@@ -1712,7 +1712,7 @@ public sealed partial class Mesh : IGuidAsset
             .Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList() :
             [ResourceManager.instance.LoadMaterial(AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath))];
 
-        if (mesh.HasBoneIndices && mesh.meshAsset != null && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
+        if (mesh.HasBoneIndices && mesh.meshAsset != null && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
         {
             meshEntity.AddComponent<SkinnedMeshInstance>();
 
@@ -1820,14 +1820,14 @@ public sealed partial class Mesh : IGuidAsset
 
                     var isSkinned = mesh.bones.Any(x => x.Length > 0);
 
-                    meshTransform.SetParent(isSkinned && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false ? baseTransform : nodeTransform);
+                    meshTransform.SetParent(isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned) ? baseTransform : nodeTransform);
 
                     var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{index}", Platform.IsEditor);
                     var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList();
 
                     if (outMesh != null)
                     {
-                        if (isSkinned && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
+                        if (isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
                         {
                             var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 
@@ -1866,7 +1866,7 @@ public sealed partial class Mesh : IGuidAsset
 
                 if (outMesh != null)
                 {
-                    if (isSkinned && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
+                    if (isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
                     {
                         var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 

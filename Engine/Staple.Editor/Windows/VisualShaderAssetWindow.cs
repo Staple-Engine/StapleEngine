@@ -47,7 +47,7 @@ internal class VisualShaderAssetWindow : EditorWindow, INodeUIObserver
 
             foreach(var p in asset.parameters)
             {
-                if(p.varying == false)
+                if(!p.varying)
                 {
                     p.name = EditorGUI.TextField("", $"VisualShaderAssetWindow.ParameterName{p.GetHashCode()}", p.name);
 

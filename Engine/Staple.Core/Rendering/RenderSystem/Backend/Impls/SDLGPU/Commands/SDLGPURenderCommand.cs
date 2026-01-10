@@ -31,11 +31,11 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
         SDLGPURendererBackend.BufferResource indexBuffer = null;
 
         if ((staticMeshEntries == null &&
-            (backend.TryGetVertexBuffer(vertex.handle, out vertexBuffer) == false ||
-            backend.TryGetIndexBuffer(index.handle, out indexBuffer) == false)) ||
+            (!backend.TryGetVertexBuffer(vertex.handle, out vertexBuffer) ||
+            !backend.TryGetIndexBuffer(index.handle, out indexBuffer))) ||
             (staticMeshEntries != null && SDLGPURendererBackend.staticMeshVertexBuffers[0] == nint.Zero) ||
-            backend.TryGetTextureSamplers(vertexTextures, fragmentTextures, state.shaderInstance,
-                out var vertexSamplers, out var fragmentSamplers) == false)
+            !backend.TryGetTextureSamplers(vertexTextures, fragmentTextures, state.shaderInstance,
+                out var vertexSamplers, out var fragmentSamplers))
         {
             return;
         }
@@ -68,8 +68,8 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
 
                 if (binding.buffer.Disposed ||
                     binding.buffer is not SDLGPUVertexBuffer v ||
-                    backend.TryGetVertexBuffer(v.handle, out var resource) == false ||
-                    resource.used == false ||
+                    !backend.TryGetVertexBuffer(v.handle, out var resource) ||
+                    !resource.used ||
                     resource.buffer == nint.Zero)
                 {
                     return;
@@ -85,8 +85,8 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
 
                 if (binding.buffer.Disposed ||
                     binding.buffer is not SDLGPUVertexBuffer v ||
-                    backend.TryGetVertexBuffer(v.handle, out var resource) == false ||
-                    resource.used == false ||
+                    !backend.TryGetVertexBuffer(v.handle, out var resource) ||
+                    !resource.used ||
                     resource.buffer == nint.Zero)
                 {
                     return;

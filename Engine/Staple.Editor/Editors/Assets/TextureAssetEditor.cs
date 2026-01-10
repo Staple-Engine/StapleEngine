@@ -68,7 +68,7 @@ internal class TextureAssetEditor : AssetEditor
             case nameof(TextureMetadata.padding):
             case nameof(TextureMetadata.trimDuplicates):
 
-                return metadata.shouldPack == false;
+                return !metadata.shouldPack;
 
             case nameof(TextureMetadata.border):
 
@@ -107,7 +107,7 @@ internal class TextureAssetEditor : AssetEditor
                             var platform = platformTypes[tabIndex];
                             var overrides = metadata.overrides;
 
-                            if (overrides.TryGetValue(platform, out var item) == false)
+                            if (!overrides.TryGetValue(platform, out var item))
                             {
                                 item = new();
 
@@ -116,7 +116,7 @@ internal class TextureAssetEditor : AssetEditor
 
                             item.shouldOverride = EditorGUI.Toggle("Override", $"TextureMetadataOverride{tabIndex}Override", item.shouldOverride);
 
-                            EditorGUI.Disabled(item.shouldOverride == false, () =>
+                            EditorGUI.Disabled(!item.shouldOverride, () =>
                             {
                                 var format = item.shouldOverride ? item.format : metadata.format;
 
@@ -170,7 +170,7 @@ internal class TextureAssetEditor : AssetEditor
         var metadata = (TextureMetadata)target;
         var originalMetadata = (TextureMetadata)original;
 
-        if(initialized == false)
+        if(!initialized)
         {
             initialized = true;
 
@@ -242,7 +242,7 @@ internal class TextureAssetEditor : AssetEditor
 
                     foreach (var sprite in sprites)
                     {
-                        if (isOriginal == false && sprite.rotation != TextureSpriteRotation.None)
+                        if (!isOriginal && sprite.rotation != TextureSpriteRotation.None)
                         {
                             continue;
                         }
@@ -315,8 +315,8 @@ internal class TextureAssetEditor : AssetEditor
                 }
             }
 
-            if (previewTexture != null && previewTexture.Disposed == false &&
-                originalTexture != null && originalTexture.Disposed == false)
+            if (previewTexture != null && !previewTexture.Disposed &&
+                originalTexture != null && !originalTexture.Disposed)
             {
                 EditorGUI.TabBar(["Preview", "Processed"], "TextureMetadataPreview", (tabIndex) =>
                 {

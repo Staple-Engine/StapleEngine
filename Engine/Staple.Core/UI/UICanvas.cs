@@ -38,7 +38,7 @@ public class UICanvas : CallbackComponent, IComponentDisposable
 
             lastLayout = layout;
 
-            if (string.IsNullOrEmpty(layout?.text) == false)
+            if (!string.IsNullOrEmpty(layout?.text))
             {
                 manager.LoadLayouts(layout.text);
             }

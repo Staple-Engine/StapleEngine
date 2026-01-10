@@ -104,9 +104,9 @@ public static partial class ShaderParser
 
             var blendMatch = blendRegex.Match(source);
 
-            if (blendMatch.Success == false ||
-                Enum.TryParse<BlendMode>(blendMatch.Groups[1].Value, true, out var from) == false ||
-                Enum.TryParse<BlendMode>(blendMatch.Groups[2].Value, true, out var to) == false)
+            if (!blendMatch.Success ||
+                !Enum.TryParse<BlendMode>(blendMatch.Groups[1].Value, true, out var from) ||
+                !Enum.TryParse<BlendMode>(blendMatch.Groups[2].Value, true, out var to))
             {
                 blendMode = default;
             }
@@ -145,12 +145,12 @@ public static partial class ShaderParser
                 var attribute = match.Groups[1].Value.Trim();
                 var variant = match.Groups[2].Value.Trim();
 
-                if(string.IsNullOrEmpty(attribute) == false)
+                if(!string.IsNullOrEmpty(attribute))
                 {
                     parameter.attribute = attribute[1..^1];
                 }
 
-                if(string.IsNullOrEmpty(variant) == false)
+                if(!string.IsNullOrEmpty(variant))
                 {
                     parameter.variant = variant["variant: ".Length..];
                 }
@@ -199,7 +199,7 @@ public static partial class ShaderParser
 
                 if(match.Success)
                 {
-                    if (Enum.TryParse<VertexAttribute>(match.Groups[3].Value, true, out var attribute) == false)
+                    if (!Enum.TryParse<VertexAttribute>(match.Groups[3].Value, true, out var attribute))
                     {
                         type = default;
                         parameters = default;
@@ -230,7 +230,7 @@ public static partial class ShaderParser
 
                         vertexInputs ??= [];
 
-                        if (vertexInputs.TryGetValue(target, out var list) == false)
+                        if (!vertexInputs.TryGetValue(target, out var list))
                         {
                             list = [];
 

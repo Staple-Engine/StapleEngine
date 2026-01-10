@@ -284,7 +284,7 @@ public sealed class SocketGameServer : IGameServer
                     continue;
                 }
 
-                if(SocketIsConnected(client.connection) == false)
+                if(!SocketIsConnected(client.connection))
                 {
                     DisconnectPlayer(client.playerID);
 
@@ -300,7 +300,7 @@ public sealed class SocketGameServer : IGameServer
 
                 if (message != null)
                 {
-                    if(pendingMessages.TryGetValue(client.playerID, out var messages) == false)
+                    if(!pendingMessages.TryGetValue(client.playerID, out var messages))
                     {
                         messages = [];
 
@@ -404,7 +404,7 @@ public sealed class SocketGameServer : IGameServer
     {
         try
         {
-            return (socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0) == false;
+            return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
         }
         catch (Exception)
         {

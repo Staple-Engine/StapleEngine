@@ -420,7 +420,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         lock (renderWindow.renderLock)
         {
-            renderWindow.shouldRender = renderWindow.window.Unavailable == false && renderWindow.window.IsFocused;
+            renderWindow.shouldRender = !renderWindow.window.Unavailable && renderWindow.window.IsFocused;
         }
 
         if (renderWindow.window.Unavailable)
@@ -430,7 +430,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         var size = renderWindow.window.Size;
 
-        if ((size.X != renderWindow.width || size.Y != renderWindow.height) && renderWindow.window.ShouldClose == false)
+        if ((size.X != renderWindow.width || size.Y != renderWindow.height) && !renderWindow.window.ShouldClose)
         {
             renderWindow.width = size.X;
             renderWindow.height = size.Y;
@@ -458,7 +458,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
             {
             }
 
-            if (renderWindow.hasFocus == false)
+            if (!renderWindow.hasFocus)
             {
                 return;
             }
@@ -682,7 +682,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
         foreach(var file in packages)
         {
-            if (ResourceManager.instance.LoadPak(file) == false)
+            if (!ResourceManager.instance.LoadPak(file))
             {
                 LogError("Failed to load player resources");
 
@@ -698,7 +698,7 @@ public partial class StapleActivity : Activity, ISurfaceHolderCallback, ISurface
 
             var header = MessagePackSerializer.Deserialize<AppSettingsHeader>(stream);
 
-            if (header == null || header.header.SequenceEqual(AppSettingsHeader.ValidHeader) == false ||
+            if (header == null || !header.header.SequenceEqual(AppSettingsHeader.ValidHeader) ||
                 header.version != AppSettingsHeader.ValidVersion)
             {
                 throw new Exception("Invalid app settings header");

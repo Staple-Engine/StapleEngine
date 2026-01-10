@@ -7,8 +7,8 @@ internal class SDLGPUDestroyIndexBufferCommand(ResourceHandle<IndexBuffer> handl
     public void Update(IRendererBackend rendererBackend)
     {
         if (rendererBackend is not SDLGPURendererBackend backend ||
-            handle.IsValid == false ||
-            backend.TryGetIndexBuffer(handle, out var resource) == false)
+            !handle.IsValid ||
+            !backend.TryGetIndexBuffer(handle, out var resource))
         {
             return;
         }

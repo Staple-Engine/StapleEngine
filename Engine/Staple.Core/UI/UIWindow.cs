@@ -101,7 +101,7 @@ public class UIWindow(UIManager manager, string ID) : UIPanel(manager, ID)
 
         var position = parentPosition + Position;
 
-        if(Input.GetMouseButton(MouseButton.Left) == false)
+        if(!Input.GetMouseButton(MouseButton.Left))
         {
             dragging = false;
         }
