@@ -516,8 +516,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     internal static int[] staticMeshVertexBuffersLength = new int[18];
     internal static int[] staticMeshVertexBuffersElementSize = new int[18];
     internal static int staticMeshIndexBufferLength = 0;
+    internal static nint entityTransformsBuffer = nint.Zero;
+    internal static int entityTransformsBufferLength = 0;
 
-    private bool iteratingCommands = false;
+    private bool iteratingCommands;
     private int commandIndex;
     #endregion
 
@@ -657,7 +659,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             {
                 RendererType.Metal => "metal",
                 RendererType.Direct3D12 => "direct3d12",
-                RendererType.Vulkan => "vulkan",
                 _ => "vulkan",
             });
 
@@ -671,16 +672,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return false;
         }
 
-        if(!DepthStencilFormat.HasValue)
-        {
-            SDL.DestroyGPUDevice(device);
-
-            device = nint.Zero;
-
-            return false;
-        }
-
-        if(!SDL.ClaimWindowForGPUDevice(device, w.window))
+        if(!DepthStencilFormat.HasValue || !SDL.ClaimWindowForGPUDevice(device, w.window))
         {
             SDL.DestroyGPUDevice(device);
 
@@ -881,6 +873,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         UpdateDepthTextureIfNeeded(false);
 
         frameAllocator.EnsurePin();
+
+        UpdateEntityTransformBuffer();
 
         StaticMeshData.Update();
 

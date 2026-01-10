@@ -415,12 +415,6 @@ internal class SDL3RenderWindow : IRenderWindow
                     AppEventQueue.instance.Add(AppEvent.MoveWindow(new Vector2Int(winX, winY)));
 
                     break;
-                
-                case SDL.EventType.WindowResized:
-                    
-                    AppEventQueue.instance.Add(AppEvent.ResizeWindow());
-
-                    break;
 
                 case SDL.EventType.KeyDown:
                 case SDL.EventType.KeyUp:

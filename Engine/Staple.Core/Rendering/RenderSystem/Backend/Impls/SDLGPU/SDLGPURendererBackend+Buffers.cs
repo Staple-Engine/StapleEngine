@@ -1,5 +1,7 @@
 ﻿using SDL3;
 using System;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -245,6 +247,156 @@ internal partial class SDLGPURendererBackend
         AddCommand(new SDLGPUDestroyIndexBufferCommand(buffer));
     }
 
+    private void UpdateEntityTransformBuffer()
+    {
+        var elementCount = RenderSystem.Instance.entityTransforms.Length;
+
+        var targetLength = elementCount * Marshal.SizeOf<Matrix4x4>();
+
+        if (entityTransformsBuffer != nint.Zero &&
+            entityTransformsBufferLength >= targetLength &&
+            RenderSystem.Instance.changedEntityTransformRanges.Count == 0)
+        {
+            return;
+        }
+
+        if (entityTransformsBuffer == nint.Zero || entityTransformsBufferLength != targetLength)
+        {
+            entityTransformsBufferLength = targetLength;
+
+            if (entityTransformsBuffer != nint.Zero)
+            {
+                SDL.ReleaseGPUBuffer(device, entityTransformsBuffer);
+
+                entityTransformsBuffer = nint.Zero;
+            }
+
+            var createInfo = new SDL.GPUBufferCreateInfo()
+            {
+                Size = (uint)targetLength,
+                Usage = SDL.GPUBufferUsageFlags.Vertex | SDL.GPUBufferUsageFlags.GraphicsStorageRead,
+            };
+
+            entityTransformsBuffer = SDL.CreateGPUBuffer(device, in createInfo);
+
+            if (entityTransformsBuffer == nint.Zero)
+            {
+                return;
+            }
+
+            var transferBuffer = GetTransferBuffer(false, targetLength);
+
+            if (transferBuffer == nint.Zero)
+            {
+                SDL.ReleaseGPUBuffer(device, entityTransformsBuffer);
+
+                entityTransformsBuffer = nint.Zero;
+
+                return;
+            }
+
+            if (renderPass != nint.Zero)
+            {
+                FinishPasses();
+            }
+
+            if (copyPass == nint.Zero)
+            {
+                copyPass = SDL.BeginGPUCopyPass(commandBuffer);
+            }
+
+            if (copyPass == nint.Zero)
+            {
+                return;
+            }
+
+            var mapData = SDL.MapGPUTransferBuffer(device, transferBuffer, true);
+
+            unsafe
+            {
+                var from = RenderSystem.Instance.entityTransforms.AsSpan();
+                var to = new Span<Matrix4x4>((void*)mapData, elementCount);
+
+                from.CopyTo(to);
+            }
+
+            SDL.UnmapGPUTransferBuffer(device, transferBuffer);
+
+            var location = new SDL.GPUTransferBufferLocation()
+            {
+                TransferBuffer = transferBuffer,
+                Offset = 0,
+            };
+
+            var region = new SDL.GPUBufferRegion()
+            {
+                Buffer = entityTransformsBuffer,
+                Size = (uint)targetLength,
+            };
+
+            SDL.UploadToGPUBuffer(copyPass, in location, in region, false);
+        }
+        else
+        {
+            if (renderPass != nint.Zero)
+            {
+                FinishPasses();
+            }
+
+            if (copyPass == nint.Zero)
+            {
+                copyPass = SDL.BeginGPUCopyPass(commandBuffer);
+            }
+
+            if (copyPass == nint.Zero)
+            {
+                return;
+            }
+
+            foreach (var (start, length) in RenderSystem.Instance.changedEntityTransformRanges)
+            {
+                targetLength = length * Marshal.SizeOf<Matrix4x4>();
+                
+                var transferBuffer = GetTransferBuffer(false, targetLength);
+
+                if (transferBuffer == nint.Zero)
+                {
+                    SDL.ReleaseGPUBuffer(device, entityTransformsBuffer);
+
+                    entityTransformsBuffer = nint.Zero;
+
+                    return;
+                }
+
+                var mapData = SDL.MapGPUTransferBuffer(device, transferBuffer, true);
+
+                unsafe
+                {
+                    var from = RenderSystem.Instance.entityTransforms.AsSpan().Slice(start, length);
+                    var to = new Span<Matrix4x4>((void*)mapData, length);
+
+                    from.CopyTo(to);
+                }
+
+                SDL.UnmapGPUTransferBuffer(device, transferBuffer);
+
+                var location = new SDL.GPUTransferBufferLocation()
+                {
+                    TransferBuffer = transferBuffer,
+                    Offset = (uint)(start * Marshal.SizeOf<Matrix4x4>()),
+                };
+
+                var region = new SDL.GPUBufferRegion()
+                {
+                    Buffer = entityTransformsBuffer,
+                    Size = (uint)targetLength,
+                };
+
+                SDL.UploadToGPUBuffer(copyPass, in location, in region, false);
+            }
+        }
+    }
+
     public void UpdateStaticMeshVertexBuffer<T>(BufferAttributeSource<T, VertexBuffer> buffer) where T : unmanaged
     {
         if (renderPass != nint.Zero)
@@ -253,7 +405,6 @@ internal partial class SDLGPURendererBackend
         }
 
         var index = buffer.index;
-        var transferBuffer = nint.Zero;
         var targetLength = buffer.allocator.buffer.Length * buffer.allocator.elementSize;
 
         ref var vertexBuffer = ref staticMeshVertexBuffers[index];
@@ -270,12 +421,10 @@ internal partial class SDLGPURendererBackend
                 vertexBuffer = nint.Zero;
             }
 
-            var usageFlags = SDL.GPUBufferUsageFlags.Vertex;
-
             var createInfo = new SDL.GPUBufferCreateInfo()
             {
                 Size = (uint)vertexBufferLength,
-                Usage = usageFlags,
+                Usage = SDL.GPUBufferUsageFlags.Vertex,
             };
 
             vertexBuffer = SDL.CreateGPUBuffer(device, in createInfo);
@@ -286,7 +435,7 @@ internal partial class SDLGPURendererBackend
             }
         }
 
-        transferBuffer = GetTransferBuffer(false, vertexBufferLength);
+        var transferBuffer = GetTransferBuffer(false, vertexBufferLength);
 
         if (transferBuffer == nint.Zero)
         {
@@ -348,7 +497,6 @@ internal partial class SDLGPURendererBackend
             FinishPasses();
         }
 
-        var transferBuffer = nint.Zero;
         var targetLength = buffer.allocator.buffer.Length * buffer.allocator.elementSize;
 
         ref var indexBuffer = ref staticMeshIndexBuffer;
@@ -365,12 +513,10 @@ internal partial class SDLGPURendererBackend
                 indexBuffer = nint.Zero;
             }
 
-            var usageFlags = SDL.GPUBufferUsageFlags.Index;
-
             var createInfo = new SDL.GPUBufferCreateInfo()
             {
                 Size = (uint)bufferLength,
-                Usage = usageFlags,
+                Usage = SDL.GPUBufferUsageFlags.Index,
             };
 
             indexBuffer = SDL.CreateGPUBuffer(device, in createInfo);
@@ -381,7 +527,7 @@ internal partial class SDLGPURendererBackend
             }
         }
 
-        transferBuffer = GetTransferBuffer(false, bufferLength);
+        var transferBuffer = GetTransferBuffer(false, bufferLength);
 
         if (transferBuffer == nint.Zero)
         {

@@ -76,12 +76,12 @@ public sealed partial class RenderSystem
     /// <summary>
     /// The entity query for every entity with a transform
     /// </summary>
-    private readonly SceneQuery<Transform> entityQuery = new();
+    internal readonly SceneQuery<Transform> entityQuery = new();
 
     /// <summary>
     /// All transforms of each entity
     /// </summary>
-    private Matrix4x4[] entityTransforms = new Matrix4x4[1024];
+    internal Matrix4x4[] entityTransforms = new Matrix4x4[1024];
 
     /// <summary>
     /// Tracker for each entity's transform

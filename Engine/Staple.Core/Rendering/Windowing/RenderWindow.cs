@@ -621,7 +621,6 @@ internal class RenderWindow
 
                     break;
 
-                case AppEventType.ResizeWindow:
                 case AppEventType.MaximizeWindow:
 
                     RenderSystem.Backend.UpdateViewport(width, height);
