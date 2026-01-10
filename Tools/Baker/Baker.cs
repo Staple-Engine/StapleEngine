@@ -19,10 +19,10 @@ static partial class Program
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return "shadercross.exe";
+                return "bin/shadercross.exe";
             }
 
-            return "shadercross";
+            return "bin/shadercross";
         }
     }
 

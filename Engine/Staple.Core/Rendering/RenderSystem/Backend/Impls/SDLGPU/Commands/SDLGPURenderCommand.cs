@@ -3,17 +3,15 @@
 namespace Staple.Internal;
 
 internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] vertexTextures, Texture[] fragmentTextures,
-    SDLGPURendererBackend.StapleShaderUniform[] vertexUniformData, SDLGPURendererBackend.StapleShaderUniform[] fragmentUniformData,
-    VertexAttribute[] attributes, SDLGPUShaderProgram program) : IRenderCommand
+    StapleShaderUniform[] vertexUniformData, StapleShaderUniform[] fragmentUniformData, VertexAttribute[] attributes) : IRenderCommand
 {
     public RenderState state = state.Clone();
     public nint pipeline = pipeline;
     public VertexAttribute[] vertexAttributes = attributes;
     public Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
     public Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
-    public SDLGPURendererBackend.StapleShaderUniform[] vertexUniformData = vertexUniformData;
-    public SDLGPURendererBackend.StapleShaderUniform[] fragmentUniformData = fragmentUniformData;
-    public SDLGPUShaderProgram program = program;
+    public StapleShaderUniform[] vertexUniformData = vertexUniformData;
+    public StapleShaderUniform[] fragmentUniformData = fragmentUniformData;
 
     internal static SDL.GPUBufferBinding[] vertexBinding = new SDL.GPUBufferBinding[1];
 
@@ -201,7 +199,7 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
         {
             var uniform = vertexUniformData[i];
 
-            var target = backend.frameAllocator.pinAddress + uniform.position;
+            var target = backend.frameAllocator.Get(uniform.position);
 
             SDL.PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }
@@ -210,7 +208,7 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
         {
             var uniform = fragmentUniformData[i];
 
-            var target = backend.frameAllocator.pinAddress + uniform.position;
+            var target = backend.frameAllocator.Get(uniform.position);
 
             SDL.PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }

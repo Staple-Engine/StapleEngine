@@ -3,17 +3,15 @@
 namespace Staple.Internal;
 
 internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline, Texture[] vertexTextures, Texture[] fragmentTextures,
-    SDLGPURendererBackend.StapleShaderUniform[] vertexUniformData, SDLGPURendererBackend.StapleShaderUniform[] fragmentUniformData,
-    SDLGPUShaderProgram program, SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
+    StapleShaderUniform[] vertexUniformData, StapleShaderUniform[] fragmentUniformData, SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
 {
     public RenderState state = state.Clone();
     public nint pipeline = pipeline;
     public SDLGPURendererBackend.TransientEntry entry = entry;
     public Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
     public Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
-    public SDLGPURendererBackend.StapleShaderUniform[] vertexUniformData = vertexUniformData;
-    public SDLGPURendererBackend.StapleShaderUniform[] fragmentUniformData = fragmentUniformData;
-    public SDLGPUShaderProgram program = program;
+    public StapleShaderUniform[] vertexUniformData = vertexUniformData;
+    public StapleShaderUniform[] fragmentUniformData = fragmentUniformData;
 
     public void Update(IRendererBackend rendererBackend)
     {
@@ -160,7 +158,7 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
         {
             var uniform = vertexUniformData[i];
 
-            var target = backend.frameAllocator.pinAddress + uniform.position;
+            var target = backend.frameAllocator.Get(uniform.position);
 
             SDL.PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }
@@ -169,7 +167,7 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
         {
             var uniform = fragmentUniformData[i];
 
-            var target = backend.frameAllocator.pinAddress + uniform.position;
+            var target = backend.frameAllocator.Get(uniform.position);
 
             SDL.PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }

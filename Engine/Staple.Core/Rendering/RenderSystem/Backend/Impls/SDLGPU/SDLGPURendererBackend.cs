@@ -394,9 +394,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     {
         public byte[] buffer = new byte[1024];
 
-        public GCHandle pinHandle;
+        private GCHandle pinHandle;
 
-        public nint pinAddress;
+        private nint pinAddress;
 
         internal int position;
 
@@ -437,15 +437,28 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         public void EnsurePin()
         {
-            if(pinHandle.IsAllocated == false)
+            if(pinHandle.IsAllocated)
             {
-                pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+                return;
             }
+
+            pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+            pinAddress = pinHandle.AddrOfPinnedObject();
         }
 
         public void Clear()
         {
             position = 0;
+        }
+
+        public nint Get(int position)
+        {
+            if (pinAddress == nint.Zero)
+            {
+                throw new InvalidOperationException("Memory Allocator was not pinned, ensure you call EnsurePin() before getting an address!");
+            }
+
+            return pinAddress + position;
         }
     }
 
@@ -841,11 +854,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
 
         frameAllocator.Clear();
-
-        foreach(var pair in staticMeshRenderQueues)
-        {
-            pair.Value.items.Clear();
-        }
     }
 
     public void EndFrame()
@@ -2020,58 +2028,13 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         CheckQueuedPipeline(pipeline);
 
-        if (state.staticMeshEntries != null && staticMeshRenderQueues.TryGetValue(pipeline, out var staticQueue))
-        {
-            if(staticQueue.items.Count == 0)
-            {
-                GetUniformData(in state, shader, ref staticQueue.vertexUniformData, ref staticQueue.fragmentUniformData);
-            }
-
-            staticQueue.items.Add(new()
-            {
-                entries = state.staticMeshEntries,
-            });
-
-            if(staticQueue.items.Count > staticQueue.transforms.Length)
-            {
-                Array.Resize(ref staticQueue.transforms, staticQueue.transforms.Length * 2);
-            }
-
-            staticQueue.transforms[staticQueue.items.Count - 1] = state.world;
-
-            return;
-        }
-
         StapleShaderUniform[] vertexUniformData = null;
         StapleShaderUniform[] fragmentUniformData = null;
 
         GetUniformData(in state, shader, ref vertexUniformData, ref fragmentUniformData);
 
-        if (state.staticMeshEntries != null)
-        {
-            staticQueue = new()
-            {
-                state = state.Clone(),
-                vertexUniformData = vertexUniformData,
-                fragmentUniformData = fragmentUniformData,
-            };
-
-            staticQueue.items.Add(new()
-            {
-                entries = state.staticMeshEntries,
-            });
-
-            staticQueue.transforms = new Matrix4x4[1024];
-
-            staticQueue.transforms[0] = state.world;
-
-            staticMeshRenderQueues.Add(pipeline, staticQueue);
-
-            return;
-        }
-
         AddCommand(new SDLGPURenderCommand(state, pipeline, state.vertexTextures, state.fragmentTextures,
-            vertexUniformData, fragmentUniformData, state.shaderInstance.attributes, shader));
+            vertexUniformData, fragmentUniformData, state.shaderInstance.attributes));
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
@@ -2252,7 +2215,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
 
         AddCommand(new SDLGPURenderTransientCommand(state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
-            fragmentUniformData, shader, entry));
+            fragmentUniformData, entry));
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state)
@@ -2433,6 +2396,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
 
         AddCommand(new SDLGPURenderTransientUIntCommand(state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
-            fragmentUniformData, shader, entry));
+            fragmentUniformData, entry));
     }
 }

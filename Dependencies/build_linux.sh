@@ -34,8 +34,8 @@ make config=debug -j $(nproc)
 
 cd ../dotnet
 
-dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net9.0
-dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net9.0
+dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net10.0
+dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net10.0
 
 cd ../../GENie
 
