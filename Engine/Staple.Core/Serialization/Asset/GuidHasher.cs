@@ -5,10 +5,9 @@
 /// </summary>
 public class GuidHasher
 {
-    private int guidHash;
     private string guid;
 
-    public int GuidHash => guidHash;
+    public int GuidHash { get; private set; }
 
     public string Guid
     {
@@ -18,7 +17,7 @@ public class GuidHasher
         {
             guid = value;
 
-            guidHash = guid?.GetHashCode() ?? 0;
+            GuidHash = guid?.GetHashCode() ?? 0;
         }
     }
 

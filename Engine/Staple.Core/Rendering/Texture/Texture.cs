@@ -19,9 +19,7 @@ public class Texture : IGuidAsset
 
     private readonly ITextureCreateMethod createMethod;
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     public bool Disposed => impl?.Disposed ?? true;
 

@@ -5,10 +5,7 @@ namespace Staple;
 
 public class FontAsset : IGuidAsset
 {
-
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     internal FontMetadata metadata;
 

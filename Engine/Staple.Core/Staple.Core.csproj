@@ -229,8 +229,6 @@
 		<Compile Include="Rendering\RenderSystem\Backend\BufferAttributeSource.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\RenderState.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderEntry.cs" />
-		<Compile Include="Rendering\RenderSystem\RenderQueue.cs" />
-		<Compile Include="Rendering\RenderSystem\RenderQueueItem.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderStats.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\RenderSystem\StapleShaderUniform.cs" />

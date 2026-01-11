@@ -33,9 +33,7 @@ public partial class ComputeShader : IGuidAsset
 
     private static readonly Regex uniformCountRegex = UniformCountRegex();
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     /// <summary>
     /// Whether this shader has been disposed

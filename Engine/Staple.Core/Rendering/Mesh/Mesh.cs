@@ -1007,9 +1007,7 @@ public sealed partial class Mesh : IGuidAsset
         }
     }
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     /// <summary>
     /// Loads a mesh from a guid

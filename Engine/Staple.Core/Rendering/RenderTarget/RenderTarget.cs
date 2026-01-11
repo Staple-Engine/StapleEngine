@@ -15,13 +15,11 @@ public sealed class RenderTarget(int width, int height, TextureFlags flags, List
     internal readonly TextureFlags flags = flags;
     internal readonly List<Texture> colorTextures = colorTextures ?? [];
 
-    private bool destroyed = false;
-
     public Texture DepthTexture { get; private set; } = depthTexture;
 
     public int ColorTextureCount => colorTextures.Count;
 
-    public bool Disposed => destroyed;
+    public bool Disposed { get; private set; } = false;
 
     ~RenderTarget()
     {
@@ -33,12 +31,12 @@ public sealed class RenderTarget(int width, int height, TextureFlags flags, List
     /// </summary>
     public void Destroy()
     {
-        if (destroyed)
+        if (Disposed)
         {
             return;
         }
 
-        destroyed = true;
+        Disposed = true;
 
         foreach(var texture in colorTextures)
         {
@@ -59,7 +57,7 @@ public sealed class RenderTarget(int width, int height, TextureFlags flags, List
     /// <returns>The texture or null</returns>
     public Texture GetColorTexture(int index = 0)
     {
-        if(destroyed)
+        if(Disposed)
         {
             return null;
         }

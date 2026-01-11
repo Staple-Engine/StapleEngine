@@ -94,9 +94,7 @@ public partial class Shader : IGuidAsset
 
     private static readonly Regex uniformCountRegex = UniformCountRegex();
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     internal bool IsTransparent
     {

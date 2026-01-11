@@ -23,7 +23,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     private class InstanceData
     {
-        public ExpandableContainer<InstanceInfo> instanceInfos = new();
+        public readonly ExpandableContainer<InstanceInfo> instanceInfos = new();
     }
 
     private readonly Dictionary<int, InstanceData> instanceCache = [];
@@ -99,7 +99,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         material.DisableShaderKeyword(Shader.InstancingKeyword);
 
-        material.ApplyProperties(Material.ApplyMode.All, ref renderState);
+        material.ApplyProperties(ref renderState);
 
         var lightSystem = RenderSystem.Instance.Get<LightSystem>();
 
@@ -128,20 +128,22 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             renderer.mesh.UploadMeshData();
 
-            if (transformVersions.ShouldUpdateComponent(entry.entity, in entry.transform))
+            if (!transformVersions.ShouldUpdateComponent(entry.entity, in entry.transform))
             {
-                var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.LocalRotation));
-
-                var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.Rotation));
-
-                renderer.localBounds = new(entry.transform.LocalPosition +
-                    renderer.mesh.bounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
-                    localSize * entry.transform.LocalScale);
-
-                renderer.bounds = new(entry.transform.Position +
-                    renderer.mesh.bounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
-                    globalSize * entry.transform.Scale);
+                continue;
             }
+            
+            var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.LocalRotation));
+
+            var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.Rotation));
+
+            renderer.localBounds = new(entry.transform.LocalPosition +
+                renderer.mesh.bounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
+                localSize * entry.transform.LocalScale);
+
+            renderer.bounds = new(entry.transform.Position +
+                renderer.mesh.bounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
+                globalSize * entry.transform.Scale);
         }
     }
 
@@ -313,7 +315,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            material.ApplyProperties(Material.ApplyMode.All, ref renderState);
+            material.ApplyProperties(ref renderState);
 
             lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
                 contents.instanceInfos.Contents[0].lighting);

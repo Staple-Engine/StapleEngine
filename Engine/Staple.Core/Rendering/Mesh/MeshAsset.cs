@@ -646,9 +646,7 @@ public sealed class MeshAsset : IGuidAsset
     /// </summary>
     public int BoneCount { get; internal set; }
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     /// <summary>
     /// Attempts to get an animation by name

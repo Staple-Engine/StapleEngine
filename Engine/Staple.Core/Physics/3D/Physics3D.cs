@@ -10,17 +10,7 @@ namespace Staple.Internal;
 /// </summary>
 public sealed class Physics3D : ISubsystem
 {
-    private static Physics3D instance;
-
-    public static Physics3D Instance
-    {
-        get => instance;
-
-        internal set
-        {
-            instance = value;
-        }
-    }
+    public static Physics3D Instance { get; internal set; }
 
     public const int PhysicsPickLayer = 31;
 

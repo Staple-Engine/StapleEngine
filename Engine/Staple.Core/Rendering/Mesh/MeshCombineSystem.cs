@@ -358,7 +358,7 @@ public sealed class MeshCombineSystem : IRenderSystem
                         continue;
                     }
 
-                    material.ApplyProperties(Material.ApplyMode.All, ref renderState);
+                    material.ApplyProperties(ref renderState);
                 }
 
                 SetupMaterial();

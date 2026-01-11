@@ -9,9 +9,7 @@ public sealed class Prefab : IGuidAsset
 {
     internal SerializablePrefab data;
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     public static object Create(string guid)
     {

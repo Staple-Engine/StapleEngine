@@ -22,14 +22,7 @@ internal class BufferAttributeSource<T, BufferType>(VertexAttribute attribute, i
 
     public readonly int index = index;
 
-    private bool changed = false;
-
-    public bool Changed
-    {
-        get => changed;
-
-        set => changed = value;
-    }
+    public bool Changed { get; set; } = false;
 
     public FreeformAllocator<T>.Entry Allocate(int elementCount)
     {

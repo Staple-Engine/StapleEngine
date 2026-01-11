@@ -52,26 +52,22 @@ internal class SDL3RenderWindow : IRenderWindow
     private bool movedWindow = false;
     private DateTime movedWindowTimer;
     private Vector2Int previousWindowPosition;
-    private bool closedWindow = false;
-    private bool windowFocused = true;
-    private bool windowMaximized = false;
     private nint defaultCursor = nint.Zero;
-    private int refreshRate = 60;
     private uint[] displays = [];
 
     private nint metalView = nint.Zero;
 
     public bool ContextLost { get; set; } = false;
 
-    public bool IsFocused => windowFocused;
+    public bool IsFocused { get; private set; } = true;
 
-    public bool ShouldClose => closedWindow;
+    public bool ShouldClose { get; private set; } = false;
 
     public bool Unavailable => false;
 
-    public bool Maximized => windowMaximized;
+    public bool Maximized { get; private set; } = false;
 
-    public int RefreshRate => refreshRate;
+    public int RefreshRate { get; private set; } = 60;
 
     public string Title
     {
@@ -218,12 +214,12 @@ internal class SDL3RenderWindow : IRenderWindow
 
         if (mode != null)
         {
-            refreshRate = (int)mode.Value.RefreshRate;
+            RefreshRate = (int)mode.Value.RefreshRate;
         }
 
         if (maximized)
         {
-            windowMaximized = true;
+            Maximized = true;
         }
 
         defaultCursor = SDL.CreateSystemCursor(SDL.SystemCursor.Default);
@@ -382,29 +378,29 @@ internal class SDL3RenderWindow : IRenderWindow
             {
                 case SDL.EventType.WindowFocusGained:
 
-                    windowFocused = true;
+                    IsFocused = true;
 
                     break;
 
                 case SDL.EventType.WindowFocusLost:
 
-                    windowFocused = false;
+                    IsFocused = false;
 
                     break;
 
                 case SDL.EventType.WindowMaximized:
 
-                    windowMaximized = true;
+                    Maximized = true;
 
-                    AppEventQueue.instance.Add(AppEvent.Maximize(windowMaximized));
+                    AppEventQueue.instance.Add(AppEvent.Maximize(Maximized));
 
                     break;
 
                 case SDL.EventType.WindowRestored:
 
-                    windowMaximized = false;
+                    Maximized = false;
 
-                    AppEventQueue.instance.Add(AppEvent.Maximize(windowMaximized));
+                    AppEventQueue.instance.Add(AppEvent.Maximize(Maximized));
 
                     break;
 
@@ -570,7 +566,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
                 case SDL.EventType.Quit:
 
-                    closedWindow = true;
+                    ShouldClose = true;
 
                     break;
 

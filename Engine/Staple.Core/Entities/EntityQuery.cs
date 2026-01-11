@@ -39,45 +39,40 @@ public enum EntityQueryMode
 public sealed class EntityQuery<T> : ISceneQuery
     where T : IComponent
 {
-    private T[] contents = [];
-    private T content;
-    private (Entity, T)[] contentEntities = [];
-    private (Entity, T) contentEntity;
-
     private readonly EntityQueryMode queryMode;
     private readonly Entity target;
     private readonly bool getEntities;
 
-    public int Length => contents.Length;
+    public int Length => Contents.Length;
 
     /// <summary>
     /// Contained content. Only valid if we have a single element.
     /// </summary>
-    public T Content => content;
+    public T Content { get; private set; }
 
     /// <summary>
     /// Contained content. Only valid if we have a single element.
     /// </summary>
-    public T[] Contents => contents;
+    public T[] Contents { get; private set; } = [];
 
     /// <summary>
     /// The content with its entity, if available.
     /// </summary>
-    public (Entity, T) ContentEntity => contentEntity;
+    public (Entity, T) ContentEntity { get; private set; }
 
     /// <summary>
     /// The content with its entity, if available.
     /// </summary>
-    public (Entity, T)[] ContentEntities => contentEntities;
+    public (Entity, T)[] ContentEntities { get; private set; } = [];
 
-    public T this[int index] => contents[index];
+    public T this[int index] => Contents[index];
 
     /// <summary>
     /// Gets an entity and component at a specific index
     /// </summary>
     /// <param name="index">The index to get at</param>
     /// <returns>The entity and component as a tuple, if valid</returns>
-    public (Entity, T) ContentEntityAt(int index) => index >= 0 && index < contentEntities.Length ? contentEntities[index] : default;
+    public (Entity, T) ContentEntityAt(int index) => index >= 0 && index < ContentEntities.Length ? ContentEntities[index] : default;
 
     /// <summary>
     /// Creates an entity query for a specific entity.
@@ -101,20 +96,20 @@ public sealed class EntityQuery<T> : ISceneQuery
     {
         World.RemoveSceneQuery(this);
 
-        content = default;
-        contentEntity = default;
+        Content = default;
+        ContentEntity = default;
 
-        contents = [];
-        contentEntities = [];
+        Contents = [];
+        ContentEntities = [];
     }
 
     public void WorldChanged()
     {
-        content = default;
-        contentEntity = default;
+        Content = default;
+        ContentEntity = default;
 
-        contents = [];
-        contentEntities = [];
+        Contents = [];
+        ContentEntities = [];
 
         if (!target.IsValid)
         {
@@ -143,7 +138,7 @@ public sealed class EntityQuery<T> : ISceneQuery
             count++;
         }
 
-        contents = new T[count];
+        Contents = new T[count];
 
         for(int i = 0, counter = 0; i < items.Length; i++)
         {
@@ -152,27 +147,29 @@ public sealed class EntityQuery<T> : ISceneQuery
                 continue;
             }
 
-            contents[counter++] = (T)items[i];
+            Contents[counter++] = items[i];
         }
 
-        if(count == 1 && contents[0] != null)
+        if(count == 1 && Contents[0] != null)
         {
-            content = contents[0];
+            Content = Contents[0];
         }
 
-        if(getEntities)
+        if (!getEntities)
         {
-            contentEntities = new (Entity, T)[count];
+            return;
+        }
+        
+        ContentEntities = new (Entity, T)[count];
 
-            for(var i = 0; i < items.Length; i++)
-            {
-                contentEntities[i] = (World.Current.GetComponentEntity(contents[i]), contents[i]);
-            }
+        for(var i = 0; i < items.Length; i++)
+        {
+            ContentEntities[i] = (World.Current.GetComponentEntity(Contents[i]), Contents[i]);
+        }
 
-            if(count == 1 && contents[0] != null)
-            {
-                contentEntity = contentEntities[0];
-            }
+        if(count == 1 && Contents[0] != null)
+        {
+            ContentEntity = ContentEntities[0];
         }
     }
 }
@@ -187,45 +184,40 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
     where T : IComponent
     where T2 : IComponent
 {
-    private (T, T2)[] contents = [];
-    private (T, T2) content;
-    private (Entity, T, T2)[] contentEntities = [];
-    private (Entity, T, T2) contentEntity;
-
     private readonly EntityQueryMode queryMode;
     private readonly Entity target;
     private readonly bool getEntities;
 
-    public int Length => contents.Length;
+    public int Length => Contents.Length;
 
     /// <summary>
     /// Contained content. Only valid if we have a single element.
     /// </summary>
-    public (T, T2) Content => content;
+    public (T, T2) Content { get; private set; }
 
     /// <summary>
     /// Contained content. Only valid if we have a single element.
     /// </summary>
-    public (T, T2)[] Contents => contents;
+    public (T, T2)[] Contents { get; private set; } = [];
 
     /// <summary>
     /// The content with its entity, if available.
     /// </summary>
-    public (Entity, T, T2) ContentEntity => contentEntity;
+    public (Entity, T, T2) ContentEntity { get; private set; }
 
     /// <summary>
     /// The content with its entity, if available.
     /// </summary>
-    public (Entity, T, T2)[] ContentEntities => contentEntities;
+    public (Entity, T, T2)[] ContentEntities { get; private set; } = [];
 
-    public (T, T2) this[int index] => contents[index];
+    public (T, T2) this[int index] => Contents[index];
 
     /// <summary>
     /// Gets an entity and component at a specific index
     /// </summary>
     /// <param name="index">The index to get at</param>
     /// <returns>The entity and component as a tuple, if valid</returns>
-    public (Entity, T, T2) ContentEntityAt(int index) => index >= 0 && index < contentEntities.Length ? contentEntities[index] : default;
+    public (Entity, T, T2) ContentEntityAt(int index) => index >= 0 && index < ContentEntities.Length ? ContentEntities[index] : default;
 
     /// <summary>
     /// Creates an entity query for a specific entity.
@@ -249,20 +241,20 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
     {
         World.RemoveSceneQuery(this);
 
-        content = default;
-        contentEntity = default;
+        Content = default;
+        ContentEntity = default;
 
-        contents = [];
-        contentEntities = [];
+        Contents = [];
+        ContentEntities = [];
     }
 
     public void WorldChanged()
     {
-        content = default;
-        contentEntity = default;
+        Content = default;
+        ContentEntity = default;
 
-        contents = [];
-        contentEntities = [];
+        Contents = [];
+        ContentEntities = [];
 
         if (!target.IsValid)
         {
@@ -413,28 +405,30 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
                 break;
         }
 
-        contents = items.ToArray();
+        Contents = items.ToArray();
 
-        if (contents.Length == 1)
+        if (Contents.Length == 1)
         {
-            content = contents[0];
+            Content = Contents[0];
         }
 
-        if (getEntities)
+        if (!getEntities)
         {
-            contentEntities = new (Entity, T, T2)[items.Count];
+            return;
+        }
 
-            for (var i = 0; i < items.Count; i++)
-            {
-                var item = items[i];
+        ContentEntities = new (Entity, T, T2)[items.Count];
 
-                contentEntities[i] = (World.Current.GetComponentEntity(item.Item1), item.Item1, item.Item2);
-            }
+        for (var i = 0; i < items.Count; i++)
+        {
+            var item = items[i];
 
-            if (items.Count == 1)
-            {
-                contentEntity = contentEntities[0];
-            }
+            ContentEntities[i] = (World.Current.GetComponentEntity(item.Item1), item.Item1, item.Item2);
+        }
+
+        if (items.Count == 1)
+        {
+            ContentEntity = ContentEntities[0];
         }
     }
 }

@@ -39,12 +39,11 @@ namespace StbRectPackSharp
 	unsafe class Packer : IDisposable
 	{
 		private readonly stbrp_context _context;
-		private readonly List<PackerRectangle> _rectangles = new List<PackerRectangle>();
 
 		public int Width => _context.width;
 		public int Height => _context.height;
 
-		public List<PackerRectangle> PackRectangles => _rectangles;
+		public List<PackerRectangle> PackRectangles { get; } = new List<PackerRectangle>();
 
 
 		public Packer(int width = 256, int height = 256)
@@ -85,7 +84,7 @@ namespace StbRectPackSharp
 		{
 			var rect = new stbrp_rect
 			{
-				id = _rectangles.Count,
+				id = PackRectangles.Count,
 				w = width,
 				h = height
 			};
@@ -102,7 +101,7 @@ namespace StbRectPackSharp
 			}
 
 			var packRectangle = new PackerRectangle(new Rectangle(rect.x, rect.y, rect.w, rect.h), userData);
-			_rectangles.Add(packRectangle);
+			PackRectangles.Add(packRectangle);
 
 			return packRectangle;
 		}

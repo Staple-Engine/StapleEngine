@@ -12,9 +12,9 @@ namespace Staple.Internal;
 
 internal partial class SDLGPURendererBackend : IRendererBackend
 {
-    const uint VulkanVersionMajor = 1;
-    const uint VulkanVersionMinor = 2;
-    const uint VulkanVersionPatch = 0;
+    private const uint VulkanVersionMajor = 1;
+    private const uint VulkanVersionMinor = 2;
+    private const uint VulkanVersionPatch = 0;
 
     internal static string StapleRenderDataUniformName = "StapleRenderData";
     internal static string StapleFragmentDataUniformName = "StapleFragmentRenderData";
@@ -38,6 +38,20 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     internal struct StapleFragmentRenderData
     {
         public float time;
+    }
+
+    internal class RenderQueueItem
+    {
+        public BufferAttributeContainer.Entries staticMeshEntries;
+    }
+
+    internal class RenderQueue
+    {
+        public readonly List<RenderQueueItem> items = [];
+        public readonly Dictionary<int, byte[]> vertexUniformData = [];
+        public readonly Dictionary<int, byte[]> fragmentUniformData = [];
+
+        public RenderState renderState;
     }
 
     internal class BufferResource
@@ -461,21 +475,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             return pinAddress + position;
         }
     }
-
-    internal class RenderQueueItem
-    {
-        public BufferAttributeContainer.Entries staticMeshEntries;
-    }
-
-    internal class RenderQueue
-    {
-        public readonly List<RenderQueueItem> items = [];
-        public readonly List<Matrix4x4> transforms = [];
-        public RenderState state;
-        public StapleShaderUniform[] vertexUniformData;
-        public StapleShaderUniform[] fragmentUniformData;
-    }
-
     #endregion
 
     #region Fields
@@ -518,6 +517,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     internal static int staticMeshIndexBufferLength = 0;
     internal static nint entityTransformsBuffer = nint.Zero;
     internal static int entityTransformsBufferLength = 0;
+
+    private readonly Dictionary<int, List<RenderQueue>> staticOpaqueRenderQueue = [];
+    private readonly Dictionary<int, List<RenderQueue>> staticTransparentRenderQueue = [];
 
     private bool iteratingCommands;
     private int commandIndex;
@@ -761,68 +763,72 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     public void Destroy()
     {
-        if(device != nint.Zero)
+        if (device == nint.Zero)
         {
-            foreach(var pair in graphicsPipelines)
-            {
-                SDL.ReleaseGPUGraphicsPipeline(device, pair.Value);
-            }
-
-            graphicsPipelines.Clear();
-
-            foreach(var pair in textureSamplers)
-            {
-                SDL.ReleaseGPUSampler(device, pair.Value);
-            }
-
-            textureSamplers.Clear();
-
-            foreach(var resource in vertexBuffers)
-            {
-                ReleaseBufferResource(resource);
-            }
-
-            foreach (var resource in indexBuffers)
-            {
-                ReleaseBufferResource(resource);
-            }
-
-            foreach(var resource in textures)
-            {
-                ReleaseTextureResource(resource);
-            }
-
-            for(var i = 0; i < staticMeshVertexBuffers.Length; i++)
-            {
-                ref var buffer = ref staticMeshVertexBuffers[i];
-
-                if(buffer != nint.Zero)
-                {
-                    SDL.ReleaseGPUBuffer(device, buffer);
-
-                    buffer = nint.Zero;
-                }
-            }
-
-            if(staticMeshIndexBuffer != nint.Zero)
-            {
-                SDL.ReleaseGPUBuffer(device, staticMeshIndexBuffer);
-
-                staticMeshIndexBuffer = nint.Zero;
-            }
-
-            depthTexture?.Destroy();
-
-            depthTexture = null;
-
-            needsDepthTextureUpdate = true;
-
-            SDL.ReleaseWindowFromGPUDevice(device, window.window);
-
-            SDL.DestroyGPUDevice(device);
-
-            device = nint.Zero;
+            return;
         }
+        
+        foreach(var pair in graphicsPipelines)
+        {
+            SDL.ReleaseGPUGraphicsPipeline(device, pair.Value);
+        }
+
+        graphicsPipelines.Clear();
+
+        foreach(var pair in textureSamplers)
+        {
+            SDL.ReleaseGPUSampler(device, pair.Value);
+        }
+
+        textureSamplers.Clear();
+
+        foreach(var resource in vertexBuffers)
+        {
+            ReleaseBufferResource(resource);
+        }
+
+        foreach (var resource in indexBuffers)
+        {
+            ReleaseBufferResource(resource);
+        }
+
+        foreach(var resource in textures)
+        {
+            ReleaseTextureResource(resource);
+        }
+
+        for(var i = 0; i < staticMeshVertexBuffers.Length; i++)
+        {
+            ref var buffer = ref staticMeshVertexBuffers[i];
+
+            if (buffer == nint.Zero)
+            {
+                continue;
+            }
+            
+            SDL.ReleaseGPUBuffer(device, buffer);
+
+            buffer = nint.Zero;
+        }
+
+        if(staticMeshIndexBuffer != nint.Zero)
+        {
+            SDL.ReleaseGPUBuffer(device, staticMeshIndexBuffer);
+
+            staticMeshIndexBuffer = nint.Zero;
+        }
+
+        depthTexture?.Destroy();
+
+        depthTexture = null;
+
+        needsDepthTextureUpdate = true;
+
+        SDL.ReleaseWindowFromGPUDevice(device, window.window);
+
+        SDL.DestroyGPUDevice(device);
+
+        device = nint.Zero;
     }
 
     private void AddCommand(IRenderCommand command)
@@ -964,24 +970,28 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             commandBuffer = nint.Zero;
         }
 
-        if(currentRenderTarget != null)
+        if (currentRenderTarget == null)
         {
-            currentRenderTarget = null;
-
-            Screen.Width = window.Size.X;
-            Screen.Height = window.Size.Y;
+            return;
         }
+        
+        currentRenderTarget = null;
+
+        Screen.Width = window.Size.X;
+        Screen.Height = window.Size.Y;
     }
 
     private void CheckQueuedPipeline(nint newPipeline)
     {
-        if(lastQueuedGraphicsPipeline != newPipeline)
+        if (lastQueuedGraphicsPipeline == newPipeline)
         {
-            lastQueuedGraphicsPipeline = newPipeline;
-
-            Array.Clear(lastVertexShaderUniformHashes);
-            Array.Clear(lastFragmentShaderUniformHashes);
+            return;
         }
+        
+        lastQueuedGraphicsPipeline = newPipeline;
+
+        Array.Clear(lastVertexShaderUniformHashes);
+        Array.Clear(lastFragmentShaderUniformHashes);
     }
 
     private static ulong UniformDataHash(Span<byte> data)
@@ -1069,16 +1079,18 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             copyPass = nint.Zero;
         }
 
-        if(renderPass != nint.Zero)
+        if (renderPass == nint.Zero)
         {
-            SDL.EndGPURenderPass(renderPass);
-
-            renderPass = nint.Zero;
-            lastGraphicsPipeline = nint.Zero;
-            lastQueuedGraphicsPipeline = nint.Zero;
-            lastVertexBuffer = nint.Zero;
-            lastIndexBuffer = nint.Zero;
+            return;
         }
+        
+        SDL.EndGPURenderPass(renderPass);
+
+        renderPass = nint.Zero;
+        lastGraphicsPipeline = nint.Zero;
+        lastQueuedGraphicsPipeline = nint.Zero;
+        lastVertexBuffer = nint.Zero;
+        lastIndexBuffer = nint.Zero;
     }
 
     internal void ResumeRenderPass()
@@ -1518,30 +1530,28 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     {
                         foreach(var texture in state.renderTarget.colorTextures)
                         {
-                            if(texture.Disposed)
+                            if(texture.Disposed ||
+                                !TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget, out var textureFormat))
                             {
                                 continue;
                             }
-
-                            if(TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget, out var textureFormat))
+                            
+                            var colorTargetDescription = new SDL.GPUColorTargetDescription()
                             {
-                                var colorTargetDescription = new SDL.GPUColorTargetDescription()
+                                Format = textureFormat,
+                                BlendState = new()
                                 {
-                                    Format = textureFormat,
-                                    BlendState = new()
-                                    {
-                                        EnableBlend = (byte)(state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off ? 1 : 0),
-                                        ColorBlendOp = SDL.GPUBlendOp.Add,
-                                        AlphaBlendOp = SDL.GPUBlendOp.Add,
-                                        SrcColorBlendfactor = sourceBlend,
-                                        SrcAlphaBlendfactor = sourceBlend,
-                                        DstColorBlendfactor = destinationBlend,
-                                        DstAlphaBlendfactor = destinationBlend,
-                                    }
-                                };
+                                    EnableBlend = (byte)(state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off ? 1 : 0),
+                                    ColorBlendOp = SDL.GPUBlendOp.Add,
+                                    AlphaBlendOp = SDL.GPUBlendOp.Add,
+                                    SrcColorBlendfactor = sourceBlend,
+                                    SrcAlphaBlendfactor = sourceBlend,
+                                    DstColorBlendfactor = destinationBlend,
+                                    DstAlphaBlendfactor = destinationBlend,
+                                }
+                            };
 
-                                colorTargetDescriptions.Add(colorTargetDescription);
-                            }
+                            colorTargetDescriptions.Add(colorTargetDescription);
                         }
 
                         if(state.renderTarget.DepthTexture != null &&
@@ -1762,30 +1772,28 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     {
                         foreach (var texture in state.renderTarget.colorTextures)
                         {
-                            if (texture.Disposed)
+                            if (texture.Disposed ||
+                                !TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget, out var textureFormat))
                             {
                                 continue;
                             }
 
-                            if (TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget, out var textureFormat))
+                            var colorTargetDescription = new SDL.GPUColorTargetDescription()
                             {
-                                var colorTargetDescription = new SDL.GPUColorTargetDescription()
+                                Format = textureFormat,
+                                BlendState = new()
                                 {
-                                    Format = textureFormat,
-                                    BlendState = new()
-                                    {
-                                        EnableBlend = (byte)(state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off ? 1 : 0),
-                                        ColorBlendOp = SDL.GPUBlendOp.Add,
-                                        AlphaBlendOp = SDL.GPUBlendOp.Add,
-                                        SrcColorBlendfactor = sourceBlend,
-                                        SrcAlphaBlendfactor = sourceBlend,
-                                        DstColorBlendfactor = destinationBlend,
-                                        DstAlphaBlendfactor = destinationBlend,
-                                    }
-                                };
+                                    EnableBlend = (byte)(state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off ? 1 : 0),
+                                    ColorBlendOp = SDL.GPUBlendOp.Add,
+                                    AlphaBlendOp = SDL.GPUBlendOp.Add,
+                                    SrcColorBlendfactor = sourceBlend,
+                                    SrcAlphaBlendfactor = sourceBlend,
+                                    DstColorBlendfactor = destinationBlend,
+                                    DstAlphaBlendfactor = destinationBlend,
+                                }
+                            };
 
-                                colorTargetDescriptions.Add(colorTargetDescription);
-                            }
+                            colorTargetDescriptions.Add(colorTargetDescription);
                         }
 
                         if (state.renderTarget.DepthTexture != null &&
@@ -1916,7 +1924,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 {
                     fixed (void* target = frameAllocator.buffer)
                     {
-                        byte* p = (byte*)target;
+                        var p = (byte*)target;
 
                         p += position;
 
@@ -1924,7 +1932,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                ref StapleShaderUniform uniformEntry = ref vertexUniformData[counter++];
+                ref var uniformEntry = ref vertexUniformData[counter++];
 
                 uniformEntry.binding = (byte)pair.Key.binding;
                 uniformEntry.position = position;
@@ -1975,7 +1983,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 {
                     fixed (void* target = frameAllocator.buffer)
                     {
-                        byte* p = (byte*)target;
+                        var p = (byte*)target;
 
                         p += position;
 
@@ -1983,7 +1991,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                ref StapleShaderUniform uniformEntry = ref fragmentUniformData[counter++];
+                ref var uniformEntry = ref fragmentUniformData[counter++];
 
                 uniformEntry.binding = (byte)pair.Key.binding;
                 uniformEntry.position = position;
@@ -1996,10 +2004,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     {
         state.renderTarget = currentRenderTarget;
 
-        SDLGPUVertexBuffer vertex = (SDLGPUVertexBuffer)state.vertexBuffer;
-        SDLGPUIndexBuffer index = (SDLGPUIndexBuffer)state.indexBuffer;
-        SDLGPUVertexLayout vertexLayout = (SDLGPUVertexLayout)vertex?.layout;
-        nint pipeline = nint.Zero;
+        var vertex = (SDLGPUVertexBuffer)state.vertexBuffer;
+        var index = (SDLGPUIndexBuffer)state.indexBuffer;
+        var vertexLayout = (SDLGPUVertexLayout)vertex?.layout;
+        var pipeline = nint.Zero;
 
         if (state.shader == null ||
             state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
@@ -2133,7 +2141,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 {
                     fixed (void* target = frameAllocator.buffer)
                     {
-                        byte* p = (byte*)target;
+                        var p = (byte*)target;
 
                         p += position;
 
@@ -2141,7 +2149,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                ref StapleShaderUniform uniformEntry = ref vertexUniformData[counter++];
+                ref var uniformEntry = ref vertexUniformData[counter++];
 
                 uniformEntry.binding = (byte)pair.Key.binding;
                 uniformEntry.position = position;
@@ -2192,7 +2200,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 {
                     fixed (void* target = frameAllocator.buffer)
                     {
-                        byte* p = (byte*)target;
+                        var p = (byte*)target;
 
                         p += position;
 
@@ -2200,7 +2208,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                ref StapleShaderUniform uniformEntry = ref fragmentUniformData[counter++];
+                ref var uniformEntry = ref fragmentUniformData[counter++];
 
                 uniformEntry.binding = (byte)pair.Key.binding;
                 uniformEntry.position = position;
@@ -2314,7 +2322,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 {
                     fixed (void* target = frameAllocator.buffer)
                     {
-                        byte* p = (byte*)target;
+                        var p = (byte*)target;
 
                         p += position;
 
@@ -2322,7 +2330,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                ref StapleShaderUniform uniformEntry = ref vertexUniformData[counter++];
+                ref var uniformEntry = ref vertexUniformData[counter++];
 
                 uniformEntry.binding = (byte)pair.Key.binding;
                 uniformEntry.position = position;
@@ -2373,7 +2381,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 {
                     fixed (void* target = frameAllocator.buffer)
                     {
-                        byte* p = (byte*)target;
+                        var p = (byte*)target;
 
                         p += position;
 
@@ -2381,7 +2389,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     }
                 }
 
-                ref StapleShaderUniform uniformEntry = ref fragmentUniformData[counter++];
+                ref var uniformEntry = ref fragmentUniformData[counter++];
 
                 uniformEntry.binding = (byte)pair.Key.binding;
                 uniformEntry.position = position;

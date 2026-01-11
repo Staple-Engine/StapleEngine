@@ -179,9 +179,7 @@ public sealed class SkinnedAnimationStateMachine : IStapleAsset, IGuidAsset
     [SerializeField]
     public EditorData editorData = new();
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     public static object Create(string guid)
     {

@@ -497,21 +497,15 @@ public sealed partial class RenderSystem
                 var camera = pair.Item1.Item1;
                 var cameraTransform = pair.Item1.Item2;
 
-                unsafe
+                var projection = Camera.Projection(cameraTransform.Entity, camera);
+                var view = cameraTransform.Matrix;
+
+                Matrix4x4.Invert(view, out view);
+
+                camera.UpdateFrustum(view, projection);
+
+                foreach (var (systemInfo, contents) in pair.Item2)
                 {
-                    var projection = Camera.Projection(cameraTransform.Entity, camera);
-                    var view = cameraTransform.Matrix;
-
-                    Matrix4x4.Invert(view, out view);
-
-                    camera.UpdateFrustum(view, projection);
-                }
-
-                foreach (var systems in pair.Item2)
-                {
-                    var systemInfo = systems.Item1;
-                    var contents = systems.Item2;
-
                     if(contents.Count == 0)
                     {
                         continue;
@@ -519,36 +513,40 @@ public sealed partial class RenderSystem
 
                     systemInfo.system.Preprocess(CollectionsMarshal.AsSpan(contents), camera, cameraTransform);
 
-                    if(systemInfo.isRenderable)
+                    if (!systemInfo.isRenderable)
                     {
-                        var contentLength = contents.Count;
+                        continue;
+                    }
+                    
+                    var contentLength = contents.Count;
 
-                        for (var j = 0; j < contentLength; j++)
+                    for (var j = 0; j < contentLength; j++)
+                    {
+                        var renderable = (Renderable)contents[j].component;
+
+                        renderable.isVisible = renderable.enabled &&
+                            !renderable.forceRenderingOff &&
+                            renderable.cullingState != CullingState.Invisible;
+
+                        if (!renderable.isVisible)
                         {
-                            var renderable = (Renderable)contents[j].component;
+                            continue;
+                        }
+                        
+                        if (renderable.cullingState == CullingState.None)
+                        {
+                            renderable.isVisible = camera.IsVisible(renderable.bounds);
 
-                            renderable.isVisible = renderable.enabled &&
-                                !renderable.forceRenderingOff &&
-                                renderable.cullingState != CullingState.Invisible;
+                            renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                        }
 
-                            if (renderable.isVisible)
-                            {
-                                if (renderable.cullingState == CullingState.None)
-                                {
-                                    renderable.isVisible = camera.IsVisible(renderable.bounds);
-
-                                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
-                                }
-
-                                if (renderable.isVisible)
-                                {
-                                    AddDrawCall(contents[j].entity, contents[j].transform, contents[j].component, renderable);
-                                }
-                                else
-                                {
-                                    RenderStats.culledDrawCalls++;
-                                }
-                            }
+                        if (renderable.isVisible)
+                        {
+                            AddDrawCall(contents[j].entity, contents[j].transform, contents[j].component, renderable);
+                        }
+                        else
+                        {
+                            RenderStats.culledDrawCalls++;
                         }
                     }
                 }
@@ -573,18 +571,15 @@ public sealed partial class RenderSystem
     /// <param name="cameraTransform">The camera's transform</param>
     private static void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform)
     {
-        unsafe
-        {
-            var projection = Camera.Projection(entity, camera);
-            var view = cameraTransform.Matrix;
+        var projection = Camera.Projection(entity, camera);
+        var view = cameraTransform.Matrix;
 
-            Matrix4x4.Invert(view, out view);
+        Matrix4x4.Invert(view, out view);
 
-            camera.UpdateFrustum(view, projection);
+        camera.UpdateFrustum(view, projection);
 
-            Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport,
-                in view, in projection);
-        }
+        Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport,
+            in view, in projection);
     }
 
     /// <summary>
@@ -599,12 +594,9 @@ public sealed partial class RenderSystem
     private static void PrepareRender(RenderTarget target, CameraClearMode clearMode,
         Color clearColor, Vector4 viewport, Matrix4x4 cameraTransform, Matrix4x4 projection)
     {
-        unsafe
-        {
-            Matrix4x4.Invert(cameraTransform, out var view);
+        Matrix4x4.Invert(cameraTransform, out var view);
 
-            Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection);
-        }
+        Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection);
     }
 
     /// <summary>
