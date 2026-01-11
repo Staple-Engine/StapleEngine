@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -275,7 +276,7 @@ public sealed partial class Mesh
 
     internal bool HasBoneWeights => (boneWeights?.Length ?? 0) > 0;
 
-    internal bool IsStaticMesh = false;
+    internal bool IsStaticMesh;
 
     internal BufferAttributeContainer.Entries staticMeshEntries;
 
@@ -298,25 +299,27 @@ public sealed partial class Mesh
     {
         get
         {
-            if(_quad == null)
+            if (_quad != null)
             {
-                var builder = new CubicMeshBuilder();
-
-                builder.QuadVertices(Vector3.Zero, 1);
-                builder.CubeTexture(new(0, 1, 0, 1));
-                builder.CubeFaces();
-
-                _quad = builder.BuildMesh(true);
-
-                _quad.colors = Enumerable.Repeat(Color.White, _quad.vertices.Length).ToArray();
-
-                GenerateTangents(_quad.vertices.AsSpan(), _quad.uv.AsSpan(), _quad.normals.AsSpan(), _quad.indices.AsSpan(),
-                    out _quad.tangents, out _quad.bitangents);
-
-                _quad.Guid.Guid = "Internal/Quad";
-
-                _quad.UpdateBounds();
+                return _quad;
             }
+            
+            var builder = new CubicMeshBuilder();
+
+            builder.QuadVertices(Vector3.Zero, 1);
+            builder.CubeTexture(new(0, 1, 0, 1));
+            builder.CubeFaces();
+
+            _quad = builder.BuildMesh(true);
+
+            _quad.colors = Enumerable.Repeat(Color.White, _quad.vertices.Length).ToArray();
+
+            GenerateTangents(_quad.vertices.AsSpan(), _quad.uv.AsSpan(), _quad.normals.AsSpan(), _quad.indices.AsSpan(),
+                out _quad.tangents, out _quad.bitangents);
+
+            _quad.Guid.Guid = "Internal/Quad";
+
+            _quad.UpdateBounds();
 
             return _quad;
         }
@@ -331,28 +334,30 @@ public sealed partial class Mesh
     {
         get
         {
-            if(_cube == null)
+            if (_cube != null)
             {
-                var builder = new CubicMeshBuilder();
-
-                foreach(var direction in Enum.GetValues<CubicMeshBuilder.Direction>())
-                {
-                    builder.CubeVertices(Vector3.Zero, 1, direction);
-                    builder.CubeTexture(new RectFloat(0, 1, 0, 1));
-                    builder.CubeFaces();
-                }
-
-                _cube = builder.BuildMesh(true);
-
-                _cube.colors = Enumerable.Repeat(Color.White, _cube.vertices.Length).ToArray();
-
-                GenerateTangents(_cube.vertices.AsSpan(), _cube.uv.AsSpan(), _cube.normals.AsSpan(), _cube.indices.AsSpan(),
-                    out _cube.tangents, out _cube.bitangents);
-
-                _cube.Guid.Guid = "Internal/Cube";
-
-                _cube.UpdateBounds();
+                return _cube;
             }
+            
+            var builder = new CubicMeshBuilder();
+
+            foreach(var direction in Enum.GetValues<CubicMeshBuilder.Direction>())
+            {
+                builder.CubeVertices(Vector3.Zero, 1, direction);
+                builder.CubeTexture(new RectFloat(0, 1, 0, 1));
+                builder.CubeFaces();
+            }
+
+            _cube = builder.BuildMesh(true);
+
+            _cube.colors = Enumerable.Repeat(Color.White, _cube.vertices.Length).ToArray();
+
+            GenerateTangents(_cube.vertices.AsSpan(), _cube.uv.AsSpan(), _cube.normals.AsSpan(), _cube.indices.AsSpan(),
+                out _cube.tangents, out _cube.bitangents);
+
+            _cube.Guid.Guid = "Internal/Cube";
+
+            _cube.UpdateBounds();
 
             return _cube;
         }
@@ -367,19 +372,21 @@ public sealed partial class Mesh
     {
         get
         {
-            if (_sphere == null)
+            if (_sphere != null)
             {
-                _sphere = GenerateSphere(36, 18, 0.5f, false);
-
-                _sphere.colors = Enumerable.Repeat(Color.White, _sphere.vertices.Length).ToArray();
-
-                GenerateTangents(_sphere.vertices.AsSpan(), _sphere.uv.AsSpan(), _sphere.normals.AsSpan(), _sphere.indices.AsSpan(),
-                    out _sphere.tangents, out _sphere.bitangents);
-
-                _sphere.Guid.Guid = "Internal/Sphere";
-
-                _sphere.UpdateBounds();
+                return _sphere;
             }
+            
+            _sphere = GenerateSphere(36, 18, 0.5f, false);
+
+            _sphere.colors = Enumerable.Repeat(Color.White, _sphere.vertices.Length).ToArray();
+
+            GenerateTangents(_sphere.vertices.AsSpan(), _sphere.uv.AsSpan(), _sphere.normals.AsSpan(), _sphere.indices.AsSpan(),
+                out _sphere.tangents, out _sphere.bitangents);
+
+            _sphere.Guid.Guid = "Internal/Sphere";
+
+            _sphere.UpdateBounds();
 
             return _sphere;
         }
@@ -450,12 +457,14 @@ public sealed partial class Mesh
                     indices.Add(k1 + 1);
                 }
 
-                if (i != (stackCount - 1))
+                if (i == (stackCount - 1))
                 {
-                    indices.Add(k1 + 1);
-                    indices.Add(k2);
-                    indices.Add(k2 + 1);
+                    continue;
                 }
+                
+                indices.Add(k1 + 1);
+                indices.Add(k2);
+                indices.Add(k2 + 1);
             }
         }
 
@@ -731,6 +740,7 @@ public sealed partial class Mesh
 
         var buffer = new byte[size];
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Copy<T>(T source, ref int index) where T: unmanaged
         {
             var sourceSize = TypeCache.SizeOf(source.GetType().ToString());
@@ -743,7 +753,7 @@ public sealed partial class Mesh
 
             unsafe
             {
-                byte* src = (byte*)&source;
+                var src = (byte*)&source;
 
                 Marshal.Copy((nint)src, buffer, index, sourceSize);
             }
@@ -923,12 +933,7 @@ public sealed partial class Mesh
     /// <returns>The mesh, or null</returns>
     internal static Mesh GetDefaultMesh(string path)
     {
-        if(defaultMeshes.TryGetValue(path, out var mesh))
-        {
-            return mesh;
-        }
-
-        return null;
+        return defaultMeshes.GetValueOrDefault(path);
     }
 
     internal static int TriangleCount(MeshTopology topology, int indexCount)

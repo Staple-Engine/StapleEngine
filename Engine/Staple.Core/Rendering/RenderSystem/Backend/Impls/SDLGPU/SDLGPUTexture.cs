@@ -7,15 +7,13 @@ internal class SDLGPUTexture(ResourceHandle<Texture> handle, int width, int heig
 {
     public ResourceHandle<Texture> handle = handle;
 
-    public TextureFormat Format { get; private set; } = format;
+    public TextureFormat Format { get; } = format;
 
     public readonly TextureFlags flags = flags;
 
-    private readonly SDLGPURendererBackend backend = backend;
+    public int Width { get; } = width;
 
-    public int Width { get; private set; } = width;
-
-    public int Height { get; private set; } = height;
+    public int Height { get; } = height;
 
     public bool Disposed { get; private set; }
 

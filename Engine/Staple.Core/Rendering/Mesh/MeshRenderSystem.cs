@@ -33,15 +33,12 @@ public sealed class MeshRenderSystem : IRenderSystem
     private int instanceCount;
     private Matrix4x4[] transformMatrices = [];
 
-    private readonly Lazy<VertexLayout> instanceLayout = new(() =>
-    {
-        return VertexLayoutBuilder.CreateNew()
-            .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float4)
-            .Add(VertexAttribute.TexCoord1, VertexAttributeType.Float4)
-            .Add(VertexAttribute.TexCoord2, VertexAttributeType.Float4)
-            .Add(VertexAttribute.TexCoord3, VertexAttributeType.Float4)
-            .Build();
-    });
+    private readonly Lazy<VertexLayout> instanceLayout = new(() => VertexLayoutBuilder.CreateNew()
+        .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float4)
+        .Add(VertexAttribute.TexCoord1, VertexAttributeType.Float4)
+        .Add(VertexAttribute.TexCoord2, VertexAttributeType.Float4)
+        .Add(VertexAttribute.TexCoord3, VertexAttributeType.Float4)
+        .Build());
 
     private readonly ComponentVersionTracker<Transform> transformVersions = new();
 
@@ -76,8 +73,7 @@ public sealed class MeshRenderSystem : IRenderSystem
         MaterialLighting lighting)
     {
         if(mesh == null ||
-            material == null ||
-            !material.IsValid)
+            material is not { IsValid: true })
         {
             return;
         }
@@ -101,16 +97,14 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         material.ApplyProperties(ref renderState);
 
-        var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
-        lightSystem?.ApplyMaterialLighting(material, lighting);
+        LightSystem.Instance.ApplyMaterialLighting(material, lighting);
 
         if (material.ShaderProgram == null)
         {
             return;
         }
 
-        lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+        LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
         RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
     }
@@ -295,11 +289,9 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             var material = renderData.material;
 
-            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
             material.DisableShaderKeyword(Shader.SkinningKeyword);
 
-            lightSystem?.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
+            LightSystem.Instance.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
 
             if (contents.instanceInfos.Contents.Length > 1)
             {
@@ -317,7 +309,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             material.ApplyProperties(ref renderState);
 
-            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
                 contents.instanceInfos.Contents[0].lighting);
 
             if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword))

@@ -1,5 +1,8 @@
-﻿namespace Staple.Internal;
+﻿using System;
 
+namespace Staple.Internal;
+
+[Flags]
 internal enum RenderModeFlags
 {
     None = 0,

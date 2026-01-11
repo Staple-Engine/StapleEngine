@@ -1753,8 +1753,6 @@ internal class ResourceManager
                 mesh.AddSubmesh(submesh.startVertex, submesh.vertexCount, submesh.startIndex, submesh.indexCount, m.topology);
             }
 
-            mesh.MarkStaticMesh();
-
             mesh.changed = true;
         }
         else

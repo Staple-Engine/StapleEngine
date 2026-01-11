@@ -173,12 +173,34 @@ public partial class ProjectManager
     {
         var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Sandbox");
 
-        var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Sandbox.sln"))
+        switch (Platform.CurrentPlatform)
         {
-            UseShellExecute = true
-        };
+            case AppPlatform.Linux:
+                {
+                    var startInfo = new ProcessStartInfo()
+                    {
+                        FileName = "xdg-open",
+                        Arguments = Path.Combine(projectDirectory, "Sandbox.sln"),
+                        UseShellExecute = true,
+                    };
 
-        Process.Start(startInfo);
+                    Process.Start(startInfo);
+                }
+
+                break;
+
+            default:
+                {
+                    var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Sandbox.sln"))
+                    {
+                        UseShellExecute = true,
+                    };
+
+                    Process.Start(startInfo);
+                }
+
+                break;
+        }
     }
 
     /// <summary>
@@ -1184,7 +1206,7 @@ public partial class ProjectManager
             File.Delete(target);
         }
 
-        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {mainProjectName}")
+        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {mainProjectName} --format sln")
         {
             WorkingDirectory = projectDirectory
         };

@@ -20,8 +20,7 @@ public sealed class MeshRenderer : Renderable, IComponentDisposable
 
     public void DisposeComponent()
     {
-        if(mesh != null &&
-            mesh.Guid?.Guid != null &&
+        if(mesh is { Guid.Guid: not null } &&
             !mesh.Guid.Guid.StartsWith("Internal/"))
         {
             mesh.Destroy();

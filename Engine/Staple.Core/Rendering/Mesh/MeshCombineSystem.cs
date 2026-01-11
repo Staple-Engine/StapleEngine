@@ -1,5 +1,4 @@
-﻿using Staple.Internal;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -259,20 +258,22 @@ public sealed class MeshCombineSystem : IRenderSystem
                 }
             }
 
-            if (transformVersions.ShouldUpdateComponent(entry.entity, in entry.transform))
+            if (!transformVersions.ShouldUpdateComponent(entry.entity, in entry.transform))
             {
-                var localSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(entry.transform.LocalRotation));
-
-                var globalSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(entry.transform.Rotation));
-
-                combine.localBounds = new(entry.transform.LocalPosition +
-                    combine.combinedMeshBounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
-                    localSize * entry.transform.LocalScale);
-
-                combine.bounds = new(entry.transform.Position +
-                    combine.combinedMeshBounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
-                    globalSize * entry.transform.Scale);
+                continue;
             }
+            
+            var localSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(entry.transform.LocalRotation));
+
+            var globalSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(entry.transform.Rotation));
+
+            combine.localBounds = new(entry.transform.LocalPosition +
+                combine.combinedMeshBounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
+                localSize * entry.transform.LocalScale);
+
+            combine.bounds = new(entry.transform.Position +
+                combine.combinedMeshBounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
+                globalSize * entry.transform.Scale);
         }
     }
 
@@ -323,14 +324,12 @@ public sealed class MeshCombineSystem : IRenderSystem
                     lastLighting != lighting ||
                     lastTopology != mesh.MeshTopology;
 
-                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
                 void SetupMaterial()
                 {
                     material.DisableShaderKeyword(Shader.SkinningKeyword);
                     material.DisableShaderKeyword(Shader.InstancingKeyword);
 
-                    lightSystem?.ApplyMaterialLighting(material, lighting);
+                    LightSystem.Instance.ApplyMaterialLighting(material, lighting);
                 }
 
                 var renderState = new RenderState()
@@ -368,7 +367,7 @@ public sealed class MeshCombineSystem : IRenderSystem
                     continue;
                 }
 
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
                 RenderSystem.Submit(renderState, mesh.SubmeshTriangleCount(0), 1);
             }

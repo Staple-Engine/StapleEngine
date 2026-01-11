@@ -39,10 +39,7 @@ internal partial class SDLGPURendererBackend
             return;
         }
 
-        if (resource.transferBuffer != nint.Zero)
-        {
-            resource.transferBuffer = nint.Zero;
-        }
+        resource.transferBuffer = nint.Zero;
 
         if (resource.buffer != nint.Zero)
         {
@@ -63,10 +60,7 @@ internal partial class SDLGPURendererBackend
                 continue;
             }
 
-            if (resources[i] is null)
-            {
-                resources[i] = new();
-            }
+            resources[i] ??= new();
 
             resources[i].used = true;
             resources[i].flags = flags;
@@ -82,7 +76,7 @@ internal partial class SDLGPURendererBackend
         if (!handle.IsValid ||
             !(vertexBuffers[handle.handle]?.used ?? false))
         {
-            resource = default;
+            resource = null;
 
             return false;
         }
@@ -97,7 +91,7 @@ internal partial class SDLGPURendererBackend
         if (!handle.IsValid ||
             !(indexBuffers[handle.handle]?.used ?? false))
         {
-            resource = default;
+            resource = null;
 
             return false;
         }

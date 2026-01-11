@@ -7,24 +7,28 @@ namespace Staple.Internal;
 
 internal class BufferAttributeContainer
 {
-    internal const int PositionBufferSlot = 0;
-    internal const int NormalBufferSlot = 1;
-    internal const int TangentBufferSlot = 2;
-    internal const int BitangentBufferSlot = 3;
-    internal const int BlendIndicesBufferSlot = 4;
-    internal const int BlendWeightsBufferSlot = 5;
-    internal const int Color0BufferSlot = 6;
-    internal const int Color1BufferSlot = 7;
-    internal const int Color2BufferSlot = 8;
-    internal const int Color3BufferSlot = 9;
-    internal const int TexCoord0BufferSlot = 10;
-    internal const int TexCoord1BufferSlot = 11;
-    internal const int TexCoord2BufferSlot = 12;
-    internal const int TexCoord3BufferSlot = 13;
-    internal const int TexCoord4BufferSlot = 14;
-    internal const int TexCoord5BufferSlot = 15;
-    internal const int TexCoord6BufferSlot = 16;
-    internal const int TexCoord7BufferSlot = 17;
+    internal enum BufferSlot
+    {
+        Position,
+        Normal,
+        Tangent,
+        Bitangent,
+        BlendIndices,
+        BlendWeights,
+        Color0,
+        Color1,
+        Color2,
+        Color3,
+        TexCoord0,
+        TexCoord1,
+        TexCoord2,
+        TexCoord3,
+        TexCoord4,
+        TexCoord5,
+        TexCoord6,
+        TexCoord7,
+        Count,
+    }
 
     public class Entries
     {
@@ -50,43 +54,43 @@ internal class BufferAttributeContainer
         public FreeformAllocator<uint>.Entry indicesEntry;
     }
 
-    public readonly BufferAttributeSource<Vector3, VertexBuffer> Position = new(VertexAttribute.Position, PositionBufferSlot);
+    public readonly BufferAttributeSource<Vector3, VertexBuffer> Position = new(VertexAttribute.Position, BufferSlot.Position);
 
-    public readonly BufferAttributeSource<Vector3, VertexBuffer> Normal = new(VertexAttribute.Normal, NormalBufferSlot, Vector3.Up);
+    public readonly BufferAttributeSource<Vector3, VertexBuffer> Normal = new(VertexAttribute.Normal, BufferSlot.Normal, Vector3.Up);
 
-    public readonly BufferAttributeSource<Vector3, VertexBuffer> Tangent = new(VertexAttribute.Tangent, TangentBufferSlot, Vector3.Up);
+    public readonly BufferAttributeSource<Vector3, VertexBuffer> Tangent = new(VertexAttribute.Tangent, BufferSlot.Tangent, Vector3.Up);
 
-    public readonly BufferAttributeSource<Vector3, VertexBuffer> Bitangent = new(VertexAttribute.Bitangent, BitangentBufferSlot, Vector3.Up);
+    public readonly BufferAttributeSource<Vector3, VertexBuffer> Bitangent = new(VertexAttribute.Bitangent, BufferSlot.Bitangent, Vector3.Up);
 
-    public readonly BufferAttributeSource<Vector4, VertexBuffer> BlendIndices = new(VertexAttribute.BlendIndices, BlendIndicesBufferSlot);
+    public readonly BufferAttributeSource<Vector4, VertexBuffer> BlendIndices = new(VertexAttribute.BlendIndices, BufferSlot.BlendIndices);
 
-    public readonly BufferAttributeSource<Vector4, VertexBuffer> BlendWeights = new(VertexAttribute.BlendWeights, BlendWeightsBufferSlot);
+    public readonly BufferAttributeSource<Vector4, VertexBuffer> BlendWeights = new(VertexAttribute.BlendWeights, BufferSlot.BlendWeights);
 
-    public readonly BufferAttributeSource<Color, VertexBuffer> Color0 = new(VertexAttribute.Color0, Color0BufferSlot, Color.White);
+    public readonly BufferAttributeSource<Color, VertexBuffer> Color0 = new(VertexAttribute.Color0, BufferSlot.Color0, Color.White);
 
-    public readonly BufferAttributeSource<Color, VertexBuffer> Color1 = new(VertexAttribute.Color1, Color1BufferSlot, Color.White);
+    public readonly BufferAttributeSource<Color, VertexBuffer> Color1 = new(VertexAttribute.Color1, BufferSlot.Color1, Color.White);
 
-    public readonly BufferAttributeSource<Color, VertexBuffer> Color2 = new(VertexAttribute.Color2, Color2BufferSlot, Color.White);
+    public readonly BufferAttributeSource<Color, VertexBuffer> Color2 = new(VertexAttribute.Color2, BufferSlot.Color2, Color.White);
 
-    public readonly BufferAttributeSource<Color, VertexBuffer> Color3 = new(VertexAttribute.Color3, Color3BufferSlot, Color.White);
+    public readonly BufferAttributeSource<Color, VertexBuffer> Color3 = new(VertexAttribute.Color3, BufferSlot.Color3, Color.White);
 
-    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord0 = new(VertexAttribute.TexCoord0, TexCoord0BufferSlot);
+    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord0 = new(VertexAttribute.TexCoord0, BufferSlot.TexCoord0);
 
-    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord1 = new(VertexAttribute.TexCoord1, TexCoord1BufferSlot);
+    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord1 = new(VertexAttribute.TexCoord1, BufferSlot.TexCoord1);
 
-    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord2 = new(VertexAttribute.TexCoord2, TexCoord2BufferSlot);
+    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord2 = new(VertexAttribute.TexCoord2, BufferSlot.TexCoord2);
 
-    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord3 = new(VertexAttribute.TexCoord3, TexCoord3BufferSlot);
+    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord3 = new(VertexAttribute.TexCoord3, BufferSlot.TexCoord3);
 
-    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord4 = new(VertexAttribute.TexCoord4, TexCoord4BufferSlot);
+    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord4 = new(VertexAttribute.TexCoord4, BufferSlot.TexCoord4);
 
-    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord5 = new(VertexAttribute.TexCoord5, TexCoord5BufferSlot);
+    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord5 = new(VertexAttribute.TexCoord5, BufferSlot.TexCoord5);
 
-    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord6 = new(VertexAttribute.TexCoord6, TexCoord6BufferSlot);
+    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord6 = new(VertexAttribute.TexCoord6, BufferSlot.TexCoord6);
 
-    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord7 = new(VertexAttribute.TexCoord7, TexCoord7BufferSlot);
+    public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord7 = new(VertexAttribute.TexCoord7, BufferSlot.TexCoord7);
 
-    public readonly BufferAttributeSource<uint, IndexBuffer> Indices = new(VertexAttribute.Position, -1);
+    public readonly BufferAttributeSource<uint, IndexBuffer> Indices = new(VertexAttribute.Position, BufferSlot.Count);
 
     private static void UpdateVertexBuffer<T>(BufferAttributeSource<T, VertexBuffer> buffer) where T: unmanaged
     {
@@ -547,28 +551,30 @@ internal class BufferAttributeContainer
 
     public static int BufferIndex(VertexAttribute attribute)
     {
-        return attribute switch
+        var slot = attribute switch
         {
-            VertexAttribute.Position => PositionBufferSlot,
-            VertexAttribute.Normal => NormalBufferSlot,
-            VertexAttribute.Tangent => TangentBufferSlot,
-            VertexAttribute.Bitangent => BitangentBufferSlot,
-            VertexAttribute.Color0 => Color0BufferSlot,
-            VertexAttribute.Color1 => Color1BufferSlot,
-            VertexAttribute.Color2 => Color2BufferSlot,
-            VertexAttribute.Color3 => Color3BufferSlot,
-            VertexAttribute.BlendIndices => BlendIndicesBufferSlot,
-            VertexAttribute.BlendWeights => BlendWeightsBufferSlot,
-            VertexAttribute.TexCoord0 => TexCoord0BufferSlot,
-            VertexAttribute.TexCoord1 => TexCoord1BufferSlot,
-            VertexAttribute.TexCoord2 => TexCoord2BufferSlot,
-            VertexAttribute.TexCoord3 => TexCoord3BufferSlot,
-            VertexAttribute.TexCoord4 => TexCoord4BufferSlot,
-            VertexAttribute.TexCoord5 => TexCoord5BufferSlot,
-            VertexAttribute.TexCoord6 => TexCoord6BufferSlot,
-            VertexAttribute.TexCoord7 => TexCoord7BufferSlot,
-            _ => -1,
+            VertexAttribute.Position => BufferSlot.Position,
+            VertexAttribute.Normal => BufferSlot.Normal,
+            VertexAttribute.Tangent => BufferSlot.Tangent,
+            VertexAttribute.Bitangent => BufferSlot.Bitangent,
+            VertexAttribute.Color0 => BufferSlot.Color0,
+            VertexAttribute.Color1 => BufferSlot.Color1,
+            VertexAttribute.Color2 => BufferSlot.Color2,
+            VertexAttribute.Color3 => BufferSlot.Color3,
+            VertexAttribute.BlendIndices => BufferSlot.BlendIndices,
+            VertexAttribute.BlendWeights => BufferSlot.BlendWeights,
+            VertexAttribute.TexCoord0 => BufferSlot.TexCoord0,
+            VertexAttribute.TexCoord1 => BufferSlot.TexCoord1,
+            VertexAttribute.TexCoord2 => BufferSlot.TexCoord2,
+            VertexAttribute.TexCoord3 => BufferSlot.TexCoord3,
+            VertexAttribute.TexCoord4 => BufferSlot.TexCoord4,
+            VertexAttribute.TexCoord5 => BufferSlot.TexCoord5,
+            VertexAttribute.TexCoord6 => BufferSlot.TexCoord6,
+            VertexAttribute.TexCoord7 => BufferSlot.TexCoord7,
+            _ => BufferSlot.Count,
         };
+
+        return (int)slot;
     }
 
     public static int BufferElementSize(VertexAttribute attribute)
@@ -599,14 +605,16 @@ internal class BufferAttributeContainer
 
     public static int BufferElementSize(int bufferIndex)
     {
-        return bufferIndex switch
+        var slot = (BufferSlot)bufferIndex;
+        
+        return slot switch
         {
-            PositionBufferSlot or NormalBufferSlot or TangentBufferSlot or BitangentBufferSlot => Marshal.SizeOf<Vector3>(),
-            Color0BufferSlot or Color1BufferSlot or Color2BufferSlot or Color3BufferSlot or
-                BlendIndicesBufferSlot or BlendWeightsBufferSlot => Marshal.SizeOf<Vector4>(),
-            TexCoord0BufferSlot or TexCoord1BufferSlot or TexCoord2BufferSlot or
-                TexCoord3BufferSlot or TexCoord4BufferSlot or TexCoord5BufferSlot or
-                TexCoord6BufferSlot or TexCoord7BufferSlot => Marshal.SizeOf<Vector2>(),
+            BufferSlot.Position or BufferSlot.Normal or BufferSlot.Tangent or BufferSlot.Bitangent => Marshal.SizeOf<Vector3>(),
+            BufferSlot.Color0 or BufferSlot.Color1 or BufferSlot.Color2 or BufferSlot.Color3 or
+                BufferSlot.BlendIndices or BufferSlot.BlendWeights => Marshal.SizeOf<Vector4>(),
+            BufferSlot.TexCoord0 or BufferSlot.TexCoord1 or BufferSlot.TexCoord2 or
+                BufferSlot.TexCoord3 or BufferSlot.TexCoord4 or BufferSlot.TexCoord5 or
+                BufferSlot.TexCoord6 or BufferSlot.TexCoord7 => Marshal.SizeOf<Vector2>(),
             _ => 0,
         };
     }

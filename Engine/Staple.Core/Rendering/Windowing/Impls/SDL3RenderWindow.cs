@@ -1,5 +1,4 @@
-﻿#if !ANDROID && !IOS
-using SDL3;
+﻿using SDL3;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -26,7 +25,7 @@ internal class SDL3RenderWindow : IRenderWindow
                 cursor = nint.Zero;
             }
 
-            if(surface != nint.Zero)
+            if (surface != nint.Zero)
             {
                 SDL.DestroySurface(surface);
 
@@ -105,7 +104,7 @@ internal class SDL3RenderWindow : IRenderWindow
     {
         get
         {
-            if(window == nint.Zero)
+            if (window == nint.Zero)
             {
                 return 0;
             }
@@ -129,7 +128,7 @@ internal class SDL3RenderWindow : IRenderWindow
     {
         displays = SDL.GetDisplays(out var displayCount);
 
-        if(displays == null)
+        if (displays == null)
         {
             return false;
         }
@@ -140,23 +139,23 @@ internal class SDL3RenderWindow : IRenderWindow
 
         var windowFlags = SDL.WindowFlags.HighPixelDensity;
 
-        if(resizable && windowMode == WindowMode.Windowed)
+        if (resizable && windowMode == WindowMode.Windowed)
         {
             windowFlags |= SDL.WindowFlags.Resizable;
         }
 
-        if(maximized)
+        if (maximized)
         {
             windowFlags |= SDL.WindowFlags.Maximized;
         }
 
         var windowPosition = new Vector2Int();
 
-        switch(windowMode)
+        switch (windowMode)
         {
             case WindowMode.Windowed:
 
-                if(position.HasValue)
+                if (position.HasValue)
                 {
                     windowPosition = position.Value;
                 }
@@ -205,7 +204,7 @@ internal class SDL3RenderWindow : IRenderWindow
             return false;
         }
 
-        if(windowMode == WindowMode.BorderlessFullscreen)
+        if (windowMode == WindowMode.BorderlessFullscreen)
         {
             SDL.SetWindowFullscreen(window, true);
         }
@@ -347,7 +346,7 @@ internal class SDL3RenderWindow : IRenderWindow
             modifiers |= AppEventModifierKeys.CapsLock;
         }
 
-        if(mod.HasFlag(SDL.Keymod.Alt))
+        if (mod.HasFlag(SDL.Keymod.Alt))
         {
             modifiers |= AppEventModifierKeys.Alt;
         }
@@ -372,9 +371,9 @@ internal class SDL3RenderWindow : IRenderWindow
 
     public void PollEvents()
     {
-        while(SDL.PollEvent(out var _event))
+        while (SDL.PollEvent(out var _event))
         {
-            switch((SDL.EventType)_event.Type)
+            switch ((SDL.EventType)_event.Type)
             {
                 case SDL.EventType.WindowFocusGained:
 
@@ -440,7 +439,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
                 case SDL.EventType.MouseMotion:
 
-                    if(SDL.GetWindowRelativeMouseMode(window))
+                    if (SDL.GetWindowRelativeMouseMode(window))
                     {
                         Input.CursorPosCallback(_event.Motion.XRel, _event.Motion.YRel);
                     }
@@ -478,7 +477,7 @@ internal class SDL3RenderWindow : IRenderWindow
                 case SDL.EventType.GamepadRemoved:
 
                     {
-                        if(gamepads.TryGetValue(_event.CDevice.Which, out var state))
+                        if (gamepads.TryGetValue(_event.CDevice.Which, out var state))
                         {
                             SDL.CloseGamepad(state.instance);
 
@@ -531,7 +530,7 @@ internal class SDL3RenderWindow : IRenderWindow
                 case SDL.EventType.GamepadAxisMotion:
 
                     {
-                        if(gamepads.TryGetValue(_event.CDevice.Which, out var state))
+                        if (gamepads.TryGetValue(_event.CDevice.Which, out var state))
                         {
                             var value = _event.GAxis.Value;
 
@@ -553,7 +552,7 @@ internal class SDL3RenderWindow : IRenderWindow
                                 _ => GamepadAxis.Invalid,
                             };
 
-                            if(axis == GamepadAxis.LeftY || axis == GamepadAxis.RightY)
+                            if (axis == GamepadAxis.LeftY || axis == GamepadAxis.RightY)
                             {
                                 floatValue *= -1;
                             }
@@ -619,9 +618,9 @@ internal class SDL3RenderWindow : IRenderWindow
 
     public void Terminate()
     {
-        foreach(var pair in gamepads)
+        foreach (var pair in gamepads)
         {
-            if(pair.Value.instance != nint.Zero)
+            if (pair.Value.instance != nint.Zero)
             {
                 SDL.CloseGamepad(pair.Value.instance);
 
@@ -658,7 +657,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
             case AppPlatform.Linux:
 
-                switch(SDL.GetCurrentVideoDriver())
+                switch (SDL.GetCurrentVideoDriver())
                 {
                     case "x11":
 
@@ -691,7 +690,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
             case AppPlatform.MacOSX:
 
-                if(metalView == nint.Zero)
+                if (metalView == nint.Zero)
                 {
                     metalView = SDL.MetalCreateView(window);
                 }
@@ -757,7 +756,7 @@ internal class SDL3RenderWindow : IRenderWindow
         {
             case WindowMode.Windowed:
 
-                if(!SDL.SetWindowFullscreen(window, false))
+                if (!SDL.SetWindowFullscreen(window, false))
                 {
                     return false;
                 }
@@ -770,7 +769,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
                 SDL.SetWindowSize(window, width, height);
 
-                if(!SDL.SetWindowFullscreen(window, true))
+                if (!SDL.SetWindowFullscreen(window, true))
                 {
                     return false;
                 }
@@ -799,11 +798,11 @@ internal class SDL3RenderWindow : IRenderWindow
                 pixels = pixels,
             };
 
-            fixed (void *ptr = outValue.pixels)
+            fixed (void* ptr = outValue.pixels)
             {
                 var surface = SDL.CreateSurfaceFrom(width, height, SDL.PixelFormat.ARGB8888, (nint)ptr, width * 4);
 
-                if(surface == nint.Zero)
+                if (surface == nint.Zero)
                 {
                     image = default;
 
@@ -812,7 +811,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
                 var cursor = SDL.CreateColorCursor(surface, hotX, hotY);
 
-                if(cursor == nint.Zero)
+                if (cursor == nint.Zero)
                 {
                     SDL.DestroySurface(surface);
 
@@ -833,7 +832,7 @@ internal class SDL3RenderWindow : IRenderWindow
 
     public void SetCursor(CursorImage image)
     {
-        if(image is not SDL3Cursor cursor ||
+        if (image is not SDL3Cursor cursor ||
             cursor.cursor == nint.Zero)
         {
             SDL.SetCursor(defaultCursor);
@@ -864,4 +863,3 @@ internal class SDL3RenderWindow : IRenderWindow
         SDL.StopTextInput(window);
     }
 }
-#endif

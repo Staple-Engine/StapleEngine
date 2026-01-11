@@ -8,7 +8,7 @@ namespace Staple.Internal;
 /// <summary>
 /// Light rendering system
 /// </summary>
-public sealed class LightSystem : IRenderSystem
+public sealed class LightSystem
 {
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
     public struct LightInstance
@@ -53,35 +53,7 @@ public sealed class LightSystem : IRenderSystem
 
     public (Entity, Transform, Light)[] Lights => OverrideLights ?? lightQuery.Contents;
 
-    public LightSystem()
-    {
-    }
-
-    #region Lifecycle
-    public void Startup()
-    {
-    }
-
-    public void Shutdown()
-    {
-    }
-
-    public void Prepare()
-    {
-    }
-
-    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
-    {
-    }
-
-    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
-    {
-    }
-
-    public void Submit()
-    {
-    }
-    #endregion
+    public static readonly LightSystem Instance = new();
 
     /// <summary>
     /// Applies the material-specific lighting state
@@ -153,9 +125,7 @@ public sealed class LightSystem : IRenderSystem
 
         for (var i = 0; i < lightCount; i++)
         {
-            var target = targets[i];
-            var light = target.Item3;
-            var t = target.Item2;
+            var (_, t, light) = targets[i];
             var p = t.Position;
             var forward = t.Forward;
 

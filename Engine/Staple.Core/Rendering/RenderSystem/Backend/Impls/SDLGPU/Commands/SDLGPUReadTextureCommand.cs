@@ -5,9 +5,6 @@ namespace Staple.Internal;
 
 internal class SDLGPUReadTextureCommand(SDLGPUTexture texture, Action<byte[]> onComplete) : IRenderCommand
 {
-    public readonly SDLGPUTexture texture = texture;
-    public readonly Action<byte[]> onComplete = onComplete;
-
     public void Update(IRendererBackend rendererBackend)
     {
         if (rendererBackend is not SDLGPURendererBackend backend ||

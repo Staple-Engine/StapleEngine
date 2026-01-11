@@ -16,8 +16,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private const uint VulkanVersionMinor = 2;
     private const uint VulkanVersionPatch = 0;
 
-    internal static string StapleRenderDataUniformName = "StapleRenderData";
-    internal static string StapleFragmentDataUniformName = "StapleFragmentRenderData";
+    private const string StapleRenderDataUniformName = "StapleRenderData";
+    private const string StapleFragmentDataUniformName = "StapleFragmentRenderData";
 
     private static uint MakeVulkanVersion(uint major, uint minor, uint patch)
     {
@@ -38,20 +38,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     internal struct StapleFragmentRenderData
     {
         public float time;
-    }
-
-    internal class RenderQueueItem
-    {
-        public BufferAttributeContainer.Entries staticMeshEntries;
-    }
-
-    internal class RenderQueue
-    {
-        public readonly List<RenderQueueItem> items = [];
-        public readonly Dictionary<int, byte[]> vertexUniformData = [];
-        public readonly Dictionary<int, byte[]> fragmentUniformData = [];
-
-        public RenderState renderState;
     }
 
     internal class BufferResource
@@ -91,10 +77,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         public StapleFragmentRenderData fragmentData;
     }
 
-    private readonly struct TransferBufferCacheKey(bool download, int length)
+    private readonly struct TransferBufferCacheKey(bool download, int length) : IEquatable<TransferBufferCacheKey>
     {
-        public readonly bool download = download;
-        public readonly int length = length;
+        private readonly bool download = download;
+        private readonly int length = length;
 
         public static bool operator==(TransferBufferCacheKey lhs, TransferBufferCacheKey rhs)
         {
@@ -111,6 +97,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         public override bool Equals(object obj)
         {
             return obj is TransferBufferCacheKey key && this == key;
+        }
+        
+        public bool Equals(TransferBufferCacheKey other)
+        {
+            return download == other.download && length == other.length;
         }
 
         public override int GetHashCode()
@@ -179,12 +170,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
 
             {
-                var usageFlags = SDL.GPUBufferUsageFlags.Vertex;
-
                 var createInfo = new SDL.GPUBufferCreateInfo()
                 {
                     Size = (uint)vertices.Count,
-                    Usage = usageFlags,
+                    Usage = SDL.GPUBufferUsageFlags.Vertex,
                 };
 
                 vertexBuffer = SDL.CreateGPUBuffer(backend.device, in createInfo);
@@ -252,12 +241,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
             if(indices.Count > 0)
             {
-                var usageFlags = SDL.GPUBufferUsageFlags.Index;
-
                 var createInfo = new SDL.GPUBufferCreateInfo()
                 {
                     Size = (uint)(indices.Count * sizeof(ushort)),
-                    Usage = usageFlags,
+                    Usage = SDL.GPUBufferUsageFlags.Index,
                 };
 
                 indexBuffer = SDL.CreateGPUBuffer(backend.device, in createInfo);
@@ -323,14 +310,16 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 SDL.UploadToGPUBuffer(backend.copyPass, in location, in region, false);
             }
 
-            if (uintIndices.Count > 0)
+            if (uintIndices.Count <= 0)
             {
-                var usageFlags = SDL.GPUBufferUsageFlags.Index;
-
+                return;
+            }
+            
+            {
                 var createInfo = new SDL.GPUBufferCreateInfo()
                 {
                     Size = (uint)(uintIndices.Count * sizeof(uint)),
-                    Usage = usageFlags,
+                    Usage = SDL.GPUBufferUsageFlags.Index,
                 };
 
                 uintIndexBuffer = SDL.CreateGPUBuffer(backend.device, in createInfo);
@@ -496,7 +485,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private SDL3RenderWindow window;
     private readonly Dictionary<int, nint> graphicsPipelines = [];
     private readonly Dictionary<TextureFlags, nint> textureSamplers = [];
-    private bool needsDepthTextureUpdate = false;
+    private bool needsDepthTextureUpdate;
     private readonly List<IRenderCommand> commands = [];
     private readonly List<(SDLGPUTexture, Action<byte[]>)> readTextureQueue = [];
 
@@ -517,9 +506,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     internal static int staticMeshIndexBufferLength = 0;
     internal static nint entityTransformsBuffer = nint.Zero;
     internal static int entityTransformsBufferLength = 0;
-
-    private readonly Dictionary<int, List<RenderQueue>> staticOpaqueRenderQueue = [];
-    private readonly Dictionary<int, List<RenderQueue>> staticTransparentRenderQueue = [];
 
     private bool iteratingCommands;
     private int commandIndex;
@@ -602,7 +588,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 VulkanApiVersion = MakeVulkanVersion(VulkanVersionMajor, VulkanVersionMinor, VulkanVersionPatch),
             };
 
-            var deviceExtensions = new string[]
+            var deviceExtensions = new[]
             {
                 "VK_KHR_shader_draw_parameters",
             };
@@ -1106,7 +1092,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         var width = 0;
         var height = 0;
 
-        SDLGPUTexture depthTexture = null;
+        SDLGPUTexture depthTexture;
 
         if (viewData.renderTarget == null)
         {
@@ -1355,8 +1341,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private bool TryGetRenderPipeline(RenderState state, SDLGPUVertexLayout vertexLayout, out nint pipeline)
     {
         if (state.shader == null ||
-            state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
-            shader.Type != ShaderType.VertexFragment)
+            state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader)
         {
             pipeline = nint.Zero;
 
@@ -1554,10 +1539,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                             colorTargetDescriptions.Add(colorTargetDescription);
                         }
 
-                        if(state.renderTarget.DepthTexture != null &&
-                            !state.renderTarget.DepthTexture.Disposed &&
+                        if(state.renderTarget.DepthTexture is { Disposed: false } &&
                             TryGetTextureFormat(state.renderTarget.DepthTexture.impl.Format, state.renderTarget.flags | TextureFlags.DepthStencilTarget,
-                            out var depthFormat))
+                                out var depthFormat))
                         {
                             sdlDepthFormat = depthFormat;
                         }
@@ -1631,8 +1615,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     {
         if (state.shader == null ||
             state.staticMeshEntries == null ||
-            state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
-            shader.Type != ShaderType.VertexFragment)
+            state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader)
         {
             pipeline = nint.Zero;
 
@@ -1796,10 +1779,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                             colorTargetDescriptions.Add(colorTargetDescription);
                         }
 
-                        if (state.renderTarget.DepthTexture != null &&
-                            !state.renderTarget.DepthTexture.Disposed &&
+                        if (state.renderTarget.DepthTexture is { Disposed: false } &&
                             TryGetTextureFormat(state.renderTarget.DepthTexture.impl.Format, state.renderTarget.flags | TextureFlags.DepthStencilTarget,
-                            out var depthFormat))
+                                out var depthFormat))
                         {
                             sdlDepthFormat = depthFormat;
                         }
@@ -2005,13 +1987,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         state.renderTarget = currentRenderTarget;
 
         var vertex = (SDLGPUVertexBuffer)state.vertexBuffer;
-        var index = (SDLGPUIndexBuffer)state.indexBuffer;
         var vertexLayout = (SDLGPUVertexLayout)vertex?.layout;
         var pipeline = nint.Zero;
 
         if (state.shader == null ||
-            state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
-            shader.Type != ShaderType.VertexFragment)
+            state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader)
         {
             return;
         }
@@ -2045,8 +2025,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         state.renderTarget = currentRenderTarget;
 
         if (layout is not SDLGPUVertexLayout vertexLayout ||
-            state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
-            shader.Type != ShaderType.VertexFragment ||
+            state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader ||
             !TryGetRenderPipeline(state, vertexLayout, out var pipeline))
         {
             return;
@@ -2226,8 +2205,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         state.renderTarget = currentRenderTarget;
 
         if (layout is not SDLGPUVertexLayout vertexLayout ||
-            state.shaderInstance?.program is not SDLGPUShaderProgram shader ||
-            shader.Type != ShaderType.VertexFragment ||
+            state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader ||
             !TryGetRenderPipeline(state, vertexLayout, out var pipeline))
         {
             return;

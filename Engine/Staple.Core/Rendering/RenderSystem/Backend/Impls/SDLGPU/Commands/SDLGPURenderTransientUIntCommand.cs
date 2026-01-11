@@ -5,13 +5,9 @@ namespace Staple.Internal;
 internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline, Texture[] vertexTextures, Texture[] fragmentTextures,
     StapleShaderUniform[] vertexUniformData, StapleShaderUniform[] fragmentUniformData, SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
 {
-    public RenderState state = state.Clone();
-    public nint pipeline = pipeline;
-    public SDLGPURendererBackend.TransientEntry entry = entry;
-    public Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
-    public Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
-    public StapleShaderUniform[] vertexUniformData = vertexUniformData;
-    public StapleShaderUniform[] fragmentUniformData = fragmentUniformData;
+    private readonly RenderState state = state.Clone();
+    private readonly Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
+    private readonly Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
 
     public void Update(IRendererBackend rendererBackend)
     {

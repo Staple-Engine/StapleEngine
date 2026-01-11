@@ -8,7 +8,7 @@ internal class SDLGPUVertexLayoutBuilder : VertexLayoutBuilder
 {
     private readonly List<SDL.GPUVertexAttribute> attributes = [];
     private readonly List<VertexAttribute> vertexAttributes = [];
-    private int offset = 0;
+    private int offset;
     private SDLGPUVertexLayout layout;
 
     public override VertexLayoutBuilder Add(VertexAttribute name, VertexAttributeType type)

@@ -2,8 +2,6 @@
 
 internal class SDLGPUDestroyTextureCommand(ResourceHandle<Texture> handle) : IRenderCommand
 {
-    public ResourceHandle<Texture> handle = handle;
-
     public void Update(IRendererBackend rendererBackend)
     {
         if (rendererBackend is not SDLGPURendererBackend backend ||

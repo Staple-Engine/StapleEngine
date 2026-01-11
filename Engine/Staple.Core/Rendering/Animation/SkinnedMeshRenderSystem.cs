@@ -281,15 +281,13 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     lastLighting != lighting ||
                     lastTopology != renderer.mesh.MeshTopology;
 
-                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
                 void SetupMaterial()
                 {
                     material.EnableShaderKeyword(Shader.SkinningKeyword);
 
                     material.DisableShaderKeyword(Shader.InstancingKeyword);
 
-                    lightSystem?.ApplyMaterialLighting(material, lighting);
+                    LightSystem.Instance.ApplyMaterialLighting(material, lighting);
                 }
 
                 if (needsChange)
@@ -320,7 +318,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 renderer.mesh.SetActive(ref renderState, j);
 
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
                 renderState.ApplyStorageBufferIfNeeded("StapleBoneMatrices", instance.boneBuffer);
 
@@ -352,7 +350,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         {
             if(current.Parent?.Parent?.Parent?.Entity.Name == rootNode.name)
             {
-                return current.Parent.Parent.Parent;
+                return current.Parent?.Parent?.Parent;
             }
         }
 
@@ -391,14 +389,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
         var reverseParentTransform = Matrix4x4.Identity;
 
-        if (transforms[0]?.Parent != null)
-        {
-            var parent = transforms[0].Parent;
+        var parent = transforms[0]?.Parent;
 
-            if (parent != null)
-            {
-                Matrix4x4.Invert(parent.Matrix, out reverseParentTransform);
-            }
+        if (parent != null)
+        {
+            Matrix4x4.Invert(parent.Matrix, out reverseParentTransform);
         }
 
         for (var i = 0; i < meshAsset.meshes.Count; i++)

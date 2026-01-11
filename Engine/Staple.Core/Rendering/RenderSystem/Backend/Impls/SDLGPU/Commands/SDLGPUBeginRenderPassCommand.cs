@@ -6,10 +6,6 @@ namespace Staple.Internal;
 internal class SDLGPUBeginRenderPassCommand(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
         in Matrix4x4 view, in Matrix4x4 projection) : IRenderCommand
 {
-    public RenderTarget target = target;
-    public CameraClearMode clearMode = clearMode;
-    public Color clearColor = clearColor;
-    public Vector4 viewport = viewport;
     public Matrix4x4 view = view;
     public Matrix4x4 projection = projection;
 

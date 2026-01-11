@@ -3,19 +3,15 @@
 namespace Staple.Internal;
 
 internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] vertexTextures, Texture[] fragmentTextures,
-    StapleShaderUniform[] vertexUniformData, StapleShaderUniform[] fragmentUniformData, VertexAttribute[] attributes) : IRenderCommand
+    StapleShaderUniform[] vertexUniformData, StapleShaderUniform[] fragmentUniformData, VertexAttribute[] vertexAttributes) : IRenderCommand
 {
-    public RenderState state = state.Clone();
-    public nint pipeline = pipeline;
-    public VertexAttribute[] vertexAttributes = attributes;
-    public Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
-    public Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
-    public StapleShaderUniform[] vertexUniformData = vertexUniformData;
-    public StapleShaderUniform[] fragmentUniformData = fragmentUniformData;
+    private readonly RenderState state = state.Clone();
+    private readonly Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
+    private readonly Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
 
-    internal static SDL.GPUBufferBinding[] vertexBinding = new SDL.GPUBufferBinding[1];
+    internal static readonly SDL.GPUBufferBinding[] vertexBinding = new SDL.GPUBufferBinding[1];
 
-    internal static SDL.GPUBufferBinding[] staticMeshVertexBinding = new SDL.GPUBufferBinding[18];
+    internal static readonly SDL.GPUBufferBinding[] staticMeshVertexBinding = new SDL.GPUBufferBinding[18];
 
     internal static SDL.GPUBufferBinding indexBinding;
     internal static SDL.Rect scissor;

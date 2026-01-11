@@ -2,8 +2,6 @@
 
 internal class SDLGPUDestroyIndexBufferCommand(ResourceHandle<IndexBuffer> handle) : IRenderCommand
 {
-    public ResourceHandle<IndexBuffer> handle = handle;
-
     public void Update(IRendererBackend rendererBackend)
     {
         if (rendererBackend is not SDLGPURendererBackend backend ||

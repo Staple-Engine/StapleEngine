@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace Staple.Internal;
 
-internal class BufferAttributeSource<T, BufferType>(VertexAttribute attribute, int index, T? defaultValue = null) where T: unmanaged
+internal class BufferAttributeSource<T, BufferType>(VertexAttribute attribute, BufferAttributeContainer.BufferSlot slot, T? defaultValue = null) where T: unmanaged
 {
     public readonly FreeformAllocator<T> allocator = new();
 
@@ -20,9 +20,9 @@ internal class BufferAttributeSource<T, BufferType>(VertexAttribute attribute, i
         _ => throw new NotSupportedException($"Data type for buffer attribute not supported: {typeof(T).FullName}"),
     };
 
-    public readonly int index = index;
+    public readonly int index = (int)slot;
 
-    public bool Changed { get; set; } = false;
+    public bool Changed { get; set; }
 
     public FreeformAllocator<T>.Entry Allocate(int elementCount)
     {
@@ -30,16 +30,18 @@ internal class BufferAttributeSource<T, BufferType>(VertexAttribute attribute, i
 
         var entry = allocator.Allocate(elementCount);
 
-        if(defaultValue.HasValue)
+        if (!defaultValue.HasValue)
         {
-            var value = defaultValue.Value;
+            return entry;
+        }
+        
+        var value = defaultValue.Value;
 
-            var span = allocator.Get(entry);
+        var span = allocator.Get(entry);
 
-            for (var i = 0; i < span.Length; i++)
-            {
-                span[i] = value;
-            }
+        for (var i = 0; i < span.Length; i++)
+        {
+            span[i] = value;
         }
 
         return entry;

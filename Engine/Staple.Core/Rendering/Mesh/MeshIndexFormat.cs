@@ -13,5 +13,5 @@ public enum MeshIndexFormat
     /// <summary>
     /// 32-bit unsigned integer. Useful if your mesh has more than 65535 vertices
     /// </summary>
-    UInt32
+    UInt32,
 }

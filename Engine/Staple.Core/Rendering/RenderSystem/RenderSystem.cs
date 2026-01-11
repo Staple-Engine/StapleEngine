@@ -272,30 +272,32 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                     systemQueues.Add(systemInfo, queue);
                 }
 
-                if (systemInfo.system.RelatedComponent != null &&
-                    e.TryGetComponent(systemInfo.system.RelatedComponent, out var related))
+                if (systemInfo.system.RelatedComponent == null ||
+                    !e.TryGetComponent(systemInfo.system.RelatedComponent, out var related))
                 {
-                    systemInfo.system.Preprocess([new(e, t, related)], camera, cameraTransform);
+                    continue;
+                }
+                
+                systemInfo.system.Preprocess([new(e, t, related)], camera, cameraTransform);
 
-                    if (systemInfo.isRenderable)
+                if (systemInfo.isRenderable)
+                {
+                    var renderable = (Renderable)related;
+
+                    renderable.isVisible = renderable.enabled && !renderable.forceRenderingOff;
+
+                    if (renderable.isVisible && cull)
                     {
-                        var renderable = (Renderable)related;
+                        renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
 
-                        renderable.isVisible = renderable.enabled && !renderable.forceRenderingOff;
-
-                        if (renderable.isVisible && cull)
+                        if (!renderable.isVisible)
                         {
-                            renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
-
-                            if (!renderable.isVisible)
-                            {
-                                RenderStats.culledDrawCalls++;
-                            }
+                            RenderStats.culledDrawCalls++;
                         }
                     }
-
-                    queue.Add(new(e, t, related));
                 }
+
+                queue.Add(new(e, t, related));
             }
 
             foreach (var child in t.Children)
@@ -353,36 +355,38 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             {
                 var previous = previousDrawBucket.drawCalls.Find(x => x.entity.Identifier == call.entity.Identifier);
 
-                if (call.renderable.isVisible)
+                if (!call.renderable.isVisible)
                 {
-                    var currentPosition = call.position;
-                    var currentRotation = call.rotation;
-                    var currentScale = call.scale;
+                    continue;
+                }
+                
+                var currentPosition = call.position;
+                var currentRotation = call.rotation;
+                var currentScale = call.scale;
 
-                    if (previous == null)
-                    {
-                        stagingTransform.LocalPosition = currentPosition;
-                        stagingTransform.LocalRotation = currentRotation;
-                        stagingTransform.LocalScale = currentScale;
-                    }
-                    else
-                    {
-                        var previousPosition = previous.position;
-                        var previousRotation = previous.rotation;
-                        var previousScale = previous.scale;
+                if (previous == null)
+                {
+                    stagingTransform.LocalPosition = currentPosition;
+                    stagingTransform.LocalRotation = currentRotation;
+                    stagingTransform.LocalScale = currentScale;
+                }
+                else
+                {
+                    var previousPosition = previous.position;
+                    var previousRotation = previous.rotation;
+                    var previousScale = previous.scale;
 
-                        stagingTransform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
-                        stagingTransform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
-                        stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
-                    }
+                    stagingTransform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
+                    stagingTransform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
+                    stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
+                }
 
-                    foreach (var systemInfo in systems)
+                foreach (var systemInfo in systems)
+                {
+                    if (call.relatedComponent.GetType() == systemInfo.system.RelatedComponent)
                     {
-                        if (call.relatedComponent.GetType() == systemInfo.system.RelatedComponent)
-                        {
-                            systemInfo.system.Process([new(call.entity, stagingTransform, call.relatedComponent)],
-                                camera, cameraTransform);
-                        }
+                        systemInfo.system.Process([new(call.entity, stagingTransform, call.relatedComponent)],
+                            camera, cameraTransform);
                     }
                 }
             }

@@ -5,9 +5,6 @@ namespace Staple.Internal;
 
 internal class SDLGPUUpdateTextureCommand(ResourceHandle<Texture> handle, byte[] data) : IRenderCommand
 {
-    public ResourceHandle<Texture> handle = handle;
-    public byte[] data = data;
-
     public void Update(IRendererBackend rendererBackend)
     {
         if(rendererBackend is not SDLGPURendererBackend backend ||
@@ -19,11 +16,6 @@ internal class SDLGPUUpdateTextureCommand(ResourceHandle<Texture> handle, byte[]
 
         if(resource.length != data.Length || resource.transferBuffer == nint.Zero)
         {
-            if(resource.transferBuffer != nint.Zero)
-            {
-                resource.transferBuffer = nint.Zero;
-            }
-
             resource.transferBuffer = backend.GetTransferBuffer(false, data.Length);
 
             if (resource.transferBuffer == nint.Zero)

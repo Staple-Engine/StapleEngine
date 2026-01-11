@@ -8,7 +8,7 @@ namespace Staple.Internal;
 
 internal class SDLGPUShaderProgram : IShaderProgram
 {
-    public ShaderType Type { get; private set; }
+    public ShaderType Type { get; }
 
     public int StateKey => HashCode.Combine(device, vertex, fragment, compute, disposed);
 
@@ -109,14 +109,14 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
         ref var container = ref CollectionsMarshal.GetValueRefOrAddDefault(vertexDataHashes, binding, out var exists);
 
-        if(!exists || container != hash)
+        if (exists && container == hash)
         {
-            container = hash;
-
-            return true;
+            return false;
         }
+        
+        container = hash;
 
-        return false;
+        return true;
     }
 
     public bool ShouldPushFragmentUniform(byte binding, Span<byte> data)
@@ -125,14 +125,14 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
         ref var container = ref CollectionsMarshal.GetValueRefOrAddDefault(fragmentDataHashes, binding, out var exists);
 
-        if (!exists || container != hash)
+        if (exists && container == hash)
         {
-            container = hash;
-
-            return true;
+            return false;
         }
 
-        return false;
+        container = hash;
+
+        return true;
     }
 
     public bool ShouldPushComputeUniform(byte binding, Span<byte> data)
@@ -141,14 +141,15 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
         ref var container = ref CollectionsMarshal.GetValueRefOrAddDefault(computeDataHashes, binding, out var exists);
 
-        if (!exists || container != hash)
+        if (exists && container == hash)
         {
-            container = hash;
-
-            return true;
+            return false;
         }
+        
+        container = hash;
 
-        return false;
+        return true;
+
     }
 
     public bool TryGetVertexUniformData(ShaderUniformField field, out byte[] data)

@@ -142,7 +142,11 @@ internal struct RenderState
 
         localIndex = shaderInstance.fragmentUniforms.storageBuffers.FindIndex(x => x.name == name);
 
-        if (localIndex >= 0)
+        if (localIndex < 0)
+        {
+            return;
+        }
+
         {
             var offset = shaderInstance.fragmentShaderMetrics.samplerCount + shaderInstance.fragmentShaderMetrics.storageTextureCount;
 

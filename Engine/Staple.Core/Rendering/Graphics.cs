@@ -67,16 +67,14 @@ namespace Staple
                 material.ApplyProperties(ref renderState);
             }
 
-            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
-            lightSystem?.ApplyMaterialLighting(material, lighting);
+            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
 
             if (material.ShaderProgram == null)
             {
                 return;
             }
 
-            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
             RenderSystem.Submit(renderState, Mesh.TriangleCount(topology, indexCount), 1);
         }
@@ -112,16 +110,14 @@ namespace Staple
                 material.ApplyProperties(ref renderState);
             }
 
-            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
-            lightSystem?.ApplyMaterialLighting(material, lighting);
+            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
 
             if (material.ShaderProgram == null)
             {
                 return;
             }
 
-            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
             RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }
@@ -157,16 +153,14 @@ namespace Staple
                 material.ApplyProperties(ref renderState);
             }
 
-            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
-            lightSystem?.ApplyMaterialLighting(material, lighting);
+            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
 
             if (material.ShaderProgram == null)
             {
                 return;
             }
 
-            lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
             RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }

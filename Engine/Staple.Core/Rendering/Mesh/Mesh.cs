@@ -22,17 +22,14 @@ public sealed partial class Mesh : IGuidAsset
         public Color color;
     }
 
-    public static Lazy<VertexLayout> StandardVertexLayout = new(() =>
-    {
-        return VertexLayoutBuilder.CreateNew()
-            .Add(VertexAttribute.Position, VertexAttributeType.Float3)
-            .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2)
-            .Add(VertexAttribute.Normal, VertexAttributeType.Float3)
-            .Add(VertexAttribute.Tangent, VertexAttributeType.Float3)
-            .Add(VertexAttribute.Bitangent, VertexAttributeType.Float3)
-            .Add(VertexAttribute.Color0, VertexAttributeType.Float4)
-            .Build();
-    });
+    public static readonly Lazy<VertexLayout> StandardVertexLayout = new(() => VertexLayoutBuilder.CreateNew()
+        .Add(VertexAttribute.Position, VertexAttributeType.Float3)
+        .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2)
+        .Add(VertexAttribute.Normal, VertexAttributeType.Float3)
+        .Add(VertexAttribute.Tangent, VertexAttributeType.Float3)
+        .Add(VertexAttribute.Bitangent, VertexAttributeType.Float3)
+        .Add(VertexAttribute.Color0, VertexAttributeType.Float4)
+        .Build());
 
     /// <summary>
     /// Whether this mesh is readable by the CPU
@@ -120,29 +117,31 @@ public sealed partial class Mesh : IGuidAsset
             vertices = value;
             changed = true;
 
-            if(needsReset)
+            if (!needsReset)
             {
-                normals = null;
-                tangents = null;
-                bitangents = null;
-                colors = null;
-                colors2 = null;
-                colors3 = null;
-                colors4 = null;
-                colors32 = null;
-                colors322 = null;
-                colors323 = null;
-                colors323 = null;
-                uv = null;
-                uv2 = null;
-                uv3 = null;
-                uv4 = null;
-                uv5 = null;
-                uv6 = null;
-                uv7 = null;
-                uv8 = null;
-                indices = null;
+                return;
             }
+            
+            normals = null;
+            tangents = null;
+            bitangents = null;
+            colors = null;
+            colors2 = null;
+            colors3 = null;
+            colors4 = null;
+            colors32 = null;
+            colors322 = null;
+            colors323 = null;
+            colors323 = null;
+            uv = null;
+            uv2 = null;
+            uv3 = null;
+            uv4 = null;
+            uv5 = null;
+            uv6 = null;
+            uv7 = null;
+            uv8 = null;
+            indices = null;
         }
     }
 
@@ -1089,7 +1088,7 @@ public sealed partial class Mesh : IGuidAsset
         meshDataBlob = meshData.ToArray();
         meshDataVertexLayout = vertexLayout;
 
-        if(vertexBuffer != null && !vertexBuffer.Disposed && isDynamic)
+        if(vertexBuffer is { Disposed: false } && isDynamic)
         {
             vertexBuffer.Update(meshDataBlob);
         }
@@ -1133,7 +1132,7 @@ public sealed partial class Mesh : IGuidAsset
 
         meshDataVertexLayout = vertexLayout;
 
-        if (vertexBuffer != null && !vertexBuffer.Disposed && isDynamic)
+        if (vertexBuffer is { Disposed: false } && isDynamic)
         {
             vertexBuffer.Update(meshDataBlob);
         }
@@ -1273,7 +1272,7 @@ public sealed partial class Mesh : IGuidAsset
             case MeshIndexFormat.UInt32:
 
                 {
-                    uint[] data = new uint[indices.Length];
+                    var data = new uint[indices.Length];
 
                     for (var i = 0; i < indices.Length; i++)
                     {
@@ -1286,11 +1285,13 @@ public sealed partial class Mesh : IGuidAsset
                 break;
         }
 
-        if(indexBuffer == null)
+        if (indexBuffer != null)
         {
-            vertexBuffer?.Destroy();
-            vertexBuffer = null;
+            return;
         }
+        
+        vertexBuffer?.Destroy();
+        vertexBuffer = null;
     }
 
     /// <summary>
@@ -1534,8 +1535,8 @@ public sealed partial class Mesh : IGuidAsset
             positions.Length != normals.Length ||
             indices.Length % 3 != 0)
         {
-            outTangents = default;
-            outBitangents = default;
+            outTangents = null;
+            outBitangents = null;
 
             return;
         }
@@ -1615,8 +1616,8 @@ public sealed partial class Mesh : IGuidAsset
             positions.Length != normals.Length ||
             indices.Length % 3 != 0)
         {
-            outTangents = default;
-            outBitangents = default;
+            outTangents = null;
+            outBitangents = null;
 
             return;
         }
@@ -1789,14 +1790,6 @@ public sealed partial class Mesh : IGuidAsset
 
                 var nodeTarget = parentIndex >= 0 ? parents[parentIndex] : (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
 
-                foreach(var meshIndex in node.meshIndices)
-                {
-                    if(meshIndex < 0 || meshIndex >= asset.meshes.Count)
-                    {
-                        continue;
-                    }
-                }
-
                 nodeTransform.SetParent(nodeTarget);
 
                 nodeTransform.LocalPosition = node.Position;
@@ -1823,24 +1816,26 @@ public sealed partial class Mesh : IGuidAsset
                     var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{index}", Platform.IsEditor);
                     var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList();
 
-                    if (outMesh != null)
+                    if (outMesh == null)
                     {
-                        if (isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
-                        {
-                            var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+                        continue;
+                    }
+                    
+                    if (isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
+                    {
+                        var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 
-                            skinnedRenderer.mesh = outMesh;
-                            skinnedRenderer.materials = outMaterials;
-                            skinnedRenderer.lighting = mesh.lighting;
-                        }
-                        else
-                        {
-                            var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+                        skinnedRenderer.mesh = outMesh;
+                        skinnedRenderer.materials = outMaterials;
+                        skinnedRenderer.lighting = mesh.lighting;
+                    }
+                    else
+                    {
+                        var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
 
-                            meshRenderer.mesh = outMesh;
-                            meshRenderer.materials = outMaterials;
-                            meshRenderer.lighting = mesh.lighting;
-                        }
+                        meshRenderer.mesh = outMesh;
+                        meshRenderer.materials = outMaterials;
+                        meshRenderer.lighting = mesh.lighting;
                     }
                 }
             }
@@ -1862,24 +1857,26 @@ public sealed partial class Mesh : IGuidAsset
                 var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{i}", true);
                 var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, true)).ToList();
 
-                if (outMesh != null)
+                if (outMesh == null)
                 {
-                    if (isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
-                    {
-                        var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+                    continue;
+                }
+                
+                if (isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
+                {
+                    var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 
-                        skinnedRenderer.mesh = outMesh;
-                        skinnedRenderer.materials = outMaterials;
-                        skinnedRenderer.lighting = mesh.lighting;
-                    }
-                    else
-                    {
-                        var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+                    skinnedRenderer.mesh = outMesh;
+                    skinnedRenderer.materials = outMaterials;
+                    skinnedRenderer.lighting = mesh.lighting;
+                }
+                else
+                {
+                    var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
 
-                        meshRenderer.mesh = outMesh;
-                        meshRenderer.materials = outMaterials;
-                        meshRenderer.lighting = mesh.lighting;
-                    }
+                    meshRenderer.mesh = outMesh;
+                    meshRenderer.materials = outMaterials;
+                    meshRenderer.lighting = mesh.lighting;
                 }
             }
         }
