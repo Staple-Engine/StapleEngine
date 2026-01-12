@@ -1,6 +1,7 @@
 ﻿using Evergine.Bindings.Vulkan;
 using SDL3;
 using Standart.Hash.xxHash;
+using Staple.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -506,6 +507,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     private bool iteratingCommands;
     private int commandIndex;
+    private nint[] fences = new nint[1];
     #endregion
 
     #region Command Support Fields
@@ -908,8 +910,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             shader.ClearUniformHashes();
         }
 
-        var fences = new nint[1];
-
         fences[0] = SDL.SubmitGPUCommandBufferAndAcquireFence(commandBuffer);
 
         if (!SDL.WaitForGPUFences(device, true, fences, (uint)fences.Length))
@@ -936,7 +936,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
             unsafe
             {
-                var buffer = new byte[resource.length];
+                var buffer = GlobalAllocator<byte>.Instance.Rent(resource.length);
 
                 var map = SDL.MapGPUTransferBuffer(device, resource.transferBuffer, false);
 
@@ -950,6 +950,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 resource.transferBuffer = nint.Zero;
 
                 item.Item2?.Invoke(buffer);
+
+                GlobalAllocator<byte>.Instance.Return(buffer);
             }
 
             commandBuffer = nint.Zero;
@@ -1400,7 +1402,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     sdlDepthFormat = SDL.GPUTextureFormat.D24Unorm;
                 }
 
-                var shaderAttributes = new List<SDL.GPUVertexAttribute>();
+                var shaderAttributes = GlobalAllocator<SDL.GPUVertexAttribute>.Instance.Rent(state.shaderInstance.attributes.Length);
 
                 for (var i = 0; i < state.shaderInstance.attributes.Length; i++)
                 {
@@ -1425,16 +1427,15 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                     attributeIndex = state.shaderInstance.attributes.IndexOf(vertexLayout.vertexAttributes[attributeIndex]);
 
-                    shaderAttributes.Add(new()
-                    {
-                        BufferSlot = 0,
-                        Format = attribute.Format,
-                        Offset = attribute.Offset,
-                        Location = (uint)attributeIndex,
-                    });
+                    ref var currentAttribute = ref shaderAttributes[i];
+
+                    currentAttribute.BufferSlot = 0;
+                    currentAttribute.Format = attribute.Format;
+                    currentAttribute.Offset = attribute.Offset;
+                    currentAttribute.Location = (uint)attributeIndex;
                 }
 
-                var attributesSpan = CollectionsMarshal.AsSpan(shaderAttributes);
+                var attributesSpan = shaderAttributes.AsSpan();
 
                 fixed (SDL.GPUVertexAttribute* attributes = attributesSpan)
                 {
@@ -1593,6 +1594,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                             graphicsPipelines.Add(hash, pipeline);
                         }
                     }
+
+                    GlobalAllocator<SDL.GPUVertexAttribute>.Instance.Return(shaderAttributes);
                 }
             }
         }
@@ -1637,8 +1640,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                     sdlDepthFormat = SDL.GPUTextureFormat.D24Unorm;
                 }
 
-                var shaderAttributes = new SDL.GPUVertexAttribute[state.shaderInstance.attributes.Length];
-                var vertexDescriptions = new SDL.GPUVertexBufferDescription[state.shaderInstance.attributes.Length];
+                var shaderAttributes = GlobalAllocator<SDL.GPUVertexAttribute>.Instance.Rent(state.shaderInstance.attributes.Length);
+                var vertexDescriptions = GlobalAllocator<SDL.GPUVertexBufferDescription>.Instance.Rent(state.shaderInstance.attributes.Length);
 
                 for (var i = 0; i < state.shaderInstance.attributes.Length; i++)
                 {
@@ -1831,6 +1834,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                             graphicsPipelines.Add(hash, pipeline);
                         }
                     }
+
+                    GlobalAllocator<SDL.GPUVertexAttribute>.Instance.Return(shaderAttributes);
+                    GlobalAllocator<SDL.GPUVertexBufferDescription>.Instance.Return(vertexDescriptions);
                 }
             }
         }
@@ -1843,12 +1849,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     {
         if((vertexUniformData?.Length ?? 0) != shader.vertexMappings.Count)
         {
-            Array.Resize(ref vertexUniformData, shader.vertexMappings.Count);
+            vertexUniformData = GlobalAllocator<StapleShaderUniform>.Instance.Rent(shader.vertexMappings.Count);
         }
 
         if ((fragmentUniformData?.Length ?? 0) != shader.fragmentMappings.Count)
         {
-            Array.Resize(ref fragmentUniformData, shader.fragmentMappings.Count);
+            fragmentUniformData = GlobalAllocator<StapleShaderUniform>.Instance.Rent(shader.fragmentMappings.Count);
         }
 
         var counter = 0;
@@ -1880,8 +1886,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            ref var uniformEntry = ref vertexUniformData[counter++];
+
             if (!ShouldPushVertexUniform(pair.Key.binding, pair.Value))
             {
+                uniformEntry.used = false;
+
                 continue;
             }
 
@@ -1902,8 +1912,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                         Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
                     }
                 }
-
-                ref var uniformEntry = ref vertexUniformData[counter++];
 
                 uniformEntry.binding = (byte)pair.Key.binding;
                 uniformEntry.position = position;
@@ -1940,8 +1948,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
+            ref var uniformEntry = ref fragmentUniformData[counter++];
+
             if (!ShouldPushFragmentUniform(pair.Key.binding, pair.Value))
             {
+                uniformEntry.used = false;
+
                 continue;
             }
 
@@ -1962,8 +1974,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                         Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
                     }
                 }
-
-                ref var uniformEntry = ref fragmentUniformData[counter++];
 
                 uniformEntry.binding = (byte)pair.Key.binding;
                 uniformEntry.position = position;
@@ -2041,7 +2051,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             transientBuffers.Add(layout, entry);
         }
 
-        var vertexArray = new byte[size * vertices.Length];
+        var vertexArray = GlobalAllocator<byte>.Instance.Rent(size * vertices.Length);
 
         unsafe
         {
@@ -2054,6 +2064,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
 
         entry.vertices.AddRange(vertexArray);
+
+        GlobalAllocator<byte>.Instance.Return(vertexArray);
 
         entry.indices.AddRange(indices);
 
@@ -2104,7 +2116,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             transientBuffers.Add(layout, entry);
         }
 
-        var vertexArray = new byte[size * vertices.Length];
+        var vertexArray = GlobalAllocator<byte>.Instance.Rent(size * vertices.Length);
 
         unsafe
         {
@@ -2117,6 +2129,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
 
         entry.vertices.AddRange(vertexArray);
+
+        GlobalAllocator<byte>.Instance.Return(vertexArray);
 
         entry.uintIndices.AddRange(indices);
 

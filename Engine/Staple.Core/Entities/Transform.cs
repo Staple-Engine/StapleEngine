@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Staple;
 
@@ -459,7 +460,14 @@ public class Transform : IComponent, IComponentVersion
     {
         version++;
 
-        for (var i = 0; i < Children.Length; i++)
+        if(Children.Length == 0)
+        {
+            return;
+        }
+
+        var length = Children.Length;
+
+        for (var i = 0; i < length; i++)
         {
             Children[i].BumpVersion();
         }

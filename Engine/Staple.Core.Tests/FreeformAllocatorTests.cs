@@ -8,7 +8,7 @@ internal class FreeformAllocatorTests
     [Test]
     public void TestAllocate()
     {
-        var allocator = new FreeformAllocator<Vector2>();
+        var allocator = new UnmanagedFreeformAllocator<Vector2>();
 
         var entry = allocator.Allocate(20);
 
@@ -34,7 +34,7 @@ internal class FreeformAllocatorTests
     [Test]
     public void TestFree()
     {
-        var allocator = new FreeformAllocator<Vector2>();
+        var allocator = new UnmanagedFreeformAllocator<Vector2>();
 
         var entry = allocator.Allocate(20);
 
@@ -61,7 +61,7 @@ internal class FreeformAllocatorTests
     [Test]
     public void TestCompact()
     {
-        var allocator = new FreeformAllocator<Vector2>();
+        var allocator = new UnmanagedFreeformAllocator<Vector2>();
 
         var entry = allocator.Allocate(20);
 

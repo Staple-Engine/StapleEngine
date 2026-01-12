@@ -1,10 +1,9 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace Staple.Utilities;
-
-internal class FreeformAllocator<T> where T: unmanaged
+internal class ManagedFreeformAllocator<T>
 {
     public class Entry
     {
@@ -20,32 +19,6 @@ internal class FreeformAllocator<T> where T: unmanaged
     private readonly List<Entry> entries = [];
 
     public T[] buffer = [];
-
-    private GCHandle pinHandle;
-
-    internal nint pinAddress;
-
-    private void Repin()
-    {
-        if (pinHandle.IsAllocated)
-        {
-            pinHandle.Free();
-        }
-
-        pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-
-        pinAddress = pinHandle.AddrOfPinnedObject();
-    }
-
-    public void EnsurePin()
-    {
-        if (!pinHandle.IsAllocated)
-        {
-            pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-
-            pinAddress = pinHandle.AddrOfPinnedObject();
-        }
-    }
 
     public void Compact(int extraLength = 0)
     {
@@ -120,7 +93,7 @@ internal class FreeformAllocator<T> where T: unmanaged
 
                 var difference = entry.length - length;
 
-                if(difference > 0)
+                if (difference > 0)
                 {
                     freeEntries.Add(new()
                     {
@@ -154,14 +127,12 @@ internal class FreeformAllocator<T> where T: unmanaged
 
         entries.Add(outValue);
 
-        Repin();
-
         return outValue;
     }
 
     public void Free(Entry entry)
     {
-        if(entry.freed)
+        if (entry.freed)
         {
             return;
         }
@@ -175,7 +146,7 @@ internal class FreeformAllocator<T> where T: unmanaged
 
     public Span<T> Get(Entry entry)
     {
-        if(entry.freed ||
+        if (entry.freed ||
             entry.start >= buffer.Length ||
             entry.start + entry.length > buffer.Length)
         {
@@ -183,10 +154,5 @@ internal class FreeformAllocator<T> where T: unmanaged
         }
 
         return buffer.AsSpan(entry.start, entry.length);
-    }
-
-    public nint GetNative(Entry entry)
-    {
-        return pinAddress + elementSize * entry.start;
     }
 }

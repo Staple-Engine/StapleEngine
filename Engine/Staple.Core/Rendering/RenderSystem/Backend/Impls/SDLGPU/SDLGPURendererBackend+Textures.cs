@@ -1,4 +1,5 @@
 ﻿using SDL3;
+using Staple.Utilities;
 using System;
 
 namespace Staple.Internal;
@@ -980,8 +981,8 @@ internal partial class SDLGPURendererBackend
         var vertexSamplerCount = instance.vertexTextureBindings.Count;
         var fragmentSamplerCount = instance.fragmentTextureBindings.Count;
 
-        vertexSamplers = vertexSamplerCount > 0 ? new SDL.GPUTextureSamplerBinding[vertexSamplerCount] : null;
-        fragmentSamplers = fragmentSamplerCount > 0 ? new SDL.GPUTextureSamplerBinding[fragmentSamplerCount] : null;
+        vertexSamplers = vertexSamplerCount > 0 ? GlobalAllocator<SDL.GPUTextureSamplerBinding>.Instance.Rent(vertexSamplerCount) : null;
+        fragmentSamplers = fragmentSamplerCount > 0 ? GlobalAllocator<SDL.GPUTextureSamplerBinding>.Instance.Rent(fragmentSamplerCount) : null;
 
         if (vertexSamplers != null)
         {

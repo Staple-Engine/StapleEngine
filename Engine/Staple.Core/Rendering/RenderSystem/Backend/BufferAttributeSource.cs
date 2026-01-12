@@ -6,7 +6,7 @@ namespace Staple.Internal;
 
 internal class BufferAttributeSource<T, BufferType>(VertexAttribute attribute, BufferAttributeContainer.BufferSlot slot, T? defaultValue = null) where T: unmanaged
 {
-    public readonly FreeformAllocator<T> allocator = new();
+    public readonly UnmanagedFreeformAllocator<T> allocator = new();
 
     public readonly VertexAttribute attribute = attribute;
 
@@ -24,7 +24,7 @@ internal class BufferAttributeSource<T, BufferType>(VertexAttribute attribute, B
 
     public bool Changed { get; set; }
 
-    public FreeformAllocator<T>.Entry Allocate(int elementCount)
+    public UnmanagedFreeformAllocator<T>.Entry Allocate(int elementCount)
     {
         Changed = true;
 
@@ -47,7 +47,7 @@ internal class BufferAttributeSource<T, BufferType>(VertexAttribute attribute, B
         return entry;
     }
 
-    public void Free(FreeformAllocator<T>.Entry entry)
+    public void Free(UnmanagedFreeformAllocator<T>.Entry entry)
     {
         Changed = true;
 

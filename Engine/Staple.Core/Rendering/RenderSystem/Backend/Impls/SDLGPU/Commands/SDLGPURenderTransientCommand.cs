@@ -1,4 +1,5 @@
 ﻿using SDL3;
+using Staple.Utilities;
 
 namespace Staple.Internal;
 
@@ -13,6 +14,9 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
     {
         var backend = (SDLGPURendererBackend)rendererBackend;
 
+        using var vertexUniformHandle = new GlobalAllocator<StapleShaderUniform>.GlobalAllocatorHandle(vertexUniformData);
+        using var fragmentUniformHandle = new GlobalAllocator<StapleShaderUniform>.GlobalAllocatorHandle(fragmentUniformData);
+
         if (entry.vertexBuffer == nint.Zero ||
             !backend.TryGetTextureSamplers(vertexTextures, fragmentTextures, state.shaderInstance,
                 out var vertexSamplers, out var fragmentSamplers))
@@ -20,42 +24,11 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
             return;
         }
 
+        using var vertexSamplerHandle = new GlobalAllocator<SDL.GPUTextureSamplerBinding>.GlobalAllocatorHandle(vertexSamplers);
+        using var fragmentSamplerHandle = new GlobalAllocator<SDL.GPUTextureSamplerBinding>.GlobalAllocatorHandle(fragmentSamplers);
+
         var hasVertexStorageBuffers = state.vertexStorageBuffers != null;
         var hasFragmentStorageBuffers = state.fragmentStorageBuffers != null;
-
-        if (hasVertexStorageBuffers)
-        {
-            for (var i = 0; i < state.vertexStorageBuffers.Count; i++)
-            {
-                var binding = state.vertexStorageBuffers[i];
-
-                if (binding.buffer.Disposed ||
-                    binding.buffer is not SDLGPUVertexBuffer v ||
-                    !backend.TryGetVertexBuffer(v.handle, out var resource) ||
-                    !resource.used ||
-                    resource.buffer == nint.Zero)
-                {
-                    return;
-                }
-            }
-        }
-
-        if (hasFragmentStorageBuffers)
-        {
-            for (var i = 0; i < state.fragmentStorageBuffers.Count; i++)
-            {
-                var binding = state.fragmentStorageBuffers[i];
-
-                if (binding.buffer.Disposed ||
-                    binding.buffer is not SDLGPUVertexBuffer v ||
-                    !backend.TryGetVertexBuffer(v.handle, out var resource) ||
-                    !resource.used ||
-                    resource.buffer == nint.Zero)
-                {
-                    return;
-                }
-            }
-        }
 
         var renderPass = backend.renderPass;
 
@@ -120,34 +93,62 @@ internal class SDLGPURenderTransientCommand(RenderState state, nint pipeline, Te
 
         if (hasVertexStorageBuffers)
         {
-            for (var i = 0; i < state.vertexStorageBuffers.Count; i++)
+            var buffers = GlobalAllocator<nint>.Instance.Rent(state.vertexStorageBuffers.Count);
+            var counter = 0;
+            var firstBinding = -1;
+
+            foreach (var (binding, buffer) in state.vertexStorageBuffers)
             {
-                var binding = state.vertexStorageBuffers[i];
+                if (buffer.Disposed ||
+                    buffer is not SDLGPUVertexBuffer v ||
+                    !backend.TryGetVertexBuffer(v.handle, out var resource) ||
+                    !resource.used ||
+                    resource.buffer == nint.Zero)
+                {
+                    return;
+                }
 
-                var buffer = binding.buffer as SDLGPUVertexBuffer;
+                buffers[counter++] = resource.buffer;
 
-                backend.TryGetVertexBuffer(buffer.handle, out var resource);
-
-                SDLGPURendererBackend.singleBuffer[0] = resource.buffer;
-
-                SDL.BindGPUVertexStorageBuffers(renderPass, (uint)binding.binding, SDLGPURendererBackend.singleBuffer, 1);
+                if(firstBinding < 0)
+                {
+                    firstBinding = binding;
+                }
             }
+
+            SDL.BindGPUVertexStorageBuffers(renderPass, (uint)firstBinding, buffers, (uint)buffers.Length);
+
+            GlobalAllocator<nint>.Instance.Return(buffers);
         }
 
         if (hasFragmentStorageBuffers)
         {
-            for (var i = 0; i < state.fragmentStorageBuffers.Count; i++)
+            var buffers = GlobalAllocator<nint>.Instance.Rent(state.fragmentStorageBuffers.Count);
+            var counter = 0;
+            var firstBinding = -1;
+
+            foreach (var (binding, buffer) in state.fragmentStorageBuffers)
             {
-                var binding = state.fragmentStorageBuffers[i];
+                if (buffer.Disposed ||
+                    buffer is not SDLGPUVertexBuffer v ||
+                    !backend.TryGetVertexBuffer(v.handle, out var resource) ||
+                    !resource.used ||
+                    resource.buffer == nint.Zero)
+                {
+                    return;
+                }
 
-                var buffer = binding.buffer as SDLGPUVertexBuffer;
+                buffers[counter++] = resource.buffer;
 
-                backend.TryGetVertexBuffer(buffer.handle, out var resource);
-
-                SDLGPURendererBackend.singleBuffer[0] = resource.buffer;
-
-                SDL.BindGPUFragmentStorageBuffers(renderPass, (uint)binding.binding, SDLGPURendererBackend.singleBuffer, 1);
+                if (firstBinding < 0)
+                {
+                    firstBinding = binding;
+                }
             }
+
+            SDL.BindGPUFragmentStorageBuffers(renderPass, (uint)firstBinding, buffers, (uint)buffers.Length);
+
+            GlobalAllocator<nint>.Instance.Return(buffers);
         }
 
         for (var i = 0; i < vertexUniformData.Length; i++)

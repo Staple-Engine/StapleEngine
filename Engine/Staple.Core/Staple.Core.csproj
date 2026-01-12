@@ -415,9 +415,11 @@
 		<Compile Include="Serialization\App\AppSettingsHeader.cs" />
 		<Compile Include="Utilities\DictionaryExtensions.cs" />
 		<Compile Include="Utilities\ExpandableContainer.cs" />
-		<Compile Include="Utilities\FreeformAllocator.cs" />
+		<Compile Include="Utilities\UnmanagedFreeformAllocator.cs" />
+		<Compile Include="Utilities\GlobalAllocator.cs" />
 		<Compile Include="Utilities\GuidGenerator.cs" />
 		<Compile Include="Utilities\IntLookupCache.cs" />
+		<Compile Include="Utilities\ManagedFreeformAllocator.cs" />
 		<Compile Include="Utilities\ObjectCreation.cs" />
 		<Compile Include="Utilities\Observables\IObservableBox.cs" />
 		<Compile Include="Utilities\Observables\ObservableBox.cs" />
