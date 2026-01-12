@@ -552,6 +552,8 @@ public class JoltPhysics3D : IPhysics3D
                     transform = entity.GetComponent<Transform>(),
                     gravityFactor = gravityFactor,
                     friction = friction,
+                    Position = position,
+                    Rotation = rotation.SafeNormalize(),
                     enabled = true,
                 };
 
@@ -639,6 +641,8 @@ public class JoltPhysics3D : IPhysics3D
                     body = b,
                     entity = entity,
                     transform = entity.GetComponent<Transform>(),
+                    Position = position,
+                    Rotation = rotation.SafeNormalize(),
                 };
 
                 bodies.Add(pair);

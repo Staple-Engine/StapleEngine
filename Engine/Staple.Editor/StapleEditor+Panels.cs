@@ -973,7 +973,7 @@ internal partial class StapleEditor
                     }
                 }
 
-                ImGui.End();
+                ImGui.EndChild();
 
                 break;
         }
