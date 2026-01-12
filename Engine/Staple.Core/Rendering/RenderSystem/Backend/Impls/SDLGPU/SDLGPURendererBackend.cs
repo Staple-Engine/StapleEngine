@@ -986,8 +986,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     private bool ShouldPushVertexUniform(int binding, Span<byte> data)
     {
-        //TODO: Figure this out
-        /*
         if(binding < 0 || binding >= lastVertexShaderUniformHashes.Length)
         {
             return false;
@@ -1003,15 +1001,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
 
         return false;
-        */
-
-        return true;
     }
 
     private bool ShouldPushFragmentUniform(int binding, Span<byte> data)
     {
-        //TODO: Figure this out
-        /*
         if (binding < 0 || binding >= lastFragmentShaderUniformHashes.Length)
         {
             return false;
@@ -1027,9 +1020,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
 
         return false;
-        */
-
-        return true;
     }
 
     internal void UpdateDepthTextureIfNeeded(bool force)
@@ -1918,6 +1908,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 uniformEntry.binding = (byte)pair.Key.binding;
                 uniformEntry.position = position;
                 uniformEntry.size = pair.Value.Length;
+                uniformEntry.used = true;
             }
         }
 
@@ -1977,6 +1968,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 uniformEntry.binding = (byte)pair.Key.binding;
                 uniformEntry.position = position;
                 uniformEntry.size = pair.Value.Length;
+                uniformEntry.used = true;
             }
         }
     }
@@ -2072,127 +2064,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndex += indices.Length;
 
-        var vertexUniformData = new StapleShaderUniform[shader.vertexMappings.Count];
-        var fragmentUniformData = new StapleShaderUniform[shader.fragmentMappings.Count];
+        StapleShaderUniform[] vertexUniformData = null;
+        StapleShaderUniform[] fragmentUniformData = null;
 
-        var counter = 0;
-
-        foreach (var pair in shader.vertexMappings)
-        {
-            if (pair.Key.name == StapleRenderDataUniformName)
-            {
-                if (pair.Value.Length != Marshal.SizeOf<StapleRenderData>())
-                {
-                    Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
-                        + $"Should be {Marshal.SizeOf<StapleRenderData>()}!");
-
-                    continue;
-                }
-
-                unsafe
-                {
-                    viewData.renderData.world = state.world;
-                    viewData.renderData.instanceOffset = state.instanceOffset > 0 ? state.instanceOffset : 0;
-
-                    fixed (void* ptr = &viewData.renderData)
-                    {
-                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleRenderData>());
-                        var target = new Span<byte>(pair.Value);
-
-                        source.CopyTo(target);
-                    }
-                }
-            }
-
-            if (!ShouldPushVertexUniform(pair.Key.binding, pair.Value))
-            {
-                continue;
-            }
-
-            unsafe
-            {
-                var position = frameAllocator.position;
-
-                frameAllocator.Allocate(pair.Value.Length);
-
-                fixed (void* source = pair.Value)
-                {
-                    fixed (void* target = frameAllocator.buffer)
-                    {
-                        var p = (byte*)target;
-
-                        p += position;
-
-                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
-                    }
-                }
-
-                ref var uniformEntry = ref vertexUniformData[counter++];
-
-                uniformEntry.binding = (byte)pair.Key.binding;
-                uniformEntry.position = position;
-                uniformEntry.size = pair.Value.Length;
-            }
-        }
-
-        counter = 0;
-
-        foreach (var pair in shader.fragmentMappings)
-        {
-            if (pair.Key.name == StapleFragmentDataUniformName)
-            {
-                if (pair.Value.Length != Marshal.SizeOf<StapleFragmentRenderData>())
-                {
-                    Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
-                        + $"Should be {Marshal.SizeOf<StapleFragmentRenderData>()}!");
-
-                    continue;
-                }
-
-                unsafe
-                {
-                    viewData.fragmentData.time = Time.time;
-
-                    fixed (void* ptr = &viewData.fragmentData)
-                    {
-                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleFragmentRenderData>());
-                        var target = new Span<byte>(pair.Value);
-
-                        source.CopyTo(target);
-                    }
-                }
-            }
-
-            if (!ShouldPushFragmentUniform(pair.Key.binding, pair.Value))
-            {
-                continue;
-            }
-
-            unsafe
-            {
-                var position = frameAllocator.position;
-
-                frameAllocator.Allocate(pair.Value.Length);
-
-                fixed (void* source = pair.Value)
-                {
-                    fixed (void* target = frameAllocator.buffer)
-                    {
-                        var p = (byte*)target;
-
-                        p += position;
-
-                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
-                    }
-                }
-
-                ref var uniformEntry = ref fragmentUniformData[counter++];
-
-                uniformEntry.binding = (byte)pair.Key.binding;
-                uniformEntry.position = position;
-                uniformEntry.size = pair.Value.Length;
-            }
-        }
+        GetUniformData(in state, shader, ref vertexUniformData, ref fragmentUniformData);
 
         AddCommand(new SDLGPURenderTransientCommand(state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
             fragmentUniformData, entry));
@@ -2252,127 +2127,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndexUInt += indices.Length;
 
-        var vertexUniformData = new StapleShaderUniform[shader.vertexMappings.Count];
-        var fragmentUniformData = new StapleShaderUniform[shader.fragmentMappings.Count];
+        StapleShaderUniform[] vertexUniformData = null;
+        StapleShaderUniform[] fragmentUniformData = null;
 
-        var counter = 0;
-
-        foreach (var pair in shader.vertexMappings)
-        {
-            if (pair.Key.name == StapleRenderDataUniformName)
-            {
-                if (pair.Value.Length != Marshal.SizeOf<StapleRenderData>())
-                {
-                    Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
-                        + $"Should be {Marshal.SizeOf<StapleRenderData>()}!");
-
-                    continue;
-                }
-
-                unsafe
-                {
-                    viewData.renderData.world = state.world;
-                    viewData.renderData.instanceOffset = state.instanceOffset > 0 ? state.instanceOffset : 0;
-
-                    fixed (void* ptr = &viewData.renderData)
-                    {
-                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleRenderData>());
-                        var target = new Span<byte>(pair.Value);
-
-                        source.CopyTo(target);
-                    }
-                }
-            }
-
-            if(!ShouldPushVertexUniform(pair.Key.binding, pair.Value))
-            {
-                continue;
-            }
-
-            unsafe
-            {
-                var position = frameAllocator.position;
-
-                frameAllocator.Allocate(pair.Value.Length);
-
-                fixed (void* source = pair.Value)
-                {
-                    fixed (void* target = frameAllocator.buffer)
-                    {
-                        var p = (byte*)target;
-
-                        p += position;
-
-                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
-                    }
-                }
-
-                ref var uniformEntry = ref vertexUniformData[counter++];
-
-                uniformEntry.binding = (byte)pair.Key.binding;
-                uniformEntry.position = position;
-                uniformEntry.size = pair.Value.Length;
-            }
-        }
-
-        counter = 0;
-
-        foreach (var pair in shader.fragmentMappings)
-        {
-            if (pair.Key.name == StapleFragmentDataUniformName)
-            {
-                if (pair.Value.Length != Marshal.SizeOf<StapleFragmentRenderData>())
-                {
-                    Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
-                        + $"Should be {Marshal.SizeOf<StapleFragmentRenderData>()}!");
-
-                    continue;
-                }
-
-                unsafe
-                {
-                    viewData.fragmentData.time = Time.time;
-
-                    fixed (void* ptr = &viewData.fragmentData)
-                    {
-                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleFragmentRenderData>());
-                        var target = new Span<byte>(pair.Value);
-
-                        source.CopyTo(target);
-                    }
-                }
-            }
-
-            if (!ShouldPushFragmentUniform(pair.Key.binding, pair.Value))
-            {
-                continue;
-            }
-
-            unsafe
-            {
-                var position = frameAllocator.position;
-
-                frameAllocator.Allocate(pair.Value.Length);
-
-                fixed (void* source = pair.Value)
-                {
-                    fixed (void* target = frameAllocator.buffer)
-                    {
-                        var p = (byte*)target;
-
-                        p += position;
-
-                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
-                    }
-                }
-
-                ref var uniformEntry = ref fragmentUniformData[counter++];
-
-                uniformEntry.binding = (byte)pair.Key.binding;
-                uniformEntry.position = position;
-                uniformEntry.size = pair.Value.Length;
-            }
-        }
+        GetUniformData(in state, shader, ref vertexUniformData, ref fragmentUniformData);
 
         AddCommand(new SDLGPURenderTransientUIntCommand(state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
             fragmentUniformData, entry));

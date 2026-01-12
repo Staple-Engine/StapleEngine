@@ -9,4 +9,5 @@ internal struct StapleShaderUniform
     public byte binding;
     public int position;
     public int size;
+    public bool used;
 }

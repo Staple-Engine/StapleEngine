@@ -154,6 +154,11 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
         {
             var uniform = vertexUniformData[i];
 
+            if (uniform.used == false)
+            {
+                continue;
+            }
+
             var target = backend.frameAllocator.Get(uniform.position);
 
             SDL.PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
@@ -162,6 +167,11 @@ internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline
         for (var i = 0; i < fragmentUniformData.Length; i++)
         {
             var uniform = fragmentUniformData[i];
+
+            if (uniform.used == false)
+            {
+                continue;
+            }
 
             var target = backend.frameAllocator.Get(uniform.position);
 
