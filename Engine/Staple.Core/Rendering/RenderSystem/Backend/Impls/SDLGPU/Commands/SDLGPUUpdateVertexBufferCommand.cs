@@ -104,7 +104,6 @@ internal class SDLGPUUpdateVertexBufferCommand(ResourceHandle<VertexBuffer> hand
         var location = new SDL.GPUTransferBufferLocation()
         {
             TransferBuffer = buffer.transferBuffer,
-            Offset = 0,
         };
 
         var region = new SDL.GPUBufferRegion()

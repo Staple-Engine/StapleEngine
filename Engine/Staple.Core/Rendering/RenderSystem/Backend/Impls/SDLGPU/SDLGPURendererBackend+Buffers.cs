@@ -319,7 +319,6 @@ internal partial class SDLGPURendererBackend
             var location = new SDL.GPUTransferBufferLocation()
             {
                 TransferBuffer = transferBuffer,
-                Offset = 0,
             };
 
             var region = new SDL.GPUBufferRegion()
@@ -377,12 +376,12 @@ internal partial class SDLGPURendererBackend
                 var location = new SDL.GPUTransferBufferLocation()
                 {
                     TransferBuffer = transferBuffer,
-                    Offset = (uint)(start * Marshal.SizeOf<Matrix4x4>()),
                 };
 
                 var region = new SDL.GPUBufferRegion()
                 {
                     Buffer = entityTransformsBuffer,
+                    Offset = (uint)(start * Marshal.SizeOf<Matrix4x4>()),
                     Size = (uint)targetLength,
                 };
 
@@ -472,7 +471,6 @@ internal partial class SDLGPURendererBackend
         var location = new SDL.GPUTransferBufferLocation()
         {
             TransferBuffer = transferBuffer,
-            Offset = 0,
         };
 
         var region = new SDL.GPUBufferRegion()
@@ -564,7 +562,6 @@ internal partial class SDLGPURendererBackend
         var location = new SDL.GPUTransferBufferLocation()
         {
             TransferBuffer = transferBuffer,
-            Offset = 0,
         };
 
         var region = new SDL.GPUBufferRegion()

@@ -56,6 +56,22 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
         var hasVertexStorageBuffers = state.vertexStorageBuffers != null;
         var hasFragmentStorageBuffers = state.fragmentStorageBuffers != null;
 
+        var renderPass = backend.renderPass;
+
+        if (renderPass == nint.Zero)
+        {
+            backend.ResumeRenderPass();
+
+            renderPass = backend.renderPass;
+        }
+
+        if (SDLGPURendererBackend.lastGraphicsPipeline != pipeline)
+        {
+            SDLGPURendererBackend.lastGraphicsPipeline = pipeline;
+
+            SDL.BindGPUGraphicsPipeline(renderPass, pipeline);
+        }
+
         if (hasVertexStorageBuffers)
         {
             for (var i = 0; i < state.vertexStorageBuffers.Count; i++)
@@ -70,6 +86,10 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
                 {
                     return;
                 }
+
+                SDLGPURendererBackend.singleBuffer[0] = resource.buffer;
+
+                SDL.BindGPUVertexStorageBuffers(renderPass, (uint)binding.binding, SDLGPURendererBackend.singleBuffer, 1);
             }
         }
 
@@ -87,23 +107,11 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
                 {
                     return;
                 }
+
+                SDLGPURendererBackend.singleBuffer[0] = resource.buffer;
+
+                SDL.BindGPUFragmentStorageBuffers(renderPass, (uint)binding.binding, SDLGPURendererBackend.singleBuffer, 1);
             }
-        }
-
-        var renderPass = backend.renderPass;
-
-        if(renderPass == nint.Zero)
-        {
-            backend.ResumeRenderPass();
-
-            renderPass = backend.renderPass;
-        }
-
-        if (SDLGPURendererBackend.lastGraphicsPipeline != pipeline)
-        {
-            SDLGPURendererBackend.lastGraphicsPipeline = pipeline;
-
-            SDL.BindGPUGraphicsPipeline(renderPass, pipeline);
         }
 
         if (staticMeshEntries == null)
@@ -157,38 +165,6 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
         if (fragmentSamplers != null)
         {
             SDL.BindGPUFragmentSamplers(renderPass, 0, fragmentSamplers, (uint)fragmentSamplers.Length);
-        }
-
-        if (hasVertexStorageBuffers)
-        {
-            for (var i = 0; i < state.vertexStorageBuffers.Count; i++)
-            {
-                var binding = state.vertexStorageBuffers[i];
-
-                var buffer = binding.buffer as SDLGPUVertexBuffer;
-
-                backend.TryGetVertexBuffer(buffer.handle, out var resource);
-
-                SDLGPURendererBackend.singleBuffer[0] = resource.buffer;
-
-                SDL.BindGPUVertexStorageBuffers(renderPass, (uint)binding.binding, SDLGPURendererBackend.singleBuffer, 1);
-            }
-        }
-
-        if (hasFragmentStorageBuffers)
-        {
-            for (var i = 0; i < state.fragmentStorageBuffers.Count; i++)
-            {
-                var binding = state.fragmentStorageBuffers[i];
-
-                var buffer = binding.buffer as SDLGPUVertexBuffer;
-
-                backend.TryGetVertexBuffer(buffer.handle, out var resource);
-
-                SDLGPURendererBackend.singleBuffer[0] = resource.buffer;
-
-                SDL.BindGPUFragmentStorageBuffers(renderPass, (uint)binding.binding, SDLGPURendererBackend.singleBuffer, 1);
-            }
         }
 
         for (var i = 0; i < vertexUniformData.Length; i++)

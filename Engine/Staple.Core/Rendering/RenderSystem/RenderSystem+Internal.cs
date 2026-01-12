@@ -319,7 +319,7 @@ public sealed partial class RenderSystem
         var length = 0;
 
         changedEntityTransformRanges.Clear();
-            
+
         for (var i = 0; i < entityQuery.Length; i++)
         {
             var (entity, transform) = entityQuery[i];
@@ -330,11 +330,11 @@ public sealed partial class RenderSystem
                 {
                     continue;
                 }
-                    
+
                 changedEntityTransformRanges.Add(startIndex, length);
 
                 startIndex = -1;
-                    
+
                 continue;
             }
 

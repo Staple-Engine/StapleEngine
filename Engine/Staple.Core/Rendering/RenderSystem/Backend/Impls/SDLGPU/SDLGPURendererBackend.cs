@@ -227,7 +227,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 var location = new SDL.GPUTransferBufferLocation()
                 {
                     TransferBuffer = transferBuffer,
-                    Offset = 0,
                 };
 
                 var region = new SDL.GPUBufferRegion()
@@ -298,7 +297,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 var location = new SDL.GPUTransferBufferLocation()
                 {
                     TransferBuffer = transferBuffer,
-                    Offset = 0,
                 };
 
                 var region = new SDL.GPUBufferRegion()
@@ -379,7 +377,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 var location = new SDL.GPUTransferBufferLocation()
                 {
                     TransferBuffer = transferBuffer,
-                    Offset = 0,
                 };
 
                 var region = new SDL.GPUBufferRegion()
@@ -745,6 +742,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     {
         renderSize.X = width;
         renderSize.Y = height;
+
+        needsDepthTextureUpdate = true;
     }
 
     public void Destroy()
