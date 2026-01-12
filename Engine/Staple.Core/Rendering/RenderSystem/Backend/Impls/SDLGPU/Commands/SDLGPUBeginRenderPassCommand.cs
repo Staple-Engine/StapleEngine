@@ -3,16 +3,15 @@ using System.Numerics;
 
 namespace Staple.Internal;
 
-internal class SDLGPUBeginRenderPassCommand(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
-        in Matrix4x4 view, in Matrix4x4 projection) : IRenderCommand
+internal class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend, RenderTarget target, CameraClearMode clearMode,
+    Color clearColor, Vector4 viewport, in Matrix4x4 view, in Matrix4x4 projection) : IRenderCommand
 {
     public Matrix4x4 view = view;
     public Matrix4x4 projection = projection;
 
-    public void Update(IRendererBackend rendererBackend)
+    public void Update()
     {
-        if(rendererBackend is not SDLGPURendererBackend backend ||
-            backend.commandBuffer == nint.Zero)
+        if(backend.commandBuffer == nint.Zero)
         {
             return;
         }

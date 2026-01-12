@@ -2,5 +2,5 @@
 
 internal interface IRenderCommand
 {
-    void Update(IRendererBackend rendererBackend);
+    void Update();
 }

@@ -3,17 +3,16 @@ using Staple.Utilities;
 
 namespace Staple.Internal;
 
-internal class SDLGPURenderTransientUIntCommand(RenderState state, nint pipeline, Texture[] vertexTextures, Texture[] fragmentTextures,
-    StapleShaderUniform[] vertexUniformData, StapleShaderUniform[] fragmentUniformData, SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
+internal class SDLGPURenderTransientUIntCommand(SDLGPURendererBackend backend, RenderState state, nint pipeline, Texture[] vertexTextures,
+    Texture[] fragmentTextures, StapleShaderUniform[] vertexUniformData, StapleShaderUniform[] fragmentUniformData,
+    SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
 {
     private readonly RenderState state = state.Clone();
     private readonly Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
     private readonly Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
 
-    public void Update(IRendererBackend rendererBackend)
+    public void Update()
     {
-        var backend = (SDLGPURendererBackend)rendererBackend;
-
         using var vertexUniformHandle = new GlobalAllocator<StapleShaderUniform>.GlobalAllocatorHandle(vertexUniformData);
         using var fragmentUniformHandle = new GlobalAllocator<StapleShaderUniform>.GlobalAllocatorHandle(fragmentUniformData);
 

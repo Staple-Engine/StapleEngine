@@ -3,8 +3,9 @@ using Staple.Utilities;
 
 namespace Staple.Internal;
 
-internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] vertexTextures, Texture[] fragmentTextures,
-    StapleShaderUniform[] vertexUniformData, StapleShaderUniform[] fragmentUniformData, VertexAttribute[] vertexAttributes) : IRenderCommand
+internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState state, nint pipeline, Texture[] vertexTextures,
+    Texture[] fragmentTextures, StapleShaderUniform[] vertexUniformData, StapleShaderUniform[] fragmentUniformData,
+    VertexAttribute[] vertexAttributes) : IRenderCommand
 {
     private readonly RenderState state = state.Clone();
     private readonly Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
@@ -17,9 +18,8 @@ internal class SDLGPURenderCommand(RenderState state, nint pipeline, Texture[] v
     internal static SDL.GPUBufferBinding indexBinding;
     internal static SDL.Rect scissor;
 
-    public void Update(IRendererBackend rendererBackend)
+    public void Update()
     {
-        var backend = (SDLGPURendererBackend)rendererBackend;
         var vertex = (SDLGPUVertexBuffer)state.vertexBuffer;
         var index = (SDLGPUIndexBuffer)state.indexBuffer;
         var staticMeshEntries = state.staticMeshEntries;

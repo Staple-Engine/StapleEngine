@@ -1,12 +1,10 @@
 ﻿namespace Staple.Internal;
 
-internal class SDLGPUDestroyTextureCommand(ResourceHandle<Texture> handle) : IRenderCommand
+internal class SDLGPUDestroyTextureCommand(SDLGPURendererBackend backend, ResourceHandle<Texture> handle) : IRenderCommand
 {
-    public void Update(IRendererBackend rendererBackend)
+    public void Update()
     {
-        if (rendererBackend is not SDLGPURendererBackend backend ||
-            !backend.TryGetTexture(handle, out var resource) ||
-            !resource.used)
+        if (!backend.TryGetTexture(handle, out var resource) || !resource.used)
         {
             return;
         }

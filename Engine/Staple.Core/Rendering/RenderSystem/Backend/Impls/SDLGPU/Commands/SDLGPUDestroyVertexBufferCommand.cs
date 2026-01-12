@@ -1,12 +1,10 @@
 ﻿namespace Staple.Internal;
 
-internal class SDLGPUDestroyVertexBufferCommand(ResourceHandle<VertexBuffer> handle) : IRenderCommand
+internal class SDLGPUDestroyVertexBufferCommand(SDLGPURendererBackend backend, ResourceHandle<VertexBuffer> handle) : IRenderCommand
 {
-    public void Update(IRendererBackend rendererBackend)
+    public void Update()
     {
-        if(rendererBackend is not SDLGPURendererBackend backend ||
-            !handle.IsValid ||
-            !backend.TryGetVertexBuffer(handle, out var resource))
+        if(!handle.IsValid || !backend.TryGetVertexBuffer(handle, out var resource))
         {
             return;
         }

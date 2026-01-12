@@ -33,10 +33,9 @@ internal interface IRendererBackend
     VertexLayoutBuilder CreateVertexLayoutBuilder();
 
     IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
-        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
-        ShaderUniformContainer vertexUniforms, ShaderUniformContainer fragmentUniforms);
+        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics);
 
-    IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics computeMetrics, ShaderUniformContainer uniforms);
+    IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics computeMetrics);
 
     VertexBuffer CreateVertexBuffer(Span<byte> data, VertexLayout layout, RenderBufferFlags flags);
 

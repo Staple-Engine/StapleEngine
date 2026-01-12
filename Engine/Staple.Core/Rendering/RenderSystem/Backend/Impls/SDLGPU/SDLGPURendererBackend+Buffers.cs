@@ -194,11 +194,21 @@ internal partial class SDLGPURendererBackend
 
     public void UpdateVertexBuffer(ResourceHandle<VertexBuffer> buffer, Span<byte> data)
     {
-        AddCommand(new SDLGPUUpdateVertexBufferCommand(buffer, data.ToArray()));
+        if(data.Length == 0)
+        {
+            return;
+        }
+
+        AddCommand(new SDLGPUUpdateVertexBufferCommand(this, buffer, data.ToArray()));
     }
 
     public void UpdateIndexBuffer(ResourceHandle<IndexBuffer> buffer, Span<ushort> data)
     {
+        if(data.Length == 0)
+        {
+            return;
+        }
+
         unsafe
         {
             var holder = new byte[data.Length * sizeof(ushort)];
@@ -210,12 +220,17 @@ internal partial class SDLGPURendererBackend
                 data.CopyTo(target);
             }
 
-            AddCommand(new SDLGPUUpdateIndexBufferCommand(buffer, holder));
+            AddCommand(new SDLGPUUpdateIndexBufferCommand(this, buffer, holder));
         }
     }
 
     public void UpdateIndexBuffer(ResourceHandle<IndexBuffer> buffer, Span<uint> data)
     {
+        if (data.Length == 0)
+        {
+            return;
+        }
+
         unsafe
         {
             var holder = new byte[data.Length * sizeof(uint)];
@@ -227,25 +242,25 @@ internal partial class SDLGPURendererBackend
                 data.CopyTo(target);
             }
 
-            AddCommand(new SDLGPUUpdateIndexBufferCommand(buffer, holder));
+            AddCommand(new SDLGPUUpdateIndexBufferCommand(this, buffer, holder));
         }
     }
 
     public void DestroyVertexBuffer(ResourceHandle<VertexBuffer> buffer)
     {
-        AddCommand(new SDLGPUDestroyVertexBufferCommand(buffer));
+        AddCommand(new SDLGPUDestroyVertexBufferCommand(this, buffer));
     }
 
     public void DestroyIndexBuffer(ResourceHandle<IndexBuffer> buffer)
     {
-        AddCommand(new SDLGPUDestroyIndexBufferCommand(buffer));
+        AddCommand(new SDLGPUDestroyIndexBufferCommand(this, buffer));
     }
 
     private void UpdateEntityTransformBuffer()
     {
         var elementCount = RenderSystem.Instance.entityTransforms.Length;
 
-        var targetLength = elementCount * Marshal.SizeOf<Matrix4x4>();
+        var targetLength = elementCount * Matrix4x4ByteSize;
 
         if (entityTransformsBuffer != nint.Zero &&
             entityTransformsBufferLength >= targetLength &&
@@ -348,7 +363,7 @@ internal partial class SDLGPURendererBackend
 
             foreach (var (start, length) in RenderSystem.Instance.changedEntityTransformRanges)
             {
-                targetLength = length * Marshal.SizeOf<Matrix4x4>();
+                targetLength = length * Matrix4x4ByteSize;
                 
                 var transferBuffer = GetTransferBuffer(false, targetLength);
 
@@ -381,7 +396,7 @@ internal partial class SDLGPURendererBackend
                 var region = new SDL.GPUBufferRegion()
                 {
                     Buffer = entityTransformsBuffer,
-                    Offset = (uint)(start * Marshal.SizeOf<Matrix4x4>()),
+                    Offset = (uint)(start * Matrix4x4ByteSize),
                     Size = (uint)targetLength,
                 };
 

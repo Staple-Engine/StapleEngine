@@ -3,13 +3,11 @@ using System;
 
 namespace Staple.Internal;
 
-internal class SDLGPUUpdateTextureCommand(ResourceHandle<Texture> handle, byte[] data) : IRenderCommand
+internal class SDLGPUUpdateTextureCommand(SDLGPURendererBackend backend, ResourceHandle<Texture> handle, byte[] data) : IRenderCommand
 {
-    public void Update(IRendererBackend rendererBackend)
+    public void Update()
     {
-        if(rendererBackend is not SDLGPURendererBackend backend ||
-            !backend.TryGetTexture(handle, out var resource) ||
-            !resource.used)
+        if(!backend.TryGetTexture(handle, out var resource) || !resource.used)
         {
             return;
         }

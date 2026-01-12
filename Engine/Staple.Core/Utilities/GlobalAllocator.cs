@@ -31,10 +31,10 @@ public class GlobalAllocator<T> where T: unmanaged
         public bool used;
     }
     
-    private class EntryPair
+    private struct EntryPair
     {
-        public readonly List<Entry> entries = [];
-        public readonly List<Entry> freeEntries = [];
+        public List<Entry> entries;
+        public Queue<Entry> freeEntries;
     }
 
     private readonly Dictionary<int, EntryPair> entries = [];
@@ -48,18 +48,27 @@ public class GlobalAllocator<T> where T: unmanaged
             throw new ArgumentException($"Invalid length {length}", nameof(length));
         }
 
-        if(entries.TryGetValue(length, out var pair) == false)
-        {
-            pair = new();
+        ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(entries, length, out var exists);
 
-            entries.Add(length, pair);
+        if(exists == false)
+        {
+            pair.entries = [];
+            pair.freeEntries = [];
+
+            var contents = new T[length];
+
+            pair.entries.Add(new()
+            {
+                contents = contents,
+                used = true,
+            });
+
+            return contents;
         }
 
         if(pair.freeEntries.Count > 0)
         {
-            var entry = pair.freeEntries[0];
-
-            pair.freeEntries.RemoveAt(0);
+            var entry = pair.freeEntries.Dequeue();
 
             entry.used = true;
 
@@ -85,8 +94,10 @@ public class GlobalAllocator<T> where T: unmanaged
         {
             return;
         }
-        
-        if(entries.TryGetValue(contents.Length, out var pair) == false)
+
+        ref var pair = ref CollectionsMarshal.GetValueRefOrAddDefault(entries, contents.Length, out var exists);
+
+        if(exists == false)
         {
             return;
         }
@@ -105,7 +116,7 @@ public class GlobalAllocator<T> where T: unmanaged
 
             entry.used = false;
 
-            pair.freeEntries.Add(entry);
+            pair.freeEntries.Enqueue(entry);
 
             return;
         }

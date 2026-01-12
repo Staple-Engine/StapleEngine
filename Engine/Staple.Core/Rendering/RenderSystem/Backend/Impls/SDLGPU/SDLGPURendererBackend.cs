@@ -17,8 +17,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private const uint VulkanVersionMinor = 2;
     private const uint VulkanVersionPatch = 0;
 
-    private const string StapleRenderDataUniformName = "StapleRenderData";
-    private const string StapleFragmentDataUniformName = "StapleFragmentRenderData";
+    private static readonly StringID StapleRenderDataUniformName = "StapleRenderData";
+    private static readonly StringID StapleFragmentDataUniformName = "StapleFragmentRenderData";
+
+    private static readonly int RenderDataByteSize = Marshal.SizeOf<StapleRenderData>();
+    private static readonly int FragmentRenderDataByteSize = Marshal.SizeOf<StapleFragmentRenderData>();
+    private static readonly int Matrix4x4ByteSize = Marshal.SizeOf<Matrix4x4>();
 
     private static uint MakeVulkanVersion(uint major, uint minor, uint patch)
     {
@@ -882,7 +886,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         {
             commandIndex = i;
 
-            commands[i].Update(this);
+            commands[i].Update();
         }
 
         iteratingCommands = false;
@@ -903,11 +907,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         foreach (var pair in transientBuffers)
         {
             pair.Value.Clear();
-        }
-
-        foreach(var shader in shaders)
-        {
-            shader.ClearUniformHashes();
         }
 
         fences[0] = SDL.SubmitGPUCommandBufferAndAcquireFence(commandBuffer);
@@ -1180,12 +1179,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             Screen.Height = window.Size.Y;
         }
 
-        AddCommand(new SDLGPUBeginRenderPassCommand(target, clear, clearColor, viewport, view, projection));
+        AddCommand(new SDLGPUBeginRenderPassCommand(this, target, clear, clearColor, viewport, view, projection));
     }
 
     public IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
-        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics,
-        ShaderUniformContainer vertexUniforms, ShaderUniformContainer fragmentUniforms)
+        VertexFragmentShaderMetrics vertexMetrics, VertexFragmentShaderMetrics fragmentMetrics)
     {
         unsafe
         {
@@ -1259,7 +1257,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            var shader = new SDLGPUShaderProgram(device, vertexShader, fragmentShader, vertexUniforms, fragmentUniforms);
+            var shader = new SDLGPUShaderProgram(device, vertexShader, fragmentShader);
 
             shaders.Add(shader);
 
@@ -1267,7 +1265,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
     }
 
-    public IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics metrics, ShaderUniformContainer uniforms)
+    public IShaderProgram CreateShaderCompute(byte[] compute, ComputeShaderMetrics metrics)
     {
         unsafe
         {
@@ -1310,7 +1308,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            var shader = new SDLGPUShaderProgram(device, computeShader, uniforms);
+            var shader = new SDLGPUShaderProgram(device, computeShader);
 
             shaders.Add(shader);
 
@@ -1847,39 +1845,41 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private void GetUniformData(in RenderState state, SDLGPUShaderProgram shader, ref StapleShaderUniform[] vertexUniformData,
         ref StapleShaderUniform[] fragmentUniformData)
     {
-        if((vertexUniformData?.Length ?? 0) != shader.vertexMappings.Count)
+        if((vertexUniformData?.Length ?? 0) != state.shaderInstance.vertexMappings.Count)
         {
-            vertexUniformData = GlobalAllocator<StapleShaderUniform>.Instance.Rent(shader.vertexMappings.Count);
+            vertexUniformData = GlobalAllocator<StapleShaderUniform>.Instance.Rent(state.shaderInstance.vertexMappings.Count);
         }
 
-        if ((fragmentUniformData?.Length ?? 0) != shader.fragmentMappings.Count)
+        if ((fragmentUniformData?.Length ?? 0) != state.shaderInstance.fragmentMappings.Count)
         {
-            fragmentUniformData = GlobalAllocator<StapleShaderUniform>.Instance.Rent(shader.fragmentMappings.Count);
+            fragmentUniformData = GlobalAllocator<StapleShaderUniform>.Instance.Rent(state.shaderInstance.fragmentMappings.Count);
         }
 
         var counter = 0;
 
-        foreach (var pair in shader.vertexMappings)
+        foreach (var entry in state.shaderInstance.vertexUniformContainers)
         {
-            if (pair.Key.name == StapleRenderDataUniformName)
+            var length = entry.Value.buffer.Length;
+
+            if (entry.Key == StapleRenderDataUniformName)
             {
-                if (pair.Value.Length != Marshal.SizeOf<StapleRenderData>())
+                if (length != RenderDataByteSize)
                 {
-                    Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
-                        + $"Should be {Marshal.SizeOf<StapleRenderData>()}!");
+                    Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {length}: "
+                        + $"Should be {RenderDataByteSize}!");
 
                     continue;
                 }
 
+                viewData.renderData.world = state.world;
+                viewData.renderData.instanceOffset = state.instanceOffset;
+
                 unsafe
                 {
-                    viewData.renderData.world = state.world;
-                    viewData.renderData.instanceOffset = state.instanceOffset > 0 ? state.instanceOffset : 0;
-
                     fixed (void* ptr = &viewData.renderData)
                     {
-                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleRenderData>());
-                        var target = new Span<byte>(pair.Value);
+                        var source = new Span<byte>(ptr, RenderDataByteSize);
+                        var target = new Span<byte>(entry.Value.buffer);
 
                         source.CopyTo(target);
                     }
@@ -1888,7 +1888,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
             ref var uniformEntry = ref vertexUniformData[counter++];
 
-            if (!ShouldPushVertexUniform(pair.Key.binding, pair.Value))
+            if (!ShouldPushVertexUniform(entry.Value.binding, entry.Value.buffer))
             {
                 uniformEntry.used = false;
 
@@ -1899,9 +1899,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             {
                 var position = frameAllocator.position;
 
-                frameAllocator.Allocate(pair.Value.Length);
+                frameAllocator.Allocate(length);
 
-                fixed (void* source = pair.Value)
+                fixed (void* source = entry.Value.buffer)
                 {
                     fixed (void* target = frameAllocator.buffer)
                     {
@@ -1909,27 +1909,29 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                         p += position;
 
-                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
+                        Buffer.MemoryCopy(source, p, length, length);
                     }
                 }
 
-                uniformEntry.binding = (byte)pair.Key.binding;
+                uniformEntry.binding = (byte)entry.Value.binding;
                 uniformEntry.position = position;
-                uniformEntry.size = pair.Value.Length;
+                uniformEntry.size = length;
                 uniformEntry.used = true;
             }
         }
 
         counter = 0;
 
-        foreach (var pair in shader.fragmentMappings)
+        foreach (var entry in state.shaderInstance.fragmentUniformContainers)
         {
-            if (pair.Key.name == StapleFragmentDataUniformName)
+            var length = entry.Value.buffer.Length;
+
+            if (entry.Key == StapleFragmentDataUniformName)
             {
-                if (pair.Value.Length != Marshal.SizeOf<StapleFragmentRenderData>())
+                if (length != FragmentRenderDataByteSize)
                 {
-                    Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {pair.Value.Length}: "
-                        + $"Should be {Marshal.SizeOf<StapleFragmentRenderData>()}!");
+                    Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {length}: "
+                        + $"Should be {FragmentRenderDataByteSize}!");
 
                     continue;
                 }
@@ -1940,8 +1942,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                     fixed (void* ptr = &viewData.fragmentData)
                     {
-                        var source = new Span<byte>(ptr, Marshal.SizeOf<StapleFragmentRenderData>());
-                        var target = new Span<byte>(pair.Value);
+                        var source = new Span<byte>(ptr, FragmentRenderDataByteSize);
+                        var target = new Span<byte>(entry.Value.buffer);
 
                         source.CopyTo(target);
                     }
@@ -1950,7 +1952,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
             ref var uniformEntry = ref fragmentUniformData[counter++];
 
-            if (!ShouldPushFragmentUniform(pair.Key.binding, pair.Value))
+            if (!ShouldPushFragmentUniform(entry.Value.binding, entry.Value.buffer))
             {
                 uniformEntry.used = false;
 
@@ -1961,9 +1963,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             {
                 var position = frameAllocator.position;
 
-                frameAllocator.Allocate(pair.Value.Length);
+                frameAllocator.Allocate(entry.Value.buffer.Length);
 
-                fixed (void* source = pair.Value)
+                fixed (void* source = entry.Value.buffer)
                 {
                     fixed (void* target = frameAllocator.buffer)
                     {
@@ -1971,13 +1973,13 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
                         p += position;
 
-                        Buffer.MemoryCopy(source, p, pair.Value.Length, pair.Value.Length);
+                        Buffer.MemoryCopy(source, p, length, length);
                     }
                 }
 
-                uniformEntry.binding = (byte)pair.Key.binding;
+                uniformEntry.binding = (byte)entry.Value.binding;
                 uniformEntry.position = position;
-                uniformEntry.size = pair.Value.Length;
+                uniformEntry.size = length;
                 uniformEntry.used = true;
             }
         }
@@ -2016,7 +2018,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         GetUniformData(in state, shader, ref vertexUniformData, ref fragmentUniformData);
 
-        AddCommand(new SDLGPURenderCommand(state, pipeline, state.vertexTextures, state.fragmentTextures,
+        AddCommand(new SDLGPURenderCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
             vertexUniformData, fragmentUniformData, state.shaderInstance.attributes));
     }
 
@@ -2081,7 +2083,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         GetUniformData(in state, shader, ref vertexUniformData, ref fragmentUniformData);
 
-        AddCommand(new SDLGPURenderTransientCommand(state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
+        AddCommand(new SDLGPURenderTransientCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
             fragmentUniformData, entry));
     }
 
@@ -2146,7 +2148,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         GetUniformData(in state, shader, ref vertexUniformData, ref fragmentUniformData);
 
-        AddCommand(new SDLGPURenderTransientUIntCommand(state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
+        AddCommand(new SDLGPURenderTransientUIntCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
             fragmentUniformData, entry));
     }
 }

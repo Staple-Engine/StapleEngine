@@ -1,12 +1,10 @@
 ﻿namespace Staple.Internal;
 
-internal class SDLGPUDestroyIndexBufferCommand(ResourceHandle<IndexBuffer> handle) : IRenderCommand
+internal class SDLGPUDestroyIndexBufferCommand(SDLGPURendererBackend backend, ResourceHandle<IndexBuffer> handle) : IRenderCommand
 {
-    public void Update(IRendererBackend rendererBackend)
+    public void Update()
     {
-        if (rendererBackend is not SDLGPURendererBackend backend ||
-            !handle.IsValid ||
-            !backend.TryGetIndexBuffer(handle, out var resource))
+        if (!handle.IsValid || !backend.TryGetIndexBuffer(handle, out var resource))
         {
             return;
         }

@@ -3,16 +3,11 @@ using System;
 
 namespace Staple.Internal;
 
-internal class SDLGPUUpdateVertexBufferCommand(ResourceHandle<VertexBuffer> handle, byte[] data) : IRenderCommand
+internal class SDLGPUUpdateVertexBufferCommand(SDLGPURendererBackend backend, ResourceHandle<VertexBuffer> handle, byte[] data) : IRenderCommand
 {
-    public void Update(IRendererBackend rendererBackend)
+    public void Update()
     {
-        if (rendererBackend is not SDLGPURendererBackend backend ||
-            backend.commandBuffer == nint.Zero ||
-            !handle.IsValid ||
-            data == null ||
-            data.Length == 0 ||
-            !backend.TryGetVertexBuffer(handle, out var buffer))
+        if (data == null || data.Length == 0 || !backend.TryGetVertexBuffer(handle, out var buffer))
         {
             return;
         }

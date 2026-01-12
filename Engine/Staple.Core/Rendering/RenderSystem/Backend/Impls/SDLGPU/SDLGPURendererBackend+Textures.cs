@@ -141,7 +141,7 @@ internal partial class SDLGPURendererBackend
 
     internal void DestroyTexture(ResourceHandle<Texture> handle)
     {
-        AddCommand(new SDLGPUDestroyTextureCommand(handle));
+        AddCommand(new SDLGPUDestroyTextureCommand(this, handle));
     }
 
     public ITexture CreateTextureAssetTexture(SerializableTexture asset, TextureFlags flags)
@@ -320,7 +320,7 @@ internal partial class SDLGPURendererBackend
 
     public void UpdateTexture(ResourceHandle<Texture> handle, Span<byte> data)
     {
-        AddCommand(new SDLGPUUpdateTextureCommand(handle, data.ToArray()));
+        AddCommand(new SDLGPUUpdateTextureCommand(this, handle, data.ToArray()));
     }
 
     public void ReadTexture(ITexture texture, Action<byte[]> onComplete)
@@ -334,7 +334,7 @@ internal partial class SDLGPURendererBackend
             return;
         }
 
-        AddCommand(new SDLGPUReadTextureCommand(t, onComplete));
+        AddCommand(new SDLGPUReadTextureCommand(this, t, onComplete));
     }
 
     internal void QueueTextureRead(SDLGPUTexture texture, Action<byte[]> onComplete)

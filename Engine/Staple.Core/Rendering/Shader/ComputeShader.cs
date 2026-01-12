@@ -114,7 +114,7 @@ public partial class ComputeShader : IGuidAsset
             return false;
         }
 
-        program = RenderSystem.Backend.CreateShaderCompute(shaderSource, metrics, uniformContainer);
+        program = RenderSystem.Backend.CreateShaderCompute(shaderSource, metrics);
 
         if (program == null)
         {

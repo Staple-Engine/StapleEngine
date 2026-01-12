@@ -3,16 +3,11 @@ using System;
 
 namespace Staple.Internal;
 
-internal class SDLGPUUpdateIndexBufferCommand(ResourceHandle<IndexBuffer> handle, byte[] data) : IRenderCommand
+internal class SDLGPUUpdateIndexBufferCommand(SDLGPURendererBackend backend, ResourceHandle<IndexBuffer> handle, byte[] data) : IRenderCommand
 {
-    public void Update(IRendererBackend rendererBackend)
+    public void Update()
     {
-        if (rendererBackend is not SDLGPURendererBackend backend ||
-            backend.commandBuffer == nint.Zero ||
-            !handle.IsValid ||
-            data == null ||
-            data.Length == 0 ||
-            !backend.TryGetIndexBuffer(handle, out var buffer))
+        if (data == null || data.Length == 0 || !backend.TryGetIndexBuffer(handle, out var buffer))
         {
             return;
         }

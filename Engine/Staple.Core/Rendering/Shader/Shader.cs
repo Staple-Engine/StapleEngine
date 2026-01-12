@@ -59,6 +59,14 @@ public partial class Shader : IGuidAsset
         }
     }
 
+    internal class ShaderUniformData
+    {
+        public int offset;
+        public int length;
+        public byte[] buffer;
+        public int binding;
+    }
+
     internal class ShaderInstance
     {
         public IShaderProgram program;
@@ -75,8 +83,12 @@ public partial class Shader : IGuidAsset
         public ShaderUniformContainer fragmentUniforms;
         public Dictionary<StringID, ShaderUniformMapping> vertexMappings = [];
         public Dictionary<StringID, ShaderUniformField> vertexFields = [];
+        public Dictionary<StringID, ShaderUniformData> vertexUniformData = [];
+        public Dictionary<StringID, ShaderUniformData> vertexUniformContainers = [];
         public Dictionary<StringID, ShaderUniformMapping> fragmentMappings = [];
         public Dictionary<StringID, ShaderUniformField> fragmentFields = [];
+        public Dictionary<StringID, ShaderUniformData> fragmentUniformData = [];
+        public Dictionary<StringID, ShaderUniformData> fragmentUniformContainers = [];
         public Dictionary<StringID, int> vertexTextureBindings = [];
         public Dictionary<StringID, int> fragmentTextureBindings = [];
         public readonly Dictionary<StringID, UniformInfo> uniforms = [];
@@ -128,14 +140,41 @@ public partial class Shader : IGuidAsset
             var fragmentFields = new Dictionary<StringID, ShaderUniformField>();
             var vertexTextureBindings = new Dictionary<StringID, int>();
             var fragmentTextureBindings = new Dictionary<StringID, int>();
+            var vertexUniformData = new Dictionary<StringID, ShaderUniformData>();
+            var fragmentUniformData = new Dictionary<StringID, ShaderUniformData>();
+            var vertexUniformContainers = new Dictionary<StringID, ShaderUniformData>();
+            var fragmentUniformContainers = new Dictionary<StringID, ShaderUniformData>();
 
             foreach (var uniform in pair.Value.vertexUniforms.uniforms)
             {
-                vertexMappings.AddOrSetKey(new(uniform.name), uniform);
+                vertexMappings.AddOrSetKey(uniform.name, uniform);
+
+                var buffer = new byte[uniform.size];
+
+                vertexUniformData.Add(uniform.name, new()
+                {
+                    binding = uniform.binding,
+                    length = uniform.size,
+                    buffer = buffer,
+                });
+
+                vertexUniformContainers.Add(uniform.name, new()
+                {
+                    binding = uniform.binding,
+                    length = uniform.size,
+                    buffer = buffer,
+                });
 
                 foreach(var field in uniform.fields)
                 {
-                    vertexFields.AddOrSetKey(new(field.name), field);
+                    vertexFields.AddOrSetKey(field.name, field);
+
+                    vertexUniformData.Add(field.name, new()
+                    {
+                        offset = field.offset,
+                        length = field.size,
+                        buffer = buffer,
+                    });
                 }
             }
 
@@ -143,9 +182,32 @@ public partial class Shader : IGuidAsset
             {
                 fragmentMappings.AddOrSetKey(new(uniform.name), uniform);
 
+                var buffer = new byte[uniform.size];
+
+                fragmentUniformData.Add(uniform.name, new()
+                {
+                    binding = uniform.binding,
+                    length = uniform.size,
+                    buffer = buffer,
+                });
+
+                fragmentUniformContainers.Add(uniform.name, new()
+                {
+                    binding = uniform.binding,
+                    length = uniform.size,
+                    buffer = buffer,
+                });
+
                 foreach (var field in uniform.fields)
                 {
                     fragmentFields.AddOrSetKey(new(field.name), field);
+
+                    fragmentUniformData.Add(field.name, new()
+                    {
+                        offset = field.offset,
+                        length = field.size,
+                        buffer = buffer,
+                    });
                 }
             }
 
@@ -174,9 +236,13 @@ public partial class Shader : IGuidAsset
                 vertexMappings = vertexMappings,
                 vertexFields = vertexFields,
                 vertexTextureBindings = vertexTextureBindings,
+                vertexUniformContainers = vertexUniformContainers,
+                vertexUniformData = vertexUniformData,
                 fragmentMappings = fragmentMappings,
                 fragmentFields = fragmentFields,
                 fragmentTextureBindings = fragmentTextureBindings,
+                fragmentUniformContainers = fragmentUniformContainers,
+                fragmentUniformData = fragmentUniformData,
             };
 
             instances.AddOrSetKey(pair.Key, instance);
@@ -223,7 +289,7 @@ public partial class Shader : IGuidAsset
         foreach(var pair in instances)
         {
             pair.Value.program = RenderSystem.Backend.CreateShaderVertexFragment(pair.Value.vertexShaderSource, pair.Value.fragmentShaderSource,
-                pair.Value.vertexShaderMetrics, pair.Value.fragmentShaderMetrics, pair.Value.vertexUniforms, pair.Value.fragmentUniforms);
+                pair.Value.vertexShaderMetrics, pair.Value.fragmentShaderMetrics);
 
             if(pair.Value.program == null)
             {
@@ -424,26 +490,14 @@ public partial class Shader : IGuidAsset
             return false;
         }
 
-        if(shaderInstance.vertexFields.TryGetValue(uniform.handle, out var field) &&
-            shaderInstance.program.TryGetVertexUniformData(field, out var data))
+        if(shaderInstance.vertexUniformData.TryGetValue(uniform.handle, out var d))
         {
-            vertexData = (field.offset, data);
-        }
-        else if (shaderInstance.vertexMappings.TryGetValue(uniform.handle, out var mapping) &&
-            shaderInstance.program.TryGetVertexUniformData(mapping, out data))
-        {
-            vertexData = (0, data);
+            vertexData = (d.offset, d.buffer);
         }
 
-        if (shaderInstance.fragmentFields.TryGetValue(uniform.handle, out field) &&
-            shaderInstance.program.TryGetFragmentUniformData(field, out data))
+        if (shaderInstance.fragmentUniformData.TryGetValue(uniform.handle, out d))
         {
-            fragmentData = (field.offset, data);
-        }
-        else if (shaderInstance.fragmentMappings.TryGetValue(uniform.handle, out var mapping) &&
-            shaderInstance.program.TryGetFragmentUniformData(mapping, out data))
-        {
-            fragmentData = (0, data);
+            fragmentData = (d.offset, d.buffer);
         }
 
         return vertexData != null || fragmentData != null;
