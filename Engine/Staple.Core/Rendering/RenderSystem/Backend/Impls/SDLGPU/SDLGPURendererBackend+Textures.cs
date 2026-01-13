@@ -976,15 +976,15 @@ internal partial class SDLGPURendererBackend
     }
 
     internal bool TryGetTextureSamplers(Texture[] vertexTextures, Texture[] fragmentTextures, Shader.ShaderInstance instance,
-        out SDL.GPUTextureSamplerBinding[] vertexSamplers, out SDL.GPUTextureSamplerBinding[] fragmentSamplers)
+        out Span<SDL.GPUTextureSamplerBinding> vertexSamplers, out Span<SDL.GPUTextureSamplerBinding> fragmentSamplers)
     {
         var vertexSamplerCount = instance.vertexTextureBindings.Count;
         var fragmentSamplerCount = instance.fragmentTextureBindings.Count;
 
-        vertexSamplers = vertexSamplerCount > 0 ? GlobalAllocator<SDL.GPUTextureSamplerBinding>.Instance.Rent(vertexSamplerCount) : null;
-        fragmentSamplers = fragmentSamplerCount > 0 ? GlobalAllocator<SDL.GPUTextureSamplerBinding>.Instance.Rent(fragmentSamplerCount) : null;
+        vertexSamplers = vertexSamplerCount > 0 ? textureSampleBindingFrameAllocator.Allocate(vertexSamplerCount) : default;
+        fragmentSamplers = fragmentSamplerCount > 0 ? textureSampleBindingFrameAllocator.Allocate(fragmentSamplerCount) : default;
 
-        if (vertexSamplers != null)
+        if (vertexSamplers.IsEmpty == false)
         {
             if(vertexTextures == null)
             {
@@ -1009,7 +1009,7 @@ internal partial class SDLGPURendererBackend
             }
         }
 
-        if (fragmentSamplers == null)
+        if (fragmentSamplers.IsEmpty)
         {
             return true;
         }

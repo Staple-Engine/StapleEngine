@@ -415,6 +415,7 @@
 		<Compile Include="Serialization\App\AppSettingsHeader.cs" />
 		<Compile Include="Utilities\DictionaryExtensions.cs" />
 		<Compile Include="Utilities\ExpandableContainer.cs" />
+		<Compile Include="Utilities\MemoryAllocator.cs" />
 		<Compile Include="Utilities\UnmanagedFreeformAllocator.cs" />
 		<Compile Include="Utilities\GlobalAllocator.cs" />
 		<Compile Include="Utilities\GuidGenerator.cs" />

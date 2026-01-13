@@ -394,78 +394,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             }
         }
     }
-
-    internal class MemoryAllocator
-    {
-        public byte[] buffer = new byte[1024];
-
-        private GCHandle pinHandle;
-
-        private nint pinAddress;
-
-        internal int position;
-
-        public void Allocate(int size)
-        {
-            var targetSize = position + size;
-
-            if (targetSize >= buffer.Length)
-            {
-                var newSize = buffer.Length * 2;
-
-                while(newSize < targetSize)
-                {
-                    newSize *= 2;
-                }
-
-                newSize *= 2;
-
-                Array.Resize(ref buffer, newSize);
-
-                Repin();
-            }
-
-            position += size;
-        }
-
-        private void Repin()
-        {
-            if (pinHandle.IsAllocated)
-            {
-                pinHandle.Free();
-            }
-
-            pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-
-            pinAddress = pinHandle.AddrOfPinnedObject();
-        }
-
-        public void EnsurePin()
-        {
-            if(pinHandle.IsAllocated)
-            {
-                return;
-            }
-
-            pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
-            pinAddress = pinHandle.AddrOfPinnedObject();
-        }
-
-        public void Clear()
-        {
-            position = 0;
-        }
-
-        public nint Get(int position)
-        {
-            if (pinAddress == nint.Zero)
-            {
-                throw new InvalidOperationException("Memory Allocator was not pinned, ensure you call EnsurePin() before getting an address!");
-            }
-
-            return pinAddress + position;
-        }
-    }
     #endregion
 
     #region Fields
@@ -483,6 +411,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     internal readonly ViewData viewData = new();
     internal readonly MemoryAllocator frameAllocator = new();
+    internal readonly MemoryAllocator<StapleShaderUniform> shaderUniformFrameAllocator = new();
+    internal readonly MemoryAllocator<SDL.GPUTextureSamplerBinding> textureSampleBindingFrameAllocator = new();
+    internal readonly nint[] nintBufferStaging = new nint[64];
 
     private SDL3RenderWindow window;
     private readonly Dictionary<int, nint> graphicsPipelines = [];
@@ -511,7 +442,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     private bool iteratingCommands;
     private int commandIndex;
-    private nint[] fences = new nint[1];
+    private readonly nint[] fences = new nint[1];
     #endregion
 
     #region Command Support Fields
@@ -843,6 +774,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         }
 
         frameAllocator.Clear();
+        shaderUniformFrameAllocator.Clear();
+        textureSampleBindingFrameAllocator.Clear();
     }
 
     public void EndFrame()
@@ -895,6 +828,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         commands.Clear();
         frameAllocator.Clear();
+        shaderUniformFrameAllocator.Clear();
+        textureSampleBindingFrameAllocator.Clear();
 
         lastGraphicsPipeline = nint.Zero;
         lastQueuedGraphicsPipeline = nint.Zero;
@@ -1842,18 +1777,20 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         return pipeline != nint.Zero;
     }
 
-    private void GetUniformData(in RenderState state, SDLGPUShaderProgram shader, ref StapleShaderUniform[] vertexUniformData,
-        ref StapleShaderUniform[] fragmentUniformData)
+    private void GetUniformData(in RenderState state, SDLGPUShaderProgram shader, out (int, int) vertexUniformData,
+        out (int, int) fragmentUniformData)
     {
-        if((vertexUniformData?.Length ?? 0) != state.shaderInstance.vertexMappings.Count)
-        {
-            vertexUniformData = GlobalAllocator<StapleShaderUniform>.Instance.Rent(state.shaderInstance.vertexMappings.Count);
-        }
+        var position = shaderUniformFrameAllocator.position;
 
-        if ((fragmentUniformData?.Length ?? 0) != state.shaderInstance.fragmentMappings.Count)
-        {
-            fragmentUniformData = GlobalAllocator<StapleShaderUniform>.Instance.Rent(state.shaderInstance.fragmentMappings.Count);
-        }
+        var vertexUniformSpan = shaderUniformFrameAllocator.Allocate(state.shaderInstance.vertexMappings.Count);
+
+        vertexUniformData = (position, vertexUniformSpan.Length);
+
+        position = shaderUniformFrameAllocator.position;
+
+        var fragmentUniformSpan = shaderUniformFrameAllocator.Allocate(state.shaderInstance.fragmentMappings.Count);
+
+        fragmentUniformData = (position, fragmentUniformSpan.Length);
 
         var counter = 0;
 
@@ -1886,7 +1823,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            ref var uniformEntry = ref vertexUniformData[counter++];
+            ref var uniformEntry = ref vertexUniformSpan[counter++];
 
             if (!ShouldPushVertexUniform(entry.Value.binding, entry.Value.buffer))
             {
@@ -1897,7 +1834,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
             unsafe
             {
-                var position = frameAllocator.position;
+                position = frameAllocator.position;
 
                 frameAllocator.Allocate(length);
 
@@ -1950,7 +1887,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
             }
 
-            ref var uniformEntry = ref fragmentUniformData[counter++];
+            ref var uniformEntry = ref fragmentUniformSpan[counter++];
 
             if (!ShouldPushFragmentUniform(entry.Value.binding, entry.Value.buffer))
             {
@@ -1961,7 +1898,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
             unsafe
             {
-                var position = frameAllocator.position;
+                position = frameAllocator.position;
 
                 frameAllocator.Allocate(entry.Value.buffer.Length);
 
@@ -2013,10 +1950,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         CheckQueuedPipeline(pipeline);
 
-        StapleShaderUniform[] vertexUniformData = null;
-        StapleShaderUniform[] fragmentUniformData = null;
-
-        GetUniformData(in state, shader, ref vertexUniformData, ref fragmentUniformData);
+        GetUniformData(in state, shader, out var vertexUniformData, out var fragmentUniformData);
 
         AddCommand(new SDLGPURenderCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
             vertexUniformData, fragmentUniformData, state.shaderInstance.attributes));
@@ -2078,10 +2012,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndex += indices.Length;
 
-        StapleShaderUniform[] vertexUniformData = null;
-        StapleShaderUniform[] fragmentUniformData = null;
-
-        GetUniformData(in state, shader, ref vertexUniformData, ref fragmentUniformData);
+        GetUniformData(in state, shader, out var vertexUniformData, out var fragmentUniformData);
 
         AddCommand(new SDLGPURenderTransientCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
             fragmentUniformData, entry));
@@ -2143,10 +2074,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndexUInt += indices.Length;
 
-        StapleShaderUniform[] vertexUniformData = null;
-        StapleShaderUniform[] fragmentUniformData = null;
-
-        GetUniformData(in state, shader, ref vertexUniformData, ref fragmentUniformData);
+        GetUniformData(in state, shader, out var vertexUniformData, out var fragmentUniformData);
 
         AddCommand(new SDLGPURenderTransientUIntCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
             fragmentUniformData, entry));
