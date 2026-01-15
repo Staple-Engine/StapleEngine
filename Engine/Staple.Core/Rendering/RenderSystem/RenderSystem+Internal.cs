@@ -427,7 +427,7 @@ public sealed partial class RenderSystem
                         Array.Resize(ref renderables, renderables.Length * 2);
                     }
 
-                    renderables[^1] = (Renderable)component;
+                    renderables[renderableCount - 1] = (Renderable)component;
                 }
             }
 
