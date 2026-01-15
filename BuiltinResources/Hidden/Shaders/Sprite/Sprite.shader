@@ -12,6 +12,8 @@ End Parameters
 Begin Input
 POSITION
 TEXCOORD0
+variant: SKINNING BLENDINDICES
+variant: SKINNING BLENDWEIGHTS
 End Input
 
 Begin Common
@@ -37,6 +39,14 @@ struct Input
 {
     float3 position : POSITION;
 	float2 coord : TEXCOORD0;
+
+#ifdef SKINNING
+	float4 indices : BLENDINDICES;
+	float4 weights : BLENDWEIGHTS;
+#endif
+
+    uint baseInstance : SV_StartInstanceLocation;
+    uint instanceID : SV_InstanceID;
 };
 
 [shader("vertex")]
@@ -47,9 +57,15 @@ VertexOutput VertexMain(Input input)
     float3 position = input.position;
     float4 color = mainColor;
 
+    float4x4 model = StapleWorldMatrix(input.baseInstance, input.instanceID);
+
+#ifdef SKINNING
+	model = StapleGetSkinningMatrix(model, input.indices, input.weights);
+#endif
+
     output.color = color;
 	output.coord = input.coord;
-    output.position = mul(ProjectionViewWorld(world), float4(position, 1.0));
+    output.position = mul(ProjectionViewWorld(model), float4(position, 1.0));
 
     return output;
 }

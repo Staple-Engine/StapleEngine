@@ -3,8 +3,8 @@
 namespace Staple.Internal;
 
 internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, RenderState state, nint pipeline, Texture[] vertexTextures,
-    Texture[] fragmentTextures, (int, int) vertexUniformData, (int, int) fragmentUniformData, SDLGPURendererBackend.TransientEntry entry) :
-    IRenderCommand
+    Texture[] fragmentTextures, int storageBufferBindingStart, (int, int) vertexUniformData, (int, int) fragmentUniformData,
+    SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
 {
     private readonly RenderState state = state.Clone();
     private readonly Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
@@ -96,12 +96,14 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
             }
         }
 
+        var buffers = backend.nintBufferStaging;
+        var counter = 2;
+
+        buffers[0] = SDLGPURendererBackend.entityTransformsBuffer;
+        buffers[1] = SDLGPURendererBackend.entityTransformIndexBuffer;
+
         if (hasVertexStorageBuffers)
         {
-            var buffers = backend.nintBufferStaging;
-            var counter = 0;
-            var firstBinding = -1;
-
             if (state.vertexStorageBuffers.Count > buffers.Length)
             {
                 return;
@@ -119,20 +121,15 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
                 }
 
                 buffers[counter++] = resource.buffer;
-
-                if (firstBinding < 0)
-                {
-                    firstBinding = binding;
-                }
             }
-
-            SDL.BindGPUVertexStorageBuffers(renderPass, (uint)firstBinding, buffers, (uint)counter);
         }
+
+        SDL.BindGPUVertexStorageBuffers(renderPass, (uint)storageBufferBindingStart, buffers, (uint)counter);
 
         if (hasFragmentStorageBuffers)
         {
-            var buffers = backend.nintBufferStaging;
-            var counter = 0;
+            counter = 0;
+
             var firstBinding = -1;
 
             if (state.fragmentStorageBuffers.Count > buffers.Length)

@@ -1754,6 +1754,11 @@ internal class ResourceManager
             }
 
             mesh.changed = true;
+
+            if((mesh.boneIndices?.Length ?? 0) == 0)
+            {
+                mesh.MarkStaticMesh();
+            }
         }
         else
         {

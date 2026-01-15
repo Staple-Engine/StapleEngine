@@ -50,35 +50,40 @@ public static const int StapleUniformBufferSet = 0;
 	#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 2
 #endif
 
-#if defined(SKINNING) && defined(INSTANCING)
+#ifdef STAPLE_VERTEX_SHADER
 
-	#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 2
-	#define SKINNING_BUFFER_INDEX 0
-	#define INSTANCING_BUFFER_INDEX 1
+	#ifdef SKINNING
 
-#elif defined(SKINNING)
+		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 3
 
-	#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 1
-	#define SKINNING_BUFFER_INDEX 0
+	#else
 
-#elif defined(INSTANCING)
+		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 2
 
-	#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 1
-	#define INSTANCING_BUFFER_INDEX 0
+	#endif
 
 #else
+
 	#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 0
+
 #endif
 
 public static const int StapleStorageBufferStart = StapleInternalStorageBufferStart + STAPLE_INTERNAL_STORAGE_BUFFER_COUNT;
 public static const int StapleUniformBufferStart = STAPLE_INTERNAL_UNIFORM_BUFFER_START;
 
+#ifdef STAPLE_VERTEX_SHADER
+
+[[vk::binding(StapleInternalStorageBufferStart, StapleSamplerStorageBufferSet)]]
+public StructuredBuffer<float4x4> StapleEntityTransforms;
+
+[[vk::binding(StapleInternalStorageBufferStart + 1, StapleSamplerStorageBufferSet)]]
+public StructuredBuffer<uint> StapleEntityTransformIDs;
+
 #ifdef SKINNING
-[[vk::binding(StapleInternalStorageBufferStart + SKINNING_BUFFER_INDEX, StapleSamplerStorageBufferSet)]]
+
+[[vk::binding(StapleInternalStorageBufferStart + 2, StapleSamplerStorageBufferSet)]]
 public StructuredBuffer<float4> StapleBoneMatrices;
+
 #endif
 
-#ifdef INSTANCING
-[[vk::binding(StapleInternalStorageBufferStart + INSTANCING_BUFFER_INDEX, StapleSamplerStorageBufferSet)]]
-public StructuredBuffer<float4x4> StapleInstancingTransforms;
 #endif

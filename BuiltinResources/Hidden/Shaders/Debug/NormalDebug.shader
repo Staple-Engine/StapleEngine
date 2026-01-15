@@ -28,24 +28,22 @@ struct Input
 {
     float3 position : POSITION;
 	float3 normal : NORMAL;
+
 #ifdef SKINNING
 	float4 indices : BLENDINDICES;
 	float4 weights : BLENDWEIGHTS;
 #endif
+
+    uint baseInstance : SV_StartInstanceLocation;
+    uint instanceID : SV_InstanceID;
 };
 
 [shader("vertex")]
-VertexOutput VertexMain(Input input, uint instanceID : SV_InstanceID)
+VertexOutput VertexMain(Input input)
 {
     VertexOutput output;
 
-	float4x4 model;
-
-#ifdef INSTANCING
-	model = StapleGetInstancedTransform(instanceID);
-#else
-	model = world;
-#endif
+	float4x4 model = StapleWorldMatrix(input.baseInstance, input.instanceID);
 
 #ifdef SKINNING
 	model = StapleGetSkinningMatrix(model, input.indices, input.weights);

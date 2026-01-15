@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -26,7 +27,23 @@ public sealed class MeshRenderSystem : IRenderSystem
         public readonly ExpandableContainer<InstanceInfo> instanceInfos = new();
     }
 
+    private class StaticInstanceEntry(BufferAttributeContainer.Entries entries)
+    {
+        public readonly BufferAttributeContainer.Entries entries = entries;
+        public readonly List<Transform> transforms = [];
+    }
+
+    private class StaticInstanceData
+    {
+        public readonly ExpandableContainer<InstanceInfo> instanceInfos = new();
+        public readonly ExpandableContainer<StaticInstanceEntry> entries = new();
+        public int triangles;
+    }
+
+    private readonly ComponentVersionTracker<Transform> instanceTransformTracker = new();
+
     private readonly Dictionary<int, InstanceData> instanceCache = [];
+    private readonly Dictionary<int, StaticInstanceData> staticInstanceCache = [];
 
     private VertexBuffer instanceBuffer;
     private int instanceOffset;
@@ -148,6 +165,14 @@ public sealed class MeshRenderSystem : IRenderSystem
             p.Value.instanceInfos.Clear();
         }
 
+        foreach(var p in staticInstanceCache)
+        {
+            p.Value.instanceInfos.Clear();
+            p.Value.entries.Clear();
+
+            p.Value.triangles = 0;
+        }
+
         foreach (var entry in renderQueue)
         {
             var renderer = (MeshRenderer)entry.component;
@@ -179,6 +204,43 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             var lighting = (renderer.overrideLighting ? renderer.lighting : renderer.mesh.meshAsset?.lighting) ?? renderer.lighting;
 
+            void AddStatic(Material material, int submeshIndex)
+            {
+                var key = HashCode.Combine(material.Guid.GuidHash, lighting);
+
+                if(!staticInstanceCache.TryGetValue(key, out var meshCache))
+                {
+                    meshCache = new();
+
+                    staticInstanceCache.Add(key, meshCache);
+                }
+
+                meshCache.instanceInfos.Add(new()
+                {
+                    mesh = renderer.mesh,
+                    material = material,
+                    lighting = lighting,
+                    transform = entry.transform,
+                    submeshIndex = submeshIndex,
+                });
+
+                meshCache.triangles += renderer.mesh.SubmeshTriangleCount(submeshIndex);
+
+                foreach (var item in meshCache.entries.Contents)
+                {
+                    if(item.entries == renderer.mesh.staticMeshEntries)
+                    {
+                        item.transforms.Add(entry.transform);
+
+                        return;
+                    }
+                }
+
+                meshCache.entries.Add(new(renderer.mesh.staticMeshEntries));
+
+                meshCache.entries.Contents[^1].transforms.Add(entry.transform);
+            }
+
             void Add(Material material, int submeshIndex)
             {
                 var key = HashCode.Combine(renderer.mesh.Guid.GuidHash, material.Guid.GuidHash, lighting, submeshIndex);
@@ -200,20 +262,42 @@ public sealed class MeshRenderSystem : IRenderSystem
                 });
             }
 
-            if (renderer.mesh.submeshes.Count == 0)
+            if(renderer.mesh.IsStaticMesh)
             {
-                Add(renderer.materials[0], 0);
+                if (renderer.mesh.submeshes.Count == 0)
+                {
+                    AddStatic(renderer.materials[0], 0);
+                }
+                else
+                {
+                    for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
+                    {
+                        if (i >= renderer.materials.Count)
+                        {
+                            break;
+                        }
+
+                        AddStatic(renderer.materials[i], i);
+                    }
+                }
             }
             else
             {
-                for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
+                if (renderer.mesh.submeshes.Count == 0)
                 {
-                    if(i >= renderer.materials.Count)
+                    Add(renderer.materials[0], 0);
+                }
+                else
+                {
+                    for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
                     {
-                        break;
-                    }
+                        if (i >= renderer.materials.Count)
+                        {
+                            break;
+                        }
 
-                    Add(renderer.materials[i], i);
+                        Add(renderer.materials[i], i);
+                    }
                 }
             }
         }
@@ -253,6 +337,8 @@ public sealed class MeshRenderSystem : IRenderSystem
                 Array.Resize(ref transformMatrices, instanceCount);
             }
 
+            var needsUpdate = false;
+
             foreach (var (_, contents) in instanceCache)
             {
                 if (contents.instanceInfos.Length <= 1)
@@ -262,15 +348,65 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 for(var i = 0; i < contents.instanceInfos.Length; i++)
                 {
+                    var transform = contents.instanceInfos.Contents[i].transform;
+
+                    if(!instanceTransformTracker.ShouldUpdateComponent(transform.Entity, in transform))
+                    {
+                        continue;
+                    }
+
+                    needsUpdate = true;
+
                     transformMatrices[instanceOffset++] = contents.instanceInfos.Contents[i].transform.Matrix;
                 }
             }
 
             instanceOffset = 0;
 
-            var span = new Span<Matrix4x4>(transformMatrices, 0, instanceCount);
+            if(needsUpdate)
+            {
+                var span = new Span<Matrix4x4>(transformMatrices, 0, instanceCount);
 
-            instanceBuffer.Update(span);
+                instanceBuffer.Update(span);
+            }
+        }
+
+        foreach(var (_, contents) in staticInstanceCache)
+        {
+            if (contents.instanceInfos.Length == 0)
+            {
+                continue;
+            }
+
+            renderState.ClearStorageBuffers();
+
+            renderState.instanceCount = 1;
+            renderState.instanceOffset = 0;
+
+            var material = contents.instanceInfos.Contents[0].material;
+
+            material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+            LightSystem.Instance.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
+
+            material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+            if (material.ShaderProgram == null)
+            {
+                continue;
+            }
+
+            material.ApplyProperties(ref renderState);
+
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
+                contents.instanceInfos.Contents[0].lighting);
+
+            renderState.world = Matrix4x4.Identity;
+
+            foreach(var entry in contents.entries.Contents)
+            {
+                RenderSystem.SubmitStatic(renderState, entry.entries, CollectionsMarshal.AsSpan(entry.transforms), contents.triangles);
+            }
         }
 
         foreach (var (_, contents) in instanceCache)

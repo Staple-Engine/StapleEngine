@@ -67,6 +67,8 @@ internal interface IRendererBackend
 
     void Render(RenderState state);
 
+    void RenderStatic(RenderState state, BufferAttributeContainer.Entries entries, Span<Transform> transforms);
+
     void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state) where T : unmanaged;
 
     void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state) where T : unmanaged;

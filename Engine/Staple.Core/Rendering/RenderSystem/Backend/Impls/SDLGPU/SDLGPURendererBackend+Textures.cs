@@ -1,5 +1,4 @@
 ﻿using SDL3;
-using Staple.Utilities;
 using System;
 
 namespace Staple.Internal;

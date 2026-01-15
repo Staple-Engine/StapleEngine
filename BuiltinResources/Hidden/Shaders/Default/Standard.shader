@@ -63,6 +63,7 @@ struct VertexOutput
 #if defined(VERTEX_COLORS) || defined(PER_VERTEX_LIGHTING)
 	float4 color;
 #endif
+
 	uint instanceID;
 };
 
@@ -75,31 +76,31 @@ struct Input
 	float3 position : POSITION;
 	float2 coords : TEXCOORD0;
 	float3 normal : NORMAL;
+
 #ifdef NORMALMAP
 	float3 tangent : TANGENT;
 	float3 bitangent : BITANGENT;
 #endif
+
 #if defined(VERTEX_COLORS) || defined(PER_VERTEX_LIGHTING)
 	float4 color : COLOR0;
 #endif
+
 #ifdef SKINNING
 	float4 indices : BLENDINDICES;
 	float4 weights : BLENDWEIGHTS;
 #endif
+
+    uint baseInstance : SV_StartInstanceLocation;
+    uint instanceID : SV_InstanceID;
 };
 
 [shader("vertex")]
-VertexOutput VertexMain(Input input, uint instanceID : SV_InstanceID)
+VertexOutput VertexMain(Input input)
 {
 	VertexOutput output;
 
-	float4x4 model;
-
-#ifdef INSTANCING
-	model = StapleGetInstancedTransform(instanceID);
-#else
-	model = world;
-#endif
+	float4x4 model = StapleWorldMatrix(input.baseInstance, input.instanceID);
 
 #ifdef SKINNING
 	model = StapleGetSkinningMatrix(model, input.indices, input.weights);
@@ -126,7 +127,7 @@ VertexOutput VertexMain(Input input, uint instanceID : SV_InstanceID)
 	output.lightNormal = StapleLightNormal(input.normal, model);
 #endif
 
-	output.instanceID = instanceID;
+	output.instanceID = input.instanceID;
 	
 #if defined(LIT) && defined(PER_VERTEX_LIGHTING)
 	output.color = float4(diffuseColor.rgb * StapleProcessLights(output.worldPosition, output.lightNormal), diffuseColor.a);

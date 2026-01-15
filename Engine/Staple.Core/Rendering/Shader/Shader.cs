@@ -92,6 +92,8 @@ public partial class Shader : IGuidAsset
         public Dictionary<StringID, int> vertexTextureBindings = [];
         public Dictionary<StringID, int> fragmentTextureBindings = [];
         public readonly Dictionary<StringID, UniformInfo> uniforms = [];
+        public int entityTransformsBufferBinding = -1;
+        public int entityTransformIDsBufferBinding = -1;
     }
 
     internal readonly ShaderMetadata metadata;
@@ -144,6 +146,20 @@ public partial class Shader : IGuidAsset
             var fragmentUniformData = new Dictionary<StringID, ShaderUniformData>();
             var vertexUniformContainers = new Dictionary<StringID, ShaderUniformData>();
             var fragmentUniformContainers = new Dictionary<StringID, ShaderUniformData>();
+            var entityTransformsBufferBinding = -1;
+            var entityTransformIDsBufferBinding = -1;
+
+            foreach(var buffer in pair.Value.vertexUniforms.storageBuffers)
+            {
+                if(buffer.name == "StapleEntityTransforms")
+                {
+                    entityTransformsBufferBinding = buffer.binding;
+                }
+                else if(buffer.name == "StapleEntityTransformIDs")
+                {
+                    entityTransformIDsBufferBinding = buffer.binding;
+                }
+            }
 
             foreach (var uniform in pair.Value.vertexUniforms.uniforms)
             {
@@ -243,6 +259,8 @@ public partial class Shader : IGuidAsset
                 fragmentTextureBindings = fragmentTextureBindings,
                 fragmentUniformContainers = fragmentUniformContainers,
                 fragmentUniformData = fragmentUniformData,
+                entityTransformIDsBufferBinding = entityTransformIDsBufferBinding,
+                entityTransformsBufferBinding = entityTransformsBufferBinding,
             };
 
             instances.AddOrSetKey(pair.Key, instance);

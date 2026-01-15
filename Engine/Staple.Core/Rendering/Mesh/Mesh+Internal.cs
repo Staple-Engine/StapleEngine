@@ -963,7 +963,7 @@ public sealed partial class Mesh
 
     internal void UpdateStaticMeshData()
     {
-        if(staticMeshEntries == null)
+        if (staticMeshEntries == null)
         {
             var vertexCount = vertices.Length;
             var indexCount = indices.Length;
@@ -976,7 +976,7 @@ public sealed partial class Mesh
         {
             RenderSystem.Backend.StaticMeshData.Free(staticMeshEntries);
 
-            RenderSystem.Backend.StaticMeshData.Allocate(vertices.Length, indices.Length);
+            staticMeshEntries = RenderSystem.Backend.StaticMeshData.Allocate(vertices.Length, indices.Length);
         }
 
         if (RenderSystem.Backend.StaticMeshData.TryGetPositions(staticMeshEntries, out var positions, true))
@@ -1109,7 +1109,7 @@ public sealed partial class Mesh
         {
             for(var i = 0; i < meshIndices.Length; i++)
             {
-                meshIndices[i] = (uint)indices[i];
+                meshIndices[i] = (uint)(indices[i] + staticMeshEntries.positionEntry.start);
             }
         }
     }

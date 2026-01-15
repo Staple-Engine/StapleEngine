@@ -20,9 +20,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private static readonly StringID StapleRenderDataUniformName = "StapleRenderData";
     private static readonly StringID StapleFragmentDataUniformName = "StapleFragmentRenderData";
 
-    private static readonly int RenderDataByteSize = Marshal.SizeOf<StapleRenderData>();
-    private static readonly int FragmentRenderDataByteSize = Marshal.SizeOf<StapleFragmentRenderData>();
-    private static readonly int Matrix4x4ByteSize = Marshal.SizeOf<Matrix4x4>();
+    internal static readonly int RenderDataByteSize = Marshal.SizeOf<StapleRenderData>();
+    internal static readonly int FragmentRenderDataByteSize = Marshal.SizeOf<StapleFragmentRenderData>();
+    internal static readonly int Matrix4x4ByteSize = Marshal.SizeOf<Matrix4x4>();
+    internal static readonly int IndirectDrawCommandSize = Marshal.SizeOf<SDL.GPUIndexedIndirectDrawCommand>();
 
     private static uint MakeVulkanVersion(uint major, uint minor, uint patch)
     {
@@ -36,7 +37,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         public Matrix4x4 world;
         public Matrix4x4 view;
         public Matrix4x4 projection;
-        public int instanceOffset;
+        public bool useWorldMatrix;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
@@ -432,13 +433,22 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private readonly ulong[] lastFragmentShaderUniformHashes = new ulong[20];
     private RenderTarget currentRenderTarget;
 
+    private SDL.GPUIndexedIndirectDrawCommand[] indirectCommands = new SDL.GPUIndexedIndirectDrawCommand[1024];
+    private uint[] indirectEntityIndices = new uint[1024];
+    internal nint indirectCommandBuffer = nint.Zero;
+    private int indirectCommandBufferLength;
+    private int indirectCommandPosition;
+    private int indirectCommandInstance;
+
     internal static nint[] staticMeshVertexBuffers = new nint[18];
     internal static nint staticMeshIndexBuffer = nint.Zero;
     internal static int[] staticMeshVertexBuffersLength = new int[18];
     internal static int[] staticMeshVertexBuffersElementSize = new int[18];
-    internal static int staticMeshIndexBufferLength = 0;
+    internal static int staticMeshIndexBufferLength;
     internal static nint entityTransformsBuffer = nint.Zero;
-    internal static int entityTransformsBufferLength = 0;
+    internal static int entityTransformsBufferLength;
+    internal static nint entityTransformIndexBuffer = nint.Zero;
+    internal static int entityTransformIndexBufferLength;
 
     private bool iteratingCommands;
     private int commandIndex;
@@ -804,6 +814,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         frameAllocator.EnsurePin();
 
+        UpdateIndirectCommandBuffer();
+
         UpdateEntityTransformBuffer();
 
         StaticMeshData.Update();
@@ -825,6 +837,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         iteratingCommands = false;
 
         FinishPasses();
+
+        indirectCommandPosition = indirectCommandInstance = 0;
 
         commands.Clear();
         frameAllocator.Clear();
@@ -1539,7 +1553,6 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private bool TryGetStaticMeshRenderPipeline(RenderState state, out nint pipeline)
     {
         if (state.shader == null ||
-            state.staticMeshEntries == null ||
             state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader)
         {
             pipeline = nint.Zero;
@@ -1777,7 +1790,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         return pipeline != nint.Zero;
     }
 
-    private void GetUniformData(in RenderState state, SDLGPUShaderProgram shader, out (int, int) vertexUniformData,
+    private void GetUniformData(in RenderState state, bool useWorldMatrix, SDLGPUShaderProgram shader, out (int, int) vertexUniformData,
         out (int, int) fragmentUniformData)
     {
         var position = shaderUniformFrameAllocator.position;
@@ -1809,7 +1822,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
                 }
 
                 viewData.renderData.world = state.world;
-                viewData.renderData.instanceOffset = state.instanceOffset;
+                viewData.renderData.useWorldMatrix = useWorldMatrix;
 
                 unsafe
                 {
@@ -1950,10 +1963,60 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         CheckQueuedPipeline(pipeline);
 
-        GetUniformData(in state, shader, out var vertexUniformData, out var fragmentUniformData);
+        GetUniformData(in state, true, shader, out var vertexUniformData, out var fragmentUniformData);
 
         AddCommand(new SDLGPURenderCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
-            vertexUniformData, fragmentUniformData, state.shaderInstance.attributes));
+            state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, state.shaderInstance.attributes));
+    }
+
+    public void RenderStatic(RenderState state, BufferAttributeContainer.Entries entries, Span<Transform> transforms)
+    {
+        if(transforms.Length == 0 ||
+            state.shader == null ||
+            state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader ||
+            !TryGetStaticMeshRenderPipeline(state, out var pipeline))
+        {
+            return;
+        }
+
+        state.renderTarget = currentRenderTarget;
+
+        CheckQueuedPipeline(pipeline);
+
+        GetUniformData(in state, false, shader, out var vertexUniformData, out var fragmentUniformData);
+
+        var size = indirectCommandPosition + transforms.Length;
+
+        while (size > indirectCommands.Length)
+        {
+            size *= 2;
+        }
+
+        if(size > indirectCommands.Length)
+        {
+            Array.Resize(ref indirectCommands, size);
+            Array.Resize(ref indirectEntityIndices, size);
+        }
+
+        ref var command = ref indirectCommands[indirectCommandPosition];
+
+        command.NumIndices = (uint)entries.indicesEntry.length;
+        command.NumInstances = (uint)transforms.Length;
+        command.FirstInstance = (uint)indirectCommandInstance;
+        command.FirstIndex = (uint)entries.indicesEntry.start;
+
+        for (var i = 0; i < transforms.Length; i++)
+        {
+            ref var entityIndex = ref indirectEntityIndices[indirectCommandInstance++];
+
+            entityIndex = (uint)(transforms[i].Entity.Identifier.ID - 1);
+        }
+
+        AddCommand(new SDLGPURenderStaticCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
+            state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, state.shaderInstance.attributes,
+            indirectCommandPosition, transforms.Length));
+
+        indirectCommandPosition++;
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
@@ -2012,10 +2075,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndex += indices.Length;
 
-        GetUniformData(in state, shader, out var vertexUniformData, out var fragmentUniformData);
+        GetUniformData(in state, true, shader, out var vertexUniformData, out var fragmentUniformData);
 
-        AddCommand(new SDLGPURenderTransientCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
-            fragmentUniformData, entry));
+        AddCommand(new SDLGPURenderTransientCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
+            state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, entry));
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, RenderState state)
@@ -2074,9 +2137,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         entry.startVertex += vertices.Length;
         entry.startIndexUInt += indices.Length;
 
-        GetUniformData(in state, shader, out var vertexUniformData, out var fragmentUniformData);
+        GetUniformData(in state, true, shader, out var vertexUniformData, out var fragmentUniformData);
 
-        AddCommand(new SDLGPURenderTransientUIntCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures, vertexUniformData,
-            fragmentUniformData, entry));
+        AddCommand(new SDLGPURenderTransientUIntCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
+            state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, entry));
     }
 }

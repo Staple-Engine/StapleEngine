@@ -1,10 +1,9 @@
 ﻿using SDL3;
-using Staple.Utilities;
 
 namespace Staple.Internal;
 
 internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState state, nint pipeline, Texture[] vertexTextures,
-    Texture[] fragmentTextures, (int, int) vertexUniformData, (int, int) fragmentUniformData,
+    Texture[] fragmentTextures, int storageBufferBindingStart, (int, int) vertexUniformData, (int, int) fragmentUniformData,
     VertexAttribute[] vertexAttributes) : IRenderCommand
 {
     private readonly RenderState state = state.Clone();
@@ -147,13 +146,15 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
             }
         }
 
+        var buffers = backend.nintBufferStaging;
+        var counter = 2;
+
+        buffers[0] = SDLGPURendererBackend.entityTransformsBuffer;
+        buffers[1] = SDLGPURendererBackend.entityTransformIndexBuffer;
+
         if (hasVertexStorageBuffers)
         {
-            var buffers = backend.nintBufferStaging;
-            var counter = 0;
-            var firstBinding = -1;
-
-            if(state.vertexStorageBuffers.Count > buffers.Length)
+            if (state.vertexStorageBuffers.Count > buffers.Length)
             {
                 return;
             }
@@ -170,20 +171,15 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
                 }
 
                 buffers[counter++] = resource.buffer;
-
-                if (firstBinding < 0)
-                {
-                    firstBinding = binding;
-                }
             }
-
-            SDL.BindGPUVertexStorageBuffers(renderPass, (uint)firstBinding, buffers, (uint)counter);
         }
+
+        SDL.BindGPUVertexStorageBuffers(renderPass, (uint)storageBufferBindingStart, buffers, (uint)counter);
 
         if (hasFragmentStorageBuffers)
         {
-            var buffers = backend.nintBufferStaging;
-            var counter = 0;
+            counter = 0;
+
             var firstBinding = -1;
 
             if (state.fragmentStorageBuffers.Count > buffers.Length)

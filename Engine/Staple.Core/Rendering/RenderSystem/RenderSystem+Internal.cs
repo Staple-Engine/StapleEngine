@@ -248,7 +248,10 @@ public sealed partial class RenderSystem
 
         ClearCullingStates();
 
-        UpdateEntityTransforms();
+        if(Platform.IsEditor == false)
+        {
+            UpdateEntityTransforms();
+        }
 
         foreach (var systemInfo in renderSystems)
         {
@@ -313,7 +316,7 @@ public sealed partial class RenderSystem
         }
     }
 
-    private void UpdateEntityTransforms()
+    internal void UpdateEntityTransforms()
     {
         var startIndex = -1;
         var length = 0;
@@ -632,6 +635,15 @@ public sealed partial class RenderSystem
         {
             RenderStats.savedDrawCalls += (instances - 1);
         }
+    }
+
+    internal static void SubmitStatic(RenderState state, BufferAttributeContainer.Entries entries, Span<Transform> transforms,
+        int triangles)
+    {
+        Backend.RenderStatic(state, entries, transforms);
+
+        RenderStats.drawCalls++;
+        RenderStats.triangleCount += triangles;
     }
     #endregion
 }
