@@ -290,7 +290,14 @@ public sealed partial class RenderSystem
     {
         for (var i = 0; i < renderableCount; i++)
         {
-            renderables[i].cullingState = CullingState.None;
+            ref var renderable = ref renderables[i];
+
+            if(renderable == null)
+            {
+                continue;
+            }
+
+            renderable.cullingState = CullingState.None;
         }
     }
 
@@ -318,16 +325,33 @@ public sealed partial class RenderSystem
 
     internal void UpdateEntityTransforms()
     {
+        if(World.Current == null)
+        {
+            return;
+        }
+
         var startIndex = -1;
         var length = 0;
 
         changedEntityTransformRanges.Clear();
 
-        for (var i = 0; i < entityQuery.Length; i++)
+        if (World.Current.entities.Length > entityTransforms.Length)
         {
-            var (entity, transform) = entityQuery[i];
+            var newSize = entityTransforms.Length * 2;
 
-            if (!entityTransformTracker.ShouldUpdateComponent(entity, in transform))
+            while (newSize < World.Current.entities.Length)
+            {
+                newSize *= 2;
+            }
+
+            Array.Resize(ref entityTransforms, newSize);
+        }
+
+        for (var i = 0; i < World.Current.entities.Length; i++)
+        {
+            ref var entity = ref World.Current.entities[i];
+
+            if(entity.alive == false || entity.transform == null)
             {
                 if (startIndex < 0)
                 {
@@ -341,7 +365,21 @@ public sealed partial class RenderSystem
                 continue;
             }
 
-            entityTransforms[i] = transform.Matrix;
+            if (!entityTransformTracker.ShouldUpdateComponent(entity.ToEntity(), in entity.transform))
+            {
+                if (startIndex < 0)
+                {
+                    continue;
+                }
+
+                changedEntityTransformRanges.Add(startIndex, length);
+
+                startIndex = -1;
+
+                continue;
+            }
+
+            entityTransforms[i] = entity.transform.Matrix;
 
             if (startIndex < 0)
             {
@@ -368,18 +406,6 @@ public sealed partial class RenderSystem
 
             renderableCount = 0;
 
-            if (entityQuery.Length > entityTransforms.Length)
-            {
-                var newSize = entityTransforms.Length * 2;
-
-                while (newSize < entityQuery.Length)
-                {
-                    newSize *= 2;
-                }
-                
-                Array.Resize(ref entityTransforms, newSize);
-            }
-
             foreach (var systemInfo in renderSystems)
             {
                 if(!systemInfo.isRenderable)
@@ -401,7 +427,7 @@ public sealed partial class RenderSystem
                         Array.Resize(ref renderables, renderables.Length * 2);
                     }
 
-                    renderables[renderableCount - 1] = (Renderable)component;
+                    renderables[^1] = (Renderable)component;
                 }
             }
 
@@ -637,10 +663,9 @@ public sealed partial class RenderSystem
         }
     }
 
-    internal static void SubmitStatic(RenderState state, BufferAttributeContainer.Entries entries, Span<Transform> transforms,
-        int triangles)
+    internal static void SubmitStatic(RenderState state, Span<MultidrawEntry> entries, int triangles)
     {
-        Backend.RenderStatic(state, entries, transforms);
+        Backend.RenderStatic(state, entries);
 
         RenderStats.drawCalls++;
         RenderStats.triangleCount += triangles;

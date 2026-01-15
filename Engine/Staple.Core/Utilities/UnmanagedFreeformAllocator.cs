@@ -23,7 +23,17 @@ internal class UnmanagedFreeformAllocator<T> where T: unmanaged
 
     private GCHandle pinHandle;
 
-    internal nint pinAddress;
+    private nint pinAddress;
+
+    public nint NativePointer
+    {
+        get
+        {
+            EnsurePin();
+
+            return pinAddress;
+        }
+    }
 
     private void Repin()
     {
@@ -47,8 +57,13 @@ internal class UnmanagedFreeformAllocator<T> where T: unmanaged
         }
     }
 
-    public void Compact(int extraLength = 0)
+    private void Compact(int extraLength = 0)
     {
+        if(freeEntries.Count == 0)
+        {
+            return;
+        }
+
         var compactedLength = buffer.Length;
 
         foreach (var entry in freeEntries)
@@ -62,31 +77,25 @@ internal class UnmanagedFreeformAllocator<T> where T: unmanaged
 
         foreach (var entry in entries)
         {
-            entry.start = newPosition;
+            Array.Copy(buffer, entry.start, newBuffer, newPosition, entry.length);
 
             newPosition += entry.length;
         }
 
         newPosition = 0;
 
-        var position = 0;
-
-        foreach (var entry in freeEntries)
+        foreach (var entry in entries)
         {
-            var l = entry.start - position;
+            entry.start = newPosition;
 
-            Array.Copy(buffer, position, newBuffer, newPosition, l);
-
-            position = entry.start + entry.length;
-            newPosition += l;
+            newPosition += entry.length;
         }
 
-        if (newPosition < compactedLength)
-        {
-            Array.Copy(buffer, position, newBuffer, newPosition, compactedLength - newPosition);
-        }
+        freeEntries.Clear();
 
         buffer = newBuffer;
+
+        Repin();
     }
 
     public Entry Allocate(int length)
@@ -106,6 +115,8 @@ internal class UnmanagedFreeformAllocator<T> where T: unmanaged
             };
 
             entries.Add(outValue);
+
+            Repin();
 
             return outValue;
         }
@@ -154,8 +165,6 @@ internal class UnmanagedFreeformAllocator<T> where T: unmanaged
 
         entries.Add(outValue);
 
-        Repin();
-
         return outValue;
     }
 
@@ -187,6 +196,8 @@ internal class UnmanagedFreeformAllocator<T> where T: unmanaged
 
     public nint GetNative(Entry entry)
     {
+        EnsurePin();
+
         return pinAddress + elementSize * entry.start;
     }
 }

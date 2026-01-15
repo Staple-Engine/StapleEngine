@@ -1148,7 +1148,8 @@ public sealed partial class Mesh : IGuidAsset
     internal void UploadMeshData()
     {
         if (!changed &&
-            (!IsStaticMesh && ((vertexBuffer?.Disposed ?? true) == false || (indexBuffer?.Disposed ?? true) == false)))
+            (IsStaticMesh || 
+            (!IsStaticMesh && ((vertexBuffer?.Disposed ?? true) == false || (indexBuffer?.Disposed ?? true) == false))))
         {
             return;
         }

@@ -165,6 +165,11 @@ public partial class World
                 }
             }
 
+            if(component is Transform transform)
+            {
+                entityInfo.transform = transform;
+            }
+
             return component;
         }
     }
@@ -274,6 +279,11 @@ public partial class World
                     needsEmitWorldChange = true;
 
                     removedComponents.Add((entity, typeName));
+
+                    if(t == typeof(Transform))
+                    {
+                        entityInfo.transform = null;
+                    }
 
                     if (Platform.IsPlaying &&
                         callableComponentTypes.Count != 0 &&

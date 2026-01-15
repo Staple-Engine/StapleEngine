@@ -10,6 +10,8 @@ namespace Staple;
 /// </summary>
 public partial class World
 {
+    internal static readonly int TransformComponentID = typeof(Transform).FullName.GetHashCode();
+
     public delegate void IterateComponentCallback(ref IComponent component);
 
     public delegate void OnComponentChangedCallback(World world, Entity entity, ref IComponent component);
@@ -75,6 +77,11 @@ public partial class World
         /// Whether the entity is hidden
         /// </summary>
         public EntityHierarchyVisibility hierarchyVisibility;
+
+        /// <summary>
+        /// The entity's transform
+        /// </summary>
+        public Transform transform;
 
         /// <summary>
         /// List of emitted component add events
@@ -164,7 +171,6 @@ public partial class World
     private readonly Lock lockObject = new();
     private static readonly Lock globalLockObject = new();
 
-    private EntityInfo[] entities = [];
     private readonly Dictionary<int, HashSet<int>> componentCompatibilityCache = [];
     private readonly Dictionary<int, string> componentNameHashes = [];
     private readonly HashSet<int> callableComponentTypes = [];
@@ -176,6 +182,7 @@ public partial class World
     private readonly List<CameraInfo> sortedCamerasBacking = [];
     private readonly List<(Entity, Transform)> rootEntitiesBacking = [];
 
+    internal EntityInfo[] entities = [];
     internal CameraInfo[] sortedCameras = [];
     internal (Entity, Transform)[] rootEntities = [];
 

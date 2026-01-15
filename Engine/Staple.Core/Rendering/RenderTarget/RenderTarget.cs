@@ -73,10 +73,10 @@ public sealed class RenderTarget(int width, int height, TextureFlags flags, List
     /// <param name="colorFormat">The color format to use</param>
     /// <param name="flags">Additional texture flags</param>
     /// <returns>The render target, or null</returns>
-    public static RenderTarget Create(ushort width, ushort height, TextureFormat colorFormat = TextureFormat.RGBA8,
+    public static RenderTarget Create(ushort width, ushort height, TextureFormat? colorFormat = null,
         TextureFlags flags = TextureFlags.ClampU | TextureFlags.ClampV)
     {
-        var colorTexture = Texture.CreateEmpty(width, height, colorFormat, flags | TextureFlags.ColorTarget);
+        var colorTexture = Texture.CreateEmpty(width, height, colorFormat ?? RenderSystem.Backend.SwapchainFormat, flags | TextureFlags.ColorTarget);
         var depthTexture = Texture.CreateEmpty(width, height, RenderSystem.Backend.DepthStencilFormat.Value, flags | TextureFlags.DepthStencilTarget);
 
         if (colorTexture == null || depthTexture == null)

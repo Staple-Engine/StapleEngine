@@ -35,29 +35,21 @@ internal class ManagedFreeformAllocator<T>
 
         foreach (var entry in entries)
         {
-            entry.start = newPosition;
+            Array.Copy(buffer, entry.start, newBuffer, newPosition, entry.length);
 
             newPosition += entry.length;
         }
 
         newPosition = 0;
 
-        var position = 0;
-
-        foreach (var entry in freeEntries)
+        foreach (var entry in entries)
         {
-            var l = entry.start - position;
+            entry.start = newPosition;
 
-            Array.Copy(buffer, position, newBuffer, newPosition, l);
-
-            position = entry.start + entry.length;
-            newPosition += l;
+            newPosition += entry.length;
         }
 
-        if (newPosition < compactedLength)
-        {
-            Array.Copy(buffer, position, newBuffer, newPosition, compactedLength - newPosition);
-        }
+        freeEntries.Clear();
 
         buffer = newBuffer;
     }

@@ -494,13 +494,6 @@ public sealed partial class Mesh
     /// </summary>
     public void Destroy()
     {
-        if(IsStaticMesh && staticMeshEntries != null)
-        {
-            RenderSystem.Backend.StaticMeshData.Free(staticMeshEntries);
-
-            staticMeshEntries = null;
-        }
-
         vertexBuffer?.Destroy();
         indexBuffer?.Destroy();
 
@@ -1107,9 +1100,15 @@ public sealed partial class Mesh
 
         if(RenderSystem.Backend.StaticMeshData.TryGetIndices(staticMeshEntries, out var meshIndices, true))
         {
-            for(var i = 0; i < meshIndices.Length; i++)
+            var from = indices.AsSpan();
+
+            from.CopyTo(meshIndices);
+
+            var start = staticMeshEntries.positionEntry.start;
+
+            for (var i = 0; i < meshIndices.Length; i++)
             {
-                meshIndices[i] = (uint)(indices[i] + staticMeshEntries.positionEntry.start);
+                meshIndices[i] += start;
             }
         }
     }

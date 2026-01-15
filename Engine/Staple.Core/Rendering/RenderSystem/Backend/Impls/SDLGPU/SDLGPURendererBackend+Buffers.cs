@@ -466,11 +466,9 @@ internal partial class SDLGPURendererBackend
 
         var mapData = SDL.MapGPUTransferBuffer(device, transferBuffer, true);
 
-        buffer.allocator.EnsurePin();
-
         unsafe
         {
-            var from = new Span<byte>((byte *)buffer.allocator.pinAddress, vertexBufferLength);
+            var from = new Span<byte>((byte *)buffer.allocator.NativePointer, vertexBufferLength);
             var to = new Span<byte>((void*)mapData, vertexBufferLength);
 
             from.CopyTo(to);
@@ -492,7 +490,7 @@ internal partial class SDLGPURendererBackend
         SDL.UploadToGPUBuffer(copyPass, in location, in region, false);
     }
 
-    public void UpdateStaticMeshIndexBuffer(BufferAttributeSource<uint, IndexBuffer> buffer)
+    public void UpdateStaticMeshIndexBuffer(BufferAttributeSource<int, IndexBuffer> buffer)
     {
         var targetLength = buffer.allocator.buffer.Length * buffer.allocator.elementSize;
 
@@ -552,11 +550,9 @@ internal partial class SDLGPURendererBackend
 
         var mapData = SDL.MapGPUTransferBuffer(device, transferBuffer, true);
 
-        buffer.allocator.EnsurePin();
-
         unsafe
         {
-            var from = new Span<byte>((byte*)buffer.allocator.pinAddress, bufferLength);
+            var from = new Span<byte>((byte*)buffer.allocator.NativePointer, bufferLength);
             var to = new Span<byte>((void*)mapData, bufferLength);
 
             from.CopyTo(to);
@@ -657,11 +653,14 @@ internal partial class SDLGPURendererBackend
     private void UpdateIndirectCommandBuffer()
     {
         if (RenderSystem.Instance.changedEntityTransformRanges.Count == 0 &&
+            !needsIndirectBufferUpdate &&
             indirectCommandBuffer != nint.Zero &&
             entityTransformIndexBuffer != nint.Zero)
         {
             return;
         }
+
+        needsIndirectBufferUpdate = false;
 
         if (renderPass != nint.Zero)
         {

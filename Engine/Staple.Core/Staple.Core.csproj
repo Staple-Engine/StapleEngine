@@ -228,6 +228,7 @@
 		<Compile Include="Rendering\RenderSystem\Backend\IRenderCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\IRendererBackend.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\BufferAttributeSource.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\MultidrawEntry.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\RenderState.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderEntry.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderStats.cs" />

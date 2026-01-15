@@ -89,6 +89,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     {
         renderers.Clear();
 
+        var needsInstanceUpdate = false;
+
         foreach (var entry in renderQueue)
         {
             var renderer = entry.component as SkinnedMeshRenderer;
@@ -139,6 +141,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     }
                 }
 
+                if(renderer.instance == null)
+                {
+                    needsInstanceUpdate = true;
+                }
+
                 renderer.instance ??= new(entry.entity, EntityQueryMode.Parent, false);
             }
 
@@ -147,6 +154,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 renderer = renderer,
                 transform = entry.transform,
             });
+        }
+
+        if(needsInstanceUpdate)
+        {
+            instances.WorldChanged();
         }
 
         foreach (var (entity, instance, transform) in instances.Contents)

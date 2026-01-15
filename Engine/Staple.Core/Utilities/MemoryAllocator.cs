@@ -74,10 +74,7 @@ public class MemoryAllocator
 
     public nint Get(int position)
     {
-        if (pinAddress == nint.Zero)
-        {
-            throw new InvalidOperationException("Memory Allocator was not pinned, ensure you call EnsurePin() before getting an address!");
-        }
+        EnsurePin();
 
         return pinAddress + position;
     }
@@ -114,6 +111,8 @@ public class MemoryAllocator<T> where T: unmanaged
 
             Repin();
         }
+
+        EnsurePin();
 
         var outValue = buffer.AsSpan(position, size);
 
@@ -156,10 +155,7 @@ public class MemoryAllocator<T> where T: unmanaged
 
     public nint Get(int position)
     {
-        if (pinAddress == nint.Zero)
-        {
-            throw new InvalidOperationException("Memory Allocator was not pinned, ensure you call EnsurePin() before getting an address!");
-        }
+        EnsurePin();
 
         return pinAddress + position * elementSize;
     }

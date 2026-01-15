@@ -51,7 +51,7 @@ internal class BufferAttributeContainer
         public UnmanagedFreeformAllocator<Vector2>.Entry texCoord6Entry;
         public UnmanagedFreeformAllocator<Vector2>.Entry texCoord7Entry;
 
-        public UnmanagedFreeformAllocator<uint>.Entry indicesEntry;
+        public UnmanagedFreeformAllocator<int>.Entry indicesEntry;
     }
 
     public readonly BufferAttributeSource<Vector3, VertexBuffer> Position = new(VertexAttribute.Position, BufferSlot.Position);
@@ -90,7 +90,7 @@ internal class BufferAttributeContainer
 
     public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord7 = new(VertexAttribute.TexCoord7, BufferSlot.TexCoord7);
 
-    public readonly BufferAttributeSource<uint, IndexBuffer> Indices = new(VertexAttribute.Position, BufferSlot.Count);
+    public readonly BufferAttributeSource<int, IndexBuffer> Indices = new(VertexAttribute.Position, BufferSlot.Count);
 
     private static void UpdateVertexBuffer<T>(BufferAttributeSource<T, VertexBuffer> buffer) where T: unmanaged
     {
@@ -104,7 +104,7 @@ internal class BufferAttributeContainer
         RenderSystem.Backend.UpdateStaticMeshVertexBuffer(buffer);
     }
 
-    private static void UpdateIndexBuffer(BufferAttributeSource<uint, IndexBuffer> buffer)
+    private static void UpdateIndexBuffer(BufferAttributeSource<int, IndexBuffer> buffer)
     {
         if (!buffer.Changed)
         {
@@ -530,7 +530,7 @@ internal class BufferAttributeContainer
         return coords.Length > 0;
     }
 
-    public bool TryGetIndices(Entries entries, out Span<uint> indices, bool markChanged = false)
+    public bool TryGetIndices(Entries entries, out Span<int> indices, bool markChanged = false)
     {
         if (entries == null)
         {

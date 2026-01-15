@@ -27,16 +27,10 @@ public sealed class MeshRenderSystem : IRenderSystem
         public readonly ExpandableContainer<InstanceInfo> instanceInfos = new();
     }
 
-    private class StaticInstanceEntry(BufferAttributeContainer.Entries entries)
-    {
-        public readonly BufferAttributeContainer.Entries entries = entries;
-        public readonly List<Transform> transforms = [];
-    }
-
     private class StaticInstanceData
     {
         public readonly ExpandableContainer<InstanceInfo> instanceInfos = new();
-        public readonly ExpandableContainer<StaticInstanceEntry> entries = new();
+        public readonly ExpandableContainer<MultidrawEntry> entries = new();
         public int triangles;
     }
 
@@ -236,7 +230,10 @@ public sealed class MeshRenderSystem : IRenderSystem
                     }
                 }
 
-                meshCache.entries.Add(new(renderer.mesh.staticMeshEntries));
+                meshCache.entries.Add(new()
+                {
+                    entries = renderer.mesh.staticMeshEntries,
+                });
 
                 meshCache.entries.Contents[^1].transforms.Add(entry.transform);
             }
@@ -403,10 +400,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             renderState.world = Matrix4x4.Identity;
 
-            foreach(var entry in contents.entries.Contents)
-            {
-                RenderSystem.SubmitStatic(renderState, entry.entries, CollectionsMarshal.AsSpan(entry.transforms), contents.triangles);
-            }
+            RenderSystem.SubmitStatic(renderState, contents.entries.Contents, contents.triangles);
         }
 
         foreach (var (_, contents) in instanceCache)

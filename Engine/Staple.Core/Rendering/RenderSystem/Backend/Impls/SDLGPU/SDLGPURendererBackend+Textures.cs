@@ -520,7 +520,7 @@ internal partial class SDLGPURendererBackend
             case TextureFormat.ASTC6x5:
 
                 outValue = hasSRGB ? SDL.GPUTextureFormat.ASTC6X5UnormSRGB :
-                    SDL.GPUTextureFormat.ASTC5X5Unorm;
+                    SDL.GPUTextureFormat.ASTC6X5Unorm;
 
                 return true;
 
@@ -970,6 +970,534 @@ internal partial class SDLGPURendererBackend
         }
 
         outValue = SDL.GPUTextureFormat.Invalid;
+
+        return false;
+    }
+
+    public static bool TryGetStapleTextureFormat(SDL.GPUTextureFormat format, out TextureFormat outValue)
+    {
+        switch (format)
+        {
+            case SDL.GPUTextureFormat.BC1RGBAUnormSRGB:
+            case SDL.GPUTextureFormat.BC1RGBAUnorm:
+
+                outValue = TextureFormat.BC1;
+
+                return true;
+
+            case SDL.GPUTextureFormat.BC2RGBAUnormSRGB:
+            case SDL.GPUTextureFormat.BC2RGBAUnorm:
+
+                outValue = TextureFormat.BC2;
+
+                return true;
+
+            case SDL.GPUTextureFormat.BC3RGBAUnormSRGB:
+            case SDL.GPUTextureFormat.BC3RGBAUnorm:
+
+                outValue = TextureFormat.BC3;
+
+                return true;
+
+            case SDL.GPUTextureFormat.BC4RUnorm:
+
+                outValue = TextureFormat.BC4;
+
+                return true;
+
+            case SDL.GPUTextureFormat.BC5RGUnorm:
+
+                outValue = TextureFormat.BC5;
+
+                return true;
+
+            case SDL.GPUTextureFormat.BC6HRGBFloat:
+
+                outValue = TextureFormat.BC6H;
+
+                return true;
+
+            case SDL.GPUTextureFormat.BC7RGBAUnormSRGB:
+            case SDL.GPUTextureFormat.BC7RGBAUnorm:
+
+                outValue = TextureFormat.BC7;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC4X4UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC4X4Unorm:
+
+                outValue = TextureFormat.ASTC4x4;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC5X4UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC5X4Unorm:
+
+                outValue = TextureFormat.ASTC5x4;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC5X5UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC5X5Unorm:
+
+                outValue = TextureFormat.ASTC5x5;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC6X5UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC6X5Unorm:
+
+                outValue = TextureFormat.ASTC6x5;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC6X6UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC6X6Unorm:
+
+                outValue = TextureFormat.ASTC6x6;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC8X5UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC8X5Unorm:
+
+                outValue = TextureFormat.ASTC8x5;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC8X6UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC8X6Unorm:
+
+                outValue = TextureFormat.ASTC8x6;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC8X8UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC8X8Unorm:
+
+                outValue = TextureFormat.ASTC8x8;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC10X5UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC10X5Unorm:
+
+                outValue = TextureFormat.ASTC10x5;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC10X6UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC10X6Unorm:
+
+                outValue = TextureFormat.ASTC10x6;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC10X8UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC10X8Unorm:
+
+                outValue = TextureFormat.ASTC10x8;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC10X10UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC10X10Unorm:
+
+                outValue = TextureFormat.ASTC10x10;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC12X10UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC12X10Unorm:
+
+                outValue = TextureFormat.ASTC12x10;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC12X12UnormSRGB:
+            case SDL.GPUTextureFormat.ASTC12X12Unorm:
+
+                outValue = TextureFormat.ASTC12x12;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC4X4Float:
+
+                outValue = TextureFormat.ASTC4x4F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC5X4Float:
+
+                outValue = TextureFormat.ASTC5x4F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC5X5Float:
+
+                outValue = TextureFormat.ASTC5x5F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC6X5Float:
+
+                outValue = TextureFormat.ASTC6x5F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC6X6Float:
+
+                outValue = TextureFormat.ASTC6x6F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC8X5Float:
+
+                outValue = TextureFormat.ASTC8x5F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC8X6Float:
+
+                outValue = TextureFormat.ASTC8x6F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC8X8Float:
+
+                outValue = TextureFormat.ASTC8x8F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC10X5Float:
+
+                outValue = TextureFormat.ASTC10x5F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC10X6Float:
+
+                outValue = TextureFormat.ASTC10x6F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC10X8Float:
+
+                outValue = TextureFormat.ASTC10x8F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC10X10Float:
+
+                outValue = TextureFormat.ASTC10x10F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC12X10Float:
+
+                outValue = TextureFormat.ASTC12x10F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.ASTC12X12Float:
+
+                outValue = TextureFormat.ASTC12x12F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.A8Unorm:
+
+                outValue = TextureFormat.A8;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8Unorm:
+
+                outValue = TextureFormat.R8;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8Int:
+
+                outValue = TextureFormat.R8I;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8Uint:
+
+                outValue = TextureFormat.R8U;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8Snorm:
+
+                outValue = TextureFormat.R8S;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16Unorm:
+
+                outValue = TextureFormat.R16;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16Int:
+
+                outValue = TextureFormat.R16I;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16Uint:
+
+                outValue = TextureFormat.R16U;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16Float:
+
+                outValue = TextureFormat.R16F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16Snorm:
+
+                outValue = TextureFormat.R16S;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R32Int:
+
+                outValue = TextureFormat.R32I;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R32Uint:
+
+                outValue = TextureFormat.R32U;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R32Float:
+
+                outValue = TextureFormat.R32F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8G8Unorm:
+
+                outValue = TextureFormat.RG8;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8G8Int:
+
+                outValue = TextureFormat.RG8I;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8G8Uint:
+
+                outValue = TextureFormat.RG8U;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8G8Snorm:
+
+                outValue = TextureFormat.RG8S;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16G16Unorm:
+
+                outValue = TextureFormat.RG16;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16G16Int:
+
+                outValue = TextureFormat.RG16I;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16G16Uint:
+
+                outValue = TextureFormat.RG16U;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16G16Float:
+
+                outValue = TextureFormat.RG16F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16G16Snorm:
+
+                outValue = TextureFormat.RG16S;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R32G32Int:
+
+                outValue = TextureFormat.RG32I;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R32G32Uint:
+
+                outValue = TextureFormat.RG32U;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R32G32Float:
+
+                outValue = TextureFormat.RG32F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.B8G8R8A8UnormSRGB:
+            case SDL.GPUTextureFormat.B8G8R8A8Unorm:
+
+                outValue = TextureFormat.BGRA8;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8G8B8A8UnormSRGB:
+            case SDL.GPUTextureFormat.R8G8B8A8Unorm:
+
+                outValue = TextureFormat.RGBA8;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8G8B8A8Int:
+
+                outValue = TextureFormat.RGBA8I;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8G8B8A8Uint:
+
+                outValue = TextureFormat.RGBA8U;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R8G8B8A8Snorm:
+
+                outValue = TextureFormat.RGBA8S;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16G16B16A16Unorm:
+
+                outValue = TextureFormat.RGBA16;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16G16B16A16Int:
+
+                outValue = TextureFormat.RGBA16I;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16G16B16A16Uint:
+
+                outValue = TextureFormat.RGBA16U;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16G16B16A16Float:
+
+                outValue = TextureFormat.RGBA16F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R16G16B16A16Snorm:
+
+                outValue = TextureFormat.RGBA16S;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R32G32B32A32Int:
+
+                outValue = TextureFormat.RGBA32I;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R32G32B32A32Uint:
+
+                outValue = TextureFormat.RGBA32U;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R32G32B32A32Float:
+
+                outValue = TextureFormat.RGBA32F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.B5G6R5Unorm:
+
+                outValue = TextureFormat.B5G6R5;
+
+                return true;
+
+            case SDL.GPUTextureFormat.B4G4R4A4Unorm:
+
+                outValue = TextureFormat.BGRA4;
+
+                return true;
+
+            case SDL.GPUTextureFormat.B5G5R5A1Unorm:
+
+                outValue = TextureFormat.BGR5A1;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R10G10B10A2Unorm:
+
+                outValue = TextureFormat.RGB10A2;
+
+                return true;
+
+            case SDL.GPUTextureFormat.R11G11B10UFloat:
+
+                outValue = TextureFormat.RG11B10F;
+
+                return true;
+
+            case SDL.GPUTextureFormat.D16Unorm:
+
+                outValue = TextureFormat.D16;
+
+                return true;
+
+            case SDL.GPUTextureFormat.D24Unorm:
+
+                outValue = TextureFormat.D24;
+
+                return true;
+
+            case SDL.GPUTextureFormat.D24UnormS8Uint:
+
+                outValue = TextureFormat.D24S8;
+
+                return true;
+
+            case SDL.GPUTextureFormat.D32FloatS8Uint:
+
+                outValue = TextureFormat.D32S8;
+
+                return true;
+
+            case SDL.GPUTextureFormat.D32Float:
+
+                outValue = TextureFormat.D32F;
+
+                return true;
+        }
+
+        outValue = TextureFormat.RGBA8;
 
         return false;
     }

@@ -11,7 +11,7 @@ using System.Text;
 
 namespace Staple.Internal;
 
-internal partial class SDLGPURendererBackend : IRendererBackend
+internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeReceiver
 {
     private const uint VulkanVersionMajor = 1;
     private const uint VulkanVersionMinor = 2;
@@ -439,6 +439,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend
     private int indirectCommandBufferLength;
     private int indirectCommandPosition;
     private int indirectCommandInstance;
+    private bool needsIndirectBufferUpdate = true;
 
     internal static nint[] staticMeshVertexBuffers = new nint[18];
     internal static nint staticMeshIndexBuffer = nint.Zero;
@@ -473,6 +474,26 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
     public bool SupportsLinearColorSpace => SDL.WindowSupportsGPUSwapchainComposition(device, window.window,
             SDL.GPUSwapchainComposition.SDRLinear);
+
+    public TextureFormat SwapchainFormat
+    {
+        get
+        {
+            if(device == nint.Zero)
+            {
+                return TextureFormat.RGBA8;
+            }
+
+            var format = SDL.GetGPUSwapchainTextureFormat(device, window.window);
+
+            if(TryGetStapleTextureFormat(format, out var stapleFormat) == false)
+            {
+                return TextureFormat.RGBA8;
+            }
+
+            return stapleFormat;
+        }
+    }
 
     public TextureFormat? DepthStencilFormat
     {
@@ -620,6 +641,8 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             staticMeshVertexBuffersElementSize[i] = BufferAttributeContainer.BufferElementSize(i);
         }
 
+        World.AddChangeReceiver(this);
+
         return true;
     }
 
@@ -699,8 +722,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         {
             return;
         }
-        
-        foreach(var pair in graphicsPipelines)
+
+        World.RemoveChangeReceiver(this);
+
+        foreach (var pair in graphicsPipelines)
         {
             SDL.ReleaseGPUGraphicsPipeline(device, pair.Value);
         }
@@ -761,6 +786,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend
         SDL.DestroyGPUDevice(device);
 
         device = nint.Zero;
+    }
+
+    public void WorldChanged()
+    {
+        needsIndirectBufferUpdate = true;
     }
 
     private void AddCommand(IRenderCommand command)
@@ -1969,9 +1999,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend
             state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, state.shaderInstance.attributes));
     }
 
-    public void RenderStatic(RenderState state, BufferAttributeContainer.Entries entries, Span<Transform> transforms)
+    public void RenderStatic(RenderState state, Span<MultidrawEntry> entries)
     {
-        if(transforms.Length == 0 ||
+        if(entries.Length == 0 ||
             state.shader == null ||
             state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader ||
             !TryGetStaticMeshRenderPipeline(state, out var pipeline))
@@ -1985,38 +2015,74 @@ internal partial class SDLGPURendererBackend : IRendererBackend
 
         GetUniformData(in state, false, shader, out var vertexUniformData, out var fragmentUniformData);
 
-        var size = indirectCommandPosition + transforms.Length;
+        var size = indirectCommandInstance;
 
-        while (size > indirectCommands.Length)
+        foreach(var entry in entries)
         {
-            size *= 2;
+            size += entry.transforms.Count;
         }
 
-        if(size > indirectCommands.Length)
+        var targetSize = indirectCommands.Length;
+
+        while(targetSize < size)
         {
-            Array.Resize(ref indirectCommands, size);
-            Array.Resize(ref indirectEntityIndices, size);
+            targetSize *= 2;
         }
 
-        ref var command = ref indirectCommands[indirectCommandPosition];
-
-        command.NumIndices = (uint)entries.indicesEntry.length;
-        command.NumInstances = (uint)transforms.Length;
-        command.FirstInstance = (uint)indirectCommandInstance;
-        command.FirstIndex = (uint)entries.indicesEntry.start;
-
-        for (var i = 0; i < transforms.Length; i++)
+        if(targetSize > indirectCommands.Length)
         {
-            ref var entityIndex = ref indirectEntityIndices[indirectCommandInstance++];
+            Array.Resize(ref indirectCommands, targetSize);
+            Array.Resize(ref indirectEntityIndices, targetSize);
+        }
 
-            entityIndex = (uint)(transforms[i].Entity.Identifier.ID - 1);
+        for(var i = 0; i < entries.Length; i++)
+        {
+            ref var command = ref indirectCommands[indirectCommandPosition + i];
+            ref var entry = ref entries[i];
+
+            var indices = (uint)entry.entries.indicesEntry.length;
+            var instances = (uint)entry.transforms.Count;
+            var firstInstance = (uint)indirectCommandInstance;
+            var firstIndex = (uint)entry.entries.indicesEntry.start;
+
+            if(!needsIndirectBufferUpdate)
+            {
+                needsIndirectBufferUpdate |= command.NumIndices != indices ||
+                    command.NumInstances != instances ||
+                    command.FirstInstance != firstInstance ||
+                    command.FirstIndex != firstIndex;
+            }
+
+            command.NumIndices = indices;
+            command.NumInstances = instances;
+            command.FirstInstance = firstInstance;
+            command.FirstIndex = firstIndex;
+
+            for (var j = 0; j < entry.transforms.Count; j++)
+            {
+                if(indirectCommandInstance >= indirectEntityIndices.Length)
+                {
+                    continue;
+                }
+
+                ref var entityIndex = ref indirectEntityIndices[indirectCommandInstance++];
+
+                var index = (uint)(entry.transforms[j].Entity.Identifier.ID - 1); ;
+
+                if (!needsIndirectBufferUpdate)
+                {
+                    needsIndirectBufferUpdate |= entityIndex != index;
+                }
+
+                entityIndex = index;
+            }
         }
 
         AddCommand(new SDLGPURenderStaticCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
             state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, state.shaderInstance.attributes,
-            indirectCommandPosition, transforms.Length));
+            indirectCommandPosition, entries.Length));
 
-        indirectCommandPosition++;
+        indirectCommandPosition += entries.Length;
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)

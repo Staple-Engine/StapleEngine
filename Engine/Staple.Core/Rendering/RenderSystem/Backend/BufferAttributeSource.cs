@@ -17,6 +17,7 @@ internal class BufferAttributeSource<T, BufferType>(VertexAttribute attribute, B
         Type t when t == typeof(Vector4) => VertexAttributeType.Float4,
         Type t when t == typeof(Color) => VertexAttributeType.Float4,
         Type t when t == typeof(uint) => VertexAttributeType.UInt,
+        Type t when t == typeof(int) => VertexAttributeType.Int,
         _ => throw new NotSupportedException($"Data type for buffer attribute not supported: {typeof(T).FullName}"),
     };
 

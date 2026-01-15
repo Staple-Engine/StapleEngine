@@ -105,7 +105,7 @@ internal struct RenderState
 
     public void ApplyStorageBufferIfNeeded(string name, VertexBuffer buffer)
     {
-        if (shaderInstance?.program == null)
+        if (shaderInstance?.program == null || buffer == null)
         {
             return;
         }
