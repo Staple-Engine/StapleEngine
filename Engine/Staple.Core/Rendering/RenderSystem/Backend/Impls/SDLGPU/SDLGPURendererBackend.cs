@@ -217,7 +217,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                     return;
                 }
 
-                var mapData = SDL.MapGPUTransferBuffer(backend.device, transferBuffer, false);
+                var mapData = SDL.MapGPUTransferBuffer(backend.device, transferBuffer, true);
 
                 var from = CollectionsMarshal.AsSpan(vertices);
 
@@ -287,7 +287,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                     return;
                 }
 
-                var mapData = SDL.MapGPUTransferBuffer(backend.device, transferBuffer, false);
+                var mapData = SDL.MapGPUTransferBuffer(backend.device, transferBuffer, true);
 
                 var from = CollectionsMarshal.AsSpan(indices);
 
@@ -367,7 +367,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                     return;
                 }
 
-                var mapData = SDL.MapGPUTransferBuffer(backend.device, transferBuffer, false);
+                var mapData = SDL.MapGPUTransferBuffer(backend.device, transferBuffer, true);
 
                 var from = CollectionsMarshal.AsSpan(uintIndices);
 
@@ -916,7 +916,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             {
                 var buffer = GlobalAllocator<byte>.Instance.Rent(resource.length);
 
-                var map = SDL.MapGPUTransferBuffer(device, resource.transferBuffer, false);
+                var map = SDL.MapGPUTransferBuffer(device, resource.transferBuffer, true);
 
                 var from = new Span<byte>((void *)map, buffer.Length);
                 var to = new Span<byte>(buffer);
