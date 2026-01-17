@@ -162,9 +162,13 @@ public sealed class MeshRenderSystem : IRenderSystem
         foreach(var p in staticInstanceCache)
         {
             p.Value.instanceInfos.Clear();
-            p.Value.entries.Clear();
 
             p.Value.triangles = 0;
+
+            foreach(var entry in p.Value.entries.Contents)
+            {
+                entry.transforms.Clear();
+            }
         }
 
         foreach (var entry in renderQueue)

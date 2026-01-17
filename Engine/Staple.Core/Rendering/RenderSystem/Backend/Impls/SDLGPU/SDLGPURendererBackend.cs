@@ -2015,30 +2015,47 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
         GetUniformData(in state, false, shader, out var vertexUniformData, out var fragmentUniformData);
 
-        var size = indirectCommandInstance;
+        var commandCount = 0;
 
         foreach(var entry in entries)
         {
-            size += entry.transforms.Count;
+            if(entry.transforms.Count == 0)
+            {
+                continue;
+            }
+
+            commandCount++;
         }
 
-        var targetSize = indirectCommands.Length;
-
-        while(targetSize < size)
+        if(indirectCommandPosition + commandCount > indirectCommands.Length)
         {
-            targetSize *= 2;
+            Array.Resize(ref indirectCommands, indirectCommandPosition + commandCount);
         }
 
-        if(targetSize > indirectCommands.Length)
+        var instanceCount = 0;
+
+        foreach(var entry in entries)
         {
-            Array.Resize(ref indirectCommands, targetSize);
-            Array.Resize(ref indirectEntityIndices, targetSize);
+            instanceCount += entry.transforms.Count;
         }
+
+        if (indirectCommandInstance + instanceCount > indirectEntityIndices.Length)
+        {
+            Array.Resize(ref indirectEntityIndices, indirectCommandInstance + instanceCount);
+        }
+
+        var commandIndex = 0;
 
         for(var i = 0; i < entries.Length; i++)
         {
-            ref var command = ref indirectCommands[indirectCommandPosition + i];
             ref var entry = ref entries[i];
+
+            if(entry.transforms.Count == 0)
+            {
+                continue;
+            }
+
+            ref var command = ref indirectCommands[indirectCommandPosition + commandIndex++];
 
             var indices = (uint)entry.entries.indicesEntry.length;
             var instances = (uint)entry.transforms.Count;
@@ -2067,7 +2084,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
                 ref var entityIndex = ref indirectEntityIndices[indirectCommandInstance++];
 
-                var index = (uint)(entry.transforms[j].Entity.Identifier.ID - 1); ;
+                var index = (uint)(entry.transforms[j].Entity.Identifier.ID - 1);
 
                 if (!needsIndirectBufferUpdate)
                 {
@@ -2080,9 +2097,9 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
         AddCommand(new SDLGPURenderStaticCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
             state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, state.shaderInstance.attributes,
-            indirectCommandPosition, entries.Length));
+            indirectCommandPosition, commandIndex));
 
-        indirectCommandPosition += entries.Length;
+        indirectCommandPosition += commandIndex;
     }
 
     public void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, RenderState state)
