@@ -41,4 +41,9 @@ public class ComponentVersionTracker<T> where T: IComponent, IComponentVersion
 
         return false;
     }
+
+    public void Clear()
+    {
+        Array.Clear(versions);
+    }
 }

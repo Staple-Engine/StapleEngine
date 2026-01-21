@@ -152,7 +152,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="cameraTransform">The camera's transform</param>
     /// <param name="queue">The render queue for this camera</param>
     /// <param name="cull">Whether to cull invisible elements</param>
-    public static void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
+    public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
         List<(RenderSystemInfo, List<RenderEntry>)> queue, bool cull)
     {
         CurrentCamera = (camera, cameraTransform);
@@ -258,6 +258,16 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         void Handle(Entity e, Transform t)
         {
+            if(!camera.cullingLayers.HasLayer(e.Layer))
+            {
+                foreach (var child in t.Children)
+                {
+                    Handle(child.Entity, child);
+                }
+
+                return;
+            }
+
             foreach (var systemInfo in systems)
             {
                 if (systemInfo.system.UsesOwnRenderProcess)
@@ -307,8 +317,6 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
         }
 
         Handle(entity, entityTransform);
-
-        PrepareCamera(cameraEntity, camera, cameraTransform);
 
         foreach (var pair in systemQueues)
         {

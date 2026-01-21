@@ -80,7 +80,7 @@ public sealed class Camera : IComponent
     /// <summary>
     /// The frustum culler for this camera
     /// </summary>
-    private readonly FrustumCuller frustumCuller = new();
+    internal readonly FrustumCuller frustumCuller = new();
 
     /// <summary>
     /// Gets the camera's frustum corners
