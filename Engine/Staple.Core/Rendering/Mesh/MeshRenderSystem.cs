@@ -93,12 +93,9 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         var matrix = Matrix4x4.TRS(position, scale, rotation);
 
-        var renderState = new RenderState()
-        {
-            enableDepth = true,
-            depthWrite = true,
-            world = matrix,
-        };
+        var renderState = RenderState.Default;
+
+        renderState.world = matrix;
 
         mesh.SetActive(ref renderState);
 
@@ -308,11 +305,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
     public void Submit()
     {
-        var renderState = new RenderState()
-        {
-            depthWrite = true,
-            enableDepth = true,
-        };
+        var renderState = RenderState.Default;
 
         if(instanceBuffer?.Disposed ?? true)
         {

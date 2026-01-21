@@ -139,9 +139,15 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     public static void Render(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
         Matrix4x4 cameraTransform, Matrix4x4 projection, Action callback)
     {
+        var previous = RenderTarget.Current;
+
+        RenderTarget.Current = target;
+
         PrepareRender(target, clearMode, clearColor, viewport, cameraTransform, projection);
 
         callback?.Invoke();
+
+        RenderTarget.Current = previous;
     }
 
     /// <summary>
@@ -320,6 +326,11 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         foreach (var pair in systemQueues)
         {
+            if(pair.Value.Count == 0)
+            {
+                continue;
+            }
+
             pair.Key.system.Process(CollectionsMarshal.AsSpan(pair.Value), camera, cameraTransform);
 
             pair.Key.system.Submit();
@@ -337,6 +348,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform)
     {
         CurrentCamera = (camera, cameraTransform);
+
+        PrepareCamera(cameraEntity, camera, cameraTransform);
 
         var systems = new List<RenderSystemInfo>();
 
@@ -399,8 +412,6 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 }
             }
         }
-
-        PrepareCamera(cameraEntity, camera, cameraTransform);
 
         foreach (var systemInfo in systems)
         {

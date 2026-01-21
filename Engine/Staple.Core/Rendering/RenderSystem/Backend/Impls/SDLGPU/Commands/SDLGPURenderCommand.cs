@@ -123,6 +123,22 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
             }
         }
 
+        if (state.scissor != default)
+        {
+            scissor.X = state.scissor.left;
+            scissor.Y = state.scissor.top;
+            scissor.W = state.scissor.Width;
+            scissor.H = state.scissor.Height;
+        }
+        else
+        {
+            scissor.X = scissor.Y = 0;
+            scissor.W = backend.renderSize.X;
+            scissor.H = backend.renderSize.Y;
+        }
+
+        SDL.SetGPUScissor(renderPass, in scissor);
+
         if (vertexSamplers.IsEmpty == false)
         {
             unsafe

@@ -40,19 +40,16 @@ namespace Staple
                 throw new Exception("Invalid arguments passed");
             }
 
-            var renderState = new RenderState()
-            {
-                cull = material.CullingMode,
-                primitiveType = topology,
-                depthWrite = true,
-                enableDepth = true,
-                indexBuffer = index,
-                vertexBuffer = vertex,
-                startVertex = startVertex,
-                startIndex = startIndex,
-                indexCount = indexCount,
-                world = transform,
-            };
+            var renderState = RenderState.Default;
+
+            renderState.cull = material.CullingMode;
+            renderState.primitiveType = topology;
+            renderState.indexBuffer = index;
+            renderState.vertexBuffer = vertex;
+            renderState.startVertex = startVertex;
+            renderState.startIndex = startIndex;
+            renderState.indexCount = indexCount;
+            renderState.world = transform;
 
             if(materialSetupCallback != null)
             {
@@ -91,11 +88,10 @@ namespace Staple
                 throw new Exception("Invalid arguments passed");
             }
 
-            var renderState = new RenderState()
-            {
-                primitiveType = topology,
-                world = transform,
-            };
+            var renderState = RenderState.Default;
+
+            renderState.primitiveType = topology;
+            renderState.world = transform;
 
             if (materialSetupCallback != null)
             {
@@ -134,11 +130,10 @@ namespace Staple
                 throw new Exception("Invalid arguments passed");
             }
 
-            var renderState = new RenderState()
-            {
-                primitiveType = topology,
-                world = transform,
-            };
+            var renderState = RenderState.Default;
+
+            renderState.primitiveType = topology;
+            renderState.world = transform;
 
             if (materialSetupCallback != null)
             {

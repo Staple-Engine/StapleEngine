@@ -332,17 +332,14 @@ public sealed class MeshCombineSystem : IRenderSystem
                     LightSystem.Instance.ApplyMaterialLighting(material, lighting);
                 }
 
-                var renderState = new RenderState()
-                {
-                    cull = material.CullingMode,
-                    primitiveType = mesh.MeshTopology,
-                    depthWrite = true,
-                    enableDepth = true,
-                    indexBuffer = mesh.indexBuffer,
-                    vertexBuffer = mesh.vertexBuffer,
-                    indexCount = mesh.IndexCount,
-                    world = item.transform.Matrix,
-                };
+                var renderState = RenderState.Default;
+
+                renderState.cull = material.CullingMode;
+                renderState.primitiveType = mesh.MeshTopology;
+                renderState.indexBuffer = mesh.indexBuffer;
+                renderState.vertexBuffer = mesh.vertexBuffer;
+                renderState.indexCount = mesh.IndexCount;
+                renderState.world = item.transform.Matrix;
 
                 if (needsChange)
                 {

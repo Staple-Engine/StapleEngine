@@ -33,6 +33,21 @@ internal struct RenderState
     public int instanceOffset;
     public int instanceCount;
 
+    public static RenderState Default
+    {
+        get
+        {
+            return new()
+            {
+                renderTarget = RenderTarget.Current,
+                vertexStorageBuffers = [],
+                fragmentStorageBuffers = [],
+                enableDepth = true,
+                depthWrite = true,
+            };
+        }
+    }
+
     public readonly RenderState Clone()
     {
         var vertexTextures = this.vertexTextures != null ? new Texture[this.vertexTextures.Length] : null;

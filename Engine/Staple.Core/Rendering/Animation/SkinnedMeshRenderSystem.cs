@@ -253,11 +253,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         var lastLighting = MaterialLighting.Unlit;
         var lastTopology = MeshTopology.Triangles;
 
-        var renderState = new RenderState()
-        {
-            enableDepth = true,
-            depthWrite = true,
-        };
+        var renderState = RenderState.Default;
 
         var l = renderers.Length;
 
