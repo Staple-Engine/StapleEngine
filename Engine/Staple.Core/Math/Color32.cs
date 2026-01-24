@@ -146,6 +146,11 @@ public struct Color32
         return false;
     }
 
+    public override string ToString()
+    {
+        return $"({r}, {g}, {b}, {a})";
+    }
+
     /// <summary>
     /// Mixes two colors
     /// </summary>
