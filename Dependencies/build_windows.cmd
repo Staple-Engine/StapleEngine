@@ -2,7 +2,6 @@
 
 call premake5 vs2022
 call premake5 --file=NativeFileDialog/build/premake5.lua vs2022
-call premake5 --file=premake5_dotnet.lua vs2022
 
 cmake -B build\native\freetype\Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=true -S freetype -G "Visual Studio 17 2022"
 

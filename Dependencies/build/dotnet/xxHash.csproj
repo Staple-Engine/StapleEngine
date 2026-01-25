@@ -1,0 +1,89 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Release;Debug</Configurations>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <IntermediateOutputPath>obj\Release\xxHash\</IntermediateOutputPath>
+    <DefineConstants>NDEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <IntermediateOutputPath>obj\Debug\xxHash\</IntermediateOutputPath>
+    <DefineConstants>_DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\Utils.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\Utils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\__inline__xxHash32.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\__inline__xxHash32.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\__inline__xxHash64.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\__inline__xxHash64.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash128.XXH.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash128.XXH.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash128.XXH3.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash128.XXH3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash128.XXH64.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash128.XXH64.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash128.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash128.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash3.XXH.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash3.XXH.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash3.XXH3.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash3.XXH3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash3.XXH64.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash3.XXH64.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash3.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash32.XXH.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash32.XXH.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash32.XXH32.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash32.XXH32.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash32.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash32.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash64.XXH.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash64.XXH.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash64.XXH64.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash64.XXH64.cs</Link>
+    </Compile>
+    <Compile Include="..\..\xxHash\src\Standart.Hash.xxHash\xxHash64.cs">
+      <Link>xxHash\src\Standart.Hash.xxHash\xxHash64.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

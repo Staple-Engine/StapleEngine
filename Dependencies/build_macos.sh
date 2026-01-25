@@ -4,7 +4,6 @@ set -e
 
 premake5 --os=macosx xcode4
 premake5 --os=macosx --file=NativeFileDialog/build/premake5.lua xcode4
-premake5 --os=macosx --file=premake5_dotnet.lua vs2022
 
 cmake -B build/native/freetype/Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=true -S freetype -G "Xcode"
 

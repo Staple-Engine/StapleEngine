@@ -4,7 +4,6 @@ set -e
 
 ./premake.sh --os=linux gmake
 ./premake.sh --os=linux --file=NativeFileDialog/build/premake5.lua gmake
-./premake.sh --os=linux --file=premake5_dotnet.lua vs2022
 
 cmake -B build/native/freetype/Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=true -S freetype -G "Unix Makefiles"
 
