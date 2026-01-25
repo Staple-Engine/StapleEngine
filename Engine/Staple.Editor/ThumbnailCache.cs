@@ -213,7 +213,8 @@ internal class ThumbnailCache
                         };
 
                         var offset = mesh.Bounds.center + mesh.Bounds.size * 0.75f;
-                        var position = new Vector3(-offset.X, offset.Y, offset.Z * 1.5f);
+                        var direction = offset.Normalized;
+                        var position = direction * offset.Length() * 0.75f;
                         var forward = -position.Normalized;
 
                         var cameraTransform = new Transform
@@ -225,7 +226,10 @@ internal class ThumbnailCache
                         var overrideLights = LightSystem.OverrideLights;
                         var overrideAmbientColor = LightSystem.OverrideAmbientColor;
 
-                        var lightTransform = new Transform();
+                        var lightTransform = new Transform()
+                        {
+                            LocalRotation = Quaternion.Euler(30, -180, 0),
+                        };
 
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
                             cameraTransform.Matrix, Camera.Projection(default, camera), () =>
@@ -256,6 +260,14 @@ internal class ThumbnailCache
                                 renderTarget.Destroy();
 
                                 return;
+                            }
+
+                            if(texture.Format == TextureFormat.BGRA8)
+                            {
+                                for(var i = 0; i < data.Length; i+=4)
+                                {
+                                    (data[i], data[i + 2]) = (data[i + 2], data[i]);
+                                }
                             }
 
                             var rawTextureData = new RawTextureData()
@@ -467,11 +479,12 @@ internal class ThumbnailCache
                             farPlane = 1000,
                             fov = 90,
                             cullingLayers = new(LayerMask.GetMask(StapleEditor.RenderTargetLayerName)),
+                            viewport = new(0, 0, ThumbnailSize / (float)Screen.Width, ThumbnailSize / (float)Screen.Height),
                         };
 
                         var position = new Vector3(0.5f, 0.5f, -0.5f);
 
-                        var forward = position.Normalized;
+                        var forward = -position.Normalized;
 
                         var cameraTransform = new Transform
                         {
@@ -516,6 +529,14 @@ internal class ThumbnailCache
                                 Cleanup();
 
                                 return;
+                            }
+
+                            if (texture.Format == TextureFormat.BGRA8)
+                            {
+                                for (var i = 0; i < data.Length; i += 4)
+                                {
+                                    (data[i], data[i + 2]) = (data[i + 2], data[i]);
+                                }
                             }
 
                             var rawTextureData = new RawTextureData()

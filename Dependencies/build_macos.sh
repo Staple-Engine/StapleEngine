@@ -27,15 +27,6 @@ cp Release/*.dylib ../../bin/Release
 
 cd ../../
 
-xcodebuild -scheme bx -configuration Debug build -workspace Dependencies.xcworkspace
-xcodebuild -scheme bx -configuration Release build -workspace Dependencies.xcworkspace
-
-xcodebuild -scheme bimg -configuration Debug build -workspace Dependencies.xcworkspace
-xcodebuild -scheme bimg -configuration Release build -workspace Dependencies.xcworkspace
-
-xcodebuild -scheme bgfx -configuration Debug build -workspace Dependencies.xcworkspace
-xcodebuild -scheme bgfx -configuration Release build -workspace Dependencies.xcworkspace
-
 xcodebuild -scheme StapleSupport -configuration Debug build -workspace Dependencies.xcworkspace
 xcodebuild -scheme StapleSupport -configuration Release build -workspace Dependencies.xcworkspace
 
@@ -46,19 +37,3 @@ cd ../dotnet
 
 dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net10.0
 dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net10.0
-
-cd ../../GENie
-
-make
-
-cd ../bgfx
-
-make GENIE=../GENie/bin/darwin/genie projgen
-
-make GENIE=../GENie/bin/darwin/genie tools -j $(sysctl -n hw.logicalcpu)
-
-mkdir -p ../../Tools/bin
-
-cp .build/osx-arm64/bin/*cRelease ../../Tools/bin
-
-cd ../../

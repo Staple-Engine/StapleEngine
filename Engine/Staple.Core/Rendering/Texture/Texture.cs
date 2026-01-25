@@ -39,6 +39,11 @@ public class Texture : IGuidAsset
     public Vector2Int Size => new(Width, Height);
 
     /// <summary>
+    /// The format of this texture
+    /// </summary>
+    public TextureFormat Format => impl?.Format ?? TextureFormat.RGBA8;
+
+    /// <summary>
     /// The texture's sprite scale
     /// </summary>
     public float SpriteScale => 1.0f / metadata.spritePixelsPerUnit;
@@ -500,7 +505,6 @@ public class Texture : IGuidAsset
     /// Reads back the pixels for a texture. Requires readback on the texture metadata
     /// </summary>
     /// <param name="completion">The completion block when the data is ready. This is an async operation.</param>
-    /// <remarks>Render target textures need to use <see cref="RenderTarget.ReadTexture"/> instead</remarks>
     public void ReadPixels(Action<Texture, byte[]> completion)
     {
         if(Disposed)
