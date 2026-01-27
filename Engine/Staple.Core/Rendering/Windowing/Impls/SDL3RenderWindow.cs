@@ -1,6 +1,7 @@
 ﻿using SDL;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -448,36 +449,72 @@ internal unsafe class SDL3RenderWindow : IRenderWindow
                     case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_DOWN:
                     case SDL_EventType.SDL_EVENT_MOUSE_BUTTON_UP:
 
-                        AppEventQueue.instance.Add(AppEvent.Mouse(_event.button.button switch
+                        if (Platform.IsDesktopPlatform)
                         {
-                            1 => AppEventMouseButton.Left,
-                            2 => AppEventMouseButton.Middle,
-                            3 => AppEventMouseButton.Right,
-                            4 => AppEventMouseButton.Button1,
-                            5 => AppEventMouseButton.Button2,
-                            _ => 0,
-                        },
+                            AppEventQueue.instance.Add(AppEvent.Mouse(_event.button.button switch
+                            {
+                                1 => AppEventMouseButton.Left,
+                                2 => AppEventMouseButton.Middle,
+                                3 => AppEventMouseButton.Right,
+                                4 => AppEventMouseButton.Button1,
+                                5 => AppEventMouseButton.Button2,
+                                _ => 0,
+                            },
                             _event.button.down ? AppEventInputState.Press : AppEventInputState.Release,
                             GetModifiers(SDL3.SDL_GetModState())));
+                        }
 
                         break;
 
                     case SDL_EventType.SDL_EVENT_MOUSE_MOTION:
 
-                        if (SDL3.SDL_GetWindowRelativeMouseMode(window))
+                        if(Platform.IsDesktopPlatform)
                         {
-                            Input.CursorPosCallback(_event.motion.xrel, _event.motion.yrel);
-                        }
-                        else
-                        {
-                            Input.CursorPosCallback(_event.motion.x, _event.motion.y);
+                            if (SDL3.SDL_GetWindowRelativeMouseMode(window))
+                            {
+                                Input.CursorPosCallback(_event.motion.xrel, _event.motion.yrel);
+                            }
+                            else
+                            {
+                                Input.CursorPosCallback(_event.motion.x, _event.motion.y);
+                            }
                         }
 
                         break;
 
                     case SDL_EventType.SDL_EVENT_MOUSE_WHEEL:
 
-                        Input.MouseScrollCallback(_event.wheel.x, _event.wheel.y);
+                        if (Platform.IsDesktopPlatform)
+                        {
+                            Input.MouseScrollCallback(_event.wheel.x, _event.wheel.y);
+                        }
+
+                        break;
+
+                    case SDL_EventType.SDL_EVENT_FINGER_CANCELED:
+                    case SDL_EventType.SDL_EVENT_FINGER_DOWN:
+                    case SDL_EventType.SDL_EVENT_FINGER_UP:
+
+                        {
+                            var size = Size;
+
+                            AppEventQueue.instance.Add(AppEvent.Touch((int)_event.tfinger.fingerID,
+                                new Vector2((int)(_event.tfinger.x * size.X), (int)(_event.tfinger.y * size.Y)),
+                                (SDL_EventType)_event.type == SDL_EventType.SDL_EVENT_FINGER_DOWN ?
+                                    AppEventInputState.Press : AppEventInputState.Release));
+                        }
+
+                        break;
+
+                    case SDL_EventType.SDL_EVENT_FINGER_MOTION:
+
+                        {
+                            var size = Size;
+
+                            AppEventQueue.instance.Add(AppEvent.Touch((int)_event.tfinger.fingerID,
+                                new Vector2((int)(_event.tfinger.x * size.X), (int)(_event.tfinger.y * size.Y)),
+                                AppEventInputState.Repeat));
+                        }
 
                         break;
 
