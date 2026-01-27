@@ -1088,6 +1088,17 @@ public partial class ProjectManager
                     p.SetProperty("AndroidEnableMarshalMethods", "false");
                     p.SetProperty("PublishTrimmed", "true");
 
+                    var item = p.AddItem("AndroidLibrary", "DUMMY");
+
+                    item[0].Xml.Include = null;
+                    item[0].Xml.Update = "SDL3AndroidBridge.jar";
+                    item[0].Xml.AddMetadata("Bind", "false");
+
+                    p.AddItem("Reference", "SDL3-CS",
+                        [
+                            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "SDL3-CS.dll"))
+                        ]);
+
                     releaseProperty.SetProperty("AndroidLinkMode", "Full");
 
                     break;
