@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
+# Visual Studio Version 18
+VisualStudioVersion = 18.2.11415.280 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrossCopy", "CrossCopy.csproj", "{8A280819-F692-BC8F-3FD1-6D35AB7A9AE4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Evergine.Bindings.Vulkan", "Evergine.Bindings.Vulkan.csproj", "{7542FD8F-6167-4C10-8AB2-31A076364B2E}"
@@ -14,8 +16,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NfdSharp", "NfdSharp.csproj", "{5BDFD212-47AC-2D1E-70C5-1BC65CF162AC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OggVorbisEncoder", "OggVorbisEncoder.csproj", "{575A728D-4353-91DF-6C85-766458DD70EB}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SDL3-CS", "SDL3-CS.csproj", "{BE20FC9C-2A00-7B38-3318-060F9F76E199}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xxHash", "xxHash.csproj", "{D9B36E28-C555-99FE-AE10-AD529A51204F}"
 EndProject
@@ -53,10 +53,6 @@ Global
 		{575A728D-4353-91DF-6C85-766458DD70EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{575A728D-4353-91DF-6C85-766458DD70EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{575A728D-4353-91DF-6C85-766458DD70EB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BE20FC9C-2A00-7B38-3318-060F9F76E199}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BE20FC9C-2A00-7B38-3318-060F9F76E199}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BE20FC9C-2A00-7B38-3318-060F9F76E199}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BE20FC9C-2A00-7B38-3318-060F9F76E199}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D9B36E28-C555-99FE-AE10-AD529A51204F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D9B36E28-C555-99FE-AE10-AD529A51204F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D9B36E28-C555-99FE-AE10-AD529A51204F}.Release|Any CPU.ActiveCfg = Release|Any CPU

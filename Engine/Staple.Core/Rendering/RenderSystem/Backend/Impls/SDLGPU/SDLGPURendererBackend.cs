@@ -1,5 +1,5 @@
 ﻿using Evergine.Bindings.Vulkan;
-using SDL3;
+using SDL;
 using Standart.Hash.xxHash;
 using Staple.Utilities;
 using System;
@@ -11,7 +11,7 @@ using System.Text;
 
 namespace Staple.Internal;
 
-internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeReceiver
+internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeReceiver
 {
     private const uint VulkanVersionMajor = 1;
     private const uint VulkanVersionMinor = 2;
@@ -23,7 +23,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
     internal static readonly int RenderDataByteSize = Marshal.SizeOf<StapleRenderData>();
     internal static readonly int FragmentRenderDataByteSize = Marshal.SizeOf<StapleFragmentRenderData>();
     internal static readonly int Matrix4x4ByteSize = Marshal.SizeOf<Matrix4x4>();
-    internal static readonly int IndirectDrawCommandSize = Marshal.SizeOf<SDL.GPUIndexedIndirectDrawCommand>();
+    internal static readonly int IndirectDrawCommandSize = Marshal.SizeOf<SDL_GPUIndexedIndirectDrawCommand>();
 
     private static uint MakeVulkanVersion(uint major, uint minor, uint patch)
     {
@@ -46,10 +46,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
         public float time;
     }
 
-    internal class BufferResource
+    internal unsafe class BufferResource
     {
-        public nint buffer;
-        public nint transferBuffer;
+        public SDL_GPUBuffer *buffer;
+        public SDL_GPUTransferBuffer *transferBuffer;
 
         public RenderBufferFlags flags;
 
@@ -58,10 +58,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
         public bool used = false;
     }
 
-    internal class TextureResource
+    internal unsafe class TextureResource
     {
-        public nint texture;
-        public nint transferBuffer;
+        public SDL_GPUTexture *texture;
+        public SDL_GPUTransferBuffer *transferBuffer;
         public TextureFormat format;
         public TextureFlags flags;
         public int width;
@@ -116,7 +116,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
         }
     }
 
-    internal class TransientEntry
+    internal unsafe class TransientEntry
     {
         public readonly List<byte> vertices = [];
 
@@ -124,11 +124,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
         public readonly List<uint> uintIndices = [];
 
-        public nint vertexBuffer;
+        public SDL_GPUBuffer *vertexBuffer;
 
-        public nint indexBuffer;
+        public SDL_GPUBuffer *indexBuffer;
 
-        public nint uintIndexBuffer;
+        public SDL_GPUBuffer *uintIndexBuffer;
 
         public int startVertex;
 
@@ -140,25 +140,25 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
         public void Clear()
         {
-            if(vertexBuffer != nint.Zero)
+            if(vertexBuffer != null)
             {
-                SDL.ReleaseGPUBuffer(backend.device, vertexBuffer);
+                SDL3.SDL_ReleaseGPUBuffer(backend.device, vertexBuffer);
 
-                vertexBuffer = nint.Zero;
+                vertexBuffer = null;
             }
 
-            if (indexBuffer != nint.Zero)
+            if (indexBuffer != null)
             {
-                SDL.ReleaseGPUBuffer(backend.device, indexBuffer);
+                SDL3.SDL_ReleaseGPUBuffer(backend.device, indexBuffer);
 
-                indexBuffer = nint.Zero;
+                indexBuffer = null;
             }
 
-            if (uintIndexBuffer != nint.Zero)
+            if (uintIndexBuffer != null)
             {
-                SDL.ReleaseGPUBuffer(backend.device, uintIndexBuffer);
+                SDL3.SDL_ReleaseGPUBuffer(backend.device, uintIndexBuffer);
 
-                uintIndexBuffer = nint.Zero;
+                uintIndexBuffer = null;
             }
 
             startVertex = startIndex = startIndexUInt = 0;
@@ -176,142 +176,124 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             }
 
             {
-                var createInfo = new SDL.GPUBufferCreateInfo()
+                var createInfo = new SDL_GPUBufferCreateInfo()
                 {
-                    Size = (uint)vertices.Count,
-                    Usage = SDL.GPUBufferUsageFlags.Vertex,
+                    size = (uint)vertices.Count,
+                    usage = SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_VERTEX,
                 };
 
-                vertexBuffer = SDL.CreateGPUBuffer(backend.device, in createInfo);
+                vertexBuffer = SDL3.SDL_CreateGPUBuffer(backend.device, &createInfo);
 
-                if (vertexBuffer == nint.Zero)
+                if (vertexBuffer == null)
                 {
                     return;
                 }
 
                 var transferBuffer = backend.GetTransferBuffer(false, vertices.Count);
 
-                if (transferBuffer == nint.Zero)
+                if (transferBuffer == null)
                 {
-                    SDL.ReleaseGPUBuffer(backend.device, vertexBuffer);
+                    SDL3.SDL_ReleaseGPUBuffer(backend.device, vertexBuffer);
 
-                    vertexBuffer = nint.Zero;
+                    vertexBuffer = null;
 
                     return;
                 }
 
-                if (backend.renderPass != nint.Zero)
+                if (!backend.BeginCopyPass())
                 {
-                    backend.FinishPasses();
-                }
+                    SDL3.SDL_ReleaseGPUBuffer(backend.device, vertexBuffer);
 
-                if (backend.copyPass == nint.Zero)
-                {
-                    backend.copyPass = SDL.BeginGPUCopyPass(backend.commandBuffer);
-                }
-
-                if (backend.copyPass == nint.Zero)
-                {
-                    SDL.ReleaseGPUBuffer(backend.device, vertexBuffer);
+                    vertexBuffer = null;
 
                     return;
                 }
 
-                var mapData = SDL.MapGPUTransferBuffer(backend.device, transferBuffer, true);
+                var mapData = SDL3.SDL_MapGPUTransferBuffer(backend.device, transferBuffer, true);
 
                 var from = CollectionsMarshal.AsSpan(vertices);
 
-                unsafe
+                var to = new Span<byte>((void*)mapData, vertices.Count);
+
+                from.CopyTo(to);
+
+                SDL3.SDL_UnmapGPUTransferBuffer(backend.device, transferBuffer);
+
+                var location = new SDL_GPUTransferBufferLocation()
                 {
-                    var to = new Span<byte>((void*)mapData, vertices.Count);
-
-                    from.CopyTo(to);
-                }
-
-                SDL.UnmapGPUTransferBuffer(backend.device, transferBuffer);
-
-                var location = new SDL.GPUTransferBufferLocation()
-                {
-                    TransferBuffer = transferBuffer,
+                    transfer_buffer = transferBuffer,
                 };
 
-                var region = new SDL.GPUBufferRegion()
+                var region = new SDL_GPUBufferRegion()
                 {
-                    Buffer = vertexBuffer,
-                    Size = (uint)vertices.Count,
+                    buffer = vertexBuffer,
+                    size = (uint)vertices.Count,
                 };
 
-                SDL.UploadToGPUBuffer(backend.copyPass, in location, in region, false);
+                SDL3.SDL_UploadToGPUBuffer(backend.copyPass, &location, &region, false);
             }
 
             if(indices.Count > 0)
             {
-                var createInfo = new SDL.GPUBufferCreateInfo()
+                var createInfo = new SDL_GPUBufferCreateInfo()
                 {
-                    Size = (uint)(indices.Count * sizeof(ushort)),
-                    Usage = SDL.GPUBufferUsageFlags.Index,
+                    size = (uint)(indices.Count * sizeof(ushort)),
+                    usage = SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDEX,
                 };
 
-                indexBuffer = SDL.CreateGPUBuffer(backend.device, in createInfo);
+                indexBuffer = SDL3.SDL_CreateGPUBuffer(backend.device, &createInfo);
 
-                if (indexBuffer == nint.Zero)
+                if (indexBuffer == null)
                 {
                     return;
                 }
 
                 var transferBuffer = backend.GetTransferBuffer(false, indices.Count * sizeof(ushort));
 
-                if (transferBuffer == nint.Zero)
+                if (transferBuffer == null)
                 {
-                    SDL.ReleaseGPUBuffer(backend.device, vertexBuffer);
-                    SDL.ReleaseGPUBuffer(backend.device, indexBuffer);
+                    SDL3.SDL_ReleaseGPUBuffer(backend.device, vertexBuffer);
+                    SDL3.SDL_ReleaseGPUBuffer(backend.device, indexBuffer);
 
-                    vertexBuffer = nint.Zero;
-                    indexBuffer = nint.Zero;
+                    vertexBuffer = null;
+                    indexBuffer = null;
 
                     return;
                 }
 
-                if (backend.renderPass != nint.Zero)
+                if (!backend.BeginCopyPass())
                 {
-                    backend.FinishPasses();
-                }
+                    SDL3.SDL_ReleaseGPUBuffer(backend.device, vertexBuffer);
+                    SDL3.SDL_ReleaseGPUBuffer(backend.device, indexBuffer);
 
-                if (backend.copyPass == nint.Zero)
-                {
-                    backend.copyPass = SDL.BeginGPUCopyPass(backend.commandBuffer);
-                }
+                    vertexBuffer = null;
+                    indexBuffer = null;
 
-                if (backend.copyPass == nint.Zero)
-                {
                     return;
                 }
 
-                var mapData = SDL.MapGPUTransferBuffer(backend.device, transferBuffer, true);
+                var mapData = SDL3.SDL_MapGPUTransferBuffer(backend.device, transferBuffer, true);
 
                 var from = CollectionsMarshal.AsSpan(indices);
 
-                unsafe
+                var to = new Span<ushort>((void*)mapData, indices.Count);
+
+                from.CopyTo(to);
+
+                SDL3.SDL_UnmapGPUTransferBuffer(backend.device, transferBuffer);
+
+                var location = new SDL_GPUTransferBufferLocation()
                 {
-                    var to = new Span<ushort>((void*)mapData, indices.Count);
-
-                    from.CopyTo(to);
-                }
-
-                SDL.UnmapGPUTransferBuffer(backend.device, transferBuffer);
-
-                var location = new SDL.GPUTransferBufferLocation()
-                {
-                    TransferBuffer = transferBuffer,
+                    transfer_buffer = transferBuffer,
                 };
 
-                var region = new SDL.GPUBufferRegion()
+                var region = new SDL_GPUBufferRegion()
                 {
-                    Buffer = indexBuffer,
-                    Size = (uint)(indices.Count * sizeof(ushort)),
+                    buffer = indexBuffer,
+                    size = (uint)(indices.Count * sizeof(ushort)),
                 };
 
-                SDL.UploadToGPUBuffer(backend.copyPass, in location, in region, false);
+                SDL3.SDL_UploadToGPUBuffer(backend.copyPass, &location, &region, false);
             }
 
             if (uintIndices.Count <= 0)
@@ -320,78 +302,77 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             }
             
             {
-                var createInfo = new SDL.GPUBufferCreateInfo()
+                var createInfo = new SDL_GPUBufferCreateInfo()
                 {
-                    Size = (uint)(uintIndices.Count * sizeof(uint)),
-                    Usage = SDL.GPUBufferUsageFlags.Index,
+                    size = (uint)(uintIndices.Count * sizeof(uint)),
+                    usage = SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDEX,
                 };
 
-                uintIndexBuffer = SDL.CreateGPUBuffer(backend.device, in createInfo);
+                uintIndexBuffer = SDL3.SDL_CreateGPUBuffer(backend.device, &createInfo);
 
-                if (uintIndexBuffer == nint.Zero)
+                if (uintIndexBuffer == null)
                 {
                     return;
                 }
 
                 var transferBuffer = backend.GetTransferBuffer(false, uintIndices.Count * sizeof(uint));
 
-                if (transferBuffer == nint.Zero)
+                if (transferBuffer == null)
                 {
-                    SDL.ReleaseGPUBuffer(backend.device, vertexBuffer);
-                    SDL.ReleaseGPUBuffer(backend.device, uintIndexBuffer);
+                    SDL3.SDL_ReleaseGPUBuffer(backend.device, vertexBuffer);
+                    SDL3.SDL_ReleaseGPUBuffer(backend.device, uintIndexBuffer);
 
-                    if (indexBuffer != nint.Zero)
+                    if (indexBuffer != null)
                     {
-                        SDL.ReleaseGPUBuffer(backend.device, indexBuffer);
+                        SDL3.SDL_ReleaseGPUBuffer(backend.device, indexBuffer);
                     }
 
-                    vertexBuffer = nint.Zero;
-                    indexBuffer = nint.Zero;
-                    uintIndexBuffer = nint.Zero;
+                    vertexBuffer = null;
+                    indexBuffer = null;
+                    uintIndexBuffer = null;
 
                     return;
                 }
 
-                if (backend.renderPass != nint.Zero)
+                if (!backend.BeginCopyPass())
                 {
-                    backend.FinishPasses();
-                }
+                    SDL3.SDL_ReleaseGPUBuffer(backend.device, vertexBuffer);
+                    SDL3.SDL_ReleaseGPUBuffer(backend.device, uintIndexBuffer);
 
-                if (backend.copyPass == nint.Zero)
-                {
-                    backend.copyPass = SDL.BeginGPUCopyPass(backend.commandBuffer);
-                }
+                    if (indexBuffer != null)
+                    {
+                        SDL3.SDL_ReleaseGPUBuffer(backend.device, indexBuffer);
+                    }
 
-                if (backend.copyPass == nint.Zero)
-                {
+                    vertexBuffer = null;
+                    indexBuffer = null;
+                    uintIndexBuffer = null;
+
                     return;
                 }
 
-                var mapData = SDL.MapGPUTransferBuffer(backend.device, transferBuffer, true);
+                var mapData = SDL3.SDL_MapGPUTransferBuffer(backend.device, transferBuffer, true);
 
                 var from = CollectionsMarshal.AsSpan(uintIndices);
 
-                unsafe
+                var to = new Span<uint>((void*)mapData, uintIndices.Count);
+
+                from.CopyTo(to);
+
+                SDL3.SDL_UnmapGPUTransferBuffer(backend.device, transferBuffer);
+
+                var location = new SDL_GPUTransferBufferLocation()
                 {
-                    var to = new Span<uint>((void*)mapData, uintIndices.Count);
-
-                    from.CopyTo(to);
-                }
-
-                SDL.UnmapGPUTransferBuffer(backend.device, transferBuffer);
-
-                var location = new SDL.GPUTransferBufferLocation()
-                {
-                    TransferBuffer = transferBuffer,
+                    transfer_buffer = transferBuffer,
                 };
 
-                var region = new SDL.GPUBufferRegion()
+                var region = new SDL_GPUBufferRegion()
                 {
-                    Buffer = uintIndexBuffer,
-                    Size = (uint)(uintIndices.Count * sizeof(uint)),
+                    buffer = uintIndexBuffer,
+                    size = (uint)(uintIndices.Count * sizeof(uint)),
                 };
 
-                SDL.UploadToGPUBuffer(backend.copyPass, in location, in region, false);
+                SDL3.SDL_UploadToGPUBuffer(backend.copyPass, &location, &region, false);
             }
         }
     }
@@ -400,12 +381,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
     #region Fields
     internal Vector2Int renderSize;
 
-    internal nint device;
-    internal nint commandBuffer;
-    internal nint renderPass;
-    internal nint copyPass;
+    internal SDL_GPUDevice *device;
+    internal SDL_GPUCommandBuffer *commandBuffer;
+    internal SDL_GPURenderPass *renderPass;
+    internal SDL_GPUCopyPass *copyPass;
 
-    internal nint swapchainTexture;
+    internal SDL_GPUTexture *swapchainTexture;
     internal int swapchainWidth;
     internal int swapchainHeight;
     internal ITexture depthTexture;
@@ -413,12 +394,12 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
     internal readonly ViewData viewData = new();
     internal readonly MemoryAllocator frameAllocator = new();
     internal readonly MemoryAllocator<StapleShaderUniform> shaderUniformFrameAllocator = new();
-    internal readonly MemoryAllocator<SDL.GPUTextureSamplerBinding> textureSampleBindingFrameAllocator = new();
-    internal readonly nint[] nintBufferStaging = new nint[64];
+    internal readonly MemoryAllocator<SDL_GPUTextureSamplerBinding> textureSampleBindingFrameAllocator = new();
+    internal readonly SDL_GPUBuffer *[] bufferStaging = new SDL_GPUBuffer*[64];
 
     private SDL3RenderWindow window;
-    private readonly Dictionary<int, nint> graphicsPipelines = [];
-    private readonly Dictionary<TextureFlags, nint> textureSamplers = [];
+    private readonly Dictionary<int, NativePointerWrapper<SDL_GPUGraphicsPipeline>> graphicsPipelines = [];
+    private readonly Dictionary<TextureFlags, NativePointerWrapper<SDL_GPUSampler>> textureSamplers = [];
     private bool needsDepthTextureUpdate;
     private readonly List<IRenderCommand> commands = [];
     private readonly List<(SDLGPUTexture, Action<byte[]>)> readTextureQueue = [];
@@ -428,63 +409,63 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
     private readonly Dictionary<VertexLayout, TransientEntry> transientBuffers = [];
     private readonly TextureResource[] textures = new TextureResource[ushort.MaxValue - 1];
     private readonly List<SDLGPUShaderProgram> shaders = [];
-    private readonly Dictionary<TransferBufferCacheKey, nint> cachedTransferBuffers = [];
+    private readonly Dictionary<TransferBufferCacheKey, NativePointerWrapper<SDL_GPUTransferBuffer>> cachedtransferBuffers = [];
     private readonly ulong[] lastVertexShaderUniformHashes = new ulong[20];
     private readonly ulong[] lastFragmentShaderUniformHashes = new ulong[20];
     private RenderTarget currentRenderTarget;
 
-    private SDL.GPUIndexedIndirectDrawCommand[] indirectCommands = new SDL.GPUIndexedIndirectDrawCommand[1024];
+    private SDL_GPUIndexedIndirectDrawCommand[] indirectCommands = new SDL_GPUIndexedIndirectDrawCommand[1024];
     private uint[] indirectEntityIndices = new uint[1024];
-    internal nint indirectCommandBuffer = nint.Zero;
+    internal SDL_GPUBuffer *indirectCommandBuffer = null;
     private int indirectCommandBufferLength;
     private int indirectCommandPosition;
     private int indirectCommandInstance;
     private bool needsIndirectBufferUpdate = true;
 
-    internal static nint[] staticMeshVertexBuffers = new nint[18];
-    internal static nint staticMeshIndexBuffer = nint.Zero;
+    internal static SDL_GPUBuffer*[] staticMeshVertexBuffers = new SDL_GPUBuffer*[18];
+    internal static SDL_GPUBuffer *staticMeshIndexBuffer = null;
     internal static int[] staticMeshVertexBuffersLength = new int[18];
     internal static int[] staticMeshVertexBuffersElementSize = new int[18];
     internal static int staticMeshIndexBufferLength;
-    internal static nint entityTransformsBuffer = nint.Zero;
+    internal static SDL_GPUBuffer *entityTransformsBuffer = null;
     internal static int entityTransformsBufferLength;
-    internal static nint entityTransformIndexBuffer = nint.Zero;
+    internal static SDL_GPUBuffer *entityTransformIndexBuffer = null;
     internal static int entityTransformIndexBufferLength;
 
     private bool iteratingCommands;
     private int commandIndex;
-    private readonly nint[] fences = new nint[1];
+    private SDL_GPUFence *fence;
     #endregion
 
     #region Command Support Fields
-    internal static nint lastGraphicsPipeline;
-    internal static nint lastQueuedGraphicsPipeline;
-    internal static nint lastVertexBuffer;
-    internal static nint lastIndexBuffer;
+    internal static SDL_GPUGraphicsPipeline *lastGraphicsPipeline;
+    internal static SDL_GPUGraphicsPipeline* lastQueuedGraphicsPipeline;
+    internal static SDL_GPUBuffer *lastVertexBuffer;
+    internal static SDL_GPUBuffer *lastIndexBuffer;
     internal static nint[] singleBuffer = new nint[1];
     #endregion
 
-    public bool SupportsTripleBuffering => SDL.WindowSupportsGPUPresentMode(device, window.window,
-        SDL.GPUPresentMode.Mailbox);
+    public bool SupportsTripleBuffering => SDL3.SDL_WindowSupportsGPUPresentMode(device, window.window,
+        SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_MAILBOX);
 
-    public bool SupportsHDRColorSpace => SDL.WindowSupportsGPUSwapchainComposition(device, window.window,
-            SDL.GPUSwapchainComposition.HDR10ST2084) ||
-        SDL.WindowSupportsGPUSwapchainComposition(device, window.window,
-            SDL.GPUSwapchainComposition.HDRExtendedLinear);
+    public bool SupportsHDRColorSpace => SDL3.SDL_WindowSupportsGPUSwapchainComposition(device, window.window,
+            SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_HDR10_ST2084) ||
+        SDL3.SDL_WindowSupportsGPUSwapchainComposition(device, window.window,
+            SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR);
 
-    public bool SupportsLinearColorSpace => SDL.WindowSupportsGPUSwapchainComposition(device, window.window,
-            SDL.GPUSwapchainComposition.SDRLinear);
+    public bool SupportsLinearColorSpace => SDL3.SDL_WindowSupportsGPUSwapchainComposition(device, window.window,
+            SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR);
 
     public TextureFormat SwapchainFormat
     {
         get
         {
-            if(device == nint.Zero)
+            if(device == null)
             {
                 return TextureFormat.RGBA8;
             }
 
-            var format = SDL.GetGPUSwapchainTextureFormat(device, window.window);
+            var format = SDL3.SDL_GetGPUSwapchainTextureFormat(device, window.window);
 
             if(TryGetStapleTextureFormat(format, out var stapleFormat) == false)
             {
@@ -529,107 +510,145 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
     {
         if(window is not SDL3RenderWindow w)
         {
+            Log.Error($"Missing window for SDL GPU: {window}");
+
             return false;
         }
 
 #if DEBUG
-        SDL.SetLogPriority(SDL.LogCategory.GPU, SDL.LogPriority.Verbose);
+        SDL3.SDL_SetLogPriority((int)SDL_LogCategory.SDL_LOG_CATEGORY_GPU, SDL_LogPriority.SDL_LOG_PRIORITY_VERBOSE);
 #endif
 
         this.window = w;
 
-        var version = SDL.GetVersion();
+        var version = SDL3.SDL_GetVersion();
 
-        Log.Debug($"SDL version {SDL.VersionNumMajor(version)}.{SDL.VersionNumMinor(version)}.{SDL.VersionNumMicro(version)}");
+        Log.Debug($"SDL version {SDL3.SDL_VERSIONNUM_MAJOR(version)}.{SDL3.SDL_VERSIONNUM_MINOR(version)}.{SDL3.SDL_VERSIONNUM_MICRO(version)}");
 
-        var props = SDL.CreateProperties();
+        var props = SDL3.SDL_CreateProperties();
 
-        SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateDebugModeBoolean, debug);
+        SDL3.SDL_SetBooleanProperty(props, SDL3.SDL_PROP_GPU_DEVICE_CREATE_DEBUGMODE_BOOLEAN, debug);
 
-        unsafe
+        var createOptions = new SDL_GPUVulkanOptions()
         {
-            var createOptions = new SDL.GPUVulkanOptions()
-            {
-                VulkanApiVersion = MakeVulkanVersion(VulkanVersionMajor, VulkanVersionMinor, VulkanVersionPatch),
-            };
+            vulkan_api_version = MakeVulkanVersion(VulkanVersionMajor, VulkanVersionMinor, VulkanVersionPatch),
+        };
 
-            var deviceExtensions = new[]
-            {
-                "VK_KHR_shader_draw_parameters",
-            };
+        var deviceExtensions = new[]
+        {
+            "VK_KHR_shader_draw_parameters",
+        };
 
-            createOptions.DeviceExtensionCount = (uint)deviceExtensions.Length;
+        var count = deviceExtensions.Length;
+        var size = nint.Size * count;
+        var unmanagedPointer = Marshal.AllocHGlobal(size);
 
-            createOptions.DeviceExtensionNames = SDL.StringArrayToPointer(deviceExtensions);
+        var span = new Span<byte>((void*)unmanagedPointer, size);
 
-            var drawParametersStruct = new VkPhysicalDeviceShaderDrawParametersFeatures()
-            {
-                sType = VkStructureType.VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
-                shaderDrawParameters = true,
-            };
+        span.Clear();
 
-            void* drawPtr = &drawParametersStruct;
+        var stringPointers = new List<nint>();
 
-            createOptions.FeatureList = (nint)drawPtr;
+        for(var i = 0; i < deviceExtensions.Length; i++)
+        {
+            var stringData = Encoding.UTF8.GetBytes(deviceExtensions[i]);
 
-            var physicalDeviceFeatures = new VkPhysicalDeviceFeatures()
-            {
-                robustBufferAccess = true,
-            };
+            var ptr = Marshal.AllocHGlobal(stringData.Length + 1);
 
-            void *physicalDevicePtr = &physicalDeviceFeatures;
+            var from = new Span<byte>(stringData);
+            var to = new Span<byte>((void*)ptr, stringData.Length + 1);
 
-            createOptions.Vulkan10PhysicalDeviceFeatures = (nint)physicalDevicePtr;
+            to.Clear();
 
-            switch (renderer)
-            {
-                case RendererType.Vulkan:
+            from.CopyTo(to);
 
-                    SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersSPIRVBoolean, true);
+            stringPointers.Add(ptr);
 
-                    void *ptr = &createOptions;
-
-                    SDL.SetPointerProperty(props, SDL.Props.GPUDeviceCreateVulkanOptionsPointer, (nint)ptr);
-
-                    break;
-
-                case RendererType.Direct3D12:
-
-                    SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersDXBCBoolean, true);
-                    SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersDXILBoolean, true);
-
-                    break;
-
-                case RendererType.Metal:
-
-                    SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersMSLBoolean, true);
-                    SDL.SetBooleanProperty(props, SDL.Props.GPUDeviceCreateShadersMetalLibBoolean, true);
-
-                    break;
-            }
-
-            SDL.SetStringProperty(props, SDL.Props.GPUDeviceCreateNameString, renderer switch
-            {
-                RendererType.Metal => "metal",
-                RendererType.Direct3D12 => "direct3d12",
-                _ => "vulkan",
-            });
-
-            device = SDL.CreateGPUDeviceWithProperties(props);
+            Marshal.WriteIntPtr(unmanagedPointer, i * nint.Size, ptr);
         }
 
-        SDL.DestroyProperties(props);
+        createOptions.device_extension_count = (uint)deviceExtensions.Length;
 
-        if (device == nint.Zero)
+        createOptions.device_extension_names = (byte **)unmanagedPointer;
+
+        var drawParametersStruct = new VkPhysicalDeviceShaderDrawParametersFeatures()
         {
+            sType = VkStructureType.VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SHADER_DRAW_PARAMETERS_FEATURES,
+            shaderDrawParameters = true,
+        };
+
+        void* drawPtr = &drawParametersStruct;
+
+        createOptions.feature_list = (nint)drawPtr;
+
+        var physicalDeviceFeatures = new VkPhysicalDeviceFeatures()
+        {
+            robustBufferAccess = true,
+        };
+
+        void *physicalDevicePtr = &physicalDeviceFeatures;
+
+        createOptions.vulkan_10_physical_device_features = (nint)physicalDevicePtr;
+
+        switch (renderer)
+        {
+            case RendererType.Vulkan:
+
+                SDL3.SDL_SetBooleanProperty(props, SDL3.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_SPIRV_BOOLEAN, true);
+
+                void *ptr = &createOptions;
+
+                SDL3.SDL_SetPointerProperty(props, SDL3.SDL_PROP_GPU_DEVICE_CREATE_VULKAN_OPTIONS_POINTER, (nint)ptr);
+
+                break;
+
+            case RendererType.Direct3D12:
+
+                SDL3.SDL_SetBooleanProperty(props, SDL3.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXBC_BOOLEAN, true);
+                SDL3.SDL_SetBooleanProperty(props, SDL3.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_DXIL_BOOLEAN, true);
+
+                break;
+
+            case RendererType.Metal:
+
+                SDL3.SDL_SetBooleanProperty(props, SDL3.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_MSL_BOOLEAN, true);
+                SDL3.SDL_SetBooleanProperty(props, SDL3.SDL_PROP_GPU_DEVICE_CREATE_SHADERS_METALLIB_BOOLEAN, true);
+
+                break;
+        }
+
+        SDL3.SDL_SetStringProperty(props, SDL3.SDL_PROP_GPU_DEVICE_CREATE_NAME_STRING, renderer switch
+        {
+            RendererType.Metal => "metal",
+            RendererType.Direct3D12 => "direct3d12",
+            _ => "vulkan",
+        });
+
+        device = SDL3.SDL_CreateGPUDeviceWithProperties(props);
+
+        SDL3.SDL_DestroyProperties(props);
+
+        Marshal.FreeHGlobal(unmanagedPointer);
+
+        foreach(var ptr in stringPointers)
+        {
+            Marshal.FreeHGlobal(ptr);
+        }
+
+        if (device == null)
+        {
+            Log.Error($"Failed to create device: {SDL3.SDL_GetError()}");
+
             return false;
         }
 
-        if(!DepthStencilFormat.HasValue || !SDL.ClaimWindowForGPUDevice(device, w.window))
+        if(!DepthStencilFormat.HasValue || !SDL3.SDL_ClaimWindowForGPUDevice(device, w.window))
         {
-            SDL.DestroyGPUDevice(device);
+            Log.Error($"Failed to get depth stencil format or claim window for GPU: {SDL3.SDL_GetError()}");
 
-            device = nint.Zero;
+            SDL3.SDL_DestroyGPUDevice(device);
+
+            device = null;
 
             return false;
         }
@@ -648,59 +667,62 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
     public void UpdateRenderMode(RenderModeFlags flags)
     {
-        if (device == nint.Zero ||
+        if (device == null ||
             window == null ||
-            window.window == nint.Zero)
+            window.window == null)
         {
             return;
         }
 
-        var swapchainComposition = SDL.GPUSwapchainComposition.SDR;
-        var presentMode = SDL.GPUPresentMode.Immediate;
+        var swapchainComposition = SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
+        var presentMode = SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_IMMEDIATE;
 
         if(flags.HasFlag(RenderModeFlags.Vsync))
         {
-            presentMode = SDL.GPUPresentMode.VSync;
+            presentMode = SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_VSYNC;
         }
 
         if(flags.HasFlag(RenderModeFlags.TripleBuffering) && SupportsTripleBuffering)
         {
-            presentMode = SDL.GPUPresentMode.Mailbox;
+            presentMode = SDL_GPUPresentMode.SDL_GPU_PRESENTMODE_MAILBOX;
         }
 
         if(flags.HasFlag(RenderModeFlags.HDR10) && SupportsHDRColorSpace)
         {
             if(flags.HasFlag(RenderModeFlags.sRGB))
             {
-                swapchainComposition = SDL.WindowSupportsGPUSwapchainComposition(device, window.window,
-                    SDL.GPUSwapchainComposition.HDRExtendedLinear) ?
-                    SDL.GPUSwapchainComposition.HDRExtendedLinear :
+                swapchainComposition = SDL3.SDL_WindowSupportsGPUSwapchainComposition(device, window.window,
+                    SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR) ?
+                    SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_HDR_EXTENDED_LINEAR :
 
-                    SDL.WindowSupportsGPUSwapchainComposition(device, window.window,
-                    SDL.GPUSwapchainComposition.SDRLinear) ?
-                    SDL.GPUSwapchainComposition.SDRLinear :
-                    SDL.GPUSwapchainComposition.SDR;
+                    SDL3.SDL_WindowSupportsGPUSwapchainComposition(device, window.window,
+                    SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR) ?
+                    SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR :
+                    SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
             }
             else
             {
                 swapchainComposition =
-                    SDL.WindowSupportsGPUSwapchainComposition(device, window.window,
-                    SDL.GPUSwapchainComposition.HDR10ST2084) ?
-                    SDL.GPUSwapchainComposition.HDR10ST2084 :
-                    SDL.GPUSwapchainComposition.SDR;
+                    SDL3.SDL_WindowSupportsGPUSwapchainComposition(device, window.window,
+                    SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_HDR10_ST2084) ?
+                    SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_HDR10_ST2084 :
+                    SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_SDR;
             }
         }
         else
         {
             if (flags.HasFlag(RenderModeFlags.sRGB) && SupportsLinearColorSpace)
             {
-                swapchainComposition = SDL.GPUSwapchainComposition.SDRLinear;
+                swapchainComposition = SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR;
             }
         }
 
-        SDL.SetGPUSwapchainParameters(device, window.window, swapchainComposition, presentMode);
+        SDL3.SDL_SetGPUSwapchainParameters(device, window.window, swapchainComposition, presentMode);
 
-        SDL.GetWindowSizeInPixels(window.window, out var w, out var h);
+        var w = 0;
+        var h = 0;
+
+        SDL3.SDL_GetWindowSizeInPixels(window.window, &w, &h);
 
         renderSize.X = w;
         renderSize.Y = h;
@@ -718,7 +740,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
     public void Destroy()
     {
-        if (device == nint.Zero)
+        if (device == null)
         {
             return;
         }
@@ -727,14 +749,14 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
         foreach (var pair in graphicsPipelines)
         {
-            SDL.ReleaseGPUGraphicsPipeline(device, pair.Value);
+            SDL3.SDL_ReleaseGPUGraphicsPipeline(device, pair.Value.ptr);
         }
 
         graphicsPipelines.Clear();
 
         foreach(var pair in textureSamplers)
         {
-            SDL.ReleaseGPUSampler(device, pair.Value);
+            SDL3.SDL_ReleaseGPUSampler(device, pair.Value.ptr);
         }
 
         textureSamplers.Clear();
@@ -758,21 +780,21 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
         {
             ref var buffer = ref staticMeshVertexBuffers[i];
 
-            if (buffer == nint.Zero)
+            if (buffer == null)
             {
                 continue;
             }
             
-            SDL.ReleaseGPUBuffer(device, buffer);
+            SDL3.SDL_ReleaseGPUBuffer(device, buffer);
 
-            buffer = nint.Zero;
+            buffer = null;
         }
 
-        if(staticMeshIndexBuffer != nint.Zero)
+        if(staticMeshIndexBuffer != null)
         {
-            SDL.ReleaseGPUBuffer(device, staticMeshIndexBuffer);
+            SDL3.SDL_ReleaseGPUBuffer(device, staticMeshIndexBuffer);
 
-            staticMeshIndexBuffer = nint.Zero;
+            staticMeshIndexBuffer = null;
         }
 
         depthTexture?.Destroy();
@@ -781,11 +803,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
         needsDepthTextureUpdate = true;
 
-        SDL.ReleaseWindowFromGPUDevice(device, window.window);
+        SDL3.SDL_ReleaseWindowFromGPUDevice(device, window.window);
 
-        SDL.DestroyGPUDevice(device);
+        SDL3.SDL_DestroyGPUDevice(device);
 
-        device = nint.Zero;
+        device = null;
     }
 
     public void WorldChanged()
@@ -808,7 +830,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
     public void BeginFrame()
     {
-        if(window.window == nint.Zero)
+        if(window.window == null)
         {
             return;
         }
@@ -820,21 +842,29 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
     public void EndFrame()
     {
-        commandBuffer = SDL.AcquireGPUCommandBuffer(device);
+        commandBuffer = SDL3.SDL_AcquireGPUCommandBuffer(device);
 
-        if (commandBuffer == nint.Zero)
+        if (commandBuffer == null)
         {
             return;
         }
 
-        if (!SDL.WaitAndAcquireGPUSwapchainTexture(commandBuffer, window.window, out swapchainTexture,
-            out var w, out var h))
+        uint w = 0;
+        uint h = 0;
+
+        unsafe
         {
-            SDL.CancelGPUCommandBuffer(commandBuffer);
+            fixed(SDL_GPUTexture **t = &swapchainTexture)
+            {
+                if (!SDL3.SDL_WaitAndAcquireGPUSwapchainTexture(commandBuffer, window.window, t, &w, &h))
+                {
+                    SDL3.SDL_CancelGPUCommandBuffer(commandBuffer);
 
-            commandBuffer = nint.Zero;
+                    commandBuffer = null;
 
-            return;
+                    return;
+                }
+            }
         }
 
         swapchainWidth = (int)w;
@@ -875,10 +905,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
         shaderUniformFrameAllocator.Clear();
         textureSampleBindingFrameAllocator.Clear();
 
-        lastGraphicsPipeline = nint.Zero;
-        lastQueuedGraphicsPipeline = nint.Zero;
-        lastVertexBuffer = nint.Zero;
-        lastIndexBuffer = nint.Zero;
+        lastGraphicsPipeline = null;
+        lastQueuedGraphicsPipeline = null;
+        lastVertexBuffer = null;
+        lastIndexBuffer = null;
 
         Array.Clear(lastVertexShaderUniformHashes);
         Array.Clear(lastFragmentShaderUniformHashes);
@@ -888,14 +918,17 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             pair.Value.Clear();
         }
 
-        fences[0] = SDL.SubmitGPUCommandBufferAndAcquireFence(commandBuffer);
+        fence = SDL3.SDL_SubmitGPUCommandBufferAndAcquireFence(commandBuffer);
 
-        if (!SDL.WaitForGPUFences(device, true, fences, (uint)fences.Length))
+        fixed(SDL_GPUFence **f = &fence)
         {
-            Log.Error($"[SDL GPU] Failed to wait for GPU Fences: {SDL.GetError()}");
+            if (!SDL3.SDL_WaitForGPUFences(device, true, f, 1))
+            {
+                Log.Error($"[SDL GPU] Failed to wait for GPU Fences: {SDL3.SDL_GetError()}");
+            }
         }
 
-        SDL.ReleaseGPUFence(device, fences[0]);
+        SDL3.SDL_ReleaseGPUFence(device, fence);
 
         for(var i = readTextureQueue.Count - 1; i >= 0; i--)
         {
@@ -907,7 +940,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                 item.Item1.Disposed ||
                 !TryGetTexture(item.Item1.handle, out var resource) ||
                 !resource.used ||
-                resource.transferBuffer == nint.Zero)
+                resource.transferBuffer == null)
             {
                 continue;
             }
@@ -916,23 +949,23 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             {
                 var buffer = GlobalAllocator<byte>.Instance.Rent(resource.length);
 
-                var map = SDL.MapGPUTransferBuffer(device, resource.transferBuffer, true);
+                var map = SDL3.SDL_MapGPUTransferBuffer(device, resource.transferBuffer, true);
 
                 var from = new Span<byte>((void *)map, buffer.Length);
                 var to = new Span<byte>(buffer);
 
                 from.CopyTo(to);
 
-                SDL.UnmapGPUTransferBuffer(device, resource.transferBuffer);
+                SDL3.SDL_UnmapGPUTransferBuffer(device, resource.transferBuffer);
 
-                resource.transferBuffer = nint.Zero;
+                resource.transferBuffer = null;
 
                 item.Item2?.Invoke(buffer);
 
                 GlobalAllocator<byte>.Instance.Return(buffer);
             }
 
-            commandBuffer = nint.Zero;
+            commandBuffer = null;
         }
 
         if (currentRenderTarget == null)
@@ -946,7 +979,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
         Screen.Height = window.Size.Y;
     }
 
-    private void CheckQueuedPipeline(nint newPipeline)
+    private void CheckQueuedGraphicsPipeline(SDL_GPUGraphicsPipeline *newPipeline)
     {
         if (lastQueuedGraphicsPipeline == newPipeline)
         {
@@ -1027,37 +1060,37 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
     public void FinishPasses()
     {
-        if(copyPass != nint.Zero)
+        if(copyPass != null)
         {
-            SDL.EndGPUCopyPass(copyPass);
+            SDL3.SDL_EndGPUCopyPass(copyPass);
 
-            copyPass = nint.Zero;
+            copyPass = null;
         }
 
-        if (renderPass == nint.Zero)
+        if (renderPass == null)
         {
             return;
         }
         
-        SDL.EndGPURenderPass(renderPass);
+        SDL3.SDL_EndGPURenderPass(renderPass);
 
-        renderPass = nint.Zero;
-        lastGraphicsPipeline = nint.Zero;
-        lastQueuedGraphicsPipeline = nint.Zero;
-        lastVertexBuffer = nint.Zero;
-        lastIndexBuffer = nint.Zero;
+        renderPass = null;
+        lastGraphicsPipeline = null;
+        lastQueuedGraphicsPipeline = null;
+        lastVertexBuffer = null;
+        lastIndexBuffer = null;
     }
 
     internal void ResumeRenderPass()
     {
         FinishPasses();
 
-        if(commandBuffer == nint.Zero)
+        if (commandBuffer == null)
         {
             return;
         }
 
-        var texture = nint.Zero;
+        SDL_GPUTexture* texture = null;
         var width = 0;
         var height = 0;
 
@@ -1093,48 +1126,48 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             depthTexture = viewData.renderTarget.DepthTexture?.impl as SDLGPUTexture;
         }
 
-        if (texture == nint.Zero ||
+        if (texture == null ||
             (depthTexture?.Disposed ?? true) ||
             !TryGetTexture(depthTexture.handle, out var depthTextureResource))
         {
             return;
         }
 
-        var colorTarget = new SDL.GPUColorTargetInfo()
+        var colorTarget = new SDL_GPUColorTargetInfo()
         {
-            LoadOp = SDL.GPULoadOp.Load,
-            StoreOp = SDL.GPUStoreOp.Store,
-            Texture = texture,
+            load_op = SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+            store_op = SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
+            texture = texture,
         };
 
-        var depthTarget = new SDL.GPUDepthStencilTargetInfo()
+        var depthTarget = new SDL_GPUDepthStencilTargetInfo()
         {
-            ClearDepth = 1,
-            LoadOp = SDL.GPULoadOp.Load,
-            StoreOp = SDL.GPUStoreOp.Store,
-            Texture = depthTextureResource.texture,
-            StencilLoadOp = SDL.GPULoadOp.Load,
-            StencilStoreOp = SDL.GPUStoreOp.Store,
+            clear_depth = 1,
+            load_op = SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+            store_op = SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
+            texture = depthTextureResource.texture,
+            stencil_load_op = SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+            stencil_store_op = SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
         };
 
-        renderPass = SDL.BeginGPURenderPass(commandBuffer, [colorTarget], 1, in depthTarget);
+        renderPass = SDL3.SDL_BeginGPURenderPass(commandBuffer, &colorTarget, 1, &depthTarget);
 
-        if (renderPass == nint.Zero)
+        if (renderPass == null)
         {
             return;
         }
 
-        var viewportData = new SDL.GPUViewport()
+        var viewportData = new SDL_GPUViewport()
         {
-            X = (int)(viewData.viewport.X * width),
-            Y = (int)(viewData.viewport.Y * height),
-            W = (int)(viewData.viewport.Z * width),
-            H = (int)(viewData.viewport.W * height),
-            MinDepth = 0,
-            MaxDepth = 1,
+            x = (int)(viewData.viewport.X * width),
+            y = (int)(viewData.viewport.Y * height),
+            w = (int)(viewData.viewport.Z * width),
+            h = (int)(viewData.viewport.W * height),
+            min_depth = 0,
+            max_depth = 1,
         };
 
-        SDL.SetGPUViewport(renderPass, in viewportData);
+        SDL3.SDL_SetGPUViewport(renderPass, &viewportData);
     }
 
     public void BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
@@ -1169,34 +1202,34 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             var vertexEntryPointBytes = Encoding.UTF8.GetBytes("main");
             var fragmentEntryPointBytes = Encoding.UTF8.GetBytes("main");
 
-            var vertexShader = nint.Zero;
-            var fragmentShader = nint.Zero;
+            SDL_GPUShader *vertexShader = null;
+            SDL_GPUShader *fragmentShader = null;
 
             fixed (byte* entry = vertexEntryPointBytes)
             {
                 fixed (byte* v = vertex)
                 {
-                    var info = new SDL.GPUShaderCreateInfo()
+                    var info = new SDL_GPUShaderCreateInfo()
                     {
-                        Code = (nint)v,
-                        CodeSize = (uint)vertex.Length,
-                        Entrypoint = (nint)entry,
-                        Format = RenderWindow.CurrentRenderer switch
+                        code = v,
+                        code_size = (uint)vertex.Length,
+                        entrypoint = entry,
+                        format = RenderWindow.CurrentRenderer switch
                         {
-                            RendererType.Direct3D12 => SDL.GPUShaderFormat.DXIL,
-                            RendererType.Metal => SDL.GPUShaderFormat.MSL,
-                            _ => SDL.GPUShaderFormat.SPIRV,
+                            RendererType.Direct3D12 => SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_DXIL,
+                            RendererType.Metal => SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_MSL,
+                            _ => SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
                         },
-                        Stage = SDL.GPUShaderStage.Vertex,
-                        NumSamplers = (uint)vertexMetrics.samplerCount,
-                        NumStorageBuffers = (uint)vertexMetrics.storageBufferCount,
-                        NumStorageTextures = (uint)vertexMetrics.storageTextureCount,
-                        NumUniformBuffers = (uint)vertexMetrics.uniformBufferCount,
+                        stage = SDL_GPUShaderStage.SDL_GPU_SHADERSTAGE_VERTEX,
+                        num_samplers = (uint)vertexMetrics.samplerCount,
+                        num_storage_buffers = (uint)vertexMetrics.storageBufferCount,
+                        num_storage_textures = (uint)vertexMetrics.storageTextureCount,
+                        num_uniform_buffers = (uint)vertexMetrics.uniformBufferCount,
                     };
 
-                    vertexShader = SDL.CreateGPUShader(device, in info);
+                    vertexShader = SDL3.SDL_CreateGPUShader(device, &info);
 
-                    if (vertexShader == nint.Zero)
+                    if (vertexShader == null)
                     {
                         return null;
                     }
@@ -1207,29 +1240,29 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             {
                 fixed (byte* f = fragment)
                 {
-                    var info = new SDL.GPUShaderCreateInfo()
+                    var info = new SDL_GPUShaderCreateInfo()
                     {
-                        Code = (nint)f,
-                        CodeSize = (uint)fragment.Length,
-                        Entrypoint = (nint)entry,
-                        Format = RenderWindow.CurrentRenderer switch
+                        code = f,
+                        code_size = (uint)fragment.Length,
+                        entrypoint = entry,
+                        format = RenderWindow.CurrentRenderer switch
                         {
-                            RendererType.Direct3D12 => SDL.GPUShaderFormat.DXIL,
-                            RendererType.Metal => SDL.GPUShaderFormat.MSL,
-                            _ => SDL.GPUShaderFormat.SPIRV,
+                            RendererType.Direct3D12 => SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_DXIL,
+                            RendererType.Metal => SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_MSL,
+                            _ => SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
                         },
-                        Stage = SDL.GPUShaderStage.Fragment,
-                        NumSamplers = (uint)fragmentMetrics.samplerCount,
-                        NumStorageBuffers = (uint)fragmentMetrics.storageBufferCount,
-                        NumStorageTextures = (uint)fragmentMetrics.storageTextureCount,
-                        NumUniformBuffers = (uint)fragmentMetrics.uniformBufferCount,
+                        stage = SDL_GPUShaderStage.SDL_GPU_SHADERSTAGE_FRAGMENT,
+                        num_samplers = (uint)fragmentMetrics.samplerCount,
+                        num_storage_buffers = (uint)fragmentMetrics.storageBufferCount,
+                        num_storage_textures = (uint)fragmentMetrics.storageTextureCount,
+                        num_uniform_buffers = (uint)fragmentMetrics.uniformBufferCount,
                     };
 
-                    fragmentShader = SDL.CreateGPUShader(device, in info);
+                    fragmentShader = SDL3.SDL_CreateGPUShader(device, &info);
 
-                    if (fragmentShader == nint.Zero)
+                    if (fragmentShader == null)
                     {
-                        SDL.ReleaseGPUShader(device, vertexShader);
+                        SDL3.SDL_ReleaseGPUShader(device, vertexShader);
 
                         return null;
                     }
@@ -1250,37 +1283,37 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
         {
             var entryPointBytes = Encoding.UTF8.GetBytes("main");
 
-            var computeShader = nint.Zero;
+            SDL_GPUComputePipeline *computeShader;
 
             fixed (byte* e = entryPointBytes)
             {
                 fixed (byte* c = compute)
                 {
-                    var info = new SDL.GPUComputePipelineCreateInfo()
+                    var info = new SDL_GPUComputePipelineCreateInfo()
                     {
-                        Code = (nint)c,
-                        CodeSize = (uint)compute.Length,
-                        Entrypoint = (nint)e,
-                        Format = RenderWindow.CurrentRenderer switch
+                        code = c,
+                        code_size = (uint)compute.Length,
+                        entrypoint = e,
+                        format = RenderWindow.CurrentRenderer switch
                         {
-                            RendererType.Direct3D12 => SDL.GPUShaderFormat.DXIL,
-                            RendererType.Metal => SDL.GPUShaderFormat.MSL,
-                            _ => SDL.GPUShaderFormat.SPIRV,
+                            RendererType.Direct3D12 => SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_DXIL,
+                            RendererType.Metal => SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_MSL,
+                            _ => SDL_GPUShaderFormat.SDL_GPU_SHADERFORMAT_SPIRV,
                         },
-                        NumSamplers = (uint)metrics.samplerCount,
-                        NumUniformBuffers = (uint)metrics.uniformBufferCount,
-                        NumReadonlyStorageBuffers = (uint)metrics.readOnlyStorageBufferCount,
-                        NumReadonlyStorageTextures = (uint)metrics.readOnlyStorageTextureCount,
-                        NumReadwriteStorageBuffers = (uint)metrics.readWriteStorageBufferCount,
-                        NumReadwriteStorageTextures = (uint)metrics.readWriteStorageTextureCount,
-                        ThreadcountX = (uint)metrics.threadCountX,
-                        ThreadcountY = (uint)metrics.threadCountY,
-                        ThreadcountZ = (uint)metrics.threadCountZ,
+                        num_samplers = (uint)metrics.samplerCount,
+                        num_uniform_buffers = (uint)metrics.uniformBufferCount,
+                        num_readonly_storage_buffers = (uint)metrics.readOnlyStorageBufferCount,
+                        num_readonly_storage_textures = (uint)metrics.readOnlyStorageTextureCount,
+                        num_readwrite_storage_buffers = (uint)metrics.readWriteStorageBufferCount,
+                        num_readwrite_storage_textures = (uint)metrics.readWriteStorageTextureCount,
+                        threadcount_x = (uint)metrics.threadCountX,
+                        threadcount_y = (uint)metrics.threadCountY,
+                        threadcount_z = (uint)metrics.threadCountZ,
                     };
 
-                    computeShader = SDL.CreateGPUComputePipeline(device, in info);
+                    computeShader = SDL3.SDL_CreateGPUComputePipeline(device, &info);
 
-                    if (computeShader == nint.Zero)
+                    if (computeShader == null)
                     {
                         return null;
                     }
@@ -1302,23 +1335,22 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             return false;
         }
 
-        return SDL.GPUTextureSupportsFormat(device, f, GetTextureType(flags),
-            GetTextureUsage(flags));
+        return SDL3.SDL_GPUTextureSupportsFormat(device, f, GetTextureType(flags), GetTextureUsage(flags));
     }
 
-    private bool TryGetRenderPipeline(RenderState state, SDLGPUVertexLayout vertexLayout, out nint pipeline)
+    private bool TryGetRenderPipeline(RenderState state, SDLGPUVertexLayout vertexLayout, out SDL_GPUGraphicsPipeline *pipeline)
     {
         if (state.shader == null ||
             state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader)
         {
-            pipeline = nint.Zero;
+            pipeline = null;
 
             return false;
         }
 
         var hash = state.StateKey;
 
-        if (!graphicsPipelines.TryGetValue(hash, out pipeline))
+        if (!graphicsPipelines.TryGetValue(hash, out var p))
         {
             unsafe
             {
@@ -1328,7 +1360,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                 if (vertexSamplerCount < state.shaderInstance.vertexTextureBindings.Count ||
                     fragmentSamplerCount < state.shaderInstance.fragmentTextureBindings.Count)
                 {
-                    pipeline = nint.Zero;
+                    pipeline = null;
 
                     return false;
                 }
@@ -1365,7 +1397,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                         Log.Error(message);
                     }
 
-                    pipeline = nint.Zero;
+                    pipeline = null;
 
                     return false;
                 }
@@ -1376,10 +1408,10 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                     !TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
                         out var sdlDepthFormat))
                 {
-                    sdlDepthFormat = SDL.GPUTextureFormat.D24Unorm;
+                    sdlDepthFormat = SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D24_UNORM;
                 }
 
-                var shaderAttributes = GlobalAllocator<SDL.GPUVertexAttribute>.Instance.Rent(state.shaderInstance.attributes.Length);
+                var shaderAttributes = GlobalAllocator<SDL_GPUVertexAttribute>.Instance.Rent(state.shaderInstance.attributes.Length);
 
                 for (var i = 0; i < state.shaderInstance.attributes.Length; i++)
                 {
@@ -1395,7 +1427,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                                 string.Join('\n', attributes.Select(x => x.ToString().ToUpperInvariant())));
                         }
 
-                        pipeline = nint.Zero;
+                        pipeline = null;
 
                         return false;
                     }
@@ -1406,73 +1438,73 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
                     ref var currentAttribute = ref shaderAttributes[i];
 
-                    currentAttribute.BufferSlot = 0;
-                    currentAttribute.Format = attribute.Format;
-                    currentAttribute.Offset = attribute.Offset;
-                    currentAttribute.Location = (uint)attributeIndex;
+                    currentAttribute.buffer_slot = 0;
+                    currentAttribute.format = attribute.format;
+                    currentAttribute.offset = attribute.offset;
+                    currentAttribute.location = (uint)attributeIndex;
                 }
 
                 var attributesSpan = shaderAttributes.AsSpan();
 
-                fixed (SDL.GPUVertexAttribute* attributes = attributesSpan)
+                fixed (SDL_GPUVertexAttribute* attributes = attributesSpan)
                 {
-                    var vertexDescription = new SDL.GPUVertexBufferDescription()
+                    var vertexDescription = new SDL_GPUVertexBufferDescription()
                     {
-                        Pitch = (uint)vertexLayout.Stride,
-                        Slot = 0,
-                        InputRate = SDL.GPUVertexInputRate.Vertex,
+                        pitch = (uint)vertexLayout.Stride,
+                        slot = 0,
+                        input_rate = SDL_GPUVertexInputRate.SDL_GPU_VERTEXINPUTRATE_VERTEX,
                     };
 
                     var sourceBlend = state.sourceBlend switch
                     {
-                        BlendMode.DstAlpha => SDL.GPUBlendFactor.DstAlpha,
-                        BlendMode.DstColor => SDL.GPUBlendFactor.DstColor,
-                        BlendMode.One => SDL.GPUBlendFactor.One,
-                        BlendMode.OneMinusDstAlpha => SDL.GPUBlendFactor.OneMinusDstAlpha,
-                        BlendMode.OneMinusDstColor => SDL.GPUBlendFactor.OneMinusDstColor,
-                        BlendMode.OneMinusSrcAlpha => SDL.GPUBlendFactor.OneMinusSrcAlpha,
-                        BlendMode.OneMinusSrcColor => SDL.GPUBlendFactor.OneMinusSrcColor,
-                        BlendMode.SrcAlpha => SDL.GPUBlendFactor.SrcAlpha,
-                        BlendMode.SrcAlphaSat => SDL.GPUBlendFactor.SrcAlphaSaturate,
-                        BlendMode.SrcColor => SDL.GPUBlendFactor.SrcColor,
-                        BlendMode.Zero => SDL.GPUBlendFactor.Zero,
-                        BlendMode.Off => SDL.GPUBlendFactor.Invalid,
+                        BlendMode.DstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
+                        BlendMode.DstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
+                        BlendMode.One => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
+                        BlendMode.OneMinusDstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+                        BlendMode.OneMinusDstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
+                        BlendMode.OneMinusSrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                        BlendMode.OneMinusSrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
+                        BlendMode.SrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+                        BlendMode.SrcAlphaSat => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
+                        BlendMode.SrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
+                        BlendMode.Zero => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
+                        BlendMode.Off => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
                         _ => throw new ArgumentOutOfRangeException(nameof(state.sourceBlend), "Invalid blend mode"),
                     };
 
                     var destinationBlend = state.destinationBlend switch
                     {
-                        BlendMode.DstAlpha => SDL.GPUBlendFactor.DstAlpha,
-                        BlendMode.DstColor => SDL.GPUBlendFactor.DstColor,
-                        BlendMode.One => SDL.GPUBlendFactor.One,
-                        BlendMode.OneMinusDstAlpha => SDL.GPUBlendFactor.OneMinusDstAlpha,
-                        BlendMode.OneMinusDstColor => SDL.GPUBlendFactor.OneMinusDstColor,
-                        BlendMode.OneMinusSrcAlpha => SDL.GPUBlendFactor.OneMinusSrcAlpha,
-                        BlendMode.OneMinusSrcColor => SDL.GPUBlendFactor.OneMinusSrcColor,
-                        BlendMode.SrcAlpha => SDL.GPUBlendFactor.SrcAlpha,
-                        BlendMode.SrcAlphaSat => SDL.GPUBlendFactor.SrcAlphaSaturate,
-                        BlendMode.SrcColor => SDL.GPUBlendFactor.SrcColor,
-                        BlendMode.Zero => SDL.GPUBlendFactor.Zero,
-                        BlendMode.Off => SDL.GPUBlendFactor.Invalid,
+                        BlendMode.DstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
+                        BlendMode.DstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
+                        BlendMode.One => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
+                        BlendMode.OneMinusDstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+                        BlendMode.OneMinusDstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
+                        BlendMode.OneMinusSrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                        BlendMode.OneMinusSrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
+                        BlendMode.SrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+                        BlendMode.SrcAlphaSat => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
+                        BlendMode.SrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
+                        BlendMode.Zero => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
+                        BlendMode.Off => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
                         _ => throw new ArgumentOutOfRangeException(nameof(state.destinationBlend), "Invalid blend mode"),
                     };
 
-                    var colorTargetDescriptions = new List<SDL.GPUColorTargetDescription>();
+                    var colorTargetDescriptions = new List<SDL_GPUColorTargetDescription>();
 
                     if(state.renderTarget == null || state.renderTarget.Disposed)
                     {
-                        var colorTargetDescription = new SDL.GPUColorTargetDescription()
+                        var colorTargetDescription = new SDL_GPUColorTargetDescription()
                         {
-                            Format = SDL.GetGPUSwapchainTextureFormat(device, window.window),
-                            BlendState = new()
+                            format = SDL3.SDL_GetGPUSwapchainTextureFormat(device, window.window),
+                            blend_state = new()
                             {
-                                EnableBlend = (byte)(state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off ? 1 : 0),
-                                ColorBlendOp = SDL.GPUBlendOp.Add,
-                                AlphaBlendOp = SDL.GPUBlendOp.Add,
-                                SrcColorBlendfactor = sourceBlend,
-                                SrcAlphaBlendfactor = sourceBlend,
-                                DstColorBlendfactor = destinationBlend,
-                                DstAlphaBlendfactor = destinationBlend,
+                                enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,
+                                color_blend_op = SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                alpha_blend_op = SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                src_color_blendfactor = sourceBlend,
+                                src_alpha_blendfactor = sourceBlend,
+                                dst_color_blendfactor = destinationBlend,
+                                dst_alpha_blendfactor = destinationBlend,
                             }
                         };
 
@@ -1483,23 +1515,24 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                         foreach(var texture in state.renderTarget.colorTextures)
                         {
                             if(texture.Disposed ||
-                                !TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget, out var textureFormat))
+                                !TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget,
+                                out var textureFormat))
                             {
                                 continue;
                             }
                             
-                            var colorTargetDescription = new SDL.GPUColorTargetDescription()
+                            var colorTargetDescription = new SDL_GPUColorTargetDescription()
                             {
-                                Format = textureFormat,
-                                BlendState = new()
+                                format = textureFormat,
+                                blend_state = new()
                                 {
-                                    EnableBlend = (byte)(state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off ? 1 : 0),
-                                    ColorBlendOp = SDL.GPUBlendOp.Add,
-                                    AlphaBlendOp = SDL.GPUBlendOp.Add,
-                                    SrcColorBlendfactor = sourceBlend,
-                                    SrcAlphaBlendfactor = sourceBlend,
-                                    DstColorBlendfactor = destinationBlend,
-                                    DstAlphaBlendfactor = destinationBlend,
+                                    enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,
+                                    color_blend_op = SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                    alpha_blend_op = SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                    src_color_blendfactor = sourceBlend,
+                                    src_alpha_blendfactor = sourceBlend,
+                                    dst_color_blendfactor = destinationBlend,
+                                    dst_alpha_blendfactor = destinationBlend,
                                 }
                             };
 
@@ -1514,85 +1547,104 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                         }
                     }
 
-                    fixed(SDL.GPUColorTargetDescription *colorTargetDescriptionsPtr = CollectionsMarshal.AsSpan(colorTargetDescriptions))
+                    fixed(SDL_GPUColorTargetDescription *colorTargetDescriptionsPtr = CollectionsMarshal.AsSpan(colorTargetDescriptions))
                     {
-                        SDL.GPUVertexBufferDescription[] vertexDescriptions = [vertexDescription];
+                        SDL_GPUVertexBufferDescription[] vertexDescriptions = [vertexDescription];
 
-                        fixed (SDL.GPUVertexBufferDescription* descriptions = vertexDescriptions)
+                        fixed (SDL_GPUVertexBufferDescription* descriptions = vertexDescriptions)
                         {
-                            var info = new SDL.GPUGraphicsPipelineCreateInfo()
+                            var info = new SDL_GPUGraphicsPipelineCreateInfo()
                             {
-                                PrimitiveType = state.primitiveType switch
+                                primitive_type = state.primitiveType switch
                                 {
-                                    MeshTopology.TriangleStrip => SDL.GPUPrimitiveType.TriangleStrip,
-                                    MeshTopology.Triangles => SDL.GPUPrimitiveType.TriangleList,
-                                    MeshTopology.Lines => SDL.GPUPrimitiveType.LineList,
-                                    MeshTopology.LineStrip => SDL.GPUPrimitiveType.LineStrip,
+                                    MeshTopology.TriangleStrip => SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
+                                    MeshTopology.Triangles => SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+                                    MeshTopology.Lines => SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINELIST,
+                                    MeshTopology.LineStrip => SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINESTRIP,
                                     _ => throw new ArgumentOutOfRangeException("Invalid value for primitive type", nameof(state.primitiveType)),
                                 },
-                                VertexShader = shader.vertex,
-                                FragmentShader = shader.fragment,
-                                RasterizerState = new()
+                                vertex_shader = shader.vertex,
+                                fragment_shader = shader.fragment,
+                                rasterizer_state = new()
                                 {
-                                    CullMode = state.cull switch
+                                    cull_mode = state.cull switch
                                     {
-                                        CullingMode.None => SDL.GPUCullMode.None,
-                                        CullingMode.Front => SDL.GPUCullMode.Front,
-                                        CullingMode.Back => SDL.GPUCullMode.Back,
+                                        CullingMode.None => SDL_GPUCullMode.SDL_GPU_CULLMODE_NONE,
+                                        CullingMode.Front => SDL_GPUCullMode.SDL_GPU_CULLMODE_FRONT,
+                                        CullingMode.Back => SDL_GPUCullMode.SDL_GPU_CULLMODE_BACK,
                                         _ => throw new ArgumentOutOfRangeException("Invalid value for cull", nameof(state.cull)),
                                     },
-                                    FillMode = state.wireframe ? SDL.GPUFillMode.Line : SDL.GPUFillMode.Fill,
-                                    FrontFace = SDL.GPUFrontFace.Clockwise,
+                                    fill_mode = state.wireframe ? SDL_GPUFillMode.SDL_GPU_FILLMODE_LINE :
+                                        SDL_GPUFillMode.SDL_GPU_FILLMODE_FILL,
+                                    front_face = SDL_GPUFrontFace.SDL_GPU_FRONTFACE_CLOCKWISE,
                                 },
-                                DepthStencilState = new()
+                                depth_stencil_state = new()
                                 {
-                                    EnableDepthTest = (byte)(state.enableDepth ? 1 : 0),
-                                    EnableDepthWrite = (byte)(state.depthWrite ? 1 : 0),
-                                    CompareOp = SDL.GPUCompareOp.LessOrEqual,
+                                    enable_depth_test = state.enableDepth,
+                                    enable_depth_write = state.depthWrite,
+                                    compare_op = SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
                                 },
-                                VertexInputState = new()
+                                vertex_input_state = new()
                                 {
-                                    NumVertexBuffers = 1,
-                                    NumVertexAttributes = (uint)attributesSpan.Length,
-                                    VertexAttributes = (nint)attributes,
-                                    VertexBufferDescriptions = (nint)descriptions,
+                                    num_vertex_buffers = 1,
+                                    num_vertex_attributes = (uint)attributesSpan.Length,
+                                    vertex_attributes = attributes,
+                                    vertex_buffer_descriptions = descriptions,
                                 },
-                                TargetInfo = new()
+                                target_info = new()
                                 {
-                                    NumColorTargets = (uint)colorTargetDescriptions.Count,
-                                    ColorTargetDescriptions = (nint)colorTargetDescriptionsPtr,
-                                    HasDepthStencilTarget = (byte)(depthStencilFormat.HasValue ? 1 : 0),
-                                    DepthStencilFormat = sdlDepthFormat,
+                                    num_color_targets = (uint)colorTargetDescriptions.Count,
+                                    color_target_descriptions = colorTargetDescriptionsPtr,
+                                    has_depth_stencil_target = depthStencilFormat.HasValue,
+                                    depth_stencil_format = sdlDepthFormat,
                                 },
                             };
 
-                            pipeline = SDL.CreateGPUGraphicsPipeline(device, in info);
+                            pipeline = SDL3.SDL_CreateGPUGraphicsPipeline(device, &info);
 
-                            graphicsPipelines.Add(hash, pipeline);
+                            if(pipeline == null)
+                            {
+                                pipeline = null;
+
+                                return false;
+                            }
+
+                            if (pipeline == null)
+                            {
+                                pipeline = null;
+
+                                return false;
+                            }
+
+                            p = new(pipeline);
+
+                            graphicsPipelines.Add(hash, p);
                         }
                     }
 
-                    GlobalAllocator<SDL.GPUVertexAttribute>.Instance.Return(shaderAttributes);
+                    GlobalAllocator<SDL_GPUVertexAttribute>.Instance.Return(shaderAttributes);
                 }
             }
         }
 
-        return pipeline != nint.Zero;
+        pipeline = p.ptr;
+
+        return pipeline != null;
     }
 
-    private bool TryGetStaticMeshRenderPipeline(RenderState state, out nint pipeline)
+    private bool TryGetStaticMeshRenderPipeline(RenderState state, out SDL_GPUGraphicsPipeline *pipeline)
     {
         if (state.shader == null ||
             state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader)
         {
-            pipeline = nint.Zero;
+            pipeline = null;
 
             return false;
         }
 
         var hash = state.StateKey;
 
-        if (!graphicsPipelines.TryGetValue(hash, out pipeline))
+        if (!graphicsPipelines.TryGetValue(hash, out var p))
         {
             unsafe
             {
@@ -1602,7 +1654,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                 if (vertexSamplerCount < state.shaderInstance.vertexTextureBindings.Count ||
                     fragmentSamplerCount < state.shaderInstance.fragmentTextureBindings.Count)
                 {
-                    pipeline = nint.Zero;
+                    pipeline = null;
 
                     return false;
                 }
@@ -1613,11 +1665,11 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                     !TryGetTextureFormat(depthStencilFormat.Value, TextureFlags.DepthStencilTarget,
                         out var sdlDepthFormat))
                 {
-                    sdlDepthFormat = SDL.GPUTextureFormat.D24Unorm;
+                    sdlDepthFormat = SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_D24_UNORM;
                 }
 
-                var shaderAttributes = GlobalAllocator<SDL.GPUVertexAttribute>.Instance.Rent(state.shaderInstance.attributes.Length);
-                var vertexDescriptions = GlobalAllocator<SDL.GPUVertexBufferDescription>.Instance.Rent(state.shaderInstance.attributes.Length);
+                var shaderAttributes = GlobalAllocator<SDL_GPUVertexAttribute>.Instance.Rent(state.shaderInstance.attributes.Length);
+                var vertexDescriptions = GlobalAllocator<SDL_GPUVertexBufferDescription>.Instance.Rent(state.shaderInstance.attributes.Length);
 
                 for (var i = 0; i < state.shaderInstance.attributes.Length; i++)
                 {
@@ -1628,13 +1680,13 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                         VertexAttribute.Position or
                             VertexAttribute.Normal or
                             VertexAttribute.Tangent or
-                            VertexAttribute.Bitangent => SDL.GPUVertexElementFormat.Float3,
+                            VertexAttribute.Bitangent => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
                         VertexAttribute.Color0 or
                             VertexAttribute.Color1 or
                             VertexAttribute.Color2 or
                             VertexAttribute.Color3 or
                             VertexAttribute.BlendIndices or
-                            VertexAttribute.BlendWeights => SDL.GPUVertexElementFormat.Float4,
+                            VertexAttribute.BlendWeights => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
                         VertexAttribute.TexCoord0 or
                             VertexAttribute.TexCoord1 or
                             VertexAttribute.TexCoord2 or
@@ -1642,78 +1694,78 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                             VertexAttribute.TexCoord4 or
                             VertexAttribute.TexCoord5 or
                             VertexAttribute.TexCoord6 or
-                            VertexAttribute.TexCoord7 => SDL.GPUVertexElementFormat.Float2,
+                            VertexAttribute.TexCoord7 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
                             _ => throw new ArgumentOutOfRangeException(nameof(attribute), $"Static Mesh Render Pipeline: Attribute {attribute} not implemented!"),
                     };
 
                     shaderAttributes[i] = new()
                     {
-                        BufferSlot = (uint)i,
-                        Format = format,
-                        Offset = 0,
-                        Location = (uint)i,
+                        buffer_slot = (uint)i,
+                        format = format,
+                        offset = 0,
+                        location = (uint)i,
                     };
 
                     vertexDescriptions[i] = new()
                     {
-                        InputRate = SDL.GPUVertexInputRate.Vertex,
-                        Slot = (uint)i,
-                        Pitch = (uint)BufferAttributeContainer.BufferElementSize(attribute),
+                        input_rate = SDL_GPUVertexInputRate.SDL_GPU_VERTEXINPUTRATE_VERTEX,
+                        slot = (uint)i,
+                        pitch = (uint)BufferAttributeContainer.BufferElementSize(attribute),
                     };
                 }
 
-                fixed (SDL.GPUVertexAttribute* attributes = shaderAttributes)
+                fixed (SDL_GPUVertexAttribute* attributes = shaderAttributes)
                 {
                     var sourceBlend = state.sourceBlend switch
                     {
-                        BlendMode.DstAlpha => SDL.GPUBlendFactor.DstAlpha,
-                        BlendMode.DstColor => SDL.GPUBlendFactor.DstColor,
-                        BlendMode.One => SDL.GPUBlendFactor.One,
-                        BlendMode.OneMinusDstAlpha => SDL.GPUBlendFactor.OneMinusDstAlpha,
-                        BlendMode.OneMinusDstColor => SDL.GPUBlendFactor.OneMinusDstColor,
-                        BlendMode.OneMinusSrcAlpha => SDL.GPUBlendFactor.OneMinusSrcAlpha,
-                        BlendMode.OneMinusSrcColor => SDL.GPUBlendFactor.OneMinusSrcColor,
-                        BlendMode.SrcAlpha => SDL.GPUBlendFactor.SrcAlpha,
-                        BlendMode.SrcAlphaSat => SDL.GPUBlendFactor.SrcAlphaSaturate,
-                        BlendMode.SrcColor => SDL.GPUBlendFactor.SrcColor,
-                        BlendMode.Zero => SDL.GPUBlendFactor.Zero,
-                        BlendMode.Off => SDL.GPUBlendFactor.Invalid,
+                        BlendMode.DstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
+                        BlendMode.DstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
+                        BlendMode.One => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
+                        BlendMode.OneMinusDstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+                        BlendMode.OneMinusDstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
+                        BlendMode.OneMinusSrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                        BlendMode.OneMinusSrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
+                        BlendMode.SrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+                        BlendMode.SrcAlphaSat => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
+                        BlendMode.SrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
+                        BlendMode.Zero => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
+                        BlendMode.Off => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
                         _ => throw new ArgumentOutOfRangeException(nameof(state.sourceBlend), "Invalid blend mode"),
                     };
 
                     var destinationBlend = state.destinationBlend switch
                     {
-                        BlendMode.DstAlpha => SDL.GPUBlendFactor.DstAlpha,
-                        BlendMode.DstColor => SDL.GPUBlendFactor.DstColor,
-                        BlendMode.One => SDL.GPUBlendFactor.One,
-                        BlendMode.OneMinusDstAlpha => SDL.GPUBlendFactor.OneMinusDstAlpha,
-                        BlendMode.OneMinusDstColor => SDL.GPUBlendFactor.OneMinusDstColor,
-                        BlendMode.OneMinusSrcAlpha => SDL.GPUBlendFactor.OneMinusSrcAlpha,
-                        BlendMode.OneMinusSrcColor => SDL.GPUBlendFactor.OneMinusSrcColor,
-                        BlendMode.SrcAlpha => SDL.GPUBlendFactor.SrcAlpha,
-                        BlendMode.SrcAlphaSat => SDL.GPUBlendFactor.SrcAlphaSaturate,
-                        BlendMode.SrcColor => SDL.GPUBlendFactor.SrcColor,
-                        BlendMode.Zero => SDL.GPUBlendFactor.Zero,
-                        BlendMode.Off => SDL.GPUBlendFactor.Invalid,
+                        BlendMode.DstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
+                        BlendMode.DstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
+                        BlendMode.One => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
+                        BlendMode.OneMinusDstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+                        BlendMode.OneMinusDstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
+                        BlendMode.OneMinusSrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                        BlendMode.OneMinusSrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
+                        BlendMode.SrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+                        BlendMode.SrcAlphaSat => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
+                        BlendMode.SrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
+                        BlendMode.Zero => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
+                        BlendMode.Off => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
                         _ => throw new ArgumentOutOfRangeException(nameof(state.destinationBlend), "Invalid blend mode"),
                     };
 
-                    var colorTargetDescriptions = new List<SDL.GPUColorTargetDescription>();
+                    var colorTargetDescriptions = new List<SDL_GPUColorTargetDescription>();
 
                     if (state.renderTarget == null || state.renderTarget.Disposed)
                     {
-                        var colorTargetDescription = new SDL.GPUColorTargetDescription()
+                        var colorTargetDescription = new SDL_GPUColorTargetDescription()
                         {
-                            Format = SDL.GetGPUSwapchainTextureFormat(device, window.window),
-                            BlendState = new()
+                            format = SDL3.SDL_GetGPUSwapchainTextureFormat(device, window.window),
+                            blend_state = new()
                             {
-                                EnableBlend = (byte)(state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off ? 1 : 0),
-                                ColorBlendOp = SDL.GPUBlendOp.Add,
-                                AlphaBlendOp = SDL.GPUBlendOp.Add,
-                                SrcColorBlendfactor = sourceBlend,
-                                SrcAlphaBlendfactor = sourceBlend,
-                                DstColorBlendfactor = destinationBlend,
-                                DstAlphaBlendfactor = destinationBlend,
+                                enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,
+                                color_blend_op = SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                alpha_blend_op = SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                src_color_blendfactor = sourceBlend,
+                                src_alpha_blendfactor = sourceBlend,
+                                dst_color_blendfactor = destinationBlend,
+                                dst_alpha_blendfactor = destinationBlend,
                             }
                         };
 
@@ -1724,23 +1776,24 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                         foreach (var texture in state.renderTarget.colorTextures)
                         {
                             if (texture.Disposed ||
-                                !TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget, out var textureFormat))
+                                !TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget,
+                                out var textureFormat))
                             {
                                 continue;
                             }
 
-                            var colorTargetDescription = new SDL.GPUColorTargetDescription()
+                            var colorTargetDescription = new SDL_GPUColorTargetDescription()
                             {
-                                Format = textureFormat,
-                                BlendState = new()
+                                format = textureFormat,
+                                blend_state = new()
                                 {
-                                    EnableBlend = (byte)(state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off ? 1 : 0),
-                                    ColorBlendOp = SDL.GPUBlendOp.Add,
-                                    AlphaBlendOp = SDL.GPUBlendOp.Add,
-                                    SrcColorBlendfactor = sourceBlend,
-                                    SrcAlphaBlendfactor = sourceBlend,
-                                    DstColorBlendfactor = destinationBlend,
-                                    DstAlphaBlendfactor = destinationBlend,
+                                    enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,
+                                    color_blend_op = SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                    alpha_blend_op = SDL_GPUBlendOp.SDL_GPU_BLENDOP_ADD,
+                                    src_color_blendfactor = sourceBlend,
+                                    src_alpha_blendfactor = sourceBlend,
+                                    dst_color_blendfactor = destinationBlend,
+                                    dst_alpha_blendfactor = destinationBlend,
                                 }
                             };
 
@@ -1755,69 +1808,81 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
                         }
                     }
 
-                    fixed (SDL.GPUColorTargetDescription* colorTargetDescriptionsPtr = CollectionsMarshal.AsSpan(colorTargetDescriptions))
+                    fixed (SDL_GPUColorTargetDescription* colorTargetDescriptionsPtr = CollectionsMarshal.AsSpan(colorTargetDescriptions))
                     {
-                        fixed (SDL.GPUVertexBufferDescription* descriptions = vertexDescriptions)
+                        fixed (SDL_GPUVertexBufferDescription* descriptions = vertexDescriptions)
                         {
-                            var info = new SDL.GPUGraphicsPipelineCreateInfo()
+                            var info = new SDL_GPUGraphicsPipelineCreateInfo()
                             {
-                                PrimitiveType = state.primitiveType switch
+                                primitive_type = state.primitiveType switch
                                 {
-                                    MeshTopology.TriangleStrip => SDL.GPUPrimitiveType.TriangleStrip,
-                                    MeshTopology.Triangles => SDL.GPUPrimitiveType.TriangleList,
-                                    MeshTopology.Lines => SDL.GPUPrimitiveType.LineList,
-                                    MeshTopology.LineStrip => SDL.GPUPrimitiveType.LineStrip,
+                                    MeshTopology.TriangleStrip => SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLESTRIP,
+                                    MeshTopology.Triangles => SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_TRIANGLELIST,
+                                    MeshTopology.Lines => SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINELIST,
+                                    MeshTopology.LineStrip => SDL_GPUPrimitiveType.SDL_GPU_PRIMITIVETYPE_LINESTRIP,
                                     _ => throw new ArgumentOutOfRangeException("Invalid value for primitive type", nameof(state.primitiveType)),
                                 },
-                                VertexShader = shader.vertex,
-                                FragmentShader = shader.fragment,
-                                RasterizerState = new()
+                                vertex_shader = shader.vertex,
+                                fragment_shader = shader.fragment,
+                                rasterizer_state = new()
                                 {
-                                    CullMode = state.cull switch
+                                    cull_mode = state.cull switch
                                     {
-                                        CullingMode.None => SDL.GPUCullMode.None,
-                                        CullingMode.Front => SDL.GPUCullMode.Front,
-                                        CullingMode.Back => SDL.GPUCullMode.Back,
+                                        CullingMode.None => SDL_GPUCullMode.SDL_GPU_CULLMODE_NONE,
+                                        CullingMode.Front => SDL_GPUCullMode.SDL_GPU_CULLMODE_FRONT,
+                                        CullingMode.Back => SDL_GPUCullMode.SDL_GPU_CULLMODE_BACK,
                                         _ => throw new ArgumentOutOfRangeException("Invalid value for cull", nameof(state.cull)),
                                     },
-                                    FillMode = state.wireframe ? SDL.GPUFillMode.Line : SDL.GPUFillMode.Fill,
-                                    FrontFace = SDL.GPUFrontFace.Clockwise,
+                                    fill_mode = state.wireframe ? SDL_GPUFillMode.SDL_GPU_FILLMODE_LINE :
+                                        SDL_GPUFillMode.SDL_GPU_FILLMODE_FILL,
+                                    front_face = SDL_GPUFrontFace.SDL_GPU_FRONTFACE_CLOCKWISE,
                                 },
-                                DepthStencilState = new()
+                                depth_stencil_state = new()
                                 {
-                                    EnableDepthTest = (byte)(state.enableDepth ? 1 : 0),
-                                    EnableDepthWrite = (byte)(state.depthWrite ? 1 : 0),
-                                    CompareOp = SDL.GPUCompareOp.LessOrEqual,
+                                    enable_depth_test = state.enableDepth,
+                                    enable_depth_write = state.depthWrite,
+                                    compare_op = SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
                                 },
-                                VertexInputState = new()
+                                vertex_input_state = new()
                                 {
-                                    NumVertexBuffers = (uint)vertexDescriptions.Length,
-                                    NumVertexAttributes = (uint)shaderAttributes.Length,
-                                    VertexAttributes = (nint)attributes,
-                                    VertexBufferDescriptions = (nint)descriptions,
+                                    num_vertex_buffers = (uint)vertexDescriptions.Length,
+                                    num_vertex_attributes = (uint)shaderAttributes.Length,
+                                    vertex_attributes = attributes,
+                                    vertex_buffer_descriptions = descriptions,
                                 },
-                                TargetInfo = new()
+                                target_info = new()
                                 {
-                                    NumColorTargets = (uint)colorTargetDescriptions.Count,
-                                    ColorTargetDescriptions = (nint)colorTargetDescriptionsPtr,
-                                    HasDepthStencilTarget = (byte)(depthStencilFormat.HasValue ? 1 : 0),
-                                    DepthStencilFormat = sdlDepthFormat,
+                                    num_color_targets = (uint)colorTargetDescriptions.Count,
+                                    color_target_descriptions = colorTargetDescriptionsPtr,
+                                    has_depth_stencil_target = depthStencilFormat.HasValue,
+                                    depth_stencil_format = sdlDepthFormat,
                                 },
                             };
 
-                            pipeline = SDL.CreateGPUGraphicsPipeline(device, in info);
+                            pipeline = SDL3.SDL_CreateGPUGraphicsPipeline(device, &info);
 
-                            graphicsPipelines.Add(hash, pipeline);
+                            if (pipeline == null)
+                            {
+                                pipeline = null;
+
+                                return false;
+                            }
+
+                            p = new(pipeline);
+
+                            graphicsPipelines.Add(hash, p);
                         }
                     }
 
-                    GlobalAllocator<SDL.GPUVertexAttribute>.Instance.Return(shaderAttributes);
-                    GlobalAllocator<SDL.GPUVertexBufferDescription>.Instance.Return(vertexDescriptions);
+                    GlobalAllocator<SDL_GPUVertexAttribute>.Instance.Return(shaderAttributes);
+                    GlobalAllocator<SDL_GPUVertexBufferDescription>.Instance.Return(vertexDescriptions);
                 }
             }
         }
 
-        return pipeline != nint.Zero;
+        pipeline = p.ptr;
+
+        return pipeline != null;
     }
 
     private void GetUniformData(in RenderState state, bool useWorldMatrix, SDLGPUShaderProgram shader, out (int, int) vertexUniformData,
@@ -1971,7 +2036,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
         var vertex = (SDLGPUVertexBuffer)state.vertexBuffer;
         var vertexLayout = (SDLGPUVertexLayout)vertex?.layout;
-        var pipeline = nint.Zero;
+        SDL_GPUGraphicsPipeline *pipeline;
 
         if (state.shader == null ||
             state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader)
@@ -1991,7 +2056,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             return;
         }
 
-        CheckQueuedPipeline(pipeline);
+        CheckQueuedGraphicsPipeline(pipeline);
 
         GetUniformData(in state, true, shader, out var vertexUniformData, out var fragmentUniformData);
 
@@ -2011,7 +2076,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
         state.renderTarget = currentRenderTarget;
 
-        CheckQueuedPipeline(pipeline);
+        CheckQueuedGraphicsPipeline(pipeline);
 
         GetUniformData(in state, false, shader, out var vertexUniformData, out var fragmentUniformData);
 
@@ -2064,16 +2129,16 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
             if(!needsIndirectBufferUpdate)
             {
-                needsIndirectBufferUpdate |= command.NumIndices != indices ||
-                    command.NumInstances != instances ||
-                    command.FirstInstance != firstInstance ||
-                    command.FirstIndex != firstIndex;
+                needsIndirectBufferUpdate |= command.num_indices != indices ||
+                    command.num_instances != instances ||
+                    command.first_instance != firstInstance ||
+                    command.first_index != firstIndex;
             }
 
-            command.NumIndices = indices;
-            command.NumInstances = instances;
-            command.FirstInstance = firstInstance;
-            command.FirstIndex = firstIndex;
+            command.num_indices = indices;
+            command.num_instances = instances;
+            command.first_instance = firstInstance;
+            command.first_index = firstIndex;
 
             for (var j = 0; j < entry.transforms.Count; j++)
             {
@@ -2121,7 +2186,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             return;
         }
 
-        CheckQueuedPipeline(pipeline);
+        CheckQueuedGraphicsPipeline(pipeline);
 
         if (!transientBuffers.TryGetValue(layout, out var entry))
         {
@@ -2183,7 +2248,7 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
             return;
         }
 
-        CheckQueuedPipeline(pipeline);
+        CheckQueuedGraphicsPipeline(pipeline);
 
         if (!transientBuffers.TryGetValue(layout, out var entry))
         {
@@ -2224,5 +2289,23 @@ internal partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeRec
 
         AddCommand(new SDLGPURenderTransientUIntCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
             state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, entry));
+    }
+
+    internal bool BeginCopyPass()
+    {
+        unsafe
+        {
+            if (renderPass != null)
+            {
+                FinishPasses();
+            }
+
+            if (copyPass == null)
+            {
+                copyPass = SDL3.SDL_BeginGPUCopyPass(commandBuffer);
+            }
+
+            return copyPass != null;
+        }
     }
 }

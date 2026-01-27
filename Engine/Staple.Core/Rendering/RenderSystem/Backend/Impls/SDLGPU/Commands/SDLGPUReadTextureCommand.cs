@@ -1,9 +1,10 @@
-﻿using SDL3;
+﻿using SDL;
 using System;
 
 namespace Staple.Internal;
 
-internal class SDLGPUReadTextureCommand(SDLGPURendererBackend backend, SDLGPUTexture texture, Action<byte[]> onComplete) : IRenderCommand
+internal unsafe class SDLGPUReadTextureCommand(SDLGPURendererBackend backend, SDLGPUTexture texture, Action<byte[]> onComplete) :
+    IRenderCommand
 {
     public void Update()
     {
@@ -17,43 +18,33 @@ internal class SDLGPUReadTextureCommand(SDLGPURendererBackend backend, SDLGPUTex
 
         resource.transferBuffer = backend.GetTransferBuffer(true, resource.length);
 
-        if (resource.transferBuffer == nint.Zero)
+        if (resource.transferBuffer == null)
         {
             return;
         }
 
-        if (backend.renderPass != nint.Zero)
-        {
-            backend.FinishPasses();
-        }
-
-        if (backend.copyPass == nint.Zero)
-        {
-            backend.copyPass = SDL.BeginGPUCopyPass(backend.commandBuffer);
-        }
-
-        if (backend.copyPass == nint.Zero)
+        if(!backend.BeginCopyPass())
         {
             return;
         }
 
-        var textureInfo = new SDL.GPUTextureTransferInfo()
+        var textureInfo = new SDL_GPUTextureTransferInfo()
         {
-            Offset = 0,
-            PixelsPerRow = (uint)resource.width,
-            RowsPerLayer = (uint)resource.height,
-            TransferBuffer = resource.transferBuffer,
+            offset = 0,
+            pixels_per_row = (uint)resource.width,
+            rows_per_layer = (uint)resource.height,
+            transfer_buffer = resource.transferBuffer,
         };
 
-        var destination = new SDL.GPUTextureRegion()
+        var destination = new SDL_GPUTextureRegion()
         {
-            Texture = resource.texture,
-            W = (uint)resource.width,
-            H = (uint)resource.height,
-            D = 1,
+            texture = resource.texture,
+            w = (uint)resource.width,
+            h = (uint)resource.height,
+            d = 1,
         };
 
-        SDL.DownloadFromGPUTexture(backend.copyPass, in destination, in textureInfo);
+        SDL3.SDL_DownloadFromGPUTexture(backend.copyPass, &destination, &textureInfo);
 
         backend.QueueTextureRead(texture, onComplete);
     }

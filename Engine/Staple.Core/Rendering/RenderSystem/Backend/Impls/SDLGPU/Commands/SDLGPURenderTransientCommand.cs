@@ -1,10 +1,10 @@
-﻿using SDL3;
+﻿using SDL;
 
 namespace Staple.Internal;
 
-internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, RenderState state, nint pipeline, Texture[] vertexTextures,
-    Texture[] fragmentTextures, int storageBufferBindingStart, (int, int) vertexUniformData, (int, int) fragmentUniformData,
-    SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
+internal unsafe class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, RenderState state,
+    SDL_GPUGraphicsPipeline *pipeline, Texture[] vertexTextures, Texture[] fragmentTextures, int storageBufferBindingStart,
+    (int, int) vertexUniformData, (int, int) fragmentUniformData, SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
 {
     private readonly RenderState state = state.Clone();
     private readonly Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
@@ -12,7 +12,7 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
 
     public void Update()
     {
-        if (entry.vertexBuffer == nint.Zero ||
+        if (entry.vertexBuffer == null ||
             !backend.TryGetTextureSamplers(vertexTextures, fragmentTextures, state.shaderInstance,
                 out var vertexSamplers, out var fragmentSamplers))
         {
@@ -24,7 +24,7 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
 
         var renderPass = backend.renderPass;
 
-        if (renderPass == nint.Zero)
+        if (renderPass == null)
         {
             backend.ResumeRenderPass();
 
@@ -35,51 +35,61 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
         {
             SDLGPURendererBackend.lastGraphicsPipeline = pipeline;
 
-            SDL.BindGPUGraphicsPipeline(renderPass, pipeline);
+            SDL3.SDL_BindGPUGraphicsPipeline(renderPass, pipeline);
         }
+
 
         if (state.scissor != default)
         {
-            SDLGPURenderCommand.scissor.X = state.scissor.left;
-            SDLGPURenderCommand.scissor.Y = state.scissor.top;
-            SDLGPURenderCommand.scissor.W = state.scissor.Width;
-            SDLGPURenderCommand.scissor.H = state.scissor.Height;
+            SDLGPURenderCommand.scissor.x = state.scissor.left;
+            SDLGPURenderCommand.scissor.y = state.scissor.top;
+            SDLGPURenderCommand.scissor.w = state.scissor.Width;
+            SDLGPURenderCommand.scissor.h = state.scissor.Height;
         }
         else
         {
-            SDLGPURenderCommand.scissor.X = SDLGPURenderCommand.scissor.Y = 0;
-            SDLGPURenderCommand.scissor.W = backend.renderSize.X;
-            SDLGPURenderCommand.scissor.H = backend.renderSize.Y;
+            SDLGPURenderCommand.scissor.x = SDLGPURenderCommand.scissor.y = 0;
+            SDLGPURenderCommand.scissor.w = backend.renderSize.X;
+            SDLGPURenderCommand.scissor.h = backend.renderSize.Y;
         }
 
-        SDL.SetGPUScissor(renderPass, in SDLGPURenderCommand.scissor);
+        fixed (SDL_Rect* r = &SDLGPURenderCommand.scissor)
+        {
+            SDL3.SDL_SetGPUScissor(renderPass, r);
+        }
 
-        SDLGPURenderCommand.vertexBinding[0].Buffer = entry.vertexBuffer;
+        SDLGPURenderCommand.vertexBinding[0].buffer = entry.vertexBuffer;
 
-        SDLGPURenderCommand.indexBinding.Offset = 0;
-        SDLGPURenderCommand.indexBinding.Buffer = entry.indexBuffer;
+        SDLGPURenderCommand.indexBinding.offset = 0;
+        SDLGPURenderCommand.indexBinding.buffer = entry.indexBuffer;
 
         if (SDLGPURendererBackend.lastVertexBuffer != entry.vertexBuffer)
         {
             SDLGPURendererBackend.lastVertexBuffer = entry.vertexBuffer;
 
-            SDL.BindGPUVertexBuffers(renderPass, 0, SDLGPURenderCommand.vertexBinding, 1);
+            fixed (SDL_GPUBufferBinding* b = SDLGPURenderCommand.vertexBinding)
+            {
+                SDL3.SDL_BindGPUVertexBuffers(renderPass, 0, b, 1);
+            }
         }
 
         if (SDLGPURendererBackend.lastIndexBuffer != entry.indexBuffer)
         {
             SDLGPURendererBackend.lastIndexBuffer = entry.indexBuffer;
 
-            SDL.BindGPUIndexBuffer(renderPass, in SDLGPURenderCommand.indexBinding, SDL.GPUIndexElementSize.IndexElementSize16Bit);
+            fixed (SDL_GPUBufferBinding* b = &SDLGPURenderCommand.indexBinding)
+            {
+                SDL3.SDL_BindGPUIndexBuffer(renderPass, b, SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_16BIT);
+            }
         }
 
         if (vertexSamplers.IsEmpty == false)
         {
             unsafe
             {
-                fixed (void* ptr = vertexSamplers)
+                fixed (SDL_GPUTextureSamplerBinding* ptr = vertexSamplers)
                 {
-                    SDL.BindGPUVertexSamplers(renderPass, 0, (nint)ptr, (uint)vertexSamplers.Length);
+                    SDL3.SDL_BindGPUVertexSamplers(renderPass, 0, ptr, (uint)vertexSamplers.Length);
                 }
             }
 
@@ -89,14 +99,14 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
         {
             unsafe
             {
-                fixed (void* ptr = fragmentSamplers)
+                fixed (SDL_GPUTextureSamplerBinding* ptr = fragmentSamplers)
                 {
-                    SDL.BindGPUFragmentSamplers(renderPass, 0, (nint)ptr, (uint)fragmentSamplers.Length);
+                    SDL3.SDL_BindGPUFragmentSamplers(renderPass, 0, ptr, (uint)fragmentSamplers.Length);
                 }
             }
         }
 
-        var buffers = backend.nintBufferStaging;
+        var buffers = backend.bufferStaging;
         var counter = 2;
 
         buffers[0] = SDLGPURendererBackend.entityTransformsBuffer;
@@ -115,7 +125,7 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
                     buffer is not SDLGPUVertexBuffer v ||
                     !backend.TryGetVertexBuffer(v.handle, out var resource) ||
                     !resource.used ||
-                    resource.buffer == nint.Zero)
+                    resource.buffer == null)
                 {
                     return;
                 }
@@ -124,7 +134,10 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
             }
         }
 
-        SDL.BindGPUVertexStorageBuffers(renderPass, (uint)storageBufferBindingStart, buffers, (uint)counter);
+        fixed (SDL_GPUBuffer** ptr = buffers)
+        {
+            SDL3.SDL_BindGPUVertexStorageBuffers(renderPass, (uint)storageBufferBindingStart, ptr, (uint)counter);
+        }
 
         if (hasFragmentStorageBuffers)
         {
@@ -143,7 +156,7 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
                     buffer is not SDLGPUVertexBuffer v ||
                     !backend.TryGetVertexBuffer(v.handle, out var resource) ||
                     !resource.used ||
-                    resource.buffer == nint.Zero)
+                    resource.buffer == null)
                 {
                     return;
                 }
@@ -156,7 +169,10 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
                 }
             }
 
-            SDL.BindGPUFragmentStorageBuffers(renderPass, (uint)firstBinding, buffers, (uint)counter);
+            fixed (SDL_GPUBuffer** ptr = buffers)
+            {
+                SDL3.SDL_BindGPUFragmentStorageBuffers(renderPass, (uint)firstBinding, ptr, (uint)counter);
+            }
         }
 
         var vertexSpan = backend.shaderUniformFrameAllocator.GetSpan(vertexUniformData.Item1, vertexUniformData.Item2);
@@ -172,7 +188,7 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
 
             var target = backend.frameAllocator.Get(uniform.position);
 
-            SDL.PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
+            SDL3.SDL_PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }
 
         var fragmentSpan = backend.shaderUniformFrameAllocator.GetSpan(fragmentUniformData.Item1, fragmentUniformData.Item2);
@@ -188,10 +204,10 @@ internal class SDLGPURenderTransientCommand(SDLGPURendererBackend backend, Rende
 
             var target = backend.frameAllocator.Get(uniform.position);
 
-            SDL.PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
+            SDL3.SDL_PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }
 
-        SDL.DrawGPUIndexedPrimitives(renderPass, (uint)state.indexCount, (uint)(state.instanceCount > 1 ? state.instanceCount : 1),
-            (uint)state.startIndex, state.startVertex, 0);
+        SDL3.SDL_DrawGPUIndexedPrimitives(renderPass, (uint)state.indexCount, (uint)(state.instanceCount > 1 ?
+            state.instanceCount : 1), (uint)state.startIndex, state.startVertex, 0);
     }
 }

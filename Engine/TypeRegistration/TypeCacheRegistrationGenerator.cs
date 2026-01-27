@@ -47,6 +47,15 @@ namespace Staple
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
+            /*
+#if DEBUG
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
+#endif
+            */
+
             var excludedTypes = new List<string>();
 
             var configFile = context.AdditionalTextsProvider.Where(x => x.Path.EndsWith("TypeExclusions.txt"))
@@ -92,7 +101,8 @@ namespace StapleCodeGeneration
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
-                        t.TypeKind == TypeKind.Delegate)
+                        t.TypeKind == TypeKind.Delegate ||
+                        t.IsRefLikeType)
                     {
                         if (verbose)
                         {
@@ -173,7 +183,8 @@ namespace StapleCodeGeneration
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
-                        t.ContainingType.TypeKind == TypeKind.Delegate)
+                        t.ContainingType.TypeKind == TypeKind.Delegate ||
+                        t.ContainingType.IsRefLikeType)
                     {
                         if (verbose)
                         {

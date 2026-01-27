@@ -1,10 +1,10 @@
-﻿using SDL3;
+﻿using SDL;
 
 namespace Staple.Internal;
 
-internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState state, nint pipeline, Texture[] vertexTextures,
-    Texture[] fragmentTextures, int storageBufferBindingStart, (int, int) vertexUniformData, (int, int) fragmentUniformData,
-    VertexAttribute[] vertexAttributes) : IRenderCommand
+internal unsafe class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState state, SDL_GPUGraphicsPipeline *pipeline,
+    Texture[] vertexTextures, Texture[] fragmentTextures, int storageBufferBindingStart, (int, int) vertexUniformData,
+    (int, int) fragmentUniformData, VertexAttribute[] vertexAttributes) : IRenderCommand
 {
     private readonly RenderState state = state.Clone();
     private readonly Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
@@ -13,27 +13,27 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
     private readonly SDLGPUIndexBuffer index = (SDLGPUIndexBuffer)state.indexBuffer;
     private readonly BufferAttributeContainer.Entries staticMeshEntries = state.staticMeshEntries;
 
-    internal static readonly SDL.GPUBufferBinding[] vertexBinding = new SDL.GPUBufferBinding[1];
+    internal static readonly SDL_GPUBufferBinding[] vertexBinding = new SDL_GPUBufferBinding[1];
 
-    internal static readonly SDL.GPUBufferBinding[] staticMeshVertexBinding = new SDL.GPUBufferBinding[18];
+    internal static readonly SDL_GPUBufferBinding[] staticMeshVertexBinding = new SDL_GPUBufferBinding[18];
 
-    internal static SDL.GPUBufferBinding indexBinding;
-    internal static SDL.Rect scissor;
+    internal static SDL_GPUBufferBinding indexBinding;
+    internal static SDL_Rect scissor;
 
     public void Update()
     {
         SDLGPURendererBackend.BufferResource vertexBuffer = null;
         SDLGPURendererBackend.BufferResource indexBuffer = null;
 
-        if(staticMeshEntries == null)
+        if (staticMeshEntries == null)
         {
-            if(!backend.TryGetVertexBuffer(vertex.handle, out vertexBuffer) ||
+            if (!backend.TryGetVertexBuffer(vertex.handle, out vertexBuffer) ||
                 !backend.TryGetIndexBuffer(index.handle, out indexBuffer))
             {
                 return;
             }
         }
-        else if(SDLGPURendererBackend.staticMeshVertexBuffers[0] == nint.Zero)
+        else if (SDLGPURendererBackend.staticMeshVertexBuffers[0] == null)
         {
             return;
         }
@@ -55,9 +55,10 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
                     return;
                 }
 
-                staticMeshVertexBinding[i].Offset = (uint)(staticMeshEntries.positionEntry.start * 
+                staticMeshVertexBinding[i].offset = (uint)(staticMeshEntries.positionEntry.start *
                     SDLGPURendererBackend.staticMeshVertexBuffersElementSize[bufferIndex]);
-                staticMeshVertexBinding[i].Buffer = SDLGPURendererBackend.staticMeshVertexBuffers[bufferIndex];
+
+                staticMeshVertexBinding[i].buffer = SDLGPURendererBackend.staticMeshVertexBuffers[bufferIndex];
             }
         }
 
@@ -66,7 +67,7 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
 
         var renderPass = backend.renderPass;
 
-        if (renderPass == nint.Zero)
+        if (renderPass == null)
         {
             backend.ResumeRenderPass();
 
@@ -77,92 +78,100 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
         {
             SDLGPURendererBackend.lastGraphicsPipeline = pipeline;
 
-            SDL.BindGPUGraphicsPipeline(renderPass, pipeline);
+            SDL3.SDL_BindGPUGraphicsPipeline(renderPass, pipeline);
         }
 
         if (staticMeshEntries == null)
         {
-            vertexBinding[0].Buffer = vertexBuffer.buffer;
+            vertexBinding[0].buffer = vertexBuffer.buffer;
 
-            indexBinding.Offset = 0;
-            indexBinding.Buffer = indexBuffer.buffer;
+            indexBinding.offset = 0;
+            indexBinding.buffer = indexBuffer.buffer;
 
             if (SDLGPURendererBackend.lastVertexBuffer != vertexBuffer.buffer)
             {
                 SDLGPURendererBackend.lastVertexBuffer = vertexBuffer.buffer;
 
-                SDL.BindGPUVertexBuffers(renderPass, 0, vertexBinding, 1);
+                fixed (SDL_GPUBufferBinding* b = SDLGPURenderCommand.vertexBinding)
+                {
+                    SDL3.SDL_BindGPUVertexBuffers(renderPass, 0, b, 1);
+                }
             }
 
             if(SDLGPURendererBackend.lastIndexBuffer != indexBuffer.buffer)
             {
                 SDLGPURendererBackend.lastIndexBuffer = indexBuffer.buffer;
 
-                SDL.BindGPUIndexBuffer(renderPass, in indexBinding, index.Is32Bit ?
-                    SDL.GPUIndexElementSize.IndexElementSize32Bit :
-                    SDL.GPUIndexElementSize.IndexElementSize16Bit);
+                fixed (SDL_GPUBufferBinding* b = &indexBinding)
+                {
+                    SDL3.SDL_BindGPUIndexBuffer(renderPass, b, index.Is32Bit ?
+                    SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_32BIT :
+                    SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_16BIT);
+                }
             }
         }
         else
         {
-            indexBinding.Offset = (uint)(staticMeshEntries.indicesEntry.start * sizeof(uint));
-            indexBinding.Buffer = SDLGPURendererBackend.staticMeshIndexBuffer;
+            indexBinding.offset = (uint)(staticMeshEntries.indicesEntry.start * sizeof(uint));
+            indexBinding.buffer = SDLGPURendererBackend.staticMeshIndexBuffer;
 
-            if(SDLGPURendererBackend.lastVertexBuffer != staticMeshVertexBinding[0].Buffer)
+            if(SDLGPURendererBackend.lastVertexBuffer != staticMeshVertexBinding[0].buffer)
             {
-                SDLGPURendererBackend.lastVertexBuffer = staticMeshVertexBinding[0].Buffer;
+                SDLGPURendererBackend.lastVertexBuffer = staticMeshVertexBinding[0].buffer;
 
-                SDL.BindGPUVertexBuffers(renderPass, 0, staticMeshVertexBinding, (uint)vertexAttributes.Length);
+                fixed (SDL_GPUBufferBinding* b = staticMeshVertexBinding)
+                {
+                    SDL3.SDL_BindGPUVertexBuffers(renderPass, 0, b, (uint)vertexAttributes.Length);
+                }
             }
 
-            if (SDLGPURendererBackend.lastIndexBuffer != indexBinding.Buffer)
+            if (SDLGPURendererBackend.lastIndexBuffer != indexBinding.buffer)
             {
-                SDLGPURendererBackend.lastIndexBuffer = indexBinding.Buffer;
+                SDLGPURendererBackend.lastIndexBuffer = indexBinding.buffer;
 
-                SDL.BindGPUIndexBuffer(renderPass, in indexBinding, SDL.GPUIndexElementSize.IndexElementSize32Bit);
+                fixed (SDL_GPUBufferBinding* b = &indexBinding)
+                {
+                    SDL3.SDL_BindGPUIndexBuffer(renderPass, b, SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_32BIT);
+                }
             }
         }
 
         if (state.scissor != default)
         {
-            scissor.X = state.scissor.left;
-            scissor.Y = state.scissor.top;
-            scissor.W = state.scissor.Width;
-            scissor.H = state.scissor.Height;
+            scissor.x = state.scissor.left;
+            scissor.y = state.scissor.top;
+            scissor.w = state.scissor.Width;
+            scissor.h = state.scissor.Height;
         }
         else
         {
-            scissor.X = scissor.Y = 0;
-            scissor.W = backend.renderSize.X;
-            scissor.H = backend.renderSize.Y;
+            scissor.x = scissor.y = 0;
+            scissor.w = backend.renderSize.X;
+            scissor.h = backend.renderSize.Y;
         }
 
-        SDL.SetGPUScissor(renderPass, in scissor);
+        fixed (SDL_Rect* r = &scissor)
+        {
+            SDL3.SDL_SetGPUScissor(renderPass, r);
+        }
 
         if (vertexSamplers.IsEmpty == false)
         {
-            unsafe
+            fixed(SDL_GPUTextureSamplerBinding *ptr = vertexSamplers)
             {
-                fixed(void *ptr = vertexSamplers)
-                {
-                    SDL.BindGPUVertexSamplers(renderPass, 0, (nint)ptr, (uint)vertexSamplers.Length);
-                }
+                SDL3.SDL_BindGPUVertexSamplers(renderPass, 0, ptr, (uint)vertexSamplers.Length);
             }
-
         }
 
         if (fragmentSamplers.IsEmpty == false)
         {
-            unsafe
+            fixed(SDL_GPUTextureSamplerBinding* ptr = fragmentSamplers)
             {
-                fixed (void* ptr = fragmentSamplers)
-                {
-                    SDL.BindGPUFragmentSamplers(renderPass, 0, (nint)ptr, (uint)fragmentSamplers.Length);
-                }
+                SDL3.SDL_BindGPUFragmentSamplers(renderPass, 0, ptr, (uint)fragmentSamplers.Length);
             }
         }
 
-        var buffers = backend.nintBufferStaging;
+        var buffers = backend.bufferStaging;
         var counter = 2;
 
         buffers[0] = SDLGPURendererBackend.entityTransformsBuffer;
@@ -181,7 +190,7 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
                     buffer is not SDLGPUVertexBuffer v ||
                     !backend.TryGetVertexBuffer(v.handle, out var resource) ||
                     !resource.used ||
-                    resource.buffer == nint.Zero)
+                    resource.buffer == null)
                 {
                     return;
                 }
@@ -190,7 +199,10 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
             }
         }
 
-        SDL.BindGPUVertexStorageBuffers(renderPass, (uint)storageBufferBindingStart, buffers, (uint)counter);
+        fixed (SDL_GPUBuffer** ptr = buffers)
+        {
+            SDL3.SDL_BindGPUVertexStorageBuffers(renderPass, (uint)storageBufferBindingStart, ptr, (uint)counter);
+        }
 
         if (hasFragmentStorageBuffers)
         {
@@ -209,7 +221,7 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
                     buffer is not SDLGPUVertexBuffer v ||
                     !backend.TryGetVertexBuffer(v.handle, out var resource) ||
                     !resource.used ||
-                    resource.buffer == nint.Zero)
+                    resource.buffer == null)
                 {
                     return;
                 }
@@ -222,7 +234,10 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
                 }
             }
 
-            SDL.BindGPUFragmentStorageBuffers(renderPass, (uint)firstBinding, buffers, (uint)counter);
+            fixed (SDL_GPUBuffer** ptr = buffers)
+            {
+                SDL3.SDL_BindGPUFragmentStorageBuffers(renderPass, (uint)firstBinding, ptr, (uint)counter);
+            }
         }
 
         var vertexSpan = backend.shaderUniformFrameAllocator.GetSpan(vertexUniformData.Item1, vertexUniformData.Item2);
@@ -238,7 +253,7 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
 
             var target = backend.frameAllocator.Get(uniform.position);
 
-            SDL.PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
+            SDL3.SDL_PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }
 
         var fragmentSpan = backend.shaderUniformFrameAllocator.GetSpan(fragmentUniformData.Item1, fragmentUniformData.Item2);
@@ -254,10 +269,10 @@ internal class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderState st
 
             var target = backend.frameAllocator.Get(uniform.position);
 
-            SDL.PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
+            SDL3.SDL_PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
         }
 
-        SDL.DrawGPUIndexedPrimitives(renderPass, (uint)state.indexCount, (uint)(state.instanceCount > 1 ? state.instanceCount : 1),
-            (uint)state.startIndex, state.startVertex, 0);
+        SDL3.SDL_DrawGPUIndexedPrimitives(renderPass, (uint)state.indexCount, (uint)(state.instanceCount > 1 ?
+            state.instanceCount : 1), (uint)state.startIndex, state.startVertex, 0);
     }
 }

@@ -69,7 +69,7 @@
 
 	<ItemGroup>
 		<Reference Include="SDL3-CS">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\SDL3-CS.dll</HintPath>
+			<HintPath>..\..\Dependencies\SDL3-CS\$(TargetFramework)\SDL3-CS.dll</HintPath>
 		</Reference>
 		<Reference Include="MessagePack">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\MessagePack.dll</HintPath>
@@ -418,6 +418,7 @@
 		<Compile Include="Utilities\DictionaryExtensions.cs" />
 		<Compile Include="Utilities\ExpandableContainer.cs" />
 		<Compile Include="Utilities\MemoryAllocator.cs" />
+		<Compile Include="Utilities\NativePointerWrapper.cs" />
 		<Compile Include="Utilities\UnmanagedFreeformAllocator.cs" />
 		<Compile Include="Utilities\GlobalAllocator.cs" />
 		<Compile Include="Utilities\GuidGenerator.cs" />

@@ -1,4 +1,4 @@
-﻿using SDL3;
+﻿using SDL;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
@@ -6,7 +6,7 @@ namespace Staple.Internal;
 
 internal class SDLGPUVertexLayoutBuilder : VertexLayoutBuilder
 {
-    private readonly List<SDL.GPUVertexAttribute> attributes = [];
+    private readonly List<SDL_GPUVertexAttribute> attributes = [];
     private readonly List<VertexAttribute> vertexAttributes = [];
     private int offset;
     private SDLGPUVertexLayout layout;
@@ -22,55 +22,55 @@ internal class SDLGPUVertexLayoutBuilder : VertexLayoutBuilder
 
         vertexAttributes.Add(name);
 
-        attributes.Add(new SDL.GPUVertexAttribute()
+        attributes.Add(new SDL_GPUVertexAttribute()
         {
-            Format = type switch
+            format = type switch
             {
-                VertexAttributeType.Byte2 => SDL.GPUVertexElementFormat.Byte2,
-                VertexAttributeType.Byte4 => SDL.GPUVertexElementFormat.Byte4,
+                VertexAttributeType.Byte2 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_BYTE2,
+                VertexAttributeType.Byte4 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_BYTE4,
 
-                VertexAttributeType.UByte2 => SDL.GPUVertexElementFormat.Ubyte2,
-                VertexAttributeType.UByte4 => SDL.GPUVertexElementFormat.Ubyte4,
+                VertexAttributeType.UByte2 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2,
+                VertexAttributeType.UByte4 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4,
 
-                VertexAttributeType.Byte2Norm => SDL.GPUVertexElementFormat.Byte2Norm,
-                VertexAttributeType.Byte4Norm => SDL.GPUVertexElementFormat.Byte4Norm,
+                VertexAttributeType.Byte2Norm => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_BYTE2_NORM,
+                VertexAttributeType.Byte4Norm => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_BYTE4_NORM,
 
-                VertexAttributeType.UByte2Norm => SDL.GPUVertexElementFormat.Ubyte2Norm,
-                VertexAttributeType.UByte4Norm => SDL.GPUVertexElementFormat.Ubyte4Norm,
+                VertexAttributeType.UByte2Norm => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE2_NORM,
+                VertexAttributeType.UByte4Norm => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_UBYTE4_NORM,
 
-                VertexAttributeType.Float => SDL.GPUVertexElementFormat.Float,
-                VertexAttributeType.Float2 => SDL.GPUVertexElementFormat.Float2,
-                VertexAttributeType.Float3 => SDL.GPUVertexElementFormat.Float3,
-                VertexAttributeType.Float4 => SDL.GPUVertexElementFormat.Float4,
+                VertexAttributeType.Float => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT,
+                VertexAttributeType.Float2 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2,
+                VertexAttributeType.Float3 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3,
+                VertexAttributeType.Float4 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4,
 
-                VertexAttributeType.Half2 => SDL.GPUVertexElementFormat.Half2,
-                VertexAttributeType.Half4 => SDL.GPUVertexElementFormat.Half4,
+                VertexAttributeType.Half2 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_HALF2,
+                VertexAttributeType.Half4 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_HALF4,
 
-                VertexAttributeType.Int => SDL.GPUVertexElementFormat.Int,
-                VertexAttributeType.Int2 => SDL.GPUVertexElementFormat.Int2,
-                VertexAttributeType.Int3 => SDL.GPUVertexElementFormat.Int3,
-                VertexAttributeType.Int4 => SDL.GPUVertexElementFormat.Int4,
+                VertexAttributeType.Int => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_INT,
+                VertexAttributeType.Int2 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_INT2,
+                VertexAttributeType.Int3 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_INT3,
+                VertexAttributeType.Int4 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_INT4,
 
-                VertexAttributeType.UInt => SDL.GPUVertexElementFormat.Uint,
-                VertexAttributeType.UInt2 => SDL.GPUVertexElementFormat.Uint2,
-                VertexAttributeType.UInt3 => SDL.GPUVertexElementFormat.Uint3,
-                VertexAttributeType.UInt4 => SDL.GPUVertexElementFormat.Uint4,
+                VertexAttributeType.UInt => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_UINT,
+                VertexAttributeType.UInt2 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_UINT2,
+                VertexAttributeType.UInt3 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_UINT3,
+                VertexAttributeType.UInt4 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_UINT4,
 
-                VertexAttributeType.Short2 => SDL.GPUVertexElementFormat.Short2,
-                VertexAttributeType.Short4 => SDL.GPUVertexElementFormat.Short4,
+                VertexAttributeType.Short2 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_SHORT2,
+                VertexAttributeType.Short4 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_SHORT4,
 
-                VertexAttributeType.UShort2 => SDL.GPUVertexElementFormat.Ushort2,
-                VertexAttributeType.UShort4 => SDL.GPUVertexElementFormat.Ushort4,
+                VertexAttributeType.UShort2 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_USHORT2,
+                VertexAttributeType.UShort4 => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_USHORT4,
 
-                VertexAttributeType.Short2Norm => SDL.GPUVertexElementFormat.Short2Norm,
-                VertexAttributeType.Short4Norm => SDL.GPUVertexElementFormat.Short4Norm,
+                VertexAttributeType.Short2Norm => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_SHORT2_NORM,
+                VertexAttributeType.Short4Norm => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_SHORT4_NORM,
 
-                VertexAttributeType.UShort2Norm => SDL.GPUVertexElementFormat.Ushort2Norm,
-                VertexAttributeType.UShort4Norm => SDL.GPUVertexElementFormat.Ushort4Norm,
+                VertexAttributeType.UShort2Norm => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_USHORT2_NORM,
+                VertexAttributeType.UShort4Norm => SDL_GPUVertexElementFormat.SDL_GPU_VERTEXELEMENTFORMAT_USHORT4_NORM,
 
                 _ => throw new System.ArgumentOutOfRangeException(nameof(type), "Not a valid data type"),
             },
-            Offset = (uint)offset,
+            offset = (uint)offset,
         });
 
         offset += type switch

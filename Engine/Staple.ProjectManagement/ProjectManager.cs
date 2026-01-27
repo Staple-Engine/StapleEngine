@@ -1086,9 +1086,6 @@ public partial class ProjectManager
                     p.SetProperty("EnableSingleFileAnalyzer", "true");
                     p.SetProperty("EnableAotAnalyzer", "true");
                     p.SetProperty("AndroidEnableMarshalMethods", "false");
-                    p.SetProperty("AndroidEnableProguard", "true");
-                    p.SetProperty("AndroidLinkTool", "r8");
-                    p.SetProperty("AndroidEnableResourceShrinking", "true");
                     p.SetProperty("PublishTrimmed", "true");
 
                     releaseProperty.SetProperty("AndroidLinkMode", "Full");

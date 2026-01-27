@@ -1,9 +1,10 @@
-﻿using SDL3;
+﻿using SDL;
 using System;
 
 namespace Staple.Internal;
 
-internal class SDLGPUUpdateVertexBufferCommand(SDLGPURendererBackend backend, ResourceHandle<VertexBuffer> handle, byte[] data) : IRenderCommand
+internal unsafe class SDLGPUUpdateVertexBufferCommand(SDLGPURendererBackend backend, ResourceHandle<VertexBuffer> handle, byte[] data) :
+    IRenderCommand
 {
     public void Update()
     {
@@ -12,80 +13,70 @@ internal class SDLGPUUpdateVertexBufferCommand(SDLGPURendererBackend backend, Re
             return;
         }
 
-        if (buffer.buffer == nint.Zero || buffer.length != data.Length)
+        if (buffer.buffer == null || buffer.length != data.Length)
         {
             buffer.length = data.Length;
 
-            if (buffer.buffer != nint.Zero)
+            if (buffer.buffer != null)
             {
-                SDL.ReleaseGPUBuffer(backend.device, buffer.buffer);
+                SDL3.SDL_ReleaseGPUBuffer(backend.device, buffer.buffer);
 
-                buffer.transferBuffer = nint.Zero;
-                buffer.buffer = nint.Zero;
+                buffer.transferBuffer = null;
+                buffer.buffer = null;
             }
 
-            var usageFlags = SDL.GPUBufferUsageFlags.Vertex;
+            var usageFlags = SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_VERTEX;
 
             if (buffer.flags.HasFlag(RenderBufferFlags.GraphicsRead))
             {
-                usageFlags |= SDL.GPUBufferUsageFlags.GraphicsStorageRead;
+                usageFlags |= SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ;
             }
 
             if (buffer.flags.HasFlag(RenderBufferFlags.ComputeRead))
             {
-                usageFlags |= SDL.GPUBufferUsageFlags.ComputeStorageRead;
+                usageFlags |= SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_READ;
             }
 
             if (buffer.flags.HasFlag(RenderBufferFlags.ComputeWrite))
             {
-                usageFlags |= SDL.GPUBufferUsageFlags.ComputeStorageWrite;
+                usageFlags |= SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_COMPUTE_STORAGE_WRITE;
             }
 
-            var createInfo = new SDL.GPUBufferCreateInfo()
+            var createInfo = new SDL_GPUBufferCreateInfo()
             {
-                Size = (uint)data.Length,
-                Usage = usageFlags,
+                size = (uint)data.Length,
+                usage = usageFlags,
             };
 
-            buffer.buffer = SDL.CreateGPUBuffer(backend.device, in createInfo);
+            buffer.buffer = SDL3.SDL_CreateGPUBuffer(backend.device, &createInfo);
 
-            if (buffer.buffer == nint.Zero)
+            if (buffer.buffer == null)
             {
                 return;
             }
 
             buffer.transferBuffer = backend.GetTransferBuffer(false, data.Length);
 
-            if (buffer.transferBuffer == nint.Zero)
+            if (buffer.transferBuffer == null)
             {
-                SDL.ReleaseGPUBuffer(backend.device, buffer.buffer);
+                SDL3.SDL_ReleaseGPUBuffer(backend.device, buffer.buffer);
 
-                buffer.buffer = nint.Zero;
+                buffer.buffer = null;
 
                 return;
             }
         }
 
-        if(backend.renderPass != nint.Zero)
-        {
-            backend.FinishPasses();
-        }
-
-        if(backend.copyPass == nint.Zero)
-        {
-            backend.copyPass = SDL.BeginGPUCopyPass(backend.commandBuffer);
-        }
-
-        if (backend.copyPass == nint.Zero)
+        if (!backend.BeginCopyPass())
         {
             return;
         }
 
-        var mapData = SDL.MapGPUTransferBuffer(backend.device, buffer.transferBuffer, true);
+        var mapData = SDL3.SDL_MapGPUTransferBuffer(backend.device, buffer.transferBuffer, true);
 
         unsafe
         {
-            fixed(byte *ptr = data)
+            fixed (byte* ptr = data)
             {
                 var from = new Span<byte>(ptr, data.Length);
                 var to = new Span<byte>((void*)mapData, data.Length);
@@ -94,19 +85,19 @@ internal class SDLGPUUpdateVertexBufferCommand(SDLGPURendererBackend backend, Re
             }
         }
 
-        SDL.UnmapGPUTransferBuffer(backend.device, buffer.transferBuffer);
+        SDL3.SDL_UnmapGPUTransferBuffer(backend.device, buffer.transferBuffer);
 
-        var location = new SDL.GPUTransferBufferLocation()
+        var location = new SDL_GPUTransferBufferLocation()
         {
-            TransferBuffer = buffer.transferBuffer,
+            transfer_buffer = buffer.transferBuffer,
         };
 
-        var region = new SDL.GPUBufferRegion()
+        var region = new SDL_GPUBufferRegion()
         {
-            Buffer = buffer.buffer,
-            Size = (uint)data.Length,
+            buffer = buffer.buffer,
+            size = (uint)data.Length,
         };
 
-        SDL.UploadToGPUBuffer(backend.copyPass, in location, in region, false);
+        SDL3.SDL_UploadToGPUBuffer(backend.copyPass, &location, &region, false);
     }
 }

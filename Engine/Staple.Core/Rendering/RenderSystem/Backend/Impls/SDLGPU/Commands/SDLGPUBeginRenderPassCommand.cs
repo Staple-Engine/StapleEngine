@@ -1,9 +1,9 @@
-﻿using SDL3;
+﻿using SDL;
 using System.Numerics;
 
 namespace Staple.Internal;
 
-internal class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend, RenderTarget target, CameraClearMode clearMode,
+internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend, RenderTarget target, CameraClearMode clearMode,
     Color clearColor, Vector4 viewport, in Matrix4x4 view, in Matrix4x4 projection) : IRenderCommand
 {
     public Matrix4x4 view = view;
@@ -11,7 +11,7 @@ internal class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend, Rende
 
     public void Update()
     {
-        if(backend.commandBuffer == nint.Zero)
+        if (backend.commandBuffer == null)
         {
             return;
         }
@@ -25,7 +25,7 @@ internal class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend, Rende
         backend.viewData.renderData.view = view;
         backend.viewData.renderData.projection = projection;
 
-        var texture = nint.Zero;
+        SDL_GPUTexture *texture = null;
         var width = 0;
         var height = 0;
 
@@ -48,7 +48,7 @@ internal class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend, Rende
         }
         else
         {
-            if(target.ColorTextureCount > 0 &&
+            if (target.ColorTextureCount > 0 &&
                 target.colorTextures[0].impl is SDLGPUTexture t &&
                 backend.TryGetTexture(t.handle, out var textureResource))
             {
@@ -61,66 +61,66 @@ internal class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend, Rende
             depthTexture = target.DepthTexture?.impl as SDLGPUTexture;
         }
 
-        if (texture == nint.Zero ||
+        if (texture == null ||
             (depthTexture?.Disposed ?? true) ||
             !backend.TryGetTexture(depthTexture.handle, out var depthTextureResource))
         {
             return;
         }
 
-        var colorTarget = new SDL.GPUColorTargetInfo()
+        var colorTarget = new SDL_GPUColorTargetInfo()
         {
-            ClearColor = new()
+            clear_color = new()
             {
-                R = clearColor.r,
-                G = clearColor.g,
-                B = clearColor.b,
-                A = clearColor.a,
+                r = clearColor.r,
+                g = clearColor.g,
+                b = clearColor.b,
+                a = clearColor.a,
             },
-            LoadOp = clearMode switch
+            load_op = clearMode switch
             {
-                CameraClearMode.None or CameraClearMode.Depth => SDL.GPULoadOp.Load,
-                _ => SDL.GPULoadOp.Clear,
+                CameraClearMode.None or CameraClearMode.Depth => SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+                _ => SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
             },
-            StoreOp = SDL.GPUStoreOp.Store,
-            Texture = texture,
+            store_op = SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
+            texture = texture,
         };
 
-        var depthTarget = new SDL.GPUDepthStencilTargetInfo()
+        var depthTarget = new SDL_GPUDepthStencilTargetInfo()
         {
-            ClearDepth = 1,
-            LoadOp = clearMode switch
+            clear_depth = 1,
+            load_op = clearMode switch
             {
-                CameraClearMode.None => SDL.GPULoadOp.Load,
-                _ => SDL.GPULoadOp.Clear,
+                CameraClearMode.None => SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+                _ => SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
             },
-            StoreOp = SDL.GPUStoreOp.Store,
-            Texture = depthTextureResource.texture,
-            StencilLoadOp = clearMode switch
+            store_op = SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
+            texture = depthTextureResource.texture,
+            stencil_load_op = clearMode switch
             {
-                CameraClearMode.None => SDL.GPULoadOp.Load,
-                _ => SDL.GPULoadOp.Clear,
+                CameraClearMode.None => SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
+                _ => SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
             },
-            StencilStoreOp = SDL.GPUStoreOp.Store,
+            stencil_store_op = SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
         };
 
-        backend.renderPass = SDL.BeginGPURenderPass(backend.commandBuffer, [colorTarget], 1, in depthTarget);
+        backend.renderPass = SDL3.SDL_BeginGPURenderPass(backend.commandBuffer, &colorTarget, 1, &depthTarget);
 
-        if (backend.renderPass == nint.Zero)
+        if (backend.renderPass == null)
         {
             return;
         }
 
-        var viewportData = new SDL.GPUViewport()
+        var viewportData = new SDL_GPUViewport()
         {
-            X = (int)(viewport.X * width),
-            Y = (int)(viewport.Y * height),
-            W = (int)(viewport.Z * width),
-            H = (int)(viewport.W * height),
-            MinDepth = 0,
-            MaxDepth = 1,
+            x = (int)(viewport.X * width),
+            y = (int)(viewport.Y * height),
+            w = (int)(viewport.Z * width),
+            h = (int)(viewport.W * height),
+            min_depth = 0,
+            max_depth = 1,
         };
 
-        SDL.SetGPUViewport(backend.renderPass, in viewportData);
+        SDL3.SDL_SetGPUViewport(backend.renderPass, &viewportData);
     }
 }

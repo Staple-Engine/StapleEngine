@@ -1,43 +1,34 @@
-﻿using SDL3;
+﻿using SDL;
 using System;
 
 namespace Staple.Internal;
 
-internal class SDLGPUUpdateTextureCommand(SDLGPURendererBackend backend, ResourceHandle<Texture> handle, byte[] data) : IRenderCommand
+internal unsafe class SDLGPUUpdateTextureCommand(SDLGPURendererBackend backend, ResourceHandle<Texture> handle, byte[] data) :
+    IRenderCommand
 {
     public void Update()
     {
-        if(!backend.TryGetTexture(handle, out var resource) || !resource.used)
+        if (!backend.TryGetTexture(handle, out var resource) || !resource.used)
         {
             return;
         }
 
-        if(resource.length != data.Length || resource.transferBuffer == nint.Zero)
+        if (resource.length != data.Length || resource.transferBuffer == null)
         {
             resource.transferBuffer = backend.GetTransferBuffer(false, data.Length);
 
-            if (resource.transferBuffer == nint.Zero)
+            if (resource.transferBuffer == null)
             {
                 return;
             }
         }
 
-        if(backend.renderPass != nint.Zero)
-        {
-            backend.FinishPasses();
-        }
-
-        if(backend.copyPass == nint.Zero)
-        {
-            backend.copyPass = SDL.BeginGPUCopyPass(backend.commandBuffer);
-        }
-
-        if (backend.copyPass == nint.Zero)
+        if (!backend.BeginCopyPass())
         {
             return;
         }
 
-        var mapData = SDL.MapGPUTransferBuffer(backend.device, resource.transferBuffer, true);
+        var mapData = SDL3.SDL_MapGPUTransferBuffer(backend.device, resource.transferBuffer, true);
 
         unsafe
         {
@@ -46,24 +37,24 @@ internal class SDLGPUUpdateTextureCommand(SDLGPURendererBackend backend, Resourc
             data.CopyTo(to);
         }
 
-        SDL.UnmapGPUTransferBuffer(backend.device, resource.transferBuffer);
+        SDL3.SDL_UnmapGPUTransferBuffer(backend.device, resource.transferBuffer);
 
-        var textureInfo = new SDL.GPUTextureTransferInfo()
+        var textureInfo = new SDL_GPUTextureTransferInfo()
         {
-            Offset = 0,
-            PixelsPerRow = (uint)resource.width,
-            RowsPerLayer = (uint)resource.height,
-            TransferBuffer = resource.transferBuffer,
+            offset = 0,
+            pixels_per_row = (uint)resource.width,
+            rows_per_layer = (uint)resource.height,
+            transfer_buffer = resource.transferBuffer,
         };
 
-        var destination = new SDL.GPUTextureRegion()
+        var destination = new SDL_GPUTextureRegion()
         {
-            Texture = resource.texture,
-            W = (uint)resource.width,
-            H = (uint)resource.height,
-            D = 1,
+            texture = resource.texture,
+            w = (uint)resource.width,
+            h = (uint)resource.height,
+            d = 1,
         };
 
-        SDL.UploadToGPUTexture(backend.copyPass, in textureInfo, in destination, false);
+        SDL3.SDL_UploadToGPUTexture(backend.copyPass, &textureInfo, &destination, false);
     }
 }

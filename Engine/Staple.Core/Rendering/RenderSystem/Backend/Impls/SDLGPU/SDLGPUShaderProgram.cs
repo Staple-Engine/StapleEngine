@@ -1,21 +1,21 @@
-﻿using SDL3;
+﻿using SDL;
 using System;
 
 namespace Staple.Internal;
 
-internal class SDLGPUShaderProgram : IShaderProgram
+internal unsafe class SDLGPUShaderProgram : IShaderProgram
 {
     public ShaderType Type { get; }
 
-    public int StateKey => HashCode.Combine(device, vertex, fragment, compute, disposed);
+    public int StateKey => HashCode.Combine((nint)device, (nint)vertex, (nint)fragment, (nint)compute, disposed);
 
-    public readonly nint device;
-    public nint vertex;
-    public nint fragment;
-    public nint compute;
+    public readonly SDL_GPUDevice *device;
+    public SDL_GPUShader *vertex;
+    public SDL_GPUShader *fragment;
+    public SDL_GPUComputePipeline *compute;
     public bool disposed = false;
 
-    public SDLGPUShaderProgram(nint device, nint vertex, nint fragment)
+    public SDLGPUShaderProgram(SDL_GPUDevice *device, SDL_GPUShader *vertex, SDL_GPUShader *fragment)
     {
         Type = ShaderType.VertexFragment;
 
@@ -24,7 +24,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
         this.fragment = fragment;
     }
 
-    public SDLGPUShaderProgram(nint device, nint compute)
+    public SDLGPUShaderProgram(SDL_GPUDevice* device, SDL_GPUComputePipeline* compute)
     {
         Type = ShaderType.Compute;
 
@@ -34,7 +34,7 @@ internal class SDLGPUShaderProgram : IShaderProgram
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(device, vertex, fragment, compute, disposed);
+        return HashCode.Combine((nint)device, (nint)vertex, (nint)fragment, (nint)compute, disposed);
     }
 
     public void Destroy()
@@ -50,19 +50,19 @@ internal class SDLGPUShaderProgram : IShaderProgram
         {
             case ShaderType.VertexFragment:
 
-                SDL.ReleaseGPUShader(device, vertex);
-                SDL.ReleaseGPUShader(device, fragment);
+                SDL3.SDL_ReleaseGPUShader(device, vertex);
+                SDL3.SDL_ReleaseGPUShader(device, fragment);
 
-                vertex = nint.Zero;
-                fragment = nint.Zero;
+                vertex = null;
+                fragment = null;
 
                 break;
 
             case ShaderType.Compute:
 
-                SDL.ReleaseGPUShader(device, compute);
+                SDL3.SDL_ReleaseGPUComputePipeline(device, compute);
 
-                compute = nint.Zero;
+                compute = null;
 
                 break;
         }
