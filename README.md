@@ -16,9 +16,9 @@ Early state, usable for small demos
 |------|------------|
 | Platforms | <ul><li>Windows</li><li>Linux</li><li>MacOS (partial)</li><li>Android</li></ul>
 | Editor | <ul><li>Editor app that handles project management, asset editing, and building games</li><li>Extend the editor through game code</li></ul> |
-| Entity System | <ul><li>Component + System</li><li>Also supports MonoBehaviour-style</li></ul> |
+| Entity System | <ul><li>Component + System</li><li>Also supports MonoBehaviour-style Callback Components</li></ul> |
 | Assets | <ul><li>Custom asset system easily defined in code</li><li>Asset pipeline baker tool that imports resources into engine-ready formats</li></ul>|
-| Graphics | <ul><li>Forward rendering using BGFX</li><li>Custom shader format with support for variants</li><li>Shaders and Compute Shaders</li><li>Material system with support for toggling variants based on parameters being set</li><li>Culling Volumes for culling parts of the world efficiently</li></ul> |
+| Graphics | <ul><li>Forward rendering using SDL GPU</li><li>Custom shader format with support for variants, with support for [slang](https://shader-slang.org/)</li><li>Shaders and Compute Shaders</li><li>Material system with support for toggling variants based on parameters being set</li><li>Culling Volumes for culling parts of the world efficiently</li></ul> |
 | Input | <ul><li>Keyboard, Mouse, Touch, Gamepad support</li><li>Input Actions</li></ul> |
 | Physics | <ul><li>Jolt Physics</li><li>Physics Interpolation</li></ul> |
 | Audio | <ul><li>Supports loading OGG, MP3, and WAV audio formats</li><li>OpenAL-based playback</li><li>Supports optional recompression for WAV assets</li></ul> |
@@ -41,7 +41,7 @@ You need [premake](https://premake.github.io/) to generate some project files, a
 
 <summary>Windows</summary>
 
-You need visual studio 2022.
+You need visual studio 2026.
 
 To compile dependencies, open the visual studio dev terminal, go to the `Dependencies` directory, and run `build_windows`.
 
@@ -57,7 +57,7 @@ After building the tools, go to the main folder of the repo and run `builddefaul
 
 <summary>MacOS</summary>
 
-You need xcode.
+You need xcode and .NET 10 SDK.
 
 To compile dependencies, go to `Dependencies` and run `build_macos.sh`.
 
@@ -65,7 +65,7 @@ After that, you will need to compile the engine, so go to `Engine` and run `buil
 
 After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh` (yes, that's the right file).
 
-After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assets. Do notice that we can't build windows direct3D shaders in macOS, so you'll be limited to OpenGL, Metal, and Vulkan there.
+After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assets. Do notice that we can't build windows direct3D shaders in macOS, so you'll be limited to Metal and Vulkan there.
 
 </details>
 
@@ -86,7 +86,7 @@ sudo apt install premake git build-essential libxi-dev libxinerama-dev libxrandr
 ```bash
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
 chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version 10.0.100-rc.1.25451.107
+./dotnet-install.sh --version 10.0.100
 ```
 
 ##### Don't forget to add to your shell
@@ -107,7 +107,7 @@ sudo pacman -S premake git base-devel libxi libxinerama libxcursor libx11 gtk3 c
 ```bash
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
 chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version 10.0.100-rc.1.25451.107
+./dotnet-install.sh --version 10.0.100
 ```
 
 ##### Don't forget to add to your shell
@@ -127,5 +127,5 @@ Optionally, run `make_linux_menu_entry.sh` which should add an entry on your DE'
 
 After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh`.
 
-After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assts. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to OpenGL, Metal, and Vulkan there.
+After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assts. Do notice that we can't build windows direct3D shaders in linux, so you'll be limited to Metal and Vulkan there.
 </details>
