@@ -261,6 +261,35 @@ public partial class StapleActivity : SDLActivity
         }
     }
 
+    public override void OnWindowFocusChanged(bool hasFocus)
+    {
+        base.OnWindowFocusChanged(hasFocus);
+
+        if (hasFocus)
+        {
+            if (OperatingSystem.IsAndroidVersionAtLeast(35))
+            {
+                Window.InsetsController.Hide(WindowInsets.Type.SystemBars());
+                Window.InsetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+            }
+            else if (OperatingSystem.IsAndroidVersionAtLeast(30))
+            {
+                Window.SetDecorFitsSystemWindows(false);
+                Window.InsetsController.Hide(WindowInsets.Type.SystemBars());
+                Window.InsetsController.SystemBarsBehavior = (int)WindowInsetsControllerBehavior.ShowTransientBarsBySwipe;
+            }
+            else if (OperatingSystem.IsAndroidVersionAtLeast(19))
+            {
+                Window.DecorView.SystemUiFlags = SystemUiFlags.LayoutStable |
+                    SystemUiFlags.LayoutHideNavigation |
+                    SystemUiFlags.LayoutFullscreen |
+                    SystemUiFlags.HideNavigation |
+                    SystemUiFlags.Fullscreen |
+                    SystemUiFlags.ImmersiveSticky;
+            }
+        }
+    }
+
     protected override void OnCreate(Bundle savedInstanceState)
     {
         if (OperatingSystem.IsAndroidVersionAtLeast(23))
@@ -286,6 +315,15 @@ public partial class StapleActivity : SDLActivity
             //AndroidRenderWindow.Instance.refreshRate = (int)maxHZ;
 
             Window.Attributes = p;
+        }
+
+        RequestWindowFeature(WindowFeatures.NoTitle);
+
+        Window.SetFlags(WindowManagerFlags.Fullscreen, WindowManagerFlags.Fullscreen);
+
+        if (OperatingSystem.IsAndroidVersionAtLeast(30))
+        {
+            Window.Attributes.LayoutInDisplayCutoutMode = LayoutInDisplayCutoutMode.Always;
         }
 
         base.OnCreate(savedInstanceState);
