@@ -45,9 +45,9 @@ public class AndroidBuildProcessor : IBuildPreprocessor
                     break;
                 }
 
-                if (iconTexture.Resize(pair.Value.FirstOrDefault(), pair.Value.FirstOrDefault()) == false ||
-                    backgroundTexture.Resize(pair.Value.LastOrDefault(), pair.Value.LastOrDefault()) == false ||
-                    foregroundTexture.Resize(pair.Value.LastOrDefault(), pair.Value.LastOrDefault()) == false)
+                if (!iconTexture.Resize(pair.Value.FirstOrDefault(), pair.Value.FirstOrDefault()) ||
+                    !backgroundTexture.Resize(pair.Value.LastOrDefault(), pair.Value.LastOrDefault()) ||
+                    !foregroundTexture.Resize(pair.Value.LastOrDefault(), pair.Value.LastOrDefault()))
                 {
                     break;
                 }
@@ -56,9 +56,9 @@ public class AndroidBuildProcessor : IBuildPreprocessor
 
                 StorageUtils.CreateDirectory(resourcePath);
 
-                if(StorageUtils.WriteFile(Path.Combine(resourcePath, "appicon.png"), iconTexture.EncodePNG()) == false ||
-                    StorageUtils.WriteFile(Path.Combine(resourcePath, "appicon_background.png"), backgroundTexture.EncodePNG()) == false ||
-                    StorageUtils.WriteFile(Path.Combine(resourcePath, "appicon_foreground.png"), foregroundTexture.EncodePNG()) == false)
+                if(!StorageUtils.WriteFile(Path.Combine(resourcePath, "appicon.png"), iconTexture.EncodePNG()) ||
+                    !StorageUtils.WriteFile(Path.Combine(resourcePath, "appicon_background.png"), backgroundTexture.EncodePNG()) ||
+                    !StorageUtils.WriteFile(Path.Combine(resourcePath, "appicon_foreground.png"), foregroundTexture.EncodePNG()))
                 {
                     Log.Debug($"{GetType().Name}: Failed to process app icon: Failed to process app icon {pair.Key}");
 
@@ -79,14 +79,14 @@ public class AndroidBuildProcessor : IBuildPreprocessor
 </resources>
 """;
 
-        if (StorageUtils.WriteFile(Path.Combine(projectDirectory, "Resources", "values", "strings.xml"), strings) == false)
+        if (!StorageUtils.WriteFile(Path.Combine(projectDirectory, "Resources", "values", "strings.xml"), strings))
         {
             return BuildProcessorResult.Failed;
         }
 
         var orientationType = "Unspecified";
 
-        if (projectAppSettings.portraitOrientation == false || projectAppSettings.landscapeOrientation == false)
+        if (!projectAppSettings.portraitOrientation || !projectAppSettings.landscapeOrientation)
         {
             if (projectAppSettings.portraitOrientation)
             {
@@ -126,7 +126,7 @@ public class PlayerActivity : StapleActivity
 }
 """;
 
-        if (StorageUtils.WriteFile(Path.Combine(projectDirectory, "PlayerActivity.cs"), activity) == false)
+        if (!StorageUtils.WriteFile(Path.Combine(projectDirectory, "PlayerActivity.cs"), activity))
         {
             return BuildProcessorResult.Failed;
         }

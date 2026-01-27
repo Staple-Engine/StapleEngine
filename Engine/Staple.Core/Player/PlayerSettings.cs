@@ -25,18 +25,6 @@ internal class PlayerSettings
 
     public bool maximized { get; set; } = false;
 
-    [JsonIgnore]
-    public int AALevel
-    {
-        get
-        {
-            return videoFlags.HasFlag(VideoFlags.MSAAX2) ? 2 :
-                videoFlags.HasFlag(VideoFlags.MSAAX4) ? 4 :
-                videoFlags.HasFlag(VideoFlags.MSAAX8) ? 8 :
-                videoFlags.HasFlag(VideoFlags.MSAAX16) ? 16 : 0;
-        }
-    }
-
     public static PlayerSettings Load(AppSettings appSettings)
     {
         try

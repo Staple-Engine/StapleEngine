@@ -28,27 +28,26 @@ public static partial class ShaderParser
     public class ShaderPiece
     {
         public string content;
-        public List<string> inputs = [];
-        public List<string> outputs = [];
     }
 
-    private static Regex parametersRegex = ParametersRegex();
-    private static Regex vertexRegex = VertexRegex();
-    private static Regex fragmentRegex = FragmentRegex();
-    private static Regex computeRegex = ComputeRegex();
-    private static Regex parameterRegex = ParameterRegex();
-    private static Regex inputRegex = InputRegex();
-    private static Regex outputRegex = OutputRegex();
-    private static Regex blendRegex = BlendRegex();
-    private static Regex variantsRegex = VariantsRegex();
-    private static Regex bufferRegex = BufferRegex();
-    private static Regex instancingRegex = InstancingRegex();
-    private static Regex instancingParameterRegex = InstancingParameterRegex();
+    private static readonly Regex parametersRegex = ParametersRegex();
+    private static readonly Regex vertexRegex = VertexRegex();
+    private static readonly Regex fragmentRegex = FragmentRegex();
+    private static readonly Regex computeRegex = ComputeRegex();
+    private static readonly Regex commonRegex = CommonRegex();
+    private static readonly Regex parameterRegex = ParameterRegex();
+    private static readonly Regex vertexInputRegex = VertexInputRegex();
+    private static readonly Regex vertexInputElementRegex = VertexInputElementRegex();
+    private static readonly Regex blendRegex = BlendRegex();
+    private static readonly Regex variantsRegex = VariantsRegex();
+    private static readonly Regex bufferRegex = BufferRegex();
+    private static readonly Regex instancingRegex = InstancingRegex();
+    private static readonly Regex instancingParameterRegex = InstancingParameterRegex();
 
-    [GeneratedRegex("(\\[\\w+\\] )?(variant\\: \\w+ )?(varying|uniform) (\\w+) (\\w+)(([ ]*)\\:([ ]*)(\\w+))?(([ ]*)\\=([ ]*)(.*))?")]
+    [GeneratedRegex("(\\[\\w+\\] )?(variant\\: \\w+ )?([ ]*)(\\w+) (\\w+)(([ ]*)\\:([ ]*)(\\w+))?(([ ]*)\\=([ ]*)(.*))?")]
     private static partial Regex ParameterRegex();
 
-    [GeneratedRegex("(ROBuffer|RWBuffer|WOBuffer)\\<(\\w+)\\>([ ]*)(\\w+)([ ]*)\\:([ ]*)([0-9]+)")]
+    [GeneratedRegex("(ROBuffer|RWBuffer|WOBuffer)\\<(\\w+)\\>([ ]*)(\\w+)([ ]*)")]
     private static partial Regex BufferRegex();
 
     [GeneratedRegex("Begin Vertex((.|\\n)*)End Vertex")]
@@ -60,6 +59,9 @@ public static partial class ShaderParser
     [GeneratedRegex("Begin Compute((.|\\n)*)End Compute")]
     private static partial Regex ComputeRegex();
 
+    [GeneratedRegex("Begin Common((.|\\n)*)End Common")]
+    private static partial Regex CommonRegex();
+
     [GeneratedRegex("Begin Parameters((.|\\n)*)End Parameters")]
     private static partial Regex ParametersRegex();
 
@@ -69,11 +71,11 @@ public static partial class ShaderParser
     [GeneratedRegex("(\\w+) (\\w+)")]
     private static partial Regex InstancingParameterRegex();
 
-    [GeneratedRegex("\\$input (.*)")]
-    private static partial Regex InputRegex();
+    [GeneratedRegex("Begin Input((.|\\n)*)End Input")]
+    private static partial Regex VertexInputRegex();
 
-    [GeneratedRegex("\\$output (.*)")]
-    private static partial Regex OutputRegex();
+    [GeneratedRegex("(variant\\: (?:[^|\\s]+\\|)*[^|\\s]+)?([ ]*)(\\w+)")]
+    private static partial Regex VertexInputElementRegex();
 
     [GeneratedRegex("Blend (.*) (.*)")]
     private static partial Regex BlendRegex();
@@ -82,10 +84,12 @@ public static partial class ShaderParser
     private static partial Regex VariantsRegex();
 
     public static bool Parse(string source, ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
-        out List<string> variants, out List<InstanceParameter> instanceParameters, out ShaderPiece vertex, out ShaderPiece fragment,
-        out ShaderPiece compute)
+        out List<string> variants, out List<InstanceParameter> instanceParameters, out Dictionary<string, List<VertexAttribute>> vertexInputs,
+        out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
     {
-        if(type == ShaderType.VertexFragment)
+        vertexInputs = [];
+
+        if (type == ShaderType.VertexFragment)
         {
             var variantsMatch = variantsRegex.Match(source);
 
@@ -100,9 +104,9 @@ public static partial class ShaderParser
 
             var blendMatch = blendRegex.Match(source);
 
-            if (blendMatch.Success == false ||
-                Enum.TryParse<BlendMode>(blendMatch.Groups[1].Value, true, out var from) == false ||
-                Enum.TryParse<BlendMode>(blendMatch.Groups[2].Value, true, out var to) == false)
+            if (!blendMatch.Success ||
+                !Enum.TryParse<BlendMode>(blendMatch.Groups[1].Value, true, out var from) ||
+                !Enum.TryParse<BlendMode>(blendMatch.Groups[2].Value, true, out var to))
             {
                 blendMode = default;
             }
@@ -132,7 +136,6 @@ public static partial class ShaderParser
             {
                 var parameter = new Parameter
                 {
-                    type = match.Groups[3].Value.Trim(),
                     dataType = match.Groups[4].Value.Trim(),
                     name = match.Groups[5].Value.Trim(),
                     vertexAttribute = match.Groups[9].Value.Trim(),
@@ -142,12 +145,12 @@ public static partial class ShaderParser
                 var attribute = match.Groups[1].Value.Trim();
                 var variant = match.Groups[2].Value.Trim();
 
-                if((attribute?.Length ?? 0) > 0)
+                if(!string.IsNullOrEmpty(attribute))
                 {
                     parameter.attribute = attribute[1..^1];
                 }
 
-                if((variant?.Length ?? 0) > 0)
+                if(!string.IsNullOrEmpty(variant))
                 {
                     parameter.variant = variant["variant: ".Length..];
                 }
@@ -165,28 +168,13 @@ public static partial class ShaderParser
                 parameterList.Add(parameter);
             }
 
-            foreach(Match match in bufferMatches)
+            foreach (Match match in bufferMatches)
             {
-                if(int.TryParse(match.Groups[7].Value.Trim(), out var bufferIndex) == false)
-                {
-                    type = default;
-                    parameters = default;
-                    variants = [];
-                    vertex = default;
-                    fragment = default;
-                    compute = default;
-                    blendMode = default;
-                    instanceParameters = default;
-
-                    return false;
-                }
-
                 var parameter = new Parameter
                 {
                     type = match.Groups[1].Value.Trim(),
                     dataType = match.Groups[2].Value.Trim(),
                     name = match.Groups[4].Value.Trim(),
-                    initializer = bufferIndex.ToString(),
                 };
 
                 parameterList.Add(parameter);
@@ -197,6 +185,62 @@ public static partial class ShaderParser
         else
         {
             parameters = default;
+        }
+
+        var inputMatch = vertexInputRegex.Match(source);
+
+        if (inputMatch.Success)
+        {
+            var inputs = inputMatch.Groups[1].Value.Trim().Split('\n').Select(x => x.Trim()).Where(x => x.Length > 0).ToArray();
+
+            for(var i = 0; i < inputs.Length; i++)
+            {
+                var match = vertexInputElementRegex.Match(inputs[i]);
+
+                if(match.Success)
+                {
+                    if (!Enum.TryParse<VertexAttribute>(match.Groups[3].Value, true, out var attribute))
+                    {
+                        type = default;
+                        parameters = default;
+                        variants = [];
+                        vertex = default;
+                        fragment = default;
+                        compute = default;
+                        blendMode = default;
+                        instanceParameters = default;
+                        vertexInputs = default;
+
+                        return false;
+                    }
+
+                    var keys = match.Groups[1].Value.Trim().Split('|');
+
+                    foreach(var key in keys)
+                    {
+                        var target = key;
+
+                        if(key.Length > 0)
+                        {
+                            if(key.StartsWith("variant: "))
+                            {
+                                target = target["variant: ".Length..];
+                            }
+                        }
+
+                        vertexInputs ??= [];
+
+                        if (!vertexInputs.TryGetValue(target, out var list))
+                        {
+                            list = [];
+
+                            vertexInputs.Add(target, list);
+                        }
+
+                        list.Add(attribute);
+                    }
+                }
+            }
         }
 
         void HandleContent(Regex regex, out ShaderPiece piece)
@@ -219,24 +263,6 @@ public static partial class ShaderParser
                     content = content,
                 };
 
-                var inputMatch = inputRegex.Match(piece.content);
-
-                if(inputMatch.Success && inputMatch.Length > 0)
-                {
-                    piece.inputs = inputMatch.Groups[1].Value.Split(",").Select(x => x.Trim()).ToList();
-
-                    piece.content = piece.content.Replace($"{inputMatch.Value}\n", "");
-                }
-
-                var outputMatch = outputRegex.Match(piece.content);
-
-                if (outputMatch.Success && outputMatch.Length > 0)
-                {
-                    piece.outputs = outputMatch.Groups[1].Value.Split(",").Select(x => x.Trim()).ToList();
-
-                    piece.content = piece.content.Replace($"{outputMatch.Value}\n", "");
-                }
-
                 piece.content = piece.content.Trim();
             }
             else
@@ -247,8 +273,15 @@ public static partial class ShaderParser
 
         if(type == ShaderType.VertexFragment)
         {
+            HandleContent(commonRegex, out var common);
             HandleContent(vertexRegex, out vertex);
             HandleContent(fragmentRegex, out fragment);
+
+            if(common != null)
+            {
+                vertex?.content = $"{common.content}\n\n{vertex.content}";
+                fragment?.content = $"{common.content}\n\n{fragment.content}";
+            }
 
             compute = default;
 
@@ -282,7 +315,13 @@ public static partial class ShaderParser
         }
         else
         {
+            HandleContent(commonRegex, out var common);
             HandleContent(computeRegex, out compute);
+
+            if (common != null)
+            {
+                compute?.content = $"{common.content}\n\n{compute.content}";
+            }
 
             vertex = default;
             fragment = default;

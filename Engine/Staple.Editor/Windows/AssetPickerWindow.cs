@@ -48,7 +48,7 @@ internal class AssetPickerWindow : EditorWindow
         {
             if ((assetPickerSearch?.Length ?? 0) > 0 &&
                 (pair.Value.Count == 0 ||
-                pair.Value[0].name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase) == false))
+                !pair.Value[0].name.Contains(assetPickerSearch, StringComparison.InvariantCultureIgnoreCase)))
             {
                 continue;
             }
@@ -62,7 +62,7 @@ internal class AssetPickerWindow : EditorWindow
 
             if(Array.IndexOf(ignoredGuids, asset.guid) >= 0 ||
                 assetPickerType.FullName != asset.typeName ||
-                (filter?.Invoke(asset.guid) ?? true) == false)
+                !(filter?.Invoke(asset.guid) ?? true))
             {
                 continue;
             }

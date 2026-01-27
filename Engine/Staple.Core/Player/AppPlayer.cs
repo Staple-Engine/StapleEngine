@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
 using System.IO;
 using System.Linq;
@@ -18,9 +17,15 @@ internal class AppPlayer
 
     private bool initialized = false;
 
-    public AppPlayer(string[] args, bool shouldConsoleLog)
+    private readonly bool skipFlow;
+
+    public AppPlayer(string[] args, bool shouldConsoleLog, bool skipFlow)
     {
         instance = this;
+
+#if _DEBUG
+        this.skipFlow = skipFlow;
+#endif
 
         Storage.Update(AppSettings.Current.appName, AppSettings.Current.companyName);
 
@@ -49,18 +54,6 @@ internal class AppPlayer
         }
     }
 
-    public void ResetRendering(bool hasFocus)
-    {
-        var flags = RenderSystem.ResetFlags(playerSettings.videoFlags);
-
-        if(hasFocus == false && AppSettings.Current.runInBackground == false)
-        {
-            flags |= bgfx.ResetFlags.Suspend;
-        }
-
-        AppEventQueue.instance.Add(AppEvent.ResetFlags(flags));
-    }
-
     public void Create()
     {
         playerSettings = PlayerSettings.Load(AppSettings.Current);
@@ -77,7 +70,7 @@ internal class AppPlayer
 
         renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
             playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
-            playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.ResetFlags(playerSettings.videoFlags));
+            playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.RenderFlags(playerSettings.videoFlags));
 
         if(renderWindow == null)
         {
@@ -114,27 +107,23 @@ internal class AppPlayer
 
                 Time.fixedDeltaTime = 1 / (float)AppSettings.Current.fixedTimeFrameRate;
 
-                bool hasFocus = renderWindow.window.IsFocused;
-
-                if (AppSettings.Current.runInBackground == false && hasFocus == false)
+                if(!skipFlow)
                 {
-                    ResetRendering(hasFocus);
+                    Scene.sceneList = ResourceManager.instance.LoadSceneList();
+
+                    if (Scene.sceneList == null || Scene.sceneList.Count == 0)
+                    {
+                        Log.Error($"Failed to load scene list");
+
+                        renderWindow.shouldStop = true;
+
+                        throw new Exception("Failed to load scene list");
+                    }
+
+                    Log.Info("Loaded scene list");
                 }
 
-                Scene.sceneList = ResourceManager.instance.LoadSceneList();
-
-                if (Scene.sceneList == null || Scene.sceneList.Count == 0)
-                {
-                    Log.Error($"Failed to load scene list");
-
-                    renderWindow.shouldStop = true;
-
-                    throw new Exception("Failed to load scene list");
-                }
-
-                Log.Info("Loaded scene list");
-
-                if (Physics3D.ImplType != null && Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)) == false)
+                if (Physics3D.ImplType != null && !Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)))
                 {
                     Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D");
 
@@ -208,20 +197,23 @@ internal class AppPlayer
                         (typeof(IEntitySystemFixedUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemFixedUpdate))),
                     (instance => EntitySystemManager.Instance.RegisterSystem(instance)));
 
-                var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
-
-                if (scene == null)
+                if (!skipFlow)
                 {
-                    Log.Error($"Failed to load main scene");
+                    var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
 
-                    renderWindow.shouldStop = true;
+                    if (scene == null)
+                    {
+                        Log.Error($"Failed to load main scene");
 
-                    throw new Exception("Failed to load main scene");
+                        renderWindow.shouldStop = true;
+
+                        throw new Exception("Failed to load main scene");
+                    }
+
+                    Scene.SetActiveScene(scene);
+
+                    Log.Info("Loaded first scene");
                 }
-
-                Scene.SetActiveScene(scene);
-
-                Log.Info("Loaded first scene");
 
                 Log.Info("Finished initializing");
 
@@ -231,7 +223,7 @@ internal class AppPlayer
 
         renderWindow.OnFixedUpdate = () =>
         {
-            if(initialized == false)
+            if(!initialized)
             {
                 return;
             }
@@ -243,7 +235,7 @@ internal class AppPlayer
 
         renderWindow.OnUpdate = () =>
         {
-            if (initialized == false)
+            if (!initialized)
             {
                 return;
             }
@@ -272,8 +264,6 @@ internal class AppPlayer
 
             playerSettings.monitorIndex = renderWindow.MonitorIndex;
             playerSettings.maximized = renderWindow.Maximized;
-
-            ResetRendering(focus);
 
             PlayerSettings.Save(playerSettings);
         };

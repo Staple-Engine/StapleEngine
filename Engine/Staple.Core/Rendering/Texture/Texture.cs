@@ -1,9 +1,7 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using StbImageSharp;
 using StbRectPackSharp;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace Staple;
@@ -13,35 +11,37 @@ namespace Staple;
 /// </summary>
 public class Texture : IGuidAsset
 {
-    internal bgfx.TextureHandle handle;
-    internal bgfx.TextureInfo info;
     internal TextureMetadata metadata;
     internal bool renderTarget = false;
+    internal ITexture impl;
 
     internal RawTextureData readbackData;
 
     private readonly ITextureCreateMethod createMethod;
 
-    private readonly GuidHasher guidHasher = new();
+    public GuidHasher Guid { get; } = new();
 
-    public GuidHasher Guid => guidHasher;
-
-    public bool Disposed { get; private set; } = false;
+    public bool Disposed => impl?.Disposed ?? true;
 
     /// <summary>
     /// The texture's width
     /// </summary>
-    public int Width => info.width;
+    public int Width => impl?.Width ?? 0;
 
     /// <summary>
     /// The texture's height
     /// </summary>
-    public int Height => info.height;
+    public int Height => impl?.Height ?? 0;
 
     /// <summary>
     /// The size of the texture as a Vector2Int
     /// </summary>
     public Vector2Int Size => new(Width, Height);
+
+    /// <summary>
+    /// The format of this texture
+    /// </summary>
+    public TextureFormat Format => impl?.Format ?? TextureFormat.RGBA8;
 
     /// <summary>
     /// The texture's sprite scale
@@ -52,30 +52,6 @@ public class Texture : IGuidAsset
     /// The contained sprites of this texture
     /// </summary>
     public Sprite[] Sprites { get; internal set; } = [];
-
-    /// <summary>
-    /// Create a texture from an existing bgfx texture
-    /// </summary>
-    /// <param name="textureHandle">The handle</param>
-    /// <param name="width">The texture's width</param>
-    /// <param name="height">The texture's height</param>
-    /// <param name="readBack">Whether it can be read back</param>
-    internal Texture(bgfx.TextureHandle textureHandle, ushort width, ushort height, bool readBack)
-    {
-        handle = textureHandle;
-        renderTarget = true;
-
-        metadata = new TextureMetadata()
-        {
-            readBack = readBack,
-        };
-
-        info = new bgfx.TextureInfo()
-        {
-            width = width,
-            height = height,
-        };
-    }
 
     internal Texture(ITextureCreateMethod createMethod)
     {
@@ -94,9 +70,11 @@ public class Texture : IGuidAsset
             return false;
         }
 
+        var ok = false;
+
         if(renderTarget || createMethod.Create(this))
         {
-            Disposed = false;
+            ok = true;
         }
 
         if((metadata?.sprites?.Count ?? 0) > 0)
@@ -119,7 +97,7 @@ public class Texture : IGuidAsset
             Sprites = sprites;
         }
 
-        return true;
+        return ok;
     }
 
     /// <summary>
@@ -132,14 +110,9 @@ public class Texture : IGuidAsset
             return;
         }
 
-        Disposed = true;
+        impl?.Destroy();
 
-        if (handle.Valid)
-        {
-            bgfx.destroy_texture(handle);
-
-            handle.idx = ushort.MaxValue;
-        }
+        impl = null;
     }
 
     /// <summary>
@@ -150,34 +123,16 @@ public class Texture : IGuidAsset
     public static object Create(string path) => ResourceManager.instance.LoadTexture(path);
 
     /// <summary>
-    /// Sets this texture active in a shader
-    /// </summary>
-    /// <param name="stage">The texture stage</param>
-    /// <param name="sampler">The sampler uniform</param>
-    internal void SetActive(byte stage, bgfx.UniformHandle sampler, TextureFlags flags = (TextureFlags)uint.MaxValue)
-    {
-        //CPU-Only
-        if(metadata.readBack)
-        {
-            return;
-        }
-
-        bgfx.set_texture(stage, sampler, handle, (uint)flags);
-    }
-
-    /// <summary>
     /// Creates an empty texture
     /// </summary>
     /// <param name="width">The texture width</param>
     /// <param name="height">The texture height</param>
-    /// <param name="hasMips">Whether to use mipmaps</param>
-    /// <param name="layers">How many layers to use</param>
     /// <param name="format">The texture format</param>
     /// <param name="flags">Additional texture flags</param>
     /// <returns>The texture or null</returns>
-    public static Texture CreateEmpty(ushort width, ushort height, bool hasMips, ushort layers, TextureFormat format, TextureFlags flags = TextureFlags.None)
+    public static Texture CreateEmpty(int width, int height, TextureFormat format, TextureFlags flags = TextureFlags.None)
     {
-        var texture = new Texture(new EmptyTextureCreateMethod(width, height, hasMips, layers, format, flags));
+        var texture = new Texture(new EmptyTextureCreateMethod(width, height, format, flags));
 
         if (texture.Create())
         {
@@ -235,11 +190,12 @@ public class Texture : IGuidAsset
 
             if (components == ColorComponents.Grey)
             {
-                var newData = new byte[imageData.Width * imageData.Height * 3];
+                var newData = new byte[imageData.Width * imageData.Height * 4];
 
-                for (int i = 0, index = 0; i < data.Length; i++, index += 3)
+                for (int i = 0, index = 0; i < data.Length; i++, index += 4)
                 {
                     newData[index] = newData[index + 1] = newData[index + 2] = data[i];
+                    newData[index + 3] = 255;
                 }
 
                 data = newData;
@@ -252,6 +208,20 @@ public class Texture : IGuidAsset
                 {
                     newData[index] = newData[index + 1] = newData[index + 2] = data[i];
                     newData[index + 3] = data[i + 1];
+                }
+
+                data = newData;
+            }
+            else if(components == ColorComponents.RedGreenBlue)
+            {
+                var newData = new byte[imageData.Width * imageData.Height * 4];
+
+                for (int i = 0, index = 0; i < data.Length; i++, index += 4)
+                {
+                    newData[index] = data[i];
+                    newData[index + 1] = data[i + 1];
+                    newData[index + 2] = data[i + 2];
+                    newData[index + 3] = 255;
                 }
 
                 data = newData;
@@ -292,31 +262,12 @@ public class Texture : IGuidAsset
                 return null;
             }
 
-            var format = TextureFormat.RGBA8;
-
-            switch (colorComponents)
-            {
-                case StandardTextureColorComponents.RGB:
-                case StandardTextureColorComponents.Greyscale:
-
-                    format = TextureFormat.RGB8;
-
-                    break;
-
-                case StandardTextureColorComponents.RGBA:
-                case StandardTextureColorComponents.GreyscaleAlpha:
-
-                    format = TextureFormat.RGBA8;
-
-                    break;
-            }
-
             return CreatePixels(path, rawData.data, (ushort)rawData.width, (ushort)rawData.height,
                 new TextureMetadata()
                 {
                     useMipmaps = false,
                 },
-                format, flags);
+                TextureFormat.RGBA8, flags);
         }
         catch (System.Exception e)
         {
@@ -356,14 +307,12 @@ public class Texture : IGuidAsset
     /// Creates a texture from file data
     /// </summary>
     /// <param name="path">The texture path</param>
-    /// <param name="data">The file data</param>
-    /// <param name="metadata">The texture metadata</param>
+    /// <param name="asset">The texture asset</param>
     /// <param name="flags">Additional texture flags</param>
-    /// <param name="skip">Which layers to skip</param>
     /// <returns>The texture or null</returns>
-    internal static Texture Create(string path, byte[] data, TextureMetadata metadata, TextureFlags flags = TextureFlags.None, byte skip = 0)
+    internal static Texture Create(string path, SerializableTexture asset, TextureFlags flags = TextureFlags.None)
     {
-        var texture = new Texture(new BGFXTextureCreateMethod(path, data, metadata, flags, skip));
+        var texture = new Texture(new TextureAssetCreateMethod(path, asset, flags));
 
         return texture.Create() ? texture : null;
     }
@@ -381,7 +330,7 @@ public class Texture : IGuidAsset
             case TextureType.Texture:
             case TextureType.Sprite:
 
-                if(metadata.isLinear == false)
+                if(!metadata.isLinear)
                 {
                     flags |= TextureFlags.SRGB;
                 }
@@ -389,22 +338,22 @@ public class Texture : IGuidAsset
                 break;
         }
 
-        if(ignoreWrap == false)
+        if(!ignoreWrap)
         {
             switch (metadata.wrapU)
             {
                 case TextureWrap.Repeat:
-                    //This is the default
+                    flags |= TextureFlags.RepeatU;
 
                     break;
 
                 case TextureWrap.Mirror:
-                    flags |= TextureFlags.SamplerUMirror;
+                    flags |= TextureFlags.MirrorU;
 
                     break;
 
                 case TextureWrap.Clamp:
-                    flags |= TextureFlags.SamplerUClamp;
+                    flags |= TextureFlags.ClampU;
 
                     break;
             }
@@ -412,17 +361,17 @@ public class Texture : IGuidAsset
             switch (metadata.wrapV)
             {
                 case TextureWrap.Repeat:
-                    //This is the default
+                    flags |= TextureFlags.RepeatV;
 
                     break;
 
                 case TextureWrap.Mirror:
-                    flags |= TextureFlags.SamplerVMirror;
+                    flags |= TextureFlags.MirrorV;
 
                     break;
 
                 case TextureWrap.Clamp:
-                    flags |= TextureFlags.SamplerVClamp;
+                    flags |= TextureFlags.ClampV;
 
                     break;
             }
@@ -430,17 +379,17 @@ public class Texture : IGuidAsset
             switch (metadata.wrapW)
             {
                 case TextureWrap.Repeat:
-                    //This is the default
+                    flags |= TextureFlags.RepeatW;
 
                     break;
 
                 case TextureWrap.Mirror:
-                    flags |= TextureFlags.SamplerWMirror;
+                    flags |= TextureFlags.MirrorW;
 
                     break;
 
                 case TextureWrap.Clamp:
-                    flags |= TextureFlags.SamplerWClamp;
+                    flags |= TextureFlags.ClampW;
 
                     break;
             }
@@ -448,30 +397,25 @@ public class Texture : IGuidAsset
 
         switch (metadata.filter)
         {
-            case TextureFilter.Linear:
-                //This is the default
+            case TextureFilter.Point:
+                flags |= TextureFlags.PointFilter;
 
                 break;
 
-            case TextureFilter.Point:
-
-                flags |= TextureFlags.SamplerMagPoint;
-                flags |= TextureFlags.SamplerMinPoint;
-                flags |= TextureFlags.SamplerMipPoint;
+            case TextureFilter.Linear:
+                flags |= TextureFlags.LinearFilter;
 
                 break;
 
             case TextureFilter.Anisotropic:
-
-                flags |= TextureFlags.SamplerMagAnisotropic;
-                flags |= TextureFlags.SamplerMinAnisotropic;
+                flags |= TextureFlags.AnisotropicFilter;
 
                 break;
         }
 
         if (metadata.readBack)
         {
-            flags |= TextureFlags.ReadBack;
+            //flags |= TextureFlags.ReadBack;
         }
     }
 
@@ -561,34 +505,16 @@ public class Texture : IGuidAsset
     /// Reads back the pixels for a texture. Requires readback on the texture metadata
     /// </summary>
     /// <param name="completion">The completion block when the data is ready. This is an async operation.</param>
-    /// <param name="mipLevel">The mip level to read</param>
-    /// <remarks>Render target textures need to use <see cref="RenderTarget.ReadTexture"/> instead</remarks>
-    public void ReadPixels(Action<Texture, byte[]> completion, byte mipLevel = 0)
+    public void ReadPixels(Action<Texture, byte[]> completion)
     {
-        unsafe
+        if(Disposed)
         {
-            if (handle.Valid == false ||
-                metadata.readBack == false ||
-                renderTarget ||
-                info.storageSize == 0)
-            {
-                completion?.Invoke(this, null);
+            completion?.Invoke(null, null);
 
-                return;
-            }
-
-            var buffer = new byte[info.storageSize];
-
-            fixed (void* ptr = buffer)
-            {
-                var targetFrame = bgfx.read_texture(handle, ptr, 0);
-
-                RenderSystem.Instance.QueueFrameCallback(targetFrame, () =>
-                {
-                    completion?.Invoke(this, buffer);
-                });
-            }
+            return;
         }
+
+        RenderSystem.Backend.ReadTexture(impl, (result) => completion?.Invoke(this, result));
     }
 
     /// <summary>

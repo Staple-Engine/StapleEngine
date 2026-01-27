@@ -30,9 +30,9 @@ public class TextRenderer
         }
     }
 
-    public static Lazy<VertexLayout> VertexLayout = new(() => new VertexLayoutBuilder()
-        .Add(VertexAttribute.Position, 2, VertexAttributeType.Float)
-        .Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float)
+    public static Lazy<VertexLayout> VertexLayout = new(() => VertexLayoutBuilder.CreateNew()
+        .Add(VertexAttribute.Position, VertexAttributeType.Float2)
+        .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2)
         .Build());
 
     public static readonly TextRenderer instance = new();
@@ -256,7 +256,7 @@ public class TextRenderer
 
         while (currentSize.Y < rectSize.Y)
         {
-            if (first == false)
+            if (!first)
             {
                 builder.Append(' ');
             }
@@ -273,7 +273,7 @@ public class TextRenderer
 
             if (fragments.Count > 0 && ((newLineIndex = fragments[0].IndexOf('\n')) == 0 || newLineIndex == 1))
             {
-                if (first == false)
+                if (!first)
                 {
                     var s = builder.ToString().Substring(0, builder.Length - 1);
 
@@ -326,10 +326,10 @@ public class TextRenderer
 
                 var ignoreNewline = currentText.Length > 0 && currentText[currentText.Length - 1] == '\n';
 
-                if (ignoreNewline == false)
+                if (!ignoreNewline)
                 {
                     //Remove extra space
-                    if (first == false && currentText.Length > 0)
+                    if (!first && currentText.Length > 0)
                     {
                         var s = currentText.ToString().Substring(0, currentText.Length - 1);
 
@@ -443,17 +443,11 @@ public class TextRenderer
         return outValue;
     }
 
-    public void DrawText(string text, Matrix4x4 transform, TextParameters parameters, Material material, float scale, bool flipY, ushort viewID)
+    public void DrawText(string text, Matrix4x4 transform, TextParameters parameters, Material material, float scale, bool flipY)
     {
-        if(text == null)
-        {
-            throw new ArgumentNullException("text");
-        }
+        ArgumentNullException.ThrowIfNull(text);
 
-        if(material == null)
-        {
-            throw new ArgumentNullException("material");
-        }
+        ArgumentNullException.ThrowIfNull(material);
 
         var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
 
@@ -470,22 +464,10 @@ public class TextRenderer
 
         if (MakeTextGeometry(text, parameters, scale, flipY, out var vertices, out var indices))
         {
-            if(VertexBuffer.TransientBufferHasSpace(vertices.Length, VertexLayout.Value) &&
-                IndexBuffer.TransientBufferHasSpace(indices.Length, false))
-            {
-                var vertexBuffer = VertexBuffer.CreateTransient(vertices.AsSpan(), VertexLayout.Value);
-                var indexBuffer = IndexBuffer.CreateTransient(indices);
+            material.MainTexture = font.Texture;
 
-                if(vertexBuffer == null || indexBuffer == null)
-                {
-                    return;
-                }
-
-                material.MainTexture = font.Texture;
-
-                Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertices.Length, 0, indices.Length,
-                    material, Vector3.Zero, transform, MeshTopology.Triangles, MaterialLighting.Unlit, viewID);
-            }
+            Graphics.RenderSimple(vertices, VertexLayout.Value, indices, material, Vector3.Zero, transform, MeshTopology.Triangles,
+                MaterialLighting.Unlit);
         }
     }
 

@@ -36,7 +36,7 @@ public class AppDelegate : UIApplicationDelegate
 }
 """;
 
-        if (StorageUtils.WriteFile(Path.Combine(projectDirectory, "AppDelegate.cs"), appDelegate) == false)
+        if (!StorageUtils.WriteFile(Path.Combine(projectDirectory, "AppDelegate.cs"), appDelegate))
         {
             return BuildProcessorResult.Failed;
         }
@@ -47,7 +47,7 @@ using UIKit;
 UIApplication.Main (args, null, typeof (AppDelegate));
 """;
 
-        if (StorageUtils.WriteFile(Path.Combine(projectDirectory, "Main.cs"), main) == false)
+        if (!StorageUtils.WriteFile(Path.Combine(projectDirectory, "Main.cs"), main))
         {
             return BuildProcessorResult.Failed;
         }
@@ -65,7 +65,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
         <string>UIInterfaceOrientationLandscapeRight</string>
 """;
 
-        if (projectAppSettings.portraitOrientation == false || projectAppSettings.landscapeOrientation == false)
+        if (!projectAppSettings.portraitOrientation || !projectAppSettings.landscapeOrientation)
         {
             if (projectAppSettings.portraitOrientation)
             {
@@ -136,7 +136,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 </plist>
 """;
 
-        if (StorageUtils.WriteFile(Path.Combine(projectDirectory, "Info.plist"), infoPlist) == false)
+        if (!StorageUtils.WriteFile(Path.Combine(projectDirectory, "Info.plist"), infoPlist))
         {
             return BuildProcessorResult.Failed;
         }
@@ -170,7 +170,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 </document>
 """;
 
-        if (StorageUtils.WriteFile(Path.Combine(projectDirectory, "LaunchScreen.storyboard"), launchScreen) == false)
+        if (!StorageUtils.WriteFile(Path.Combine(projectDirectory, "LaunchScreen.storyboard"), launchScreen))
         {
             return BuildProcessorResult.Failed;
         }
@@ -203,7 +203,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 </document>
 """;
 
-        if (StorageUtils.WriteFile(Path.Combine(projectDirectory, "MainStoryboard_iPad.storyboard"), storyboardiPad) == false)
+        if (!StorageUtils.WriteFile(Path.Combine(projectDirectory, "MainStoryboard_iPad.storyboard"), storyboardiPad))
         {
             return BuildProcessorResult.Failed;
         }
@@ -236,7 +236,7 @@ UIApplication.Main (args, null, typeof (AppDelegate));
 </document>
 """;
 
-        if (StorageUtils.WriteFile(Path.Combine(projectDirectory, "MainStoryboard_iPhone.storyboard"), storyboardiPhone) == false)
+        if (!StorageUtils.WriteFile(Path.Combine(projectDirectory, "MainStoryboard_iPhone.storyboard"), storyboardiPhone))
         {
             return BuildProcessorResult.Failed;
         }

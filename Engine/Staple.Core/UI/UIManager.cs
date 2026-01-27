@@ -82,8 +82,6 @@ public sealed class UIManager
 
     private readonly int inputProxyID;
 
-    public readonly ushort ViewID = UICanvasSystem.UIViewID;
-
     public Color DefaultFontColor { get; private set; }
 
     public Color DefaultSecondaryFontColor { get; private set; }
@@ -121,7 +119,7 @@ public sealed class UIManager
 
     internal void RecursiveFindFocusedElement(Vector2Int parentPosition, UIPanel parent, ref UIPanel foundElement)
     {
-        if(parent.Visible == false || parent.Enabled == false || parent.AllowMouseInput == false)
+        if(!parent.Visible || !parent.Enabled || !parent.AllowMouseInput)
         {
             foundElement = null;
 
@@ -223,7 +221,7 @@ public sealed class UIManager
                 {
                     var p = drawOrderCache[j];
 
-                    if (p.panel.AllowMouseInput == false || p.drawOrder != i)
+                    if (!p.panel.AllowMouseInput || p.drawOrder != i)
                     {
                         continue;
                     }
@@ -268,7 +266,7 @@ public sealed class UIManager
             {
                 var p = drawOrderCache[j];
 
-                if(p.drawOrder != i || p.panel.Visible == false)
+                if(p.drawOrder != i || !p.panel.Visible)
                 {
                     continue;
                 }
@@ -282,7 +280,7 @@ public sealed class UIManager
                     material.MainColor = new(0, 0, 0, 0.3f);
 
                     MeshRenderSystem.RenderMesh(Mesh.Quad, new Vector3(CanvasSize.X / 2, CanvasSize.Y / 2, 0),
-                        Quaternion.Identity, new Vector3(CanvasSize, 0), material, MaterialLighting.Unlit, ViewID);
+                        Quaternion.Identity, new Vector3(CanvasSize, 0), material, MaterialLighting.Unlit);
 
                     material.MainColor = color;
                 }
@@ -305,7 +303,7 @@ public sealed class UIManager
                 return null;
             }
 
-            if(type.IsAssignableTo(typeof(UIPanel)) == false)
+            if(!type.IsAssignableTo(typeof(UIPanel)))
             {
                 Log.Debug($"Failed to create UI Panel: Type {typeName}/Staple.UI.{typeName} is not a UIPanel");
 
@@ -372,7 +370,7 @@ public sealed class UIManager
                 {
                     foreach(var p in drawOrderCache)
                     {
-                        if(p.panel.AllowMouseInput == false || p.drawOrder != i)
+                        if(!p.panel.AllowMouseInput || p.drawOrder != i)
                         {
                             continue;
                         }

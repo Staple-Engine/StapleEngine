@@ -21,40 +21,31 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
     {
     }
 
-    public void ClearRenderData(ushort viewID)
-    {
-    }
-
     public void Prepare()
     {
     }
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
     }
     #endregion
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        if(viewID != RenderSystem.FirstCameraViewID && (Platform.IsEditor == false || viewID != RenderSystem.EditorSceneViewID))
+        foreach (var entry in renderQueue)
         {
-            return;
-        }
-
-        foreach (var (entity, transform, relatedComponent) in entities)
-        {
-            var animator = relatedComponent as SkinnedMeshAnimator;
+            var animator = entry.component as SkinnedMeshAnimator;
 
             if (animator.mesh == null ||
                 animator.mesh.meshAsset == null ||
                 animator.mesh.meshAssetIndex < 0 ||
                 animator.mesh.meshAssetIndex >= animator.mesh.meshAsset.animations.Count ||
                 (animator.animation?.Length ?? 0) == 0 ||
-                animator.mesh.meshAsset.animations.ContainsKey(animator.animation) == false)
+                !animator.mesh.meshAsset.animations.ContainsKey(animator.animation))
             {
                 return;
             }
@@ -63,7 +54,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
             {
                 animator.transformCache = new Transform[animator.mesh.meshAsset.nodes.Length];
 
-                SkinnedMeshRenderSystem.GatherNodeTransforms(transform, animator.transformCache, animator.mesh.meshAsset.nodes);
+                SkinnedMeshRenderSystem.GatherNodeTransforms(entry.transform, animator.transformCache, animator.mesh.meshAsset.nodes);
             }
 
             if (Platform.IsPlaying)
@@ -94,7 +85,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
                 if(animator.evaluator?.Evaluate() ?? false)
                 {
-                    animator.modifiers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
+                    animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
 
                     foreach(var (t, modifier) in animator.modifiers.Contents)
                     {
@@ -102,7 +93,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                     }
                 }
             }
-            else if (animator.playInEditMode == false)
+            else if (!animator.playInEditMode)
             {
                 if (animator.evaluator != null)
                 {
@@ -110,7 +101,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
                     animator.evaluator = null;
 
-                    animator.modifiers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
+                    animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
 
                     foreach (var (t, modifier) in animator.modifiers.Contents)
                     {

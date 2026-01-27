@@ -20,28 +20,19 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
     {
     }
 
-    public void ClearRenderData(ushort viewID)
-    {
-    }
-
     public void Prepare()
     {
     }
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        if(viewID != RenderSystem.FirstCameraViewID)
+        foreach(var entry in renderQueue)
         {
-            return;
-        }
-
-        foreach(var (entity, transform, relatedComponent) in entities)
-        {
-            if (relatedComponent is not SkinnedMeshAttachment attachment ||
+            if (entry.component is not SkinnedMeshAttachment attachment ||
                 attachment.mesh == null ||
                 attachment.mesh.meshAsset == null ||
                 (attachment.boneName?.Length ?? 0) == 0)
@@ -49,7 +40,7 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
                 continue;
             }
 
-            attachment.animator ??= new(entity, EntityQueryMode.Parent, false);
+            attachment.animator ??= new(entry.entity, EntityQueryMode.Parent, false);
 
             var animator = attachment.animator.Content;
 
@@ -66,7 +57,7 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
 
                 var node = nodes[attachment.nodeIndex];
 
-                node.ApplyTo(transform);
+                node.ApplyTo(entry.transform);
             }
 
             if (attachment.boneName != attachment.previousBoneName)
@@ -89,7 +80,7 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
         }
     }
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
     }
 }

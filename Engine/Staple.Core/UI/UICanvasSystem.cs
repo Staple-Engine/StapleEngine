@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Numerics;
 using Staple.UI;
 
@@ -10,8 +9,6 @@ namespace Staple.Internal;
 /// </summary>
 public class UICanvasSystem : IRenderSystem
 {
-    public const ushort UIViewID = 200;
-
     private static readonly MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
 
     private readonly SceneQuery<UICanvas> canvases = new();
@@ -31,46 +28,37 @@ public class UICanvasSystem : IRenderSystem
     {
     }
 
-    public void ClearRenderData(ushort viewID)
-    {
-    }
-
     public void Prepare()
     {
     }
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
     #endregion
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
         var projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1);
 
-        unsafe
-        {
-            var view = Matrix4x4.Identity;
+        RenderSystem.Render(null, CameraClearMode.None, Color.White, new(0, 0, 1, 1), Matrix4x4.Identity, projection,
+            () =>
+            {
+                IsPointerOverUI = false;
 
-            bgfx.set_view_transform(UIViewID, &view, &projection);
-            bgfx.set_view_clear(UIViewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
-            bgfx.set_view_rect(UIViewID, 0, 0, (ushort)Screen.Width, (ushort)Screen.Height);
-        }
+                foreach (var (_, canvas) in canvases.Contents)
+                {
+                    canvas.CheckLayoutChanges();
 
-        IsPointerOverUI = false;
+                    canvas.manager.Update();
+                    canvas.manager.Draw();
 
-        foreach(var (_, canvas) in canvases.Contents)
-        {
-            canvas.CheckLayoutChanges();
-
-            canvas.manager.Update();
-            canvas.manager.Draw();
-
-            IsPointerOverUI |= canvas.manager.MouseOverElement != null;
-        }
+                    IsPointerOverUI |= canvas.manager.MouseOverElement != null;
+                }
+            });
     }
 }

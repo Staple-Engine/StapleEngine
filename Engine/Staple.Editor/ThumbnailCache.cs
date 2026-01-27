@@ -102,7 +102,7 @@ internal class ThumbnailCache
                 {
                     var platform = Platform.CurrentPlatform;
 
-                    if (platform.HasValue == false)
+                    if (!platform.HasValue)
                     {
                         Cleanup();
 
@@ -187,7 +187,7 @@ internal class ThumbnailCache
 
                         var tempEntity = Mesh.InstanceMesh("TEMP", mesh);
 
-                        if(tempEntity.IsValid == false)
+                        if(!tempEntity.IsValid)
                         {
                             Cleanup();
 
@@ -213,7 +213,8 @@ internal class ThumbnailCache
                         };
 
                         var offset = mesh.Bounds.center + mesh.Bounds.size * 0.75f;
-                        var position = new Vector3(-offset.X, offset.Y, offset.Z * 1.5f);
+                        var direction = offset.Normalized;
+                        var position = direction * offset.Length() * 0.75f;
                         var forward = -position.Normalized;
 
                         var cameraTransform = new Transform
@@ -225,9 +226,13 @@ internal class ThumbnailCache
                         var overrideLights = LightSystem.OverrideLights;
                         var overrideAmbientColor = LightSystem.OverrideAmbientColor;
 
-                        var lightTransform = new Transform();
+                        var lightTransform = new Transform()
+                        {
+                            LocalRotation = Quaternion.Euler(30, -180, 0),
+                        };
 
-                        renderTarget.Render(StapleEditor.MeshRenderView, () =>
+                        RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
+                            cameraTransform.Matrix, Camera.Projection(default, camera), () =>
                         {
                             LightSystem.OverrideLights = [(default, lightTransform, new Light()
                             {
@@ -238,24 +243,31 @@ internal class ThumbnailCache
                             LightSystem.OverrideAmbientColor = Color.Black;
 
                             RenderSystem.Instance.RenderEntity(default, camera, cameraTransform,
-                                tempEntity, tempEntity.GetComponent<Transform>(), false, StapleEditor.MeshRenderView);
+                                tempEntity, tempEntity.GetComponent<Transform>(), false);
 
                             LightSystem.OverrideLights = overrideLights;
                             LightSystem.OverrideAmbientColor = overrideAmbientColor;
-
-                            RenderSystem.Instance.ClearRenderData(StapleEditor.MeshRenderView);
                         });
 
-                        renderTarget.ReadTexture(StapleEditor.MeshRenderView, 0, (texture, data) =>
+                        renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
                             tempEntity.Destroy();
-                            renderTarget.Destroy();
 
                             if (texture == null || data == null)
                             {
                                 Cleanup();
 
+                                renderTarget.Destroy();
+
                                 return;
+                            }
+
+                            if(texture.Format == TextureFormat.BGRA8)
+                            {
+                                for(var i = 0; i < data.Length; i+=4)
+                                {
+                                    (data[i], data[i + 2]) = (data[i + 2], data[i]);
+                                }
                             }
 
                             var rawTextureData = new RawTextureData()
@@ -265,6 +277,8 @@ internal class ThumbnailCache
                                 height = texture.Height,
                                 data = data,
                             };
+
+                            renderTarget.Destroy();
 
                             try
                             {
@@ -355,7 +369,7 @@ internal class ThumbnailCache
                 {
                     var platform = Platform.CurrentPlatform;
 
-                    if (platform.HasValue == false)
+                    if (!platform.HasValue)
                     {
                         Cleanup();
 
@@ -375,7 +389,7 @@ internal class ThumbnailCache
 
                     var material = ResourceManager.instance.LoadMaterial(cachePath, true);
 
-                    if (material == null || material.IsValid == false)
+                    if (material == null || !material.IsValid)
                     {
                         Cleanup();
 
@@ -440,9 +454,11 @@ internal class ThumbnailCache
 
                         var tempEntity = Entity.CreatePrimitive(EntityPrimitiveType.Sphere);
 
-                        if (tempEntity.IsValid == false || tempEntity.TryGetComponent<MeshRenderer>(out var meshRenderer) == false)
+                        if (!tempEntity.IsValid || !tempEntity.TryGetComponent<MeshRenderer>(out var meshRenderer))
                         {
                             Cleanup();
+
+                            renderTarget.Destroy();
 
                             return;
                         }
@@ -463,11 +479,12 @@ internal class ThumbnailCache
                             farPlane = 1000,
                             fov = 90,
                             cullingLayers = new(LayerMask.GetMask(StapleEditor.RenderTargetLayerName)),
+                            viewport = new(0, 0, ThumbnailSize / (float)Screen.Width, ThumbnailSize / (float)Screen.Height),
                         };
 
                         var position = new Vector3(0.5f, 0.5f, -0.5f);
 
-                        var forward = position.Normalized;
+                        var forward = -position.Normalized;
 
                         var cameraTransform = new Transform
                         {
@@ -483,7 +500,8 @@ internal class ThumbnailCache
 
                         var lightTransform = new Transform();
 
-                        renderTarget.Render(StapleEditor.MeshRenderView, () =>
+                        RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
+                            cameraTransform.Matrix, Camera.Projection(default, camera), () =>
                         {
                             LightSystem.OverrideLights = [(default, lightTransform, new Light()
                             {
@@ -494,22 +512,31 @@ internal class ThumbnailCache
                             LightSystem.OverrideAmbientColor = Color.Black;
 
                             RenderSystem.Instance.RenderEntity(default, camera, cameraTransform,
-                                tempEntity, tempEntity.GetComponent<Transform>(), false, StapleEditor.MeshRenderView);
+                                tempEntity, tempEntity.GetComponent<Transform>(), false);
 
                             LightSystem.OverrideLights = overrideLights;
                             LightSystem.OverrideAmbientColor = overrideAmbientColor;
                         });
 
-                        renderTarget.ReadTexture(StapleEditor.MeshRenderView, 0, (texture, data) =>
+                        renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
                             tempEntity.Destroy();
-                            renderTarget.Destroy();
 
                             if (texture == null || data == null)
                             {
+                                renderTarget.Destroy();
+
                                 Cleanup();
 
                                 return;
+                            }
+
+                            if (texture.Format == TextureFormat.BGRA8)
+                            {
+                                for (var i = 0; i < data.Length; i += 4)
+                                {
+                                    (data[i], data[i + 2]) = (data[i + 2], data[i]);
+                                }
                             }
 
                             var rawTextureData = new RawTextureData()
@@ -519,6 +546,8 @@ internal class ThumbnailCache
                                 height = texture.Height,
                                 data = data,
                             };
+
+                            renderTarget.Destroy();
 
                             try
                             {
@@ -698,7 +727,7 @@ internal class ThumbnailCache
                 {
                     var platform = Platform.CurrentPlatform;
 
-                    if (platform.HasValue == false)
+                    if (!platform.HasValue)
                     {
                         Cleanup();
 
@@ -881,7 +910,7 @@ internal class ThumbnailCache
     /// <returns></returns>
     public static Texture GetTexture(string path, bool persistentCache = false, bool force = false)
     {
-        if(Path.IsPathRooted(path) == false)
+        if(!Path.IsPathRooted(path))
         {
             var t = GetTexture(Path.Combine(basePath, path));
 
@@ -982,7 +1011,7 @@ internal class ThumbnailCache
     {
         lock(renderRequestLock)
         {
-            return cachedThumbnails.TryGetValue(path, out var t) && t.texture != null && t.texture.Disposed == false;
+            return cachedThumbnails.TryGetValue(path, out var t) && t.texture != null && !t.texture.Disposed;
         }
     }
 
@@ -996,8 +1025,8 @@ internal class ThumbnailCache
         var extension = Path.GetExtension(path);
 
         if (extension.Length == 0 ||
-            (AssetSerialization.TextureExtensions.Contains(extension[1..]) == false &&
-            AssetSerialization.MeshExtensions.Contains(extension[1..]) == false &&
+            (!AssetSerialization.TextureExtensions.Contains(extension[1..]) &&
+            !AssetSerialization.MeshExtensions.Contains(extension[1..]) &&
             extension != $".{AssetSerialization.MaterialExtension}"))
         {
             return null;

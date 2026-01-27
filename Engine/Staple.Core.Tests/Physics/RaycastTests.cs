@@ -16,10 +16,10 @@ internal class RaycastTests
 
         var ray = new Ray(new Vector3(0, 0, 1), new Vector3(0, 0, -1));
 
-        Assert.IsTrue(Physics3D.Instance.CreateBox(default, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, false,
-            0, 0, 0, false, false, false, false, 1, out var body));
+        Assert.That(Physics3D.Instance.CreateBox(default, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, false,
+            0, 0, 0, false, false, false, false, 1, out var body), Is.True);
 
-        Assert.IsTrue(Physics.RayCast3D(ray, out var target, out _, LayerMask.Everything));
+        Assert.That(Physics.RayCast3D(ray, out var target, out _, LayerMask.Everything), Is.True);
 
         Assert.That(target, Is.EqualTo(body));
     }
@@ -33,10 +33,10 @@ internal class RaycastTests
 
         var ray = new Ray(Vector3.Zero, new Vector3(0, 0, -1));
 
-        Assert.IsTrue(Physics3D.Instance.CreateBox(default, Vector3.One * 2, new Vector3(0, 0, -10), Quaternion.Identity, BodyMotionType.Dynamic, 0, false,
-            0, 0, 0, false, false, false, false, 1, out var body));
+        Assert.That(Physics3D.Instance.CreateBox(default, Vector3.One * 2, new Vector3(0, 0, -10), Quaternion.Identity, BodyMotionType.Dynamic, 0, false,
+            0, 0, 0, false, false, false, false, 1, out var body), Is.True);
 
-        Assert.IsTrue(Physics.RayCast3D(ray, out var target, out _, LayerMask.Everything, maxDistance: 11));
+        Assert.That(Physics.RayCast3D(ray, out var target, out _, LayerMask.Everything, maxDistance: 11), Is.True);
 
         Assert.That(target, Is.EqualTo(body));
     }
@@ -50,12 +50,12 @@ internal class RaycastTests
 
         var ray = new Ray(new Vector3(0, 0, 1), new Vector3(0, 0, -1));
 
-        Assert.IsTrue(Physics3D.Instance.CreateBox(default, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, true,
-            0, 0, 0, false, false, false, false, 1, out var body));
+        Assert.That(Physics3D.Instance.CreateBox(default, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, true,
+            0, 0, 0, false, false, false, false, 1, out var body), Is.True);
 
-        Assert.IsTrue(body.IsTrigger);
+        Assert.That(body.IsTrigger, Is.True);
 
-        Assert.IsFalse(Physics.RayCast3D(ray, out _, out _, LayerMask.Everything));
+        Assert.That(Physics.RayCast3D(ray, out _, out _, LayerMask.Everything), Is.False);
     }
 
     [Test]
@@ -67,11 +67,11 @@ internal class RaycastTests
 
         var ray = new Ray(new Vector3(0, 0, 1), new Vector3(0, 0, -1));
 
-        Assert.IsTrue(Physics3D.Instance.CreateBox(default, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, true,
-            0, 0, 0, false, false, false, false, 1, out var body));
+        Assert.That(Physics3D.Instance.CreateBox(default, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, true,
+            0, 0, 0, false, false, false, false, 1, out var body), Is.True);
 
-        Assert.IsTrue(body.IsTrigger);
+        Assert.That(body.IsTrigger, Is.True);
 
-        Assert.IsTrue(Physics.RayCast3D(ray, out _, out _, LayerMask.Everything, PhysicsTriggerQuery.Collide));
+        Assert.That(Physics.RayCast3D(ray, out _, out _, LayerMask.Everything, PhysicsTriggerQuery.Collide), Is.True);
     }
 }

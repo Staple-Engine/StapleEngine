@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.7.34031.279
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11123.170 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Baker", "Baker\Baker.csproj", "{79D5CD0A-AB0D-4EFD-B83E-51104518E5FD}"
 EndProject
@@ -10,8 +10,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Staple.UFBX", "Staple.UFBX\Staple.UFBX.csproj", "{F1D33D76-697E-4BC6-A330-B98A09801991}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Staple.SharpGLTF", "Staple.SharpGLTF\Staple.SharpGLTF.csproj", "{DDD34F17-4621-4EEE-8B07-022C7C4855CA}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Staple.Assimp", "Staple.Assimp\Staple.Assimp.csproj", "{DC795FF0-0A7B-44EB-A2DB-3AA4B01C5477}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Staple.OBJ", "Staple.OBJ\Staple.OBJ.csproj", "{114565F3-5AA5-43DB-98FA-0F1BFD3E33AB}"
 EndProject
@@ -37,10 +35,6 @@ Global
 		{DDD34F17-4621-4EEE-8B07-022C7C4855CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDD34F17-4621-4EEE-8B07-022C7C4855CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDD34F17-4621-4EEE-8B07-022C7C4855CA}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DC795FF0-0A7B-44EB-A2DB-3AA4B01C5477}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DC795FF0-0A7B-44EB-A2DB-3AA4B01C5477}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DC795FF0-0A7B-44EB-A2DB-3AA4B01C5477}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DC795FF0-0A7B-44EB-A2DB-3AA4B01C5477}.Release|Any CPU.Build.0 = Release|Any CPU
 		{114565F3-5AA5-43DB-98FA-0F1BFD3E33AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{114565F3-5AA5-43DB-98FA-0F1BFD3E33AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{114565F3-5AA5-43DB-98FA-0F1BFD3E33AB}.Release|Any CPU.ActiveCfg = Release|Any CPU

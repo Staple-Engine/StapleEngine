@@ -15,7 +15,7 @@ internal class SkinnedMeshAnimationEvaluator
     {
         get
         {
-            return animator.repeat == false &&
+            return !animator.repeat &&
                 animator.playTime >= animation.duration;
         }
     }
@@ -108,7 +108,7 @@ internal class SkinnedMeshAnimationEvaluator
         var t = animator.playTime;
         var time = t % animation.duration;
 
-        if (animator.repeat == false && t >= animation.duration)
+        if (!animator.repeat && t >= animation.duration)
         {
             time = animation.duration;
         }

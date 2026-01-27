@@ -10,67 +10,55 @@ internal class TransformTests
     {
         var transform = new Transform();
 
-        Assert.IsFalse(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(0));
 
         transform.LocalPosition = transform.LocalPosition;
 
-        Assert.IsFalse(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(0));
 
         transform.LocalRotation = transform.LocalRotation;
 
-        Assert.IsFalse(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(0));
 
         transform.LocalScale = transform.LocalScale;
 
-        Assert.IsFalse(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(0));
 
         transform.Position = transform.Position;
 
-        Assert.IsFalse(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(0));
 
         transform.Rotation = transform.Rotation;
 
-        Assert.IsFalse(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(0));
 
         transform.Scale = transform.Scale;
 
-        Assert.IsFalse(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(0));
 
         transform.LocalPosition = Vector3.One;
 
-        Assert.IsTrue(transform.Changed);
-
-        transform.Changed = false;
+        Assert.That(transform.Version, Is.EqualTo(1));
 
         transform.LocalRotation = Quaternion.CreateFromYawPitchRoll(1, 2, 3);
 
-        Assert.IsTrue(transform.Changed);
-
-        transform.Changed = false;
+        Assert.That(transform.Version, Is.EqualTo(2));
 
         transform.LocalScale = Vector3.Zero;
 
-        Assert.IsTrue(transform.Changed);
-
-        transform.Changed = false;
+        Assert.That(transform.Version, Is.EqualTo(3));
 
         transform.Position = Vector3.Zero;
 
-        Assert.IsTrue(transform.Changed);
-
-        transform.Changed = false;
+        Assert.That(transform.Version, Is.EqualTo(4));
 
         transform.Rotation = Quaternion.Identity;
 
-        Assert.IsTrue(transform.Changed);
-
-        transform.Changed = false;
+        Assert.That(transform.Version, Is.EqualTo(5));
 
         transform.Scale = Vector3.One;
 
-        Assert.IsTrue(transform.Changed);
-
-        transform.Changed = false;
+        Assert.That(transform.Version, Is.EqualTo(6));
     }
 
     [Test]
@@ -78,15 +66,15 @@ internal class TransformTests
     {
         var transform = new Transform();
 
-        Assert.IsFalse(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(0));
 
         transform.LocalPosition = new Vector3(0, 0, 1);
 
-        Assert.IsTrue(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(1));
 
         var matrix = transform.Matrix;
 
-        Assert.AreNotEqual(matrix, Matrix4x4.Identity);
+        Assert.That(matrix, Is.Not.EqualTo(Matrix4x4.Identity));
     }
 
     [Test]
@@ -94,15 +82,15 @@ internal class TransformTests
     {
         var transform = new Transform();
 
-        Assert.IsFalse(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(0));
 
         transform.LocalRotation = Quaternion.Euler(new Vector3(0, 90, 0));
 
-        Assert.IsTrue(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(1));
 
         var matrix = transform.Matrix;
 
-        Assert.AreNotEqual(matrix, Matrix4x4.Identity);
+        Assert.That(matrix, Is.Not.EqualTo(Matrix4x4.Identity));
 
         var forward = transform.Forward;
 
@@ -110,7 +98,7 @@ internal class TransformTests
         forward.Y = Staple.Math.Round(forward.Y);
         forward.Z = Staple.Math.Round(forward.Z);
 
-        Assert.AreEqual(new Vector3(-1, 0, 0), forward);
+        Assert.That(new Vector3(1, 0, 0), Is.EqualTo(forward));
     }
 
     [Test]
@@ -118,19 +106,19 @@ internal class TransformTests
     {
         var transform = new Transform();
 
-        Assert.IsFalse(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(0));
 
         transform.LocalScale = Vector3.One * 0.5f;
 
-        Assert.IsTrue(transform.Changed);
+        Assert.That(transform.Version, Is.EqualTo(1));
 
         var matrix = transform.Matrix;
 
-        Assert.AreNotEqual(matrix, Matrix4x4.Identity);
+        Assert.That(matrix, Is.Not.EqualTo(Matrix4x4.Identity));
 
         var scaled = Vector3.Transform(Vector3.One, matrix);
 
-        Assert.AreEqual(new Vector3(0.5f, 0.5f, 0.5f), scaled);
+        Assert.That(new Vector3(0.5f, 0.5f, 0.5f), Is.EqualTo(scaled));
     }
 
     [Test]
@@ -143,7 +131,7 @@ internal class TransformTests
 
         transform.LocalPosition = new Vector3(0, 0, 1);
 
-        Assert.That(transform.Changed, Is.True);
+        Assert.That(transform.Version, Is.EqualTo(2));
 
         Assert.That(transform.Position, Is.EqualTo(new Vector3(0, 0, 1)));
 
@@ -166,7 +154,7 @@ internal class TransformTests
 
         transform.LocalRotation = Quaternion.Euler(new(0, 45, 0));
 
-        Assert.That(transform.Changed, Is.True);
+        Assert.That(transform.Version, Is.EqualTo(2));
 
         var angles = transform.Rotation.ToEulerAngles();
 
@@ -207,7 +195,7 @@ internal class TransformTests
 
         transform.LocalScale = new Vector3(2, 2, 2);
 
-        Assert.That(transform.Changed, Is.True);
+        Assert.That(transform.Version, Is.EqualTo(2));
 
         Assert.That(transform.Scale, Is.EqualTo(new Vector3(2, 2, 2)));
 

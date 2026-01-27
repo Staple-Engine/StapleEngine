@@ -71,7 +71,7 @@ internal static class ImGuiUtils
                         onClick?.Invoke(i, item);
                     }
                     else if (dragPayload != null &&
-                        StapleEditor.instance.dragDropPayloads.ContainsKey(dragPayload) == false &&
+                        !StapleEditor.instance.dragDropPayloads.ContainsKey(dragPayload) &&
                         ImGui.BeginDragDropSource())
                     {
                         unsafe
@@ -88,7 +88,7 @@ internal static class ImGuiUtils
 
                         ImGui.EndDragDropSource();
                     }
-                    else if (Input.GetMouseButton(MouseButton.Left) == false)
+                    else if (!Input.GetMouseButton(MouseButton.Left))
                     {
                         StapleEditor.instance.dragDropPayloads.Clear();
                     }
@@ -112,7 +112,7 @@ internal static class ImGuiUtils
                     }
                 }
 
-                if (item.renaming && Input.GetKeyDown(KeyCode.Escape) == false)
+                if (item.renaming && !Input.GetKeyDown(KeyCode.Escape))
                 {
                     if (ImGui.InputText("##RENAME", ref item.renamedName, 1000, ImGuiInputTextFlags.EnterReturnsTrue |
                         ImGuiInputTextFlags.AutoSelectAll))

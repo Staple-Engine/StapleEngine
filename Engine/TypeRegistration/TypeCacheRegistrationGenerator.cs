@@ -47,6 +47,15 @@ namespace Staple
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
+            /*
+#if DEBUG
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
+#endif
+            */
+
             var excludedTypes = new List<string>();
 
             var configFile = context.AdditionalTextsProvider.Where(x => x.Path.EndsWith("TypeExclusions.txt"))
@@ -91,8 +100,9 @@ namespace StapleCodeGeneration
                         t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
-                        (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)) ||
-                        t.TypeKind == TypeKind.Delegate)
+                        (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
+                        t.TypeKind == TypeKind.Delegate ||
+                        t.IsRefLikeType)
                     {
                         if (verbose)
                         {
@@ -135,7 +145,7 @@ namespace StapleCodeGeneration
 
                     types.Add(typeName);
 
-                    if (t.IsStatic == false &&
+                    if (!t.IsStatic &&
                         (t.Constructors.Any(x => x.Parameters.Length == 0) ||
                         t.TypeKind == TypeKind.Struct ||
                         t.TypeKind == TypeKind.Interface))
@@ -143,7 +153,7 @@ namespace StapleCodeGeneration
                         constructibleTypes.Add(typeName);
                     }
 
-                    if (t.IsStatic == false &&
+                    if (!t.IsStatic &&
                         (t.Constructors.Any(x => x.Parameters.Length == 0) ||
                         t.TypeKind == TypeKind.Struct))
                     {
@@ -172,8 +182,9 @@ namespace StapleCodeGeneration
                         t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
-                        (t.DeclaredAccessibility != Accessibility.Internal || isSelf == false)) ||
-                        t.ContainingType.TypeKind == TypeKind.Delegate)
+                        (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
+                        t.ContainingType.TypeKind == TypeKind.Delegate ||
+                        t.ContainingType.IsRefLikeType)
                     {
                         if (verbose)
                         {
@@ -254,14 +265,14 @@ namespace StapleCodeGeneration
 
                         types.Add(typeName);
 
-                        if (symbol.IsStatic == false &&
+                        if (!symbol.IsStatic &&
                             new List<TypeKind>([TypeKind.Enum, TypeKind.Class, TypeKind.Struct])
                                 .Contains(symbol.TypeKind))
                         {
                             sizableTypes.Add(typeName);
                         }
 
-                        if (symbol.IsStatic == false &&
+                        if (!symbol.IsStatic &&
                             new List<TypeKind>([TypeKind.Enum, TypeKind.Class, TypeKind.Struct, TypeKind.Interface])
                                 .Contains(symbol.TypeKind))
                         {

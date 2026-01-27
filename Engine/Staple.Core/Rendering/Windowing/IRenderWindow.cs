@@ -86,15 +86,6 @@ internal interface IRenderWindow
     void Terminate();
 
     /// <summary>
-    /// Gets the native platform data of the window
-    /// </summary>
-    /// <param name="platform">The current platform</param>
-    /// <param name="nativeWindowType">The native window type for this window</param>
-    /// <param name="windowPointer">The pointer to the window itself</param>
-    /// <param name="monitorPointer">The pointer to the monitor data, if any</param>
-    void GetNativePlatformData(AppPlatform platform, out NativeWindowType nativeWindowType, out nint windowPointer, out nint monitorPointer);
-
-    /// <summary>
     /// Locks the cursor to the window
     /// </summary>
     void LockCursor();

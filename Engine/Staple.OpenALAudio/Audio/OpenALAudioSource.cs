@@ -217,7 +217,7 @@ public class OpenALAudioSource : IAudioSource
             return;
         }
 
-        if(Paused == false)
+        if(!Paused)
         {
             AL10.alSourceRewind(source);
         }

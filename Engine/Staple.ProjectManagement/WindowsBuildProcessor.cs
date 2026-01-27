@@ -16,7 +16,7 @@ public class WindowsBuildProcessor : IBuildPreprocessor
         var basePath = buildInfo.basePath;
         var projectDirectory = buildInfo.assemblyProjectPath;
 
-        if(StorageUtils.CopyFile(Path.Combine(buildInfo.backendResourcesPath, "Program.cs"), Path.Combine(projectDirectory, "Program.cs")) == false)
+        if(!StorageUtils.CopyFile(Path.Combine(buildInfo.backendResourcesPath, "Program.cs"), Path.Combine(projectDirectory, "Program.cs")))
         {
             Log.Debug($"{GetType().Name}: Failed to copy program script");
 

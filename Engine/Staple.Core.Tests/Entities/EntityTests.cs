@@ -11,11 +11,11 @@ internal class EntityTests
 
         var entity = Entity.Create(typeof(Transform));
 
-        Assert.IsTrue(entity.IsValid);
+        Assert.That(entity.IsValid, Is.True);
 
         World.Current = null;
 
-        Assert.IsFalse(entity.IsValid);
+        Assert.That(entity.IsValid, Is.False);
     }
 
     [Test]
@@ -25,15 +25,15 @@ internal class EntityTests
 
         var entity = Entity.Create(typeof(Transform));
 
-        Assert.IsTrue(entity.IsValid);
+        Assert.That(entity.IsValid, Is.True);
 
         entity.Destroy();
 
-        Assert.IsTrue(entity.IsValid);
+        Assert.That(entity.IsValid, Is.True);
 
         World.Current.StartFrame();
 
-        Assert.IsFalse(entity.IsValid);
+        Assert.That(entity.IsValid, Is.False);
 
         World.Current = null;
     }
@@ -47,23 +47,23 @@ internal class EntityTests
 
         var transform = entity.GetComponent<Transform>();
 
-        Assert.IsNotNull(transform);
+        Assert.That(transform, Is.Not.Null);
 
-        Assert.IsTrue(transform.Entity.IsValid);
+        Assert.That(transform.Entity.IsValid, Is.True);
 
         entity.RemoveComponent<Transform>();
 
         transform = entity.GetComponent<Transform>();
 
-        Assert.IsNotNull(transform);
+        Assert.That(transform, Is.Not.Null);
 
         transform = new();
 
-        Assert.IsFalse(transform.Entity.IsValid);
+        Assert.That(transform.Entity.IsValid, Is.False);
 
         entity.SetComponent(transform);
 
-        Assert.IsTrue(transform.Entity.IsValid);
+        Assert.That(transform.Entity.IsValid, Is.True);
 
         World.Current = null;
     }

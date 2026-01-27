@@ -187,7 +187,7 @@ public class Editor
                 var key = $"{targetName}{IDSuffix}{method.Name}";
 
                 if (method.GetCustomAttribute<ButtonAttribute>() is ButtonAttribute button &&
-                    method.GetParameters().Length == 0 && cachedButtonAttributes.ContainsKey(key) == false)
+                    method.GetParameters().Length == 0 && !cachedButtonAttributes.ContainsKey(key))
                 {
                     cachedButtonAttributes.Add(key, () =>
                     {
@@ -195,7 +195,7 @@ public class Editor
                         {
                             try
                             {
-                                if (method.IsStatic == false)
+                                if (!method.IsStatic)
                                 {
                                     method.Invoke(target, null);
                                 }
@@ -239,7 +239,7 @@ public class Editor
                 (type.IsGenericType && type.GetGenericTypeDefinition() == a.targetType) ||
                 attributes(a.targetType) != null)
             {
-                if(cachedPropertyDrawers.TryGetValue(type.FullName, out var drawer) == false)
+                if(!cachedPropertyDrawers.TryGetValue(type.FullName, out var drawer))
                 {
                     try
                     {
@@ -910,7 +910,7 @@ public class Editor
 
                     for (var i = 0; i < layers.Count; i++)
                     {
-                        if (value.HasLayer((uint)i) == false)
+                        if (!value.HasLayer((uint)i))
                         {
                             all = false;
                         }
@@ -1037,7 +1037,7 @@ public class Editor
             {
                 var attribute = type.GetCustomAttribute<CustomEditorAttribute>();
 
-                if (attribute == null || type.IsSubclassOf(typeof(Editor)) == false)
+                if (attribute == null || !type.IsSubclassOf(typeof(Editor)))
                 {
                     continue;
                 }
@@ -1098,7 +1098,7 @@ public class Editor
             {
                 var attribute = type.GetCustomAttribute<CustomEditorAttribute>();
 
-                if (attribute == null || type.IsSubclassOf(typeof(Editor)) == false)
+                if (attribute == null || !type.IsSubclassOf(typeof(Editor)))
                 {
                     continue;
                 }

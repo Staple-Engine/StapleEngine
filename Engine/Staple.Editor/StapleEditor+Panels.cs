@@ -60,7 +60,7 @@ internal partial class StapleEditor
                 {
                     path = Path.Combine(current, $"{fileName}{counter++}.{extension}");
 
-                    if (File.Exists(path) == false)
+                    if (!File.Exists(path))
                     {
                         break;
                     }
@@ -87,7 +87,7 @@ internal partial class StapleEditor
                 {
                     path = Path.Combine(current, $"{name}{counter++}");
 
-                    if (Directory.Exists(path) == false)
+                    if (!Directory.Exists(path))
                     {
                         break;
                     }
@@ -586,7 +586,7 @@ internal partial class StapleEditor
                     HandleReorder(true);
                 }
 
-                if(entityTreeStates.TryGetValue(transform.Entity, out var open) == false)
+                if(!entityTreeStates.TryGetValue(transform.Entity, out var open))
                 {
                     entityTreeStates.Add(transform.Entity, open);
                 }
@@ -657,8 +657,6 @@ internal partial class StapleEditor
                             ImGui.MenuItem("Delete"))
                         {
                             transform.Entity.Destroy();
-
-                            ImGui.EndMenu();
 
                             ImGui.EndPopup();
 
@@ -744,7 +742,7 @@ internal partial class StapleEditor
 
         if (Scene.current != null &&
             ImGui.IsWindowHovered() &&
-            ImGui.IsAnyItemHovered() == false &&
+            !ImGui.IsAnyItemHovered() &&
             Input.GetMouseButtonUp(MouseButton.Right) &&
             sceneMode != SceneMode.Prefab)
         {
@@ -803,7 +801,7 @@ internal partial class StapleEditor
     {
         ImGui.Begin("Viewport", ImGuiWindowFlags.NoBackground);
 
-        mouseIsHoveringImGui = (viewportType == ViewportType.Scene && ImGui.IsItemActive()) == false;
+        mouseIsHoveringImGui = !(viewportType == ViewportType.Scene && ImGui.IsItemActive());
 
         var horizontalSpace = EditorGUI.RemainingHorizontalSpace();
 
@@ -942,20 +940,30 @@ internal partial class StapleEditor
 
                 if (gameRenderTarget != null && Scene.current != null)
                 {
-                    for (var i = 0; i < Scene.SortedCameras.Length; i++)
-                    {
-                        RenderTarget.SetActive((ushort)(i + 1), gameRenderTarget);
-                    }
-
-                    RenderTarget.SetActive(UICanvasSystem.UIViewID, gameRenderTarget);
-
                     ExecuteGameViewHandler(() =>
                     {
                         RenderSystem.Instance.Update();
                     });
+
+                    /*
+                    gameRenderTarget.colorTextures[0].ReadPixels((t, b) =>
+                    {
+                        var rawData = new RawTextureData()
+                        {
+                            colorComponents = StandardTextureColorComponents.RGBA,
+                            data = b,
+                            width = t.Width,
+                            height = t.Height,
+                        };
+
+                        var pngData = rawData.EncodePNG();
+
+                        File.WriteAllBytes(Path.Combine(Environment.CurrentDirectory, "Debug.png"), pngData);
+                    });
+                    */
                 }
 
-                var texture = gameRenderTarget.GetTexture();
+                var texture = gameRenderTarget.GetColorTexture();
 
                 if (texture != null)
                 {
@@ -980,7 +988,7 @@ internal partial class StapleEditor
 
         ImGui.End();
 
-        if(io.WantTextInput == false)
+        if(!io.WantTextInput)
         {
             if (Input.GetKeyUp(KeyCode.E))
             {
@@ -1203,7 +1211,7 @@ internal partial class StapleEditor
         ImGui.End();
 
         if (ImGui.IsMouseHoveringRect(pos, pos + size, false) &&
-            ImGui.IsAnyItemHovered() == false &&
+            !ImGui.IsAnyItemHovered() &&
             Input.GetMouseButtonUp(MouseButton.Right))
         {
             ImGui.OpenPopup("ProjectBrowserContext");
@@ -1756,9 +1764,9 @@ internal partial class StapleEditor
 
             lock(backgroundLock)
             {
-                showingProgress = backgroundHandles.Count == 0 || backgroundHandles.Any(x => x.Completed == false);
+                showingProgress = backgroundHandles.Count == 0 || backgroundHandles.Any(x => !x.Completed);
 
-                if (showingProgress == false)
+                if (!showingProgress)
                 {
                     ImGui.CloseCurrentPopup();
                 }
@@ -1824,7 +1832,7 @@ internal partial class StapleEditor
 
     private void ZoomInEntity(Entity entity)
     {
-        if(entity.TryGetComponent<Transform>(out var transform) == false)
+        if(!entity.TryGetComponent<Transform>(out var transform))
         {
             return;
         }

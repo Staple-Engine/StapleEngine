@@ -52,7 +52,7 @@ public class OpenALAudioDevice : IAudioDevice
 
         Log.Debug("[AudioSystem] Context created");
 
-        if (ALC10.alcMakeContextCurrent(Context) == false)
+        if (!ALC10.alcMakeContextCurrent(Context))
         {
             Log.Debug("[AudioSystem] Failed to make context current");
 

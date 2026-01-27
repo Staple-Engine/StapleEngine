@@ -10,6 +10,8 @@ namespace Staple;
 /// </summary>
 public partial class World
 {
+    internal static readonly int TransformComponentID = typeof(Transform).FullName.GetHashCode();
+
     public delegate void IterateComponentCallback(ref IComponent component);
 
     public delegate void OnComponentChangedCallback(World world, Entity entity, ref IComponent component);
@@ -77,6 +79,11 @@ public partial class World
         public EntityHierarchyVisibility hierarchyVisibility;
 
         /// <summary>
+        /// The entity's transform
+        /// </summary>
+        public Transform transform;
+
+        /// <summary>
         /// List of emitted component add events
         /// </summary>
         public readonly HashSet<int> emittedAddComponents = [];
@@ -91,6 +98,11 @@ public partial class World
                     ID = ID,
                 }
             };
+        }
+
+        public override string ToString()
+        {
+            return alive ? $"{name} ({ID}:{generation})" : "Invalid Entity (Dead)";
         }
     }
 
@@ -159,7 +171,6 @@ public partial class World
     private readonly Lock lockObject = new();
     private static readonly Lock globalLockObject = new();
 
-    private readonly List<EntityInfo> entities = [];
     private readonly Dictionary<int, HashSet<int>> componentCompatibilityCache = [];
     private readonly Dictionary<int, string> componentNameHashes = [];
     private readonly HashSet<int> callableComponentTypes = [];
@@ -171,11 +182,13 @@ public partial class World
     private readonly List<CameraInfo> sortedCamerasBacking = [];
     private readonly List<(Entity, Transform)> rootEntitiesBacking = [];
 
+    internal EntityInfo[] entities = [];
     internal CameraInfo[] sortedCameras = [];
     internal (Entity, Transform)[] rootEntities = [];
 
     private EntityInfo[] cachedEntityList = [];
     private bool needsEmitWorldChange = false;
+    private readonly SortedSet<int> deadEntities = [];
 
     private static readonly WorldChangeBox worldChangeReceivers = new();
     private static readonly SceneQueryBox sceneQueries = new();
@@ -242,11 +255,11 @@ public partial class World
     {
         if(Current != null)
         {
-            if(Current.cachedEntityList.Length != Current.entities.Count)
+            if(Current.cachedEntityList.Length != Current.entities.Length)
             {
-                Array.Resize(ref Current.cachedEntityList, Current.entities.Count);
+                Array.Resize(ref Current.cachedEntityList, Current.entities.Length);
 
-                for(var i = 0; i < Current.entities.Count; i++)
+                for(var i = 0; i < Current.entities.Length; i++)
                 {
                     Current.cachedEntityList[i] = Current.entities[i];
                 }
@@ -342,7 +355,7 @@ public partial class World
             {
                 needsEmitWorldChange = true;
 
-                if (TryGetEntity(e, out var info) == false)
+                if (!TryGetEntity(e, out var info))
                 {
                     return;
                 }
@@ -376,6 +389,8 @@ public partial class World
                     info.prefabLocalID = 0;
 
                     entityCount--;
+
+                    deadEntities.Add(e.Identifier.ID - 1);
                 }
             }
 
@@ -415,7 +430,7 @@ public partial class World
                 entity.components.Clear();
             }
 
-            entities.Clear();
+            entities = [];
             destroyedEntities.Clear();
             removedComponents.Clear();
 

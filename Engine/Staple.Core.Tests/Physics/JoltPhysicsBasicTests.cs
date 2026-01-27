@@ -121,14 +121,14 @@ internal class JoltPhysicsBasicTests
         Assert.That(Physics3D.Instance.CreateBox(default, Vector3.One * 2, Vector3.Zero, Quaternion.Identity, BodyMotionType.Dynamic, 0, false,
             1, 0, 0, false, false, false, false, 1, out var body), Is.True);
 
-        Assert.IsFalse(body.IsTrigger);
+        Assert.That(body.IsTrigger, Is.False);
 
         body.IsTrigger = true;
 
-        Assert.IsTrue(body.IsTrigger);
+        Assert.That(body.IsTrigger, Is.True);
 
         body.IsTrigger = false;
 
-        Assert.IsFalse(body.IsTrigger);
+        Assert.That(body.IsTrigger, Is.False);
     }
 }

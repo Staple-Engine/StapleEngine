@@ -175,6 +175,18 @@ public class AppSettings
     [Key(26)]
     public bool usePhysicsInterpolation = false;
 
+    /// <summary>
+    /// Whether to override the x64 Native Instruction Set
+    /// </summary>
+    [Key(27)]
+    public bool overrideNativeInstructionSetX64 = false;
+
+    /// <summary>
+    /// x64 Instruction Level
+    /// </summary>
+    [Key(28)]
+    public X64InstructionLevel x64InstructionLevel = X64InstructionLevel.x86_64v2;
+
     [IgnoreMember]
     public static AppSettings Default
     {
@@ -200,13 +212,13 @@ public class AppSettings
                     {
                         AppPlatform.Windows,
                         [
-                            RendererType.Direct3D12, RendererType.Direct3D11, RendererType.Vulkan
+                            RendererType.Direct3D12, RendererType.Vulkan
                         ]
                     },
                     {
                         AppPlatform.Linux,
                         [
-                            RendererType.Vulkan, RendererType.OpenGL
+                            RendererType.Vulkan
                         ]
                     },
                     {
@@ -218,7 +230,7 @@ public class AppSettings
                     {
                         AppPlatform.Android,
                         [
-                            RendererType.Vulkan, RendererType.OpenGLES
+                            RendererType.Vulkan
                         ]
                     },
                     {
@@ -273,6 +285,8 @@ public class AppSettings
             enableLighting = enableLighting,
             allowUnsafeCode = allowUnsafeCode,
             usePhysicsInterpolation = usePhysicsInterpolation,
+            overrideNativeInstructionSetX64 = overrideNativeInstructionSetX64,
+            x64InstructionLevel = x64InstructionLevel,
         };
     }
 }
@@ -280,6 +294,7 @@ public class AppSettings
 [JsonSourceGenerationOptions(IncludeFields = true)]
 [JsonSerializable(typeof(List<string>))]
 [JsonSerializable(typeof(Dictionary<AppPlatform, List<RendererType>>))]
+[JsonSerializable(typeof(JsonStringEnumConverter<X64InstructionLevel>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<AppProfilingMode>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<AppPlatform>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<RendererType>))]

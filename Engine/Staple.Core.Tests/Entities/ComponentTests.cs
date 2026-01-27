@@ -15,13 +15,13 @@ internal class ComponentTests
 
         var transform = entity.GetComponent<Transform>();
 
-        Assert.IsNotNull(transform);
+        Assert.That(transform, Is.Not.Null);
 
-        Assert.IsTrue(transform.Entity.IsValid);
+        Assert.That(transform.Entity.IsValid, Is.True);
 
-        Assert.IsTrue(entity.TryGetComponent(out transform));
+        Assert.That(entity.TryGetComponent(out transform), Is.True);
 
-        Assert.IsTrue(entity.TryGetComponent(typeof(Transform), out var t));
+        Assert.That(entity.TryGetComponent(typeof(Transform), out var t), Is.True);
 
         World.Current = null;
     }
@@ -37,9 +37,9 @@ internal class ComponentTests
 
         entity.SetComponent(transform);
 
-        Assert.IsNotNull(transform);
+        Assert.That(transform, Is.Not.Null);
 
-        Assert.IsTrue(transform.Entity.IsValid);
+        Assert.That(transform.Entity.IsValid, Is.True);
 
         World.Current = null;
     }
@@ -53,21 +53,21 @@ internal class ComponentTests
 
         var transform = entity.GetComponent<Transform>();
 
-        Assert.IsNotNull(transform);
+        Assert.That(transform, Is.Not.Null);
 
-        Assert.IsTrue(transform.Entity.IsValid);
+        Assert.That(transform.Entity.IsValid, Is.True);
 
         entity.RemoveComponent<Transform>();
 
         transform = entity.GetComponent<Transform>();
 
-        Assert.IsNotNull(transform);
+        Assert.That(transform, Is.Not.Null);
 
         transform = entity.AddComponent<Transform>();
 
         World.Current.StartFrame();
 
-        Assert.IsNotNull(entity.GetComponent<Transform>());
+        Assert.That(entity.GetComponent<Transform>(), Is.Not.Null);
 
         World.Current = null;
     }
@@ -81,15 +81,15 @@ internal class ComponentTests
 
         var transform = entity.GetComponent<Transform>();
 
-        Assert.IsNotNull(transform);
+        Assert.That(transform, Is.Not.Null);
 
-        Assert.IsTrue(transform.Entity.IsValid);
+        Assert.That(transform.Entity.IsValid, Is.True);
 
         entity.RemoveComponent<Transform>();
 
         transform = entity.GetComponent<Transform>();
 
-        Assert.IsNotNull(transform);
+        Assert.That(transform, Is.Not.Null);
 
         transform = new();
 
@@ -97,7 +97,7 @@ internal class ComponentTests
 
         World.Current.StartFrame();
 
-        Assert.IsNotNull(entity.GetComponent<Transform>());
+        Assert.That(entity.GetComponent<Transform>(), Is.Not.Null);
 
         World.Current = null;
     }

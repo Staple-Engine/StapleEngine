@@ -42,7 +42,7 @@ public class UITooltip(UIManager manager, string ID) : UIPanel(manager, ID)
             return;
         }
 
-        if(string.IsNullOrEmpty(overrideText) == false && source == null && element != null)
+        if(!string.IsNullOrEmpty(overrideText) && source == null && element != null)
         {
             return;
         }

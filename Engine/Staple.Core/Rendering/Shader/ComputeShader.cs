@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -19,23 +18,22 @@ public partial class ComputeShader : IGuidAsset
     private Shader.UniformInfo[] uniforms = [];
     private readonly IntLookupCache<int> uniformIndices = new();
 
-    private byte[] shaderSource = [];
+    private readonly byte[] shaderSource = [];
 
-    private bgfx.ProgramHandle programHandle = new()
-    {
-        idx = ushort.MaxValue,
-    };
+    private readonly ComputeShaderMetrics metrics;
 
-    private int usedTextureStages = 0;
+    private readonly ShaderUniformContainer uniformContainer;
+
+    private readonly Dictionary<string, ShaderUniformField> fields = [];
+
+    private IShaderProgram program;
 
     [GeneratedRegex("\\[([0-9]+)\\]")]
     private static partial Regex UniformCountRegex();
 
     private static readonly Regex uniformCountRegex = UniformCountRegex();
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     /// <summary>
     /// Whether this shader has been disposed
@@ -51,7 +49,26 @@ public partial class ComputeShader : IGuidAsset
     {
         metadata = shader.metadata;
 
-        shaderSource = entries.FirstOrDefault().Value.computeShader ?? [];
+        var entry = entries.FirstOrDefault().Value;
+
+        shaderSource = entry.computeShader ?? [];
+        metrics = entry.computeMetrics ?? new();
+        uniformContainer = entry.computeUniforms;
+
+        foreach (var uniform in entry.computeUniforms.uniforms)
+        {
+            if((uniform.fields?.Count ?? 0) == 0)
+            {
+                //TODO: Actual uniforms
+            }
+            else
+            {
+                foreach (var field in uniform.fields)
+                {
+                    fields.AddOrSetKey(field.name, field);
+                }
+            }
+        }
     }
 
     ~ComputeShader()
@@ -75,7 +92,7 @@ public partial class ComputeShader : IGuidAsset
 
     private static int NormalizeUniformCount(string name)
     {
-        if (uniformCountRegex.IsMatch(name) == false)
+        if (!uniformCountRegex.IsMatch(name))
         {
             return 1;
         }
@@ -97,29 +114,14 @@ public partial class ComputeShader : IGuidAsset
             return false;
         }
 
-        bgfx.Memory* cs = null;
+        program = RenderSystem.Backend.CreateShaderCompute(shaderSource, metrics);
 
-        fixed (void* ptr = shaderSource)
-        {
-            cs = bgfx.copy(ptr, (uint)shaderSource.Length);
-        }
-
-        var computeShader = bgfx.create_shader(cs);
-
-        if (computeShader.Valid == false)
+        if (program == null)
         {
             return false;
         }
 
-        programHandle = bgfx.create_compute_program(computeShader, true);
-
-        if (programHandle.Valid == false)
-        {
-            bgfx.destroy_shader(computeShader);
-
-            return false;
-        }
-
+        /*
         if (uniforms.Length > 0)
         {
             foreach (var uniform in uniforms)
@@ -153,6 +155,9 @@ public partial class ComputeShader : IGuidAsset
         Disposed = false;
 
         return true;
+        */
+
+        return false;
     }
 
     internal void AddUniform(Shader.DefaultUniform uniform)
@@ -185,43 +190,34 @@ public partial class ComputeShader : IGuidAsset
                 variant = uniform.variant,
                 defaultValue = uniform.defaultValue,
             },
+            handle = new(normalizedName),
             count = NormalizeUniformCount(uniform.name),
         };
 
-        if (u.Create())
+        var i = uniforms.Length;
+
+        uniformIndices.Add(normalizedHash, i);
+        uniforms = uniforms.Concat([u]).ToArray();
+
+        if (uniformIndices.IndexOf(nameHash) < 0)
         {
-            if (uniform.type == ShaderUniformType.Texture)
+            uniformIndices.Add(nameHash, i);
+
+            uniforms = uniforms.Concat([new()
             {
-                u.stage = (byte)usedTextureStages;
-
-                usedTextureStages++;
-            }
-
-            var i = uniforms.Length;
-
-            uniformIndices.Add(normalizedHash, i);
-            uniforms = uniforms.Concat([u]).ToArray();
-
-            if (uniformIndices.IndexOf(nameHash) < 0)
-            {
-                uniformIndices.Add(nameHash, i);
-
-                uniforms = uniforms.Concat([new()
+                count = u.count,
+                isAlias = true,
+                uniform = new()
                 {
-                    count = u.count,
-                    isAlias = true,
-                    handle = u.handle,
-                    stage = u.stage,
-                    uniform = new()
-                    {
-                        name = u.uniform.name,
-                        type = uniform.type,
-                        attribute = uniform.attribute,
-                        variant = uniform.variant,
-                        defaultValue = uniform.defaultValue,
-                    },
-                }]).ToArray();
-            }
+                    name = u.uniform.name,
+                    type = uniform.type,
+                    attribute = uniform.attribute,
+                    variant = uniform.variant,
+                    defaultValue = uniform.defaultValue,
+                    slot = uniform.slot,
+                },
+                handle = new(normalizedName),
+            }]).ToArray();
         }
     }
 
@@ -256,6 +252,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="z">The amount of Z threads</param>
     public void Dispatch(ushort viewId, int x, int y, int z)
     {
+        /*
         if (Disposed ||
             metadata.type != ShaderType.Compute ||
             programHandle.Valid == false)
@@ -264,6 +261,7 @@ public partial class ComputeShader : IGuidAsset
         }
 
         bgfx.dispatch(viewId, programHandle, (uint)x, (uint)y, (uint)z, (byte)bgfx.DiscardFlags.All);
+        */
     }
 
     /// <summary>
@@ -273,7 +271,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetFloat(ShaderHandle handle, float value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -282,7 +280,7 @@ public partial class ComputeShader : IGuidAsset
         {
             var temp = new Vector4(value, 0, 0, 0);
 
-            bgfx.set_uniform(uniform.handle, &temp, 1);
+            //bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
 
@@ -293,7 +291,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector2(ShaderHandle handle, Vector2 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -302,7 +300,7 @@ public partial class ComputeShader : IGuidAsset
         {
             var temp = new Vector4(value, 0, 0);
 
-            bgfx.set_uniform(uniform.handle, &temp, 1);
+            //bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
 
@@ -313,7 +311,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector2(ShaderHandle handle, ReadOnlySpan<Vector2> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -329,7 +327,7 @@ public partial class ComputeShader : IGuidAsset
 
             fixed (void* ptr = temp)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -341,7 +339,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector3(ShaderHandle handle, Vector3 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -350,7 +348,7 @@ public partial class ComputeShader : IGuidAsset
         {
             var temp = new Vector4(value, 0);
 
-            bgfx.set_uniform(uniform.handle, &temp, 1);
+            //bgfx.set_uniform(uniform.handle, &temp, 1);
         }
     }
 
@@ -361,7 +359,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector3(ShaderHandle handle, ReadOnlySpan<Vector3> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -377,7 +375,7 @@ public partial class ComputeShader : IGuidAsset
 
             fixed (void* ptr = temp)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -389,14 +387,14 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector4(ShaderHandle handle, Vector4 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &value, 1);
+            //bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
 
@@ -407,7 +405,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetVector4(ShaderHandle handle, ReadOnlySpan<Vector4> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -416,7 +414,7 @@ public partial class ComputeShader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -428,7 +426,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetColor(ShaderHandle handle, Color value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -437,7 +435,7 @@ public partial class ComputeShader : IGuidAsset
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &colorValue, 1);
+            //bgfx.set_uniform(uniform.handle, &colorValue, 1);
         }
     }
 
@@ -448,7 +446,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetColor(ShaderHandle handle, ReadOnlySpan<Color> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -457,7 +455,7 @@ public partial class ComputeShader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -467,20 +465,19 @@ public partial class ComputeShader : IGuidAsset
     /// </summary>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    /// <param name="overrideFlags">Flags to override texture state</param>
-    public void SetTexture(ShaderHandle handle, Texture value, TextureFlags overrideFlags = (TextureFlags)uint.MaxValue)
+    public void SetTexture(ShaderHandle handle, Texture value)
     {
         if (Disposed ||
             value == null ||
             value.Disposed ||
-            handle.TryGetUniform(this, out var uniform) == false)
+            !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
 
         unsafe
         {
-            value.SetActive(uniform.stage, uniform.handle, overrideFlags);
+            //value.SetActive(uniform.stage, uniform.handle, overrideFlags);
         }
     }
 
@@ -491,14 +488,14 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix3x3(ShaderHandle handle, Matrix3x3 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &value, 1);
+            //bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
 
@@ -509,7 +506,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix3x3(ShaderHandle handle, ReadOnlySpan<Matrix3x3> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -518,7 +515,7 @@ public partial class ComputeShader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -530,14 +527,14 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix4x4(ShaderHandle handle, Matrix4x4 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
 
         unsafe
         {
-            bgfx.set_uniform(uniform.handle, &value, 1);
+            //bgfx.set_uniform(uniform.handle, &value, 1);
         }
     }
 
@@ -548,7 +545,7 @@ public partial class ComputeShader : IGuidAsset
     /// <param name="value">The value</param>
     public void SetMatrix4x4(ShaderHandle handle, ReadOnlySpan<Matrix4x4> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
+        if (Disposed || !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
@@ -557,7 +554,7 @@ public partial class ComputeShader : IGuidAsset
         {
             fixed (void* ptr = value)
             {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
+                //bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
             }
         }
     }
@@ -574,6 +571,7 @@ public partial class ComputeShader : IGuidAsset
 
         Disposed = true;
 
+        /*
         if(programHandle.Valid)
         {
             bgfx.destroy_program(programHandle);
@@ -583,7 +581,9 @@ public partial class ComputeShader : IGuidAsset
                 idx = ushort.MaxValue,
             };
         }
+        */
 
+        /*
         foreach (var uniform in uniforms)
         {
             if (uniform.isAlias)
@@ -600,6 +600,7 @@ public partial class ComputeShader : IGuidAsset
                 uniform.handle.idx = ushort.MaxValue;
             }
         }
+        */
     }
 
     /// <summary>

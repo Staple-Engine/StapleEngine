@@ -4,40 +4,86 @@ Blend SrcAlpha OneMinusSrcAlpha
 
 Begin Parameters
 
-varying vec2 v_texcoord0 : TEXCOORD0 = vec2(0.0, 0.0)
-varying vec3 a_position : POSITION
-varying vec2 a_texcoord0 : TEXCOORD0
-
-uniform color mainColor
-uniform texture mainTexture
+color mainColor
+texture mainTexture
 
 End Parameters
 
+Begin Input
+POSITION
+TEXCOORD0
+variant: SKINNING BLENDINDICES
+variant: SKINNING BLENDWEIGHTS
+End Input
+
+Begin Common
+
+[[vk::binding(StapleUniformBufferStart, StapleUniformBufferSet)]]
+cbuffer Uniforms
+{
+	float4 mainColor;
+};
+
+struct VertexOutput
+{
+    float4 position : SV_Position;
+	float2 coord;
+    float4 color;
+};
+
+End Common
+
 Begin Vertex
 
-$input a_position, a_texcoord0
-$output v_texcoord0
-
-void main()
+struct Input
 {
-	mat4 projViewWorld = mul(mul(u_proj, u_view), u_model[0]);
+    float3 position : POSITION;
+	float2 coord : TEXCOORD0;
 
-	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));
+#ifdef SKINNING
+	float4 indices : BLENDINDICES;
+	float4 weights : BLENDWEIGHTS;
+#endif
 
-	gl_Position = v_pos;
+    uint baseInstance : SV_StartInstanceLocation;
+    uint instanceID : SV_InstanceID;
+};
 
-	v_texcoord0 = a_texcoord0;
+[shader("vertex")]
+VertexOutput VertexMain(Input input)
+{
+    VertexOutput output;
+
+    float3 position = input.position;
+    float4 color = mainColor;
+
+    float4x4 model = StapleWorldMatrix(input.baseInstance, input.instanceID);
+
+#ifdef SKINNING
+	model = StapleGetSkinningMatrix(model, input.indices, input.weights);
+#endif
+
+    output.color = color;
+	output.coord = input.coord;
+    output.position = mul(ProjectionViewWorld(model), float4(position, 1.0));
+
+    return output;
 }
 
 End Vertex
 
 Begin Fragment
 
-$input v_texcoord0
-
-void main()
+[[vk::binding(0, StapleSamplerStorageBufferSet)]]
+cbuffer Textures
 {
-	gl_FragColor = texture2D(mainTexture, v_texcoord0) * mainColor;
+	Sampler2D mainTexture;
+};
+
+[shader("fragment")]
+float4 FragmentMain(VertexOutput input) : SV_Target
+{
+    return mainTexture.Sample(input.coord) * input.color;
 }
 
 End Fragment

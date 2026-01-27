@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Staple;
 
@@ -9,44 +10,20 @@ namespace Staple;
 /// Contains rotation, position, scale, and parent entity.
 /// </summary>
 [AutoAssignEntity]
-public class Transform : IComponent
+public class Transform : IComponent, IComponentVersion
 {
-    internal bool changed = false;
-    internal bool changedThisFrame = false;
+    private ulong lastVersion = 0;
+    internal ulong version;
 
     /// <summary>
     /// Whether the transform has changed.
     /// This is used to force children to refresh themselves when the parent is modified.
     /// </summary>
-    internal bool Changed
+    public ulong Version
     {
-        get => changed;
-
-        set
-        {
-            var wasChanged = changed;
-
-            changed = value;
-
-            if(changed)
-            {
-                changedThisFrame = true;
-            }
-
-            if(wasChanged == false && changed)
-            {
-                for(var i = 0; i < Children.Length; i++)
-                {
-                    Children[i].Changed = true;
-                }
-            }
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        get => version;
     }
-
-    /// <summary>
-    /// Whether the transform was changed this frame
-    /// </summary>
-    public bool ChangedThisFrame => changedThisFrame;
 
     /// <summary>
     /// Child transforms
@@ -134,7 +111,10 @@ public class Transform : IComponent
 
             var target = value - parentPosition;
 
-            Changed |= target != position;
+            if(target != position)
+            {
+                BumpVersion();
+            }
 
             position = target;
         }
@@ -149,7 +129,10 @@ public class Transform : IComponent
 
         set
         {
-            Changed |= value != position;
+            if(value != position)
+            {
+                BumpVersion();
+            }
 
             position = value;
         }
@@ -173,7 +156,10 @@ public class Transform : IComponent
 
             var target = value / parentScale;
 
-            Changed |= target != scale;
+            if (target != scale)
+            {
+                BumpVersion();
+            }
 
             scale = target;
         }
@@ -188,7 +174,10 @@ public class Transform : IComponent
 
         set
         {
-            Changed |= value != scale;
+            if (value != scale)
+            {
+                BumpVersion();
+            }
 
             scale = value;
         }
@@ -212,7 +201,10 @@ public class Transform : IComponent
 
             var target = Quaternion.Inverse(parentRotation) * value;
 
-            Changed |= target != rotation;
+            if (target != rotation)
+            {
+                BumpVersion();
+            }
 
             rotation = target;
         }
@@ -227,7 +219,10 @@ public class Transform : IComponent
 
         set
         {
-            Changed |= value != rotation;
+            if (value != rotation)
+            {
+                BumpVersion();
+            }
 
             rotation = value;
         }
@@ -345,7 +340,7 @@ public class Transform : IComponent
 
         parent?.AttachChild(this);
 
-        Changed = true;
+        BumpVersion();
 
         Scene.RequestWorldUpdate();
     }
@@ -356,9 +351,9 @@ public class Transform : IComponent
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void UpdateState()
     {
-        if (changed)
+        if (version > lastVersion)
         {
-            changed = false;
+            lastVersion = version;
 
             matrix = Matrix4x4.TRS(position, scale, rotation);
 
@@ -455,6 +450,27 @@ public class Transform : IComponent
         Scene.RequestWorldUpdate();
 
         return true;
+    }
+
+    /// <summary>
+    /// Increases the transform's version
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private void BumpVersion()
+    {
+        version++;
+
+        if(Children.Length == 0)
+        {
+            return;
+        }
+
+        var length = Children.Length;
+
+        for (var i = 0; i < length; i++)
+        {
+            Children[i].BumpVersion();
+        }
     }
 
     /// <summary>

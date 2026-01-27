@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Hexa.NET.ImGuizmo;
+﻿using Hexa.NET.ImGuizmo;
 using Staple.Internal;
 using System;
 using System.Numerics;
@@ -16,141 +15,131 @@ internal partial class StapleEditor
     /// </summary>
     public void RenderScene()
     {
-        bgfx.touch(SceneView);
-        bgfx.touch(WireframeView);
-
         ImGuizmo.SetDrawlist();
         ImGuizmo.SetOrthographic(false);
         ImGuizmo.SetRect(0, 0, window.width, window.height);
 
         var hasGizmos = cachedGizmoEditors.Count > 0;
 
-        unsafe
+        var projection = Camera.Projection(default, camera);
+        var view = cameraTransform.Matrix;
+
+        Matrix4x4.Invert(view, out view);
+
+        camera.UpdateFrustum(view, projection);
+
+        if (selectedEntity.IsValid &&
+            selectedEntity.TryGetComponent<Transform>(out var selectedTransform))
         {
-            var projection = Camera.Projection(default, camera);
-            var view = cameraTransform.Matrix;
+            ImGuizmo.Enable(true);
 
-            Matrix4x4.Invert(view, out view);
-
-            camera.UpdateFrustum(view, projection);
-
-            bgfx.set_view_transform(SceneView, &view, &projection);
-            bgfx.set_view_transform(WireframeView, &view, &projection);
-
-            if (selectedEntity.IsValid &&
-                selectedEntity.TryGetComponent<Transform>(out var selectedTransform))
+            unsafe
             {
-                ImGuizmo.Enable(true);
+                float* snap = null;
+                float* localBound = null;
+                float[] snaps = [1, 1, 1];
 
-                unsafe
+                if (Input.GetKey(KeyCode.LeftShift))
                 {
-                    float* snap = null;
-                    float* localBound = null;
-                    float[] snaps = [1, 1, 1];
+                    snap = (float*)Unsafe.AsPointer(ref snaps[0]);
+                }
 
-                    if (Input.GetKey(KeyCode.LeftShift))
+                var matrix = Matrix4x4.TRS(selectedTransform.Position, selectedTransform.Scale, selectedTransform.Rotation);
+                var delta = Matrix4x4.Identity;
+
+                if (ImGuizmo.Manipulate(ref view.M11, ref projection.M11, transformOperation, transformMode, ref matrix.M11,
+                    ref delta.M11, snap, localBound, snap))
+                {
+                    Matrix4x4.Invert(selectedTransform.Parent?.Matrix ?? Matrix4x4.Identity, out var invParent);
+
+                    var local = matrix * invParent;
+
+                    if (Matrix4x4.Decompose(local, out var scale, out var rotation, out var position))
                     {
-                        snap = (float*)Unsafe.AsPointer(ref snaps[0]);
-                    }
-
-                    var matrix = Matrix4x4.TRS(selectedTransform.Position, selectedTransform.Scale, selectedTransform.Rotation);
-                    var delta = Matrix4x4.Identity;
-
-                    if (ImGuizmo.Manipulate(ref view.M11, ref projection.M11, transformOperation, transformMode, ref matrix.M11,
-                        ref delta.M11, snap, localBound, snap))
-                    {
-                        Matrix4x4.Invert(selectedTransform.Parent?.Matrix ?? Matrix4x4.Identity, out var invParent);
-
-                        var local = matrix * invParent;
-
-                        if (Matrix4x4.Decompose(local, out var scale, out var rotation, out var position))
+                        switch (transformOperation)
                         {
-                            switch(transformOperation)
-                            {
-                                case ImGuizmoOperation.Rotate:
+                            case ImGuizmoOperation.Rotate:
 
-                                    selectedTransform.LocalRotation = rotation;
+                                selectedTransform.LocalRotation = rotation;
 
-                                    break;
+                                break;
 
-                                case ImGuizmoOperation.Translate:
+                            case ImGuizmoOperation.Translate:
 
-                                    selectedTransform.LocalPosition = position;
+                                selectedTransform.LocalPosition = position;
 
-                                    break;
+                                break;
 
-                                case ImGuizmoOperation.Scale:
+                            case ImGuizmoOperation.Scale:
 
-                                    selectedTransform.LocalScale = scale;
+                                selectedTransform.LocalScale = scale;
 
-                                    break;
-                            }
+                                break;
                         }
                     }
                 }
+            }
 
-                if (ImGuizmo.IsUsing())
+            if (ImGuizmo.IsUsing())
+            {
+                if (!transforming)
                 {
-                    if (transforming == false)
-                    {
-                        transforming = true;
+                    transforming = true;
 
-                        transformPosition = selectedTransform.LocalPosition;
-                        transformRotation = selectedTransform.LocalRotation;
-                        transformScale = selectedTransform.LocalScale;
-                    }
-                }
-                else if (transforming)
-                {
-                    transforming = false;
-
-                    var t = selectedTransform;
-
-                    var currentPosition = selectedTransform.LocalPosition;
-                    var currentRotation = selectedTransform.LocalRotation;
-                    var currentScale = selectedTransform.LocalScale;
-
-                    var oldPosition = transformPosition;
-                    var oldRotation = transformRotation;
-                    var oldScale = transformScale;
-
-                    undoStack.AddItem("Transform",
-                        () =>
-                        {
-                            t.LocalPosition = currentPosition;
-                            t.LocalRotation = currentRotation;
-                            t.LocalScale = currentScale;
-                        },
-                        () =>
-                        {
-                            t.LocalPosition = oldPosition;
-                            t.LocalRotation = oldRotation;
-                            t.LocalScale = oldScale;
-                        });
+                    transformPosition = selectedTransform.LocalPosition;
+                    transformRotation = selectedTransform.LocalRotation;
+                    transformScale = selectedTransform.LocalScale;
                 }
             }
-            else
+            else if (transforming)
             {
-                ImGuizmo.Enable(false);
+                transforming = false;
+
+                var t = selectedTransform;
+
+                var currentPosition = selectedTransform.LocalPosition;
+                var currentRotation = selectedTransform.LocalRotation;
+                var currentScale = selectedTransform.LocalScale;
+
+                var oldPosition = transformPosition;
+                var oldRotation = transformRotation;
+                var oldScale = transformScale;
+
+                undoStack.AddItem("Transform",
+                    () =>
+                    {
+                        t.LocalPosition = currentPosition;
+                        t.LocalRotation = currentRotation;
+                        t.LocalScale = currentScale;
+                    },
+                    () =>
+                    {
+                        t.LocalPosition = oldPosition;
+                        t.LocalRotation = oldRotation;
+                        t.LocalScale = oldScale;
+                    });
             }
         }
-
-        wireframeMaterial?.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
+        else
+        {
+            ImGuizmo.Enable(false);
+        }
 
         var renderSystem = RenderSystem.Instance;
 
+        RenderSystem.Instance.UpdateEntityTransforms();
         RenderSystem.RenderStats.Clear();
 
-        foreach (var system in renderSystem.renderSystems)
+        foreach (var systemInfo in renderSystem.renderSystems)
         {
-            system.Prepare();
+            systemInfo.system.Prepare();
         }
 
         RenderSystem.CurrentCamera = (camera, cameraTransform);
 
         if (World.Current != null)
         {
-            foreach(var entity in renderQueue.disabledEntities)
+            foreach (var entity in renderQueue.disabledEntities)
             {
                 ClearEntityBody(entity);
             }
@@ -163,83 +152,99 @@ internal partial class StapleEditor
             {
                 var (components, renderables) = pair.Value;
 
-                if(renderables.Count == 0)
-                {
-                    continue;
-                }
-
                 try
                 {
                     pair.Key.Preprocess(components.ToArray(), camera, cameraTransform);
 
-                    foreach (var (entity, transform, renderable) in renderables)
+                    if(renderables.Count > 0)
                     {
-                        if (renderable.enabled)
+                        foreach (var (entity, transform, renderable) in renderables)
                         {
-                            renderable.isVisible = renderable.enabled &&
-                                renderable.forceRenderingOff == false &&
-                                renderable.cullingState != CullingState.Invisible;
-
-                            if (renderable.isVisible)
+                            if (renderable.enabled)
                             {
-                                if (renderable.cullingState == CullingState.None)
-                                {
-                                    renderable.isVisible = camera.IsVisible(renderable.bounds);
+                                renderable.isVisible = renderable.enabled &&
+                                    !renderable.forceRenderingOff &&
+                                    renderable.cullingState != CullingState.Invisible;
 
-                                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                                if (renderable.isVisible)
+                                {
+                                    if (renderable.cullingState == CullingState.None)
+                                    {
+                                        renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                                        renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                                    }
+                                }
+
+                                if (!renderable.isVisible)
+                                {
+                                    RenderSystem.RenderStats.culledDrawCalls++;
+                                }
+
+                                if (sceneTransformTracker.ShouldUpdateComponent(entity, in transform))
+                                {
+                                    ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
                                 }
                             }
-
-                            if (renderable.isVisible == false)
+                            else
                             {
-                                RenderSystem.RenderStats.culledDrawCalls++;
+                                ClearEntityBody(entity);
                             }
-
-                            if (transform.ChangedThisFrame)
-                            {
-                                ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
-                            }
-                        }
-                        else
-                        {
-                            ClearEntityBody(entity);
                         }
                     }
 
-                    pair.Key.Process(components.ToArray(), camera, cameraTransform, SceneView);
-
-                    pair.Key.Submit(SceneView);
+                    pair.Key.Process(components.ToArray(), camera, cameraTransform);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Log.Error($"[{pair.Key.GetType()}] {e}");
                 }
             }
-
-            foreach(var (_, transform) in renderQueue.transforms.Contents)
-            {
-                transform.changedThisFrame = false;
-            }
-
-            if (hasGizmos)
-            {
-                var counter = 0;
-
-                selectedEntity.IterateComponents((ref IComponent component) =>
-                {
-                    if(cachedGizmoEditors.TryGetValue(counter++, out var editor))
-                    {
-                        try
-                        {
-                            editor.OnGizmo(selectedEntity, selectedEntity.GetComponent<Transform>(), component);
-                        }
-                        catch(Exception e)
-                        {
-                            Log.Debug($"[{editor.GetType().FullName}]: {e}");
-                        }
-                    }
-                });
-            }
         }
+
+        RenderSystem.Render(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
+            cameraTransform.Matrix, projection, () =>
+            {
+                wireframeMaterial?.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
+
+                foreach (var pair in renderQueue.renderQueue)
+                {
+                    var (components, renderables) = pair.Value;
+
+                    if (renderables.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    try
+                    {
+                        pair.Key.Submit();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error($"[{pair.Key.GetType()}] {e}");
+                    }
+                }
+
+                if (hasGizmos)
+                {
+                    var counter = 0;
+
+                    selectedEntity.IterateComponents((ref IComponent component) =>
+                    {
+                        if (cachedGizmoEditors.TryGetValue(counter++, out var editor))
+                        {
+                            try
+                            {
+                                editor.OnGizmo(selectedEntity, selectedEntity.GetComponent<Transform>(), component);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Debug($"[{editor.GetType().FullName}]: {e}");
+                            }
+                        }
+                    });
+                }
+            });
     }
 }

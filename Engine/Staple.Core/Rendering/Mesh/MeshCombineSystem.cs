@@ -1,6 +1,4 @@
-﻿using Bgfx;
-using Staple.Internal;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -30,7 +28,9 @@ public sealed class MeshCombineSystem : IRenderSystem
         public Transform transform;
     }
 
-    private readonly Dictionary<ushort, ExpandableContainer<RenderInfo>> renderers = [];
+    private readonly ExpandableContainer<RenderInfo> renderers = new();
+
+    private readonly ComponentVersionTracker<Transform> transformVersions = new();
 
     #region Lifecycle
     public void Prepare()
@@ -46,37 +46,34 @@ public sealed class MeshCombineSystem : IRenderSystem
     }
     #endregion
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (entity, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            if (relatedComponent is not MeshCombine combine)
-            {
-                continue;
-            }
+            var combine = (MeshCombine)entry.component;
 
-            combine.renderers ??= new(entity, EntityQueryMode.SelfAndChildren, true);
+            combine.renderers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, true);
 
             foreach (var (_, renderer) in combine.renderers.Contents)
             {
                 renderer.cullingState = CullingState.Invisible;
             }
 
-            if (combine.processed == false)
+            if (!combine.processed)
             {
                 combine.processed = true;
 
                 var combinableMeshes = new Dictionary<(MeshAssetComponent, MeshTopology, MaterialLighting, int), List<(Mesh, Transform, Material)>>();
 
-                Matrix4x4.Invert(transform.Matrix, out var worldTransform);
+                Matrix4x4.Invert(entry.transform.Matrix, out var worldTransform);
 
                 foreach (var (e, t, renderer) in combine.renderers.ContentEntities)
                 {
                     //For now support only one material
-                    if (renderer.enabled == false ||
+                    if (!renderer.enabled ||
                         renderer.mesh == null ||
                         (renderer.materials?.Count ?? 0) == 0 ||
-                        (renderer.materials[0]?.IsValid ?? false) == false ||
+                        !(renderer.materials[0]?.IsValid ?? false) ||
                         renderer.mesh.submeshes.Count > 1)
                     {
                         continue;
@@ -94,7 +91,7 @@ public sealed class MeshCombineSystem : IRenderSystem
 
                     var key = (components, renderer.mesh.MeshTopology, lighting, renderer.materials[0].Guid.GuidHash);
 
-                    if (combinableMeshes.TryGetValue(key, out var container) == false)
+                    if (!combinableMeshes.TryGetValue(key, out var container))
                     {
                         container = [];
 
@@ -261,75 +258,58 @@ public sealed class MeshCombineSystem : IRenderSystem
                 }
             }
 
-            if (transform.ChangedThisFrame || combine.localBounds.size == Vector3.Zero)
+            if (!transformVersions.ShouldUpdateComponent(entry.entity, in entry.transform))
             {
-                var localSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(transform.LocalRotation));
-
-                var globalSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(transform.Rotation));
-
-                combine.localBounds = new(transform.LocalPosition + combine.combinedMeshBounds.center.Transformed(transform.LocalRotation) * transform.LocalScale,
-                    localSize * transform.LocalScale);
-
-                combine.bounds = new(transform.Position + combine.combinedMeshBounds.center.Transformed(transform.Rotation) * transform.Scale,
-                    globalSize * transform.Scale);
+                continue;
             }
+            
+            var localSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(entry.transform.LocalRotation));
+
+            var globalSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(entry.transform.Rotation));
+
+            combine.localBounds = new(entry.transform.LocalPosition +
+                combine.combinedMeshBounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
+                localSize * entry.transform.LocalScale);
+
+            combine.bounds = new(entry.transform.Position +
+                combine.combinedMeshBounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
+                globalSize * entry.transform.Scale);
         }
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        if (renderers.TryGetValue(viewID, out var container) == false)
-        {
-            container = new();
+        renderers.Clear();
 
-            renderers.Add(viewID, container);
-        }
-        else
+        foreach (var entry in renderQueue)
         {
-            container.Clear();
-        }
-
-        foreach (var (entity, transform, relatedComponent) in entities)
-        {
-            if (relatedComponent is not MeshCombine combine ||
+            if (entry.component is not MeshCombine combine ||
                 combine.meshes.Count == 0 ||
                 combine.materials.Count != combine.meshes.Count)
             {
                 continue;
             }
 
-            container.Add(new()
+            renderers.Add(new()
             {
                 renderer = combine,
-                transform = transform,
+                transform = entry.transform,
             });
         }
     }
 
-    public void ClearRenderData(ushort viewID)
+    public void Submit()
     {
-        renderers.Remove(viewID);
-    }
-
-    public void Submit(ushort viewID)
-    {
-        if (renderers.TryGetValue(viewID, out var content) == false)
-        {
-            return;
-        }
-
         Material lastMaterial = null;
 
         var lastLighting = MaterialLighting.Unlit;
         var lastTopology = MeshTopology.Triangles;
 
-        bgfx.discard((byte)bgfx.DiscardFlags.All);
-
-        var l = content.Length;
+        var l = renderers.Length;
 
         for (var i = 0; i < l; i++)
         {
-            var item = content.Contents[i];
+            var item = renderers.Contents[i];
 
             var renderer = item.renderer;
 
@@ -344,15 +324,22 @@ public sealed class MeshCombineSystem : IRenderSystem
                     lastLighting != lighting ||
                     lastTopology != mesh.MeshTopology;
 
-                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
                 void SetupMaterial()
                 {
                     material.DisableShaderKeyword(Shader.SkinningKeyword);
                     material.DisableShaderKeyword(Shader.InstancingKeyword);
 
-                    lightSystem?.ApplyMaterialLighting(material, lighting);
+                    LightSystem.Instance.ApplyMaterialLighting(material, lighting);
                 }
+
+                var renderState = RenderState.Default;
+
+                renderState.cull = material.CullingMode;
+                renderState.primitiveType = mesh.MeshTopology;
+                renderState.indexBuffer = mesh.indexBuffer;
+                renderState.vertexBuffer = mesh.vertexBuffer;
+                renderState.indexCount = mesh.IndexCount;
+                renderState.world = item.transform.Matrix;
 
                 if (needsChange)
                 {
@@ -360,49 +347,26 @@ public sealed class MeshCombineSystem : IRenderSystem
                     lastLighting = lighting;
                     lastTopology = mesh.MeshTopology;
 
-                    bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                     SetupMaterial();
 
-                    if (material.ShaderProgram.Valid == false)
+                    if (material.ShaderProgram == null)
                     {
-                        bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                         continue;
                     }
 
-                    material.ApplyProperties(Material.ApplyMode.All);
+                    material.ApplyProperties(ref renderState);
                 }
 
                 SetupMaterial();
 
-                if (material.ShaderProgram.Valid == false)
+                if (material.ShaderProgram == null)
                 {
-                    bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                     continue;
                 }
 
-                unsafe
-                {
-                    var transform = item.transform.Matrix;
+                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                    _ = bgfx.set_transform(&transform, 1);
-                }
-
-                mesh.SetActive(0);
-
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
-
-                var program = material.ShaderProgram;
-
-                bgfx.set_state((ulong)(material.shader.StateFlags |
-                    mesh.PrimitiveFlag() |
-                    material.CullingFlag), 0);
-
-                var flags = bgfx.DiscardFlags.State;
-
-                RenderSystem.Submit(viewID, program, flags, mesh.SubmeshTriangleCount(0), 1);
+                RenderSystem.Submit(renderState, mesh.SubmeshTriangleCount(0), 1);
             }
         }
     }

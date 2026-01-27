@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Staple.Internal;
 
@@ -13,7 +14,7 @@ internal static class PerformanceProfilerSystem
 
     private static readonly Dictionary<PerformanceProfilerType, int> averageFrameCounters = [];
 
-    private static readonly object lockObject = new();
+    private static readonly Lock lockObject = new();
 
     private static DateTime lastAverageTime = DateTime.UtcNow;
 

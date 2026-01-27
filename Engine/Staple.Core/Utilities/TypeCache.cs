@@ -114,7 +114,7 @@ public static class TypeCache
         {
             foreach (var pair in frozenTypes)
             {
-                if (pair.Value.IsInterface == false &&
+                if (!pair.Value.IsInterface &&
                     type.IsAssignableFrom(pair.Value))
                 {
                     outValue.Add(pair.Value);
@@ -125,7 +125,7 @@ public static class TypeCache
         {
             foreach (var pair in types)
             {
-                if (pair.Value.IsInterface == false &&
+                if (!pair.Value.IsInterface &&
                     type.IsAssignableFrom(pair.Value))
                 {
                     outValue.Add(pair.Value);
@@ -162,7 +162,7 @@ public static class TypeCache
 
         type = Type.GetType(name);
 
-        if(type != null && types.ContainsKey(type.ToString()) == false)
+        if(type != null && !types.ContainsKey(type.ToString()))
         {
             types.Add(type.ToString(), type);
         }
@@ -187,8 +187,8 @@ public static class TypeCache
     /// <returns>The component or default</returns>
     public static IComponent AddComponent(Entity entity, string typeName)
     {
-        if(useFrozenCollections ? frozenComponentCallbacks.TryGetValue(typeName, out var callback) == false :
-            componentCallbacks.TryGetValue(typeName, out callback) == false)
+        if(useFrozenCollections ? !frozenComponentCallbacks.TryGetValue(typeName, out var callback) :
+            !componentCallbacks.TryGetValue(typeName, out callback))
         {
             return default;
         }
@@ -212,8 +212,8 @@ public static class TypeCache
     /// <param name="typeName">The component type name</param>
     public static void RemoveComponent(Entity entity, string typeName)
     {
-        if (useFrozenCollections ? frozenComponentCallbacks.TryGetValue(typeName, out var callback) == false :
-            componentCallbacks.TryGetValue(typeName, out callback) == false)
+        if (useFrozenCollections ? !frozenComponentCallbacks.TryGetValue(typeName, out var callback) :
+            !componentCallbacks.TryGetValue(typeName, out callback))
         {
             return;
         }
@@ -236,8 +236,8 @@ public static class TypeCache
     /// <returns>The component or default</returns>
     public static IComponent GetComponent(Entity entity, string typeName)
     {
-        if (useFrozenCollections ? frozenComponentCallbacks.TryGetValue(typeName, out var callback) == false :
-            componentCallbacks.TryGetValue(typeName, out callback) == false)
+        if (useFrozenCollections ? !frozenComponentCallbacks.TryGetValue(typeName, out var callback) :
+            !componentCallbacks.TryGetValue(typeName, out callback))
         {
             return default;
         }
@@ -262,8 +262,8 @@ public static class TypeCache
     /// <returns>An array instance, or default</returns>
     public static Array CreateArray(string typeName, int length)
     {
-        if(useFrozenCollections ? frozenArrayConstructors.TryGetValue(typeName, out var fn) == false :
-            arrayConstructors.TryGetValue(typeName, out fn) == false)
+        if(useFrozenCollections ? !frozenArrayConstructors.TryGetValue(typeName, out var fn) :
+            !arrayConstructors.TryGetValue(typeName, out fn))
         {
             return default;
         }
@@ -287,8 +287,8 @@ public static class TypeCache
     /// <returns>The size, or 0</returns>
     public static int SizeOf(string typeName)
     {
-        if (useFrozenCollections ? frozenSizeOfs.TryGetValue(typeName, out var fn) == false :
-            sizeOfs.TryGetValue(typeName, out fn) == false)
+        if (useFrozenCollections ? !frozenSizeOfs.TryGetValue(typeName, out var fn) :
+            !sizeOfs.TryGetValue(typeName, out fn))
         {
             return 0;
         }

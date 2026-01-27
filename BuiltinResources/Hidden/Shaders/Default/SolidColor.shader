@@ -2,39 +2,79 @@ Type VertexFragment
 
 Begin Parameters
 
-varying vec3 a_position : POSITION
-uniform color mainColor
+color mainColor
 
 End Parameters
+
+Begin Input
+POSITION
+variant: SKINNING BLENDINDICES
+variant: SKINNING BLENDWEIGHTS
+End Input
 
 Begin Instancing
 End Instancing
 
-Begin Vertex
-$input a_position
+Begin Common
 
-void main()
+struct VertexOutput
 {
-	mat4 model = StapleModelMatrix;
+    float4 position : SV_Position;
+    float4 color;
+};
 
-	#ifdef SKINNING
-	model = StapleGetSkinningMatrix(model, a_indices, a_weight);
-	#endif
+End Common
 
-	mat4 projViewWorld = mul(mul(u_proj, u_view), model);
+Begin Vertex
 
-	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));
+[[vk::binding(StapleUniformBufferStart, StapleUniformBufferSet)]]
+cbuffer Uniforms
+{
+    float4 mainColor;
+};
 
-	gl_Position = v_pos;
+struct Input
+{
+    float3 position : POSITION;
+
+#ifdef SKINNING
+	float4 indices : BLENDINDICES;
+	float4 weights : BLENDWEIGHTS;
+#endif
+
+    uint baseInstance : SV_StartInstanceLocation;
+    uint instanceID : SV_InstanceID;
+};
+
+[shader("vertex")]
+VertexOutput VertexMain(Input input)
+{
+    VertexOutput output;
+
+    float3 position = input.position;
+    float4 color = mainColor;
+
+	float4x4 model = StapleWorldMatrix(input.baseInstance, input.instanceID);
+
+#ifdef SKINNING
+	model = StapleGetSkinningMatrix(model, input.indices, input.weights);
+#endif
+
+	float4x4 projectionViewWorld = ProjectionViewWorld(model);
+
+    output.color = color;
+    output.position = mul(projectionViewWorld, float4(position, 1.0));
+
+    return output;
 }
-
 End Vertex
 
 Begin Fragment
 
-void main()
+[shader("fragment")]
+float4 FragmentMain(VertexOutput input) : SV_Target
 {
-	gl_FragColor = mainColor;
+    return input.color;
 }
 
 End Fragment

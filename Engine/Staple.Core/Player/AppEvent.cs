@@ -80,7 +80,7 @@ internal struct KeyboardEvent
 
 internal struct ResetEvent
 {
-    public Bgfx.bgfx.ResetFlags resetFlags;
+    public RenderModeFlags flags;
 }
 
 internal struct MouseDeltaEvent
@@ -190,14 +190,14 @@ internal class AppEvent
         };
     }
 
-    public static AppEvent ResetFlags(Bgfx.bgfx.ResetFlags flags)
+    public static AppEvent ResetFlags(RenderModeFlags flags)
     {
         return new()
         {
             type = AppEventType.ResetFlags,
             reset = new()
             {
-                resetFlags = flags,
+                flags = flags,
             },
         };
     }

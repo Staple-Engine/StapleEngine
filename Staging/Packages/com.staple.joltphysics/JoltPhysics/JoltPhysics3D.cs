@@ -29,8 +29,10 @@ public class JoltPhysics3D : IPhysics3D
     private JobSystem jobSystem;
 
     //Tracking live bodies
-    private readonly List<JoltBodyPair> bodies = [];
-    private readonly List<JoltCharacterPair> characters = [];
+    private readonly Dictionary<BodyID, JoltBodyPair> bodies = [];
+    private readonly Dictionary<Entity, JoltBodyPair> entityBodies = [];
+    private readonly Dictionary<BodyID, JoltCharacterPair> characters = [];
+    private readonly Dictionary<Entity, JoltCharacterPair> entityCharacters = [];
     private readonly Lock threadLock = new();
     private readonly CallbackGatherer callbackGatherer = new();
 
@@ -162,14 +164,11 @@ public class JoltPhysics3D : IPhysics3D
     {
         lock (threadLock)
         {
-            foreach (var b in bodies)
+            if (bodies.TryGetValue(body.ID, out var b))
             {
-                if (b.body == body)
-                {
-                    outBody = b;
+                outBody = b;
 
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -182,14 +181,11 @@ public class JoltPhysics3D : IPhysics3D
     {
         lock (threadLock)
         {
-            foreach (var b in characters)
+            if(characters.TryGetValue(character.BodyID, out var b))
             {
-                if (b.character == character)
-                {
-                    outBody = b;
+                outBody = b;
 
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -202,24 +198,18 @@ public class JoltPhysics3D : IPhysics3D
     {
         lock (threadLock)
         {
-            foreach (var b in bodies)
+            if(bodies.TryGetValue(body, out var b))
             {
-                if (b.body.ID == body)
-                {
-                    outBody = b;
+                outBody = b;
 
-                    return true;
-                }
+                return true;
             }
 
-            foreach (var b in characters)
+            if(characters.TryGetValue(body, out var c))
             {
-                if (b.character.BodyID == body)
-                {
-                    outBody = b;
+                outBody = c;
 
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -228,7 +218,7 @@ public class JoltPhysics3D : IPhysics3D
         return false;
     }
 
-    private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, in ContactSettings settings)
+    private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, ref ContactSettings settings)
     {
         lock (threadLock)
         {
@@ -249,7 +239,7 @@ public class JoltPhysics3D : IPhysics3D
         }
     }
 
-    private void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, in ContactSettings settings)
+    private void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, ref ContactSettings settings)
     {
         lock (threadLock)
         {
@@ -391,18 +381,20 @@ public class JoltPhysics3D : IPhysics3D
             {
                 lock (threadLock)
                 {
-                    if (pair.body.IsActive == false)
+                    var p = pair.Value;
+
+                    if (p.body.IsActive == false)
                     {
                         continue;
                     }
 
-                    pair.interpolatedPosition = Vector3.Lerp(pair.previousPosition, pair.currentPosition, Math.Clamp01(alpha));
-                    pair.interpolatedRotation = Quaternion.Slerp(pair.previousRotation, pair.currentRotation, Math.Clamp01(alpha));
+                    p.interpolatedPosition = Vector3.Lerp(p.previousPosition, p.currentPosition, Math.Clamp01(alpha));
+                    p.interpolatedRotation = Quaternion.Slerp(p.previousRotation, p.currentRotation, Math.Clamp01(alpha));
 
-                    if (pair.transform != null)
+                    if (p.transform != null)
                     {
-                        pair.transform.Position = pair.interpolatedPosition;
-                        pair.transform.Rotation = pair.interpolatedRotation;
+                        p.transform.Position = p.interpolatedPosition;
+                        p.transform.Rotation = p.interpolatedRotation;
                     }
                 }
             }
@@ -411,18 +403,20 @@ public class JoltPhysics3D : IPhysics3D
             {
                 lock (threadLock)
                 {
-                    if(pair.enabled == false)
+                    var p = pair.Value;
+
+                    if(p.enabled == false)
                     {
                         continue;
                     }
 
-                    pair.interpolatedPosition = Vector3.Lerp(pair.previousPosition, pair.currentPosition, Math.Clamp01(alpha));
-                    pair.interpolatedRotation = Quaternion.Slerp(pair.previousRotation, pair.currentRotation, Math.Clamp01(alpha));
+                    p.interpolatedPosition = Vector3.Lerp(p.previousPosition, p.currentPosition, Math.Clamp01(alpha));
+                    p.interpolatedRotation = Quaternion.Slerp(p.previousRotation, p.currentRotation, Math.Clamp01(alpha));
 
-                    if(pair.transform != null)
+                    if(p.transform != null)
                     {
-                        pair.transform.Position = pair.interpolatedPosition;
-                        pair.transform.Rotation = pair.interpolatedRotation;
+                        p.transform.Position = p.interpolatedPosition;
+                        p.transform.Rotation = p.interpolatedRotation;
                     }
                 }
             }
@@ -437,47 +431,51 @@ public class JoltPhysics3D : IPhysics3D
         {
             foreach (var pair in bodies)
             {
+                var p = pair.Value;
+
                 if(Physics.InterpolatePhysics)
                 {
-                    pair.previousPosition = pair.currentPosition;
-                    pair.previousRotation = pair.currentRotation;
+                    p.previousPosition = p.currentPosition;
+                    p.previousRotation = p.currentRotation;
                 }
 
-                if (pair.entity.EnabledInHierarchy == false)
+                if (p.entity.EnabledInHierarchy == false)
                 {
-                    if (pair.body.IsActive)
+                    if (p.body.IsActive)
                     {
-                        physicsSystem.BodyInterface.DeactivateBody(pair.body.ID);
+                        physicsSystem.BodyInterface.DeactivateBody(p.body.ID);
                     }
                 }
-                else if (pair.body.IsActive == false)
+                else if (p.body.IsActive == false)
                 {
-                    physicsSystem.BodyInterface.ActivateBody(pair.body.ID);
+                    physicsSystem.BodyInterface.ActivateBody(p.body.ID);
                 }
             }
 
             foreach (var pair in characters)
             {
+                var p = pair.Value;
+
                 if (Physics.InterpolatePhysics)
                 {
-                    pair.previousPosition = pair.currentPosition;
-                    pair.previousRotation = pair.currentRotation;
+                    p.previousPosition = p.currentPosition;
+                    p.previousRotation = p.currentRotation;
                 }
 
-                if (pair.entity.EnabledInHierarchy == false)
+                if (p.entity.EnabledInHierarchy == false)
                 {
-                    if (pair.enabled)
+                    if (p.enabled)
                     {
-                        pair.enabled = false;
+                        p.enabled = false;
 
-                        pair.character.RemoveFromPhysicsSystem();
+                        p.character.RemoveFromPhysicsSystem();
                     }
                 }
-                else if (pair.enabled == false)
+                else if (p.enabled == false)
                 {
-                    pair.enabled = true;
+                    p.enabled = true;
 
-                    pair.character.AddToPhysicsSystem();
+                    p.character.AddToPhysicsSystem();
                 }
             }
         }
@@ -490,37 +488,41 @@ public class JoltPhysics3D : IPhysics3D
         {
             foreach (var pair in bodies)
             {
-                if (pair.body.IsActive == false)
+                var p = pair.Value;
+
+                if (p.body.IsActive == false)
                 {
                     continue;
                 }
 
-                pair.currentPosition = pair.body.Position;
-                pair.currentRotation = pair.body.Rotation;
+                p.currentPosition = p.body.Position;
+                p.currentRotation = p.body.Rotation;
 
-                if (Physics.InterpolatePhysics == false && pair.transform != null)
+                if (Physics.InterpolatePhysics == false && p.transform != null)
                 {
-                    pair.transform.Position = pair.currentPosition;
-                    pair.transform.Rotation = pair.currentRotation;
+                    p.transform.Position = p.currentPosition;
+                    p.transform.Rotation = p.currentRotation;
                 }
             }
 
             foreach (var pair in characters)
             {
-                if (pair.enabled == false)
+                var p = pair.Value;
+
+                if (p.enabled == false)
                 {
                     continue;
                 }
 
-                (pair.currentPosition, pair.currentRotation) = pair.character.GetPositionAndRotation();
+                (p.currentPosition, p.currentRotation) = p.character.GetPositionAndRotation();
 
-                if (Physics.InterpolatePhysics == false && pair.transform != null)
+                if (Physics.InterpolatePhysics == false && p.transform != null)
                 {
-                    pair.transform.Position = pair.currentPosition;
-                    pair.transform.Rotation = pair.currentRotation;
+                    p.transform.Position = p.currentPosition;
+                    p.transform.Rotation = p.currentRotation;
                 }
 
-                pair.character.PostSimulation(0.05f);
+                p.character.PostSimulation(0.05f);
             }
         }
     }
@@ -555,9 +557,15 @@ public class JoltPhysics3D : IPhysics3D
                     Position = position,
                     Rotation = rotation.SafeNormalize(),
                     enabled = true,
+                    currentPosition = position,
+                    currentRotation = rotation.SafeNormalize(),
+                    previousPosition = position,
+                    previousRotation = rotation.SafeNormalize(),
                 };
 
-                characters.Add(pair);
+                characters.Add(character.BodyID, pair);
+
+                entityCharacters.Add(entity, pair);
 
                 body = pair;
 
@@ -641,11 +649,14 @@ public class JoltPhysics3D : IPhysics3D
                     body = b,
                     entity = entity,
                     transform = entity.GetComponent<Transform>(),
-                    Position = position,
-                    Rotation = rotation.SafeNormalize(),
+                    currentPosition = position,
+                    currentRotation = rotation.SafeNormalize(),
+                    previousPosition = position,
+                    previousRotation = rotation.SafeNormalize(),
                 };
 
-                bodies.Add(pair);
+                bodies.Add(b.ID, pair);
+                entityBodies.Add(entity, pair);
 
                 body = pair;
 
@@ -1046,7 +1057,8 @@ public class JoltPhysics3D : IPhysics3D
                     physicsSystem.BodyInterface.DestroyBody(pair.body.ID);
                 }
 
-                bodies.Remove(pair);
+                bodies.Remove(pair.body.ID);
+                entityBodies.Remove(pair.entity);
             }
         }
         else if(body is JoltCharacterPair characterPair)
@@ -1066,7 +1078,8 @@ public class JoltPhysics3D : IPhysics3D
                     physicsSystem.BodyInterface.DestroyBody(characterPair.character.BodyID);
                 }
 
-                characters.Remove(characterPair);
+                characters.Remove(characterPair.character.BodyID);
+                entityCharacters.Remove(characterPair.entity);
             }
         }
     }
@@ -1309,20 +1322,14 @@ public class JoltPhysics3D : IPhysics3D
     {
         lock (threadLock)
         {
-            foreach (var body in bodies)
+            if(entityBodies.TryGetValue(entity, out var body))
             {
-                if (body is JoltBodyPair pair && pair.entity == entity)
-                {
-                    return body;
-                }
+                return body;
             }
 
-            foreach (var body in characters)
+            if(entityCharacters.TryGetValue(entity, out var character))
             {
-                if (body is JoltCharacterPair pair && pair.entity == entity)
-                {
-                    return body;
-                }
+                return character;
             }
         }
 
@@ -1333,20 +1340,14 @@ public class JoltPhysics3D : IPhysics3D
     {
         lock (threadLock)
         {
-            foreach (var body in bodies)
+            if(bodies.TryGetValue(bodyID, out var body))
             {
-                if (body is JoltBodyPair pair && pair.body.ID == bodyID)
-                {
-                    return body;
-                }
+                return body;
             }
 
-            foreach (var body in characters)
+            if (characters.TryGetValue(bodyID, out var character))
             {
-                if (body is JoltCharacterPair pair && pair.character.BodyID == bodyID)
-                {
-                    return body;
-                }
+                return character;
             }
         }
 
@@ -1385,18 +1386,20 @@ public class JoltPhysics3D : IPhysics3D
     {
         lock (threadLock)
         {
-            while(bodies.Count > 0)
+            foreach (var pair in bodies)
             {
-                DestroyBody(bodies[0]);
+                DestroyBody(pair.Value);
             }
 
-            while (characters.Count > 0)
+            foreach (var pair in characters)
             {
-                DestroyBody(characters[0]);
+                DestroyBody(pair.Value);
             }
 
             bodies.Clear();
             characters.Clear();
+            entityBodies.Clear();
+            entityCharacters.Clear();
         }
     }
 

@@ -1,4 +1,3 @@
-using Bgfx;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -40,7 +39,7 @@ public class SpriteRenderSystem : IRenderSystem
     private class NinePatchCacheItem
     {
         public SpriteVertex[] vertices;
-        public uint[] indices;
+        public ushort[] indices;
         public int framesSinceUse;
     }
 
@@ -56,9 +55,9 @@ public class SpriteRenderSystem : IRenderSystem
 
     internal static Lazy<VertexLayout> vertexLayout = new(() =>
     {
-        return new VertexLayoutBuilder()
-            .Add(VertexAttribute.Position, 3, VertexAttributeType.Float)
-            .Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float)
+        return VertexLayoutBuilder.CreateNew()
+            .Add(VertexAttribute.Position, VertexAttributeType.Float3)
+            .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2)
             .Build();
     });
 
@@ -86,7 +85,7 @@ public class SpriteRenderSystem : IRenderSystem
     /// <summary>
     /// Contains a list of all sprites queued for rendering
     /// </summary>
-    private readonly Dictionary<ushort, List<SpriteRenderInfo>> sprites = [];
+    private readonly List<SpriteRenderInfo> sprites = [];
 
     /// <summary>
     /// Contains a list of all nine patch sprites' geometry data
@@ -150,7 +149,7 @@ public class SpriteRenderSystem : IRenderSystem
     /// <param name="size">The size of the sprite in world space</param>
     /// <param name="border">The nine patch border, in pixels</param>
     /// <param name="pixelCoordinates">Whether we're using world or pixel coordinates</param>
-    internal static void MakeNinePatchGeometry(Span<SpriteVertex> vertices, Span<uint> indices, Texture texture, Vector2 size,
+    internal static void MakeNinePatchGeometry(Span<SpriteVertex> vertices, Span<ushort> indices, Texture texture, Vector2 size,
         Rect border, bool pixelCoordinates)
     {
         if((texture?.Disposed ?? true) ||
@@ -236,7 +235,7 @@ public class SpriteRenderSystem : IRenderSystem
 
         for (var j = 0; j < indices.Length; j++)
         {
-            indices[j] = (uint)j;
+            indices[j] = (ushort)j;
         }
     }
 
@@ -247,11 +246,6 @@ public class SpriteRenderSystem : IRenderSystem
     public void Shutdown()
     {
         cachedNinePatchGeometries.Clear();
-    }
-
-    public void ClearRenderData(ushort viewID)
-    {
-        sprites.Remove(viewID);
     }
 
     public void Prepare()
@@ -341,19 +335,8 @@ public class SpriteRenderSystem : IRenderSystem
         }
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
     {
-        if(sprites.TryGetValue(viewID, out var container) == false)
-        {
-            container = [];
-
-            sprites.Add(viewID, container);
-        }
-        else
-        {
-            container.Clear();
-        }
-
         foreach (var (_, transform, relatedComponent) in entities)
         {
             var r = relatedComponent as SpriteRenderer;
@@ -460,7 +443,7 @@ public class SpriteRenderSystem : IRenderSystem
                 mutableMaterials.Add(r.material.Guid.GuidHash, mutableMaterial);
             }
 
-            container.Add(new SpriteRenderInfo()
+            sprites.Add(new SpriteRenderInfo()
             {
                 color = r.color,
                 material = mutableMaterial,
@@ -477,19 +460,9 @@ public class SpriteRenderSystem : IRenderSystem
         }
     }
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
-        if(sprites.TryGetValue(viewID, out var container) == false)
-        {
-            return;
-        }
-
-        if (container.Count == 0)
-        {
-            return;
-        }
-
-        var orderedSprites = container
+        var orderedSprites = sprites
             .OrderBy(x => x.layer)
             .ThenBy(x => x.sortingOrder)
             .ToList();
@@ -521,10 +494,10 @@ public class SpriteRenderSystem : IRenderSystem
         {
             var s = orderedSprites[i];
 
-            VertexBuffer vertexBuffer = null;
-            IndexBuffer indexBuffer = null;
             var vertexCount = 4;
             var indexCount = 6;
+            var vertices = spriteVertices;
+            var indices = SpriteRenderSystem.indices;
 
             switch(s.renderMode)
             {
@@ -538,7 +511,7 @@ public class SpriteRenderSystem : IRenderSystem
                             cache = new()
                             {
                                 vertices = new SpriteVertex[NinePatchVertexCount],
-                                indices = new uint[NinePatchVertexCount],
+                                indices = new ushort[NinePatchVertexCount],
                             };
 
                             MakeNinePatchGeometry(cache.vertices, cache.indices, s.texture, s.localScale.ToVector2(), s.border, false);
@@ -548,12 +521,10 @@ public class SpriteRenderSystem : IRenderSystem
 
                         cache.framesSinceUse = 0;
 
+                        vertices = cache.vertices;
+                        indices = cache.indices;
                         vertexCount = cache.vertices.Length;
                         indexCount = cache.indices.Length;
-
-                        vertexBuffer = VertexBuffer.CreateTransient(cache.vertices.AsSpan(), vertexLayout.Value);
-
-                        indexBuffer = IndexBuffer.CreateTransient(cache.indices);
                     }
 
                     break;
@@ -572,25 +543,16 @@ public class SpriteRenderSystem : IRenderSystem
 
                         spriteVertices[3].uv.X = s.textureRect.right / (float)s.texture.Width;
                         spriteVertices[3].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
-
-                        vertexBuffer = VertexBuffer.CreateTransient(spriteVertices.AsSpan(), vertexLayout.Value);
-
-                        indexBuffer = IndexBuffer.CreateTransient(indices);
                     }
 
                     break;
             }
 
-            if (vertexBuffer == null || indexBuffer == null)
-            {
-                continue;
-            }
-
             s.material.MainColor = s.color;
             s.material.MainTexture = s.texture;
 
-            Graphics.RenderGeometry(vertexBuffer, indexBuffer, 0, vertexCount, 0, indexCount, s.material, Vector3.Zero,
-                Matrix4x4.CreateScale(s.scale) * s.transform.Matrix, MeshTopology.Triangles, MaterialLighting.Unlit, viewID);
+            Graphics.RenderSimple(vertices, vertexLayout.Value, indices, s.material, Vector3.Zero,
+                Matrix4x4.CreateScale(s.scale) * s.transform.Matrix, MeshTopology.Triangles, MaterialLighting.Unlit);
         }
     }
 }

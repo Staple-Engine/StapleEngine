@@ -172,7 +172,7 @@ public sealed class ResourcePak : IDisposable
 
     public void AddEntry(string guid, string path, string typeName, Stream stream)
     {
-        if(Guid.TryParse(guid, out var _guid) == false)
+        if(!Guid.TryParse(guid, out var _guid))
         {
             _guid = Guid.NewGuid();
         }
@@ -304,7 +304,7 @@ public sealed class ResourcePak : IDisposable
 
             var header = MessagePackSerializer.Deserialize<Header>(buffer);
 
-            if(header.header.SequenceEqual(ValidHeader) == false ||
+            if(!header.header.SequenceEqual(ValidHeader) ||
                 header.version != ValidVersion)
             {
                 Platform.platformProvider.ConsoleLog($"[ResourcePak] Invalid Header");

@@ -4,7 +4,6 @@ set -e
 
 ./premake.sh --os=linux gmake
 ./premake.sh --os=linux --file=NativeFileDialog/build/premake5.lua gmake
-./premake.sh --os=linux --file=premake5_dotnet.lua vs2022
 
 cmake -B build/native/freetype/Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=true -S freetype -G "Unix Makefiles"
 
@@ -34,8 +33,8 @@ make config=debug -j $(nproc)
 
 cd ../dotnet
 
-dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net9.0
-dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net9.0
+dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net10.0
+dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net10.0
 
 cd ../../GENie
 

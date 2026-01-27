@@ -555,12 +555,6 @@ public class SharpGLTFImporter : IMeshImporter
 
                             break;
 
-                        case SharpGLTF.Schema2.PrimitiveType.POINTS:
-
-                            m.topology = MeshTopology.Points;
-
-                            break;
-
                         default:
 
                             continue;

@@ -55,9 +55,7 @@ public sealed class AudioClip : IGuidAsset
     /// </summary>
     internal byte[] fileData;
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     /// <summary>
     /// Gets an internal audio stream for the audio.

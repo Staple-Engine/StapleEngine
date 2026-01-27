@@ -1,9 +1,7 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -26,11 +24,11 @@ public sealed partial class RenderSystem
     }
 
     /// <summary>
-    /// Contains lists of drawcalls per view ID
+    /// Contains lists of drawcalls for the drawcall interpolator
     /// </summary>
     internal class DrawBucket
     {
-        public Dictionary<ushort, List<DrawCall>> drawCalls = [];
+        public readonly List<DrawCall> drawCalls = [];
     }
 
     internal static byte Priority = 1;
@@ -48,17 +46,17 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Whether we need to generate draw calls (interpolator only)
     /// </summary>
-    private bool needsDrawCalls = false;
+    private bool needsDrawCalls;
 
     /// <summary>
     /// Time accumulator (interpolator only)
     /// </summary>
-    private float accumulator = 0.0f;
+    private float accumulator;
 
     /// <summary>
     /// All registered render systems
     /// </summary>
-    internal readonly List<IRenderSystem> renderSystems = [];
+    internal readonly List<RenderSystemInfo> renderSystems = [];
 
     /// <summary>
     /// Temporary transform for rendering with the interpolator
@@ -73,110 +71,83 @@ public sealed partial class RenderSystem
     /// <summary>
     /// The render queue
     /// </summary>
-    private readonly List<((Camera, Transform), List<(IRenderSystem, List<(Entity, Transform, IComponent)>)>)> renderQueue = [];
+    private readonly List<((Camera, Transform), List<(RenderSystemInfo, List<RenderEntry>)>)> renderQueue = [];
 
     /// <summary>
     /// The entity query for every entity with a transform
     /// </summary>
-    private readonly SceneQuery<Transform> entityQuery = new();
+    internal readonly SceneQuery<Transform> entityQuery = new();
 
     /// <summary>
-    /// Cached per-frame used view IDs
+    /// All transforms of each entity
     /// </summary>
-    private HashSet<ushort> usedViewIDs = [];
+    internal Matrix4x4[] entityTransforms = new Matrix4x4[1024];
 
     /// <summary>
-    /// Cached per-frame used view IDs (previous frame)
+    /// Tracker for each entity's transform
     /// </summary>
-    private HashSet<ushort> previousUsedViewIDs = [];
+    private readonly ComponentVersionTracker<Transform> entityTransformTracker = new();
+
+    /// <summary>
+    /// Tracks all changed entity transforms in ranges (key is start index, value is length)
+    /// </summary>
+    internal readonly Dictionary<int, int> changedEntityTransformRanges = [];
+
+    /// <summary>
+    /// All renderables
+    /// </summary>
+    private Renderable[] renderables = new Renderable[1024];
+
+    /// <summary>
+    /// Amount of renderables used
+    /// </summary>
+    private int renderableCount;
+
+    /// <summary>
+    /// The renderer backend
+    /// </summary>
+    internal static readonly IRendererBackend Backend = new SDLGPURendererBackend();
     #endregion
 
     #region Helpers
     /// <summary>
-    /// Calculates the blending function for blending flags
-    /// </summary>
-    /// <param name="source">The blending source flag</param>
-    /// <param name="destination">The blending destination flag</param>
-    /// <returns>The combined function</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static ulong BlendFunction(bgfx.StateFlags source, bgfx.StateFlags destination)
-    {
-        return BlendFunction(source, destination, source, destination);
-    }
-
-    /// <summary>
-    /// Calculates the blending function for blending flags
-    /// </summary>
-    /// <param name="sourceColor">The source color flag</param>
-    /// <param name="destinationColor">The destination color flag</param>
-    /// <param name="sourceAlpha">The source alpha blending flag</param>
-    /// <param name="destinationAlpha">The destination alpha blending flag</param>
-    /// <returns>The combined function</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static ulong BlendFunction(bgfx.StateFlags sourceColor, bgfx.StateFlags destinationColor, bgfx.StateFlags sourceAlpha, bgfx.StateFlags destinationAlpha)
-    {
-        return (ulong)sourceColor | (ulong)destinationColor << 4 | ((ulong)sourceAlpha | (ulong)destinationAlpha << 4) << 8;
-    }
-
-    /// <summary>
-    /// Checks if we have an available transient buffer
-    /// </summary>
-    /// <param name="numVertices">The amount of vertices to check</param>
-    /// <param name="layout">The vertex layout to use</param>
-    /// <param name="numIndices">The amount of indices to check</param>
-    /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool CheckAvailableTransientBuffers(uint numVertices, bgfx.VertexLayout layout, uint numIndices)
-    {
-        unsafe
-        {
-            return numVertices == bgfx.get_avail_transient_vertex_buffer(numVertices, &layout)
-                && (0 == numIndices || numIndices == bgfx.get_avail_transient_index_buffer(numIndices, false));
-        }
-    }
-
-    /// <summary>
     /// Gets the reset flags for specific video flags
     /// </summary>
     /// <param name="videoFlags">The video flags to use</param>
-    /// <returns>The BGFX Reset Flags</returns>
-    internal static bgfx.ResetFlags ResetFlags(VideoFlags videoFlags)
+    /// <returns>The reset flags</returns>
+    internal static RenderModeFlags RenderFlags(VideoFlags videoFlags)
     {
-        var resetFlags = bgfx.ResetFlags.FlushAfterRender | bgfx.ResetFlags.FlipAfterRender; //bgfx.ResetFlags.SrgbBackbuffer;
+        var resetFlags = RenderModeFlags.None;
 
         if (videoFlags.HasFlag(VideoFlags.Vsync))
         {
-            resetFlags |= bgfx.ResetFlags.Vsync;
+            resetFlags |= RenderModeFlags.Vsync;
         }
 
-        if (videoFlags.HasFlag(VideoFlags.MSAAX2))
+        if(videoFlags.HasFlag(VideoFlags.TripleBuffering))
         {
-            resetFlags |= bgfx.ResetFlags.MsaaX2;
-        }
-        else if (videoFlags.HasFlag(VideoFlags.MSAAX4))
-        {
-            resetFlags |= bgfx.ResetFlags.MsaaX4;
-        }
-        else if (videoFlags.HasFlag(VideoFlags.MSAAX8))
-        {
-            resetFlags |= bgfx.ResetFlags.MsaaX8;
-        }
-        else if (videoFlags.HasFlag(VideoFlags.MSAAX16))
-        {
-            resetFlags |= bgfx.ResetFlags.MsaaX16;
+            resetFlags |= RenderModeFlags.TripleBuffering;
         }
 
         if (videoFlags.HasFlag(VideoFlags.HDR10))
         {
-            resetFlags |= bgfx.ResetFlags.Hdr10;
-        }
-
-        if (videoFlags.HasFlag(VideoFlags.HiDPI))
-        {
-            resetFlags |= bgfx.ResetFlags.Hidpi;
+            resetFlags |= RenderModeFlags.HDR10;
         }
 
         return resetFlags;
+    }
+
+    /// <summary>
+    /// Returns whether a combination of blend modes results in opaque geometry
+    /// </summary>
+    /// <param name="sourceBlend">The source blend mode</param>
+    /// <param name="destinationBlend">The destination blend mode</param>
+    /// <returns>Whether it's opaque</returns>
+    internal static bool IsOpaque(BlendMode sourceBlend, BlendMode destinationBlend)
+    {
+        return (sourceBlend == BlendMode.Off && destinationBlend == BlendMode.Off) ||
+                (sourceBlend == BlendMode.One && destinationBlend == BlendMode.Zero) ||
+                (sourceBlend == BlendMode.Zero && destinationBlend == BlendMode.One);
     }
     #endregion
 
@@ -190,7 +161,7 @@ public sealed partial class RenderSystem
     {
         lock (lockObject)
         {
-            if (queuedFrameCallbacks.TryGetValue(frame, out var list) == false)
+            if (!queuedFrameCallbacks.TryGetValue(frame, out var list))
             {
                 list = [];
 
@@ -213,7 +184,7 @@ public sealed partial class RenderSystem
 
         lock (lockObject)
         {
-            if (queuedFrameCallbacks.TryGetValue(frame, out callbacks) == false)
+            if (!queuedFrameCallbacks.TryGetValue(frame, out callbacks))
             {
                 return;
             }
@@ -243,7 +214,6 @@ public sealed partial class RenderSystem
     {
         RegisterSystem(new CullingVolumeSystem());
         RegisterSystem(new MeshCombineSystem());
-        RegisterSystem(new LightSystem());
         RegisterSystem(new SkinnedMeshAnimatorSystem());
         RegisterSystem(new SkinnedMeshAttachmentSystem());
         RegisterSystem(new SkinnedMeshRenderSystem());
@@ -261,9 +231,9 @@ public sealed partial class RenderSystem
 
     public void Shutdown()
     {
-        foreach (var system in renderSystems)
+        foreach (var systemInfo in renderSystems)
         {
-            system.Shutdown();
+            systemInfo.system.Shutdown();
         }
     }
 
@@ -276,20 +246,21 @@ public sealed partial class RenderSystem
 
         RenderStats.Clear();
 
-        (previousUsedViewIDs, usedViewIDs) = (usedViewIDs, previousUsedViewIDs);
-
-        usedViewIDs.Clear();
-
         ClearCullingStates();
 
-        foreach(var system in renderSystems)
+        if(Platform.IsEditor == false)
         {
-            if(system.UsesOwnRenderProcess == false)
+            UpdateEntityTransforms();
+        }
+
+        foreach (var systemInfo in renderSystems)
+        {
+            if(!systemInfo.system.UsesOwnRenderProcess)
             {
                 continue;
             }
 
-            system.Prepare();
+            systemInfo.system.Prepare();
         }
 
         if (UseDrawcallInterpolator)
@@ -301,32 +272,14 @@ public sealed partial class RenderSystem
             UpdateStandard();
         }
 
-        foreach (var system in renderSystems)
+        foreach (var systemInfo in renderSystems)
         {
-            if (system.UsesOwnRenderProcess == false)
+            if (!systemInfo.system.UsesOwnRenderProcess)
             {
                 continue;
             }
 
-            system.Submit(0);
-        }
-
-        previousUsedViewIDs.ExceptWith(usedViewIDs);
-
-        if (previousUsedViewIDs.Count > 0)
-        {
-            foreach (var viewID in previousUsedViewIDs)
-            {
-                foreach (var system in renderSystems)
-                {
-                    if(system.UsesOwnRenderProcess)
-                    {
-                        continue;
-                    }
-
-                    system.ClearRenderData(viewID);
-                }
-            }
+            systemInfo.system.Submit();
         }
     }
 
@@ -335,20 +288,16 @@ public sealed partial class RenderSystem
     /// </summary>
     internal void ClearCullingStates()
     {
-        foreach (var pair in renderQueue)
+        for (var i = 0; i < renderableCount; i++)
         {
-            foreach (var item in pair.Item2)
-            {
-                foreach (var (_, _, renderable) in item.Item2)
-                {
-                    if (renderable is not Renderable r)
-                    {
-                        continue;
-                    }
+            ref var renderable = ref renderables[i];
 
-                    r.cullingState = CullingState.None;
-                }
+            if(renderable == null)
+            {
+                continue;
             }
+
+            renderable.cullingState = CullingState.None;
         }
     }
 
@@ -362,13 +311,90 @@ public sealed partial class RenderSystem
         {
             for (var i = renderSystems.Count - 1; i >= 0; i--)
             {
-                if (renderSystems[i].GetType().Assembly == assembly)
+                if (renderSystems[i].system.GetType().Assembly != assembly)
                 {
-                    renderSystems[i].Shutdown();
-
-                    renderSystems.RemoveAt(i);
+                    continue;
                 }
+                
+                renderSystems[i].system.Shutdown();
+
+                renderSystems.RemoveAt(i);
             }
+        }
+    }
+
+    internal void UpdateEntityTransforms()
+    {
+        if(World.Current == null)
+        {
+            return;
+        }
+
+        var startIndex = -1;
+        var length = 0;
+
+        changedEntityTransformRanges.Clear();
+
+        if (World.Current.entities.Length > entityTransforms.Length)
+        {
+            var newSize = entityTransforms.Length * 2;
+
+            while (newSize < World.Current.entities.Length)
+            {
+                newSize *= 2;
+            }
+
+            Array.Resize(ref entityTransforms, newSize);
+        }
+
+        for (var i = 0; i < World.Current.entities.Length; i++)
+        {
+            ref var entity = ref World.Current.entities[i];
+
+            if(entity.alive == false || entity.transform == null)
+            {
+                if (startIndex < 0)
+                {
+                    continue;
+                }
+
+                changedEntityTransformRanges.Add(startIndex, length);
+
+                startIndex = -1;
+
+                continue;
+            }
+
+            if (!entityTransformTracker.ShouldUpdateComponent(entity.ToEntity(), in entity.transform))
+            {
+                if (startIndex < 0)
+                {
+                    continue;
+                }
+
+                changedEntityTransformRanges.Add(startIndex, length);
+
+                startIndex = -1;
+
+                continue;
+            }
+
+            entityTransforms[i] = entity.transform.Matrix;
+
+            if (startIndex < 0)
+            {
+                startIndex = i;
+                length = 1;
+            }
+            else
+            {
+                length++;
+            }
+        }
+
+        if (startIndex >= 0)
+        {
+            changedEntityTransformRanges.Add(startIndex, length);
         }
     }
 
@@ -378,327 +404,98 @@ public sealed partial class RenderSystem
         {
             renderQueue.Clear();
 
+            renderableCount = 0;
+
+            foreach (var systemInfo in renderSystems)
+            {
+                if(!systemInfo.isRenderable)
+                {
+                    continue;
+                }
+
+                foreach (var entityInfo in entityQuery.Contents)
+                {
+                    if (!entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                    {
+                        continue;
+                    }
+                    
+                    renderableCount++;
+
+                    if(renderableCount > renderables.Length)
+                    {
+                        Array.Resize(ref renderables, renderables.Length * 2);
+                    }
+
+                    renderables[renderableCount - 1] = (Renderable)component;
+                }
+            }
+
             var cameras = World.Current.SortedCameras;
 
-            if (cameras.Length > 0)
+            if (cameras.Length <= 0)
             {
-                foreach (var cameraInfo in cameras)
+                return;
+            }
+        
+            foreach (var cameraInfo in cameras)
+            {
+                var collected = new Dictionary<RenderSystemInfo, List<RenderEntry>>();
+
+                foreach (var entityInfo in entityQuery.Contents)
                 {
-                    var collected = new Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>>();
+                    var layer = entityInfo.Item1.Layer;
 
-                    foreach (var entityInfo in entityQuery.Contents)
+                    if (!cameraInfo.camera.cullingLayers.HasLayer(layer))
                     {
-                        var layer = entityInfo.Item1.Layer;
+                        continue;
+                    }
 
-                        if (cameraInfo.camera.cullingLayers.HasLayer(layer) == false)
+                    foreach (var systemInfo in renderSystems)
+                    {
+                        if(systemInfo.system.UsesOwnRenderProcess)
                         {
                             continue;
                         }
 
-                        foreach (var system in renderSystems)
+                        if (!collected.TryGetValue(systemInfo, out var content))
                         {
-                            if(system.UsesOwnRenderProcess)
-                            {
-                                continue;
-                            }
+                            content = [];
 
-                            if (collected.TryGetValue(system, out var content) == false)
-                            {
-                                content = [];
+                            collected.Add(systemInfo, content);
+                        }
 
-                                collected.Add(system, content);
-                            }
-
-                            if (entityInfo.Item1.TryGetComponent(system.RelatedComponent, out var component))
-                            {
-                                content.Add((entityInfo.Item1, entityInfo.Item2, component));
-                            }
+                        if (entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                        {
+                            content.Add(new(entityInfo.Item1, entityInfo.Item2, component));
                         }
                     }
-
-                    var final = new List<(IRenderSystem, List<(Entity, Transform, IComponent)>)>();
-
-                    foreach(var pair in collected)
-                    {
-                        final.Add((pair.Key, pair.Value));
-                    }
-
-                    renderQueue.Add(((cameraInfo.camera, cameraInfo.transform), final));
                 }
+
+                var final = new List<(RenderSystemInfo, List<RenderEntry>)>();
+
+                foreach(var pair in collected)
+                {
+                    final.Add((pair.Key, pair.Value));
+                }
+
+                renderQueue.Add(((cameraInfo.camera, cameraInfo.transform), final));
             }
         }
     }
     #endregion
 
     #region Render Modes
-
-    /// <summary>
-    /// Renders in the standard mode (no interpolator)
-    /// </summary>
-    /// <param name="cameraEntity">The camera's entity</param>
-    /// <param name="camera">The camera</param>
-    /// <param name="cameraTransform">The camera's transform</param>
-    /// <param name="queue">The render queue for this camera</param>
-    /// <param name="cull">Whether to cull invisible elements</param>
-    /// <param name="viewID">The view ID</param>
-    public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        List<(IRenderSystem, List<(Entity, Transform, IComponent)>)> queue, bool cull, ushort viewID)
-    {
-        usedViewIDs.Add(viewID);
-
-        CurrentCamera = (camera, cameraTransform);
-
-        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
-
-        var queueLength = queue.Count;
-
-        for (var i = 0; i < queueLength; i++)
-        {
-            var (system, content) = queue[i];
-
-            if(content.Count == 0)
-            {
-                continue;
-            }
-
-            system.Prepare();
-
-            system.Preprocess(CollectionsMarshal.AsSpan(content), camera, cameraTransform);
-
-            var contentLength = content.Count;
-
-            for(var j = 0; j < contentLength; j++)
-            {
-                if (content[j].Item3 is Renderable renderable)
-                {
-                    renderable.isVisible = renderable.enabled &&
-                        renderable.forceRenderingOff == false &&
-                        renderable.cullingState != CullingState.Invisible;
-
-                    if(renderable.isVisible && cull)
-                    {
-                        if(renderable.cullingState == CullingState.None)
-                        {
-                            renderable.isVisible = camera.IsVisible(renderable.bounds);
-
-                            renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
-                        }
-                    }
-
-                    if (renderable.isVisible == false)
-                    {
-                        RenderStats.culledDrawCalls++;
-                    }
-                }
-            }
-
-            system.Process(CollectionsMarshal.AsSpan(content), camera, cameraTransform, viewID);
-
-            system.Submit(viewID);
-        }
-    }
-
-    /// <summary>
-    /// Renders a single entity
-    /// </summary>
-    /// <param name="cameraEntity">The camera's entity</param>
-    /// <param name="camera">The camera</param>
-    /// <param name="cameraTransform">The camera's transform</param>
-    /// <param name="entity">The entity to render</param>
-    /// <param name="entityTransform">The transform of the entity to render</param>
-    /// <param name="cull">Whether to cull invisible elements</param>
-    /// <param name="viewID">The view ID</param>
-    public void RenderEntity(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        Entity entity, Transform entityTransform, bool cull, ushort viewID)
-    {
-        usedViewIDs.Add(viewID);
-
-        using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
-
-        var c = (CurrentCamera.Item1, CurrentCamera.Item2);
-
-        CurrentCamera = (camera, cameraTransform);
-
-        var systems = new List<IRenderSystem>();
-
-        lock (lockObject)
-        {
-            systems.AddRange(renderSystems);
-        }
-
-        foreach (var system in systems)
-        {
-            if (system.UsesOwnRenderProcess)
-            {
-                continue;
-            }
-
-            system.Prepare();
-        }
-
-        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
-
-        var systemQueues = new Dictionary<IRenderSystem, List<(Entity, Transform, IComponent)>>();
-
-        void Handle(Entity e, Transform t)
-        {
-            foreach (var system in systems)
-            {
-                if (system.UsesOwnRenderProcess)
-                {
-                    continue;
-                }
-
-                if(systemQueues.TryGetValue(system, out var queue) == false)
-                {
-                    queue = [];
-
-                    systemQueues.Add(system, queue);
-                }
-
-                if (system.RelatedComponent != null &&
-                    e.TryGetComponent(system.RelatedComponent, out var related))
-                {
-                    system.Preprocess([(e, t, related)], camera, cameraTransform);
-
-                    if (related is Renderable renderable)
-                    {
-                        renderable.isVisible = renderable.enabled && renderable.forceRenderingOff == false;
-
-                        if (renderable.isVisible && cull)
-                        {
-                            renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
-
-                            if (renderable.isVisible == false)
-                            {
-                                RenderStats.culledDrawCalls++;
-                            }
-                        }
-                    }
-
-                    queue.Add((e, t, related));
-                }
-            }
-
-            foreach(var child in t.Children)
-            {
-                Handle(child.Entity, child);
-            }
-        }
-
-        Handle(entity, entityTransform);
-
-        foreach(var pair in systemQueues)
-        {
-            pair.Key.Process(CollectionsMarshal.AsSpan(pair.Value), camera, cameraTransform, viewID);
-
-            pair.Key.Submit(viewID);
-        }
-
-        CurrentCamera = (c.Item1, c.Item2);
-    }
-
-    /// <summary>
-    /// Render with the drawcall accumulator (interpolator)
-    /// </summary>
-    /// <param name="cameraEntity">The camera's entity</param>
-    /// <param name="camera">The camera</param>
-    /// <param name="cameraTransform">The camera's transform</param>
-    /// <param name="viewID">The view ID</param>
-    public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform, ushort viewID)
-    {
-        usedViewIDs.Add(viewID);
-
-        CurrentCamera = (camera, cameraTransform);
-
-        var systems = new List<IRenderSystem>();
-
-        lock(lockObject)
-        {
-            systems.AddRange(renderSystems);
-        }
-
-        foreach (var system in systems)
-        {
-            if (system.UsesOwnRenderProcess)
-            {
-                continue;
-            }
-
-            system.Prepare();
-        }
-
-        PrepareCamera(cameraEntity, camera, cameraTransform, viewID);
-
-        var alpha = accumulator / Time.fixedDeltaTime;
-
-        lock (lockObject)
-        {
-            if (currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) && previousDrawBucket.drawCalls.TryGetValue(viewID, out var previousDrawCalls))
-            {
-                foreach (var call in drawCalls)
-                {
-                    var previous = previousDrawCalls.Find(x => x.entity.Identifier == call.entity.Identifier);
-
-                    if (call.renderable.isVisible)
-                    {
-                        var currentPosition = call.position;
-                        var currentRotation = call.rotation;
-                        var currentScale = call.scale;
-
-                        if (previous == null)
-                        {
-                            stagingTransform.LocalPosition = currentPosition;
-                            stagingTransform.LocalRotation = currentRotation;
-                            stagingTransform.LocalScale = currentScale;
-                        }
-                        else
-                        {
-                            var previousPosition = previous.position;
-                            var previousRotation = previous.rotation;
-                            var previousScale = previous.scale;
-
-                            stagingTransform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
-                            stagingTransform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
-                            stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
-                        }
-
-                        foreach (var system in systems)
-                        {
-                            if (call.relatedComponent.GetType() == system.RelatedComponent)
-                            {
-                                system.Process([(call.entity, stagingTransform, call.relatedComponent)],
-                                    camera, cameraTransform, viewID);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        foreach (var system in systems)
-        {
-            system.Submit(viewID);
-        }
-    }
-
     /// <summary>
     /// Update process for standard rendering
     /// </summary>
     private void UpdateStandard()
     {
-        CurrentViewID = 1;
-
         using var profiler = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
         foreach (var pair in renderQueue)
         {
-            RenderStandard(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, true, CurrentViewID++);
-        }
-
-        foreach(var (_, transform) in entityQuery.Contents)
-        {
-            transform.changedThisFrame = false;
+            RenderStandard(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, true);
         }
     }
 
@@ -707,24 +504,15 @@ public sealed partial class RenderSystem
     /// </summary>
     private void UpdateAccumulator()
     {
-        CurrentViewID = 1;
-
         using var profiler = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
         foreach (var pair in renderQueue)
         {
-            RenderAccumulator(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2, CurrentViewID++);
-        }
-
-        foreach (var (_, transform) in entityQuery.Contents)
-        {
-            transform.changedThisFrame = false;
+            RenderAccumulator(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2);
         }
 
         if (needsDrawCalls)
         {
-            CurrentViewID = 1;
-
             lock (lockObject)
             {
                 (currentDrawBucket, previousDrawBucket) = (previousDrawBucket, currentDrawBucket);
@@ -737,61 +525,59 @@ public sealed partial class RenderSystem
                 var camera = pair.Item1.Item1;
                 var cameraTransform = pair.Item1.Item2;
 
-                unsafe
+                var projection = Camera.Projection(cameraTransform.Entity, camera);
+                var view = cameraTransform.Matrix;
+
+                Matrix4x4.Invert(view, out view);
+
+                camera.UpdateFrustum(view, projection);
+
+                foreach (var (systemInfo, contents) in pair.Item2)
                 {
-                    var projection = Camera.Projection(cameraTransform.Entity, camera);
-                    var view = cameraTransform.Matrix;
-
-                    Matrix4x4.Invert(view, out view);
-
-                    camera.UpdateFrustum(view, projection);
-                }
-
-                foreach (var systemInfo in pair.Item2)
-                {
-                    var system = systemInfo.Item1;
-                    var contents = systemInfo.Item2;
-
                     if(contents.Count == 0)
                     {
                         continue;
                     }
 
-                    system.Preprocess(CollectionsMarshal.AsSpan(contents), camera, cameraTransform);
+                    systemInfo.system.Preprocess(CollectionsMarshal.AsSpan(contents), camera, cameraTransform);
 
+                    if (!systemInfo.isRenderable)
+                    {
+                        continue;
+                    }
+                    
                     var contentLength = contents.Count;
 
                     for (var j = 0; j < contentLength; j++)
                     {
-                        if (contents[j].Item3 is Renderable renderable)
+                        var renderable = (Renderable)contents[j].component;
+
+                        renderable.isVisible = renderable.enabled &&
+                            !renderable.forceRenderingOff &&
+                            renderable.cullingState != CullingState.Invisible;
+
+                        if (!renderable.isVisible)
                         {
-                            renderable.isVisible = renderable.enabled &&
-                                renderable.forceRenderingOff == false &&
-                                renderable.cullingState != CullingState.Invisible;
+                            continue;
+                        }
+                        
+                        if (renderable.cullingState == CullingState.None)
+                        {
+                            renderable.isVisible = camera.IsVisible(renderable.bounds);
 
-                            if(renderable.isVisible)
-                            {
-                                if (renderable.cullingState == CullingState.None)
-                                {
-                                    renderable.isVisible = camera.IsVisible(renderable.bounds);
+                            renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                        }
 
-                                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
-                                }
-
-                                if (renderable.isVisible)
-                                {
-                                    AddDrawCall(contents[j].Item1, contents[j].Item2, contents[j].Item3, renderable, CurrentViewID);
-                                }
-                                else
-                                {
-                                    RenderStats.culledDrawCalls++;
-                                }
-                            }
+                        if (renderable.isVisible)
+                        {
+                            AddDrawCall(contents[j].entity, contents[j].transform, contents[j].component, renderable);
+                        }
+                        else
+                        {
+                            RenderStats.culledDrawCalls++;
                         }
                     }
                 }
-
-                CurrentViewID++;
             }
         }
 
@@ -811,54 +597,34 @@ public sealed partial class RenderSystem
     /// <param name="entity">The camera's entity</param>
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
-    /// <param name="viewID">The view ID</param>
-    private static void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform, ushort viewID)
+    private static void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform)
     {
-        unsafe
-        {
-            var projection = Camera.Projection(entity, camera);
-            var view = cameraTransform.Matrix;
+        var projection = Camera.Projection(entity, camera);
+        var view = cameraTransform.Matrix;
 
-            Matrix4x4.Invert(view, out view);
+        Matrix4x4.Invert(view, out view);
 
-            bgfx.set_view_transform(viewID, &view, &projection);
+        camera.UpdateFrustum(view, projection);
 
-            camera.UpdateFrustum(view, projection);
-        }
+        Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport,
+            in view, in projection);
+    }
 
-        switch (camera.clearMode)
-        {
-            case CameraClearMode.Depth:
-                bgfx.set_view_clear(viewID, (ushort)bgfx.ClearFlags.Depth, 0, 1, 0);
+    /// <summary>
+    /// Prepares a render pass
+    /// </summary>
+    /// <param name="target">The render target, if any</param>
+    /// <param name="clearMode">How to clear the target</param>
+    /// <param name="clearColor">The color to clear if clearMode is <see cref="CameraClearMode.SolidColor"/></param>
+    /// <param name="viewport">The viewport area to render to (normalized coordinates for x, y, width, height)</param>
+    /// <param name="cameraTransform">The transform of the camera</param>
+    /// <param name="projection">The projection matrix</param>
+    private static void PrepareRender(RenderTarget target, CameraClearMode clearMode,
+        Color clearColor, Vector4 viewport, Matrix4x4 cameraTransform, Matrix4x4 projection)
+    {
+        Matrix4x4.Invert(cameraTransform, out var view);
 
-                break;
-
-            case CameraClearMode.None:
-                bgfx.set_view_clear(viewID, (ushort)bgfx.ClearFlags.None, 0, 1, 0);
-
-                break;
-
-            case CameraClearMode.SolidColor:
-                bgfx.set_view_clear(viewID, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), camera.clearColor.UIntValue, 1, 0);
-
-                break;
-        }
-
-        var viewMode = camera.viewMode switch
-        {
-            CameraViewMode.Default => bgfx.ViewMode.Default,
-            CameraViewMode.Sequential => bgfx.ViewMode.Sequential,
-            CameraViewMode.DepthAscending => bgfx.ViewMode.DepthAscending,
-            CameraViewMode.DepthDescending => bgfx.ViewMode.DepthDescending,
-            _ => bgfx.ViewMode.Default,
-        };
-
-        bgfx.set_view_mode(viewID, viewMode);
-
-        bgfx.set_view_rect(viewID, (ushort)camera.viewport.X, (ushort)camera.viewport.Y,
-            (ushort)(camera.viewport.Z * Screen.Width), (ushort)(camera.viewport.W * Screen.Height));
-
-        bgfx.touch(viewID);
+        Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection);
     }
 
     /// <summary>
@@ -868,19 +634,11 @@ public sealed partial class RenderSystem
     /// <param name="transform">The entity's transform</param>
     /// <param name="relatedComponent">The entity's related component</param>
     /// <param name="renderable">The entity's Renderable</param>
-    /// <param name="viewID">The current view ID</param>
-    private void AddDrawCall(Entity entity, Transform transform, IComponent relatedComponent, Renderable renderable, ushort viewID)
+    private void AddDrawCall(Entity entity, Transform transform, IComponent relatedComponent, Renderable renderable)
     {
         lock (lockObject)
         {
-            if (currentDrawBucket.drawCalls.TryGetValue(viewID, out var drawCalls) == false)
-            {
-                drawCalls = [];
-
-                currentDrawBucket.drawCalls.Add(viewID, drawCalls);
-            }
-
-            drawCalls.Add(new()
+            currentDrawBucket.drawCalls.Add(new()
             {
                 entity = entity,
                 renderable = renderable,
@@ -892,9 +650,9 @@ public sealed partial class RenderSystem
         }
     }
 
-    internal static void Submit(ushort viewID, bgfx.ProgramHandle program, bgfx.DiscardFlags flags, int triangles, int instances)
+    internal static void Submit(RenderState state, int triangles, int instances)
     {
-        bgfx.submit(viewID, program, 0, (byte)flags);
+        Backend.Render(state);
 
         RenderStats.drawCalls++;
         RenderStats.triangleCount += triangles * instances;
@@ -903,8 +661,14 @@ public sealed partial class RenderSystem
         {
             RenderStats.savedDrawCalls += (instances - 1);
         }
-
     }
 
+    internal static void SubmitStatic(RenderState state, Span<MultidrawEntry> entries, int triangles)
+    {
+        Backend.RenderStatic(state, entries);
+
+        RenderStats.drawCalls++;
+        RenderStats.triangleCount += triangles;
+    }
     #endregion
 }

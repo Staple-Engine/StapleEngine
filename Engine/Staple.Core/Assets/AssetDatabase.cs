@@ -65,7 +65,7 @@ public static class AssetDatabase
                     var header = MessagePackSerializer.Deserialize<SerializableAssetDatabaseHeader>(stream);
 
                     if (header == null ||
-                        header.header.SequenceEqual(SerializableAssetDatabaseHeader.ValidHeader) == false ||
+                        !header.header.SequenceEqual(SerializableAssetDatabaseHeader.ValidHeader) ||
                         header.version != SerializableAssetDatabaseHeader.ValidVersion)
                     {
                         throw new Exception("Invalid header");
@@ -115,7 +115,7 @@ public static class AssetDatabase
                                     }
                                 }
 
-                                if(found == false)
+                                if(!found)
                                 {
                                     foreach (var directory in assetDirectories)
                                     {
@@ -127,7 +127,7 @@ public static class AssetDatabase
                                             if (File.Exists(p) ||
                                                 Directory.Exists(p))
                                             {
-                                                if(pathsToGuids.TryGetValue(item.path, out var guids) == false)
+                                                if(!pathsToGuids.TryGetValue(item.path, out var guids))
                                                 {
                                                     guids = [];
 
@@ -152,7 +152,7 @@ public static class AssetDatabase
                                     }
                                 }
 
-                                if (found == false)
+                                if (!found)
                                 {
                                     if(debug)
                                     {
@@ -173,7 +173,7 @@ public static class AssetDatabase
                         {
                             assetGuids.AddOrSetKey(item.path, item.guid);
 
-                            if (assetsByType.TryGetValue(item.typeName, out var list) == false)
+                            if (!assetsByType.TryGetValue(item.typeName, out var list))
                             {
                                 list = [];
 
@@ -216,7 +216,7 @@ public static class AssetDatabase
 
         void AddAsset(SerializableAssetDatabaseAssetInfo asset)
         {
-            if(database.assets.TryGetValue(asset.guid, out var container) == false)
+            if(!database.assets.TryGetValue(asset.guid, out var container))
             {
                 container = [];
 
@@ -238,7 +238,7 @@ public static class AssetDatabase
 
             assetGuids.AddOrSetKey(asset.path, asset.guid);
 
-            if(assetsByType.TryGetValue(asset.typeName, out var list) == false)
+            if(!assetsByType.TryGetValue(asset.typeName, out var list))
             {
                 list = [];
 
@@ -288,7 +288,7 @@ public static class AssetDatabase
                 try
                 {
                     files.Add(directory, Directory.GetFiles(directory, "*.meta", SearchOption.AllDirectories)
-                        .Where(x => x.Contains($"Cache{Path.DirectorySeparatorChar}Staging") == false)
+                        .Where(x => !x.Contains($"Cache{Path.DirectorySeparatorChar}Staging"))
                         .ToArray());
                 }
                 catch (Exception)
@@ -449,7 +449,7 @@ public static class AssetDatabase
     /// <returns>The path or null</returns>
     public static string GetAssetPath(string guid)
     {
-        if(database.assets.TryGetValue(guid, out var container) == false ||
+        if(!database.assets.TryGetValue(guid, out var container) ||
             (container?.Count ?? 0) == 0)
         {
             return null;
@@ -470,7 +470,7 @@ public static class AssetDatabase
     {
         var assetsPrefix = "Assets/" + prefix;
 
-        if(database.assets.TryGetValue(guid, out var container) == false)
+        if(!database.assets.TryGetValue(guid, out var container))
         {
             return null;
         }
@@ -527,7 +527,7 @@ public static class AssetDatabase
     /// </summary>
     /// <param name="path">The path for the asset</param>
     /// <returns>The guid or null</returns>
-    public static string GetAssetGuid(string path) => assetGuids.TryGetValue(path, out var guid) ? guid : null;
+    public static string GetAssetGuid(string path) => path != null && assetGuids.TryGetValue(path, out var guid) ? guid : null;
 
     /// <summary>
     /// Gets the type name of an asset

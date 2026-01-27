@@ -44,7 +44,7 @@ public static class ThreadHelper
     /// </summary>
     internal static void Update()
     {
-        if(IsMainThread == false)
+        if(!IsMainThread)
         {
             return;
         }

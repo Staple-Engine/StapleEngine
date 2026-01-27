@@ -27,7 +27,7 @@ internal class PluginAssetEditor : AssetEditor
         {
             case nameof(PluginAsset.autoReferenced):
 
-                return isAssembly == false;
+                return !isAssembly;
 
             case nameof(PluginAsset.platforms):
 
@@ -49,7 +49,7 @@ internal class PluginAssetEditor : AssetEditor
 
                             if (add)
                             {
-                                if (list.Contains(value) == false)
+                                if (!list.Contains(value))
                                 {
                                     list.Add(value);
                                 }

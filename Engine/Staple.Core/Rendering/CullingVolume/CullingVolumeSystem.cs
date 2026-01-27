@@ -9,15 +9,11 @@ public sealed class CullingVolumeSystem : IRenderSystem
     public Type RelatedComponent => typeof(CullingVolume);
 
     #region Lifecycle
-    public void ClearRenderData(ushort viewID)
-    {
-    }
-
     public void Prepare()
     {
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
@@ -29,30 +25,30 @@ public sealed class CullingVolumeSystem : IRenderSystem
     {
     }
 
-    public void Submit(ushort viewID)
+    public void Submit()
     {
     }
     #endregion
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach(var (entity, _, component) in entities)
+        foreach(var entry in renderQueue)
         {
-            if(component is not CullingVolume volume)
+            if(entry.component is not CullingVolume volume)
             {
                 continue;
             }
 
-            volume.renderers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
-            volume.children ??= new(entity, EntityQueryMode.Children, false);
+            volume.renderers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
+            volume.children ??= new(entry.entity, EntityQueryMode.Children, false);
 
             volume.needsUpdate = true;
         }
 
-        foreach (var (_, transform, component) in entities)
+        foreach (var entry in renderQueue)
         {
-            if(component is not CullingVolume volume ||
-                volume.needsUpdate == false)
+            if(entry.component is not CullingVolume volume ||
+                !volume.needsUpdate)
             {
                 continue;
             }
@@ -70,7 +66,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
 
                         foreach (var renderer in volume.renderers.Contents)
                         {
-                            if (renderer.Item2.enabled == false || renderer.Item2.forceRenderingOff)
+                            if (!renderer.Item2.enabled || renderer.Item2.forceRenderingOff)
                             {
                                 continue;
                             }
@@ -87,7 +83,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
                         {
                             var renderer = volume.renderers[i];
 
-                            if (renderer.Item2.enabled && renderer.Item2.forceRenderingOff == false)
+                            if (renderer.Item2.enabled && !renderer.Item2.forceRenderingOff)
                             {
                                 volume.boundsCoordinates[index] = renderer.Item2.bounds.min;
                                 volume.boundsCoordinates[index + 1] = renderer.Item2.bounds.max;
@@ -103,7 +99,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
 
                 case CullingVolume.CullingType.Bounds:
 
-                    bounds = new AABB(transform.Position, volume.bounds * transform.Scale);
+                    bounds = new AABB(entry.transform.Position, volume.bounds * entry.transform.Scale);
 
                     break;
             }

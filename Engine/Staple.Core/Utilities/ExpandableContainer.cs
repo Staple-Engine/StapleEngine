@@ -14,17 +14,16 @@ namespace Staple;
 public class ExpandableContainer<T>
 {
     private T[] contents = [];
-    private int length = 0;
 
     /// <summary>
     /// The amount of elements contained
     /// </summary>
-    public int Length => length;
+    public int Length { get; private set; } = 0;
 
     /// <summary>
     /// Gets the current contents.
     /// </summary>
-    public Span<T> Contents => contents.AsSpan(0, length);
+    public Span<T> Contents => contents.AsSpan(0, Length);
 
     /// <summary>
     /// Clears the contents
@@ -33,7 +32,7 @@ public class ExpandableContainer<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Clear()
     {
-        length = 0;
+        Length = 0;
     }
 
     /// <summary>
@@ -43,11 +42,11 @@ public class ExpandableContainer<T>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Add(T item)
     {
-        if(length + 1 >= contents.Length)
+        if(Length + 1 >= contents.Length)
         {
-            Array.Resize(ref contents, (length + 1) * 2);
+            Array.Resize(ref contents, (Length + 1) * 2);
         }
 
-        contents[length++] = item;
+        contents[Length++] = item;
     }
 }

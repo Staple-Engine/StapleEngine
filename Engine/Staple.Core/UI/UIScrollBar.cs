@@ -102,7 +102,7 @@ public class UIScrollBar(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void Update(Vector2Int parentPosition)
     {
-        if(Manager.FocusedElement != this || Input.GetMouseButton(MouseButton.Left) == false)
+        if(Manager.FocusedElement != this || !Input.GetMouseButton(MouseButton.Left))
         {
             return;
         }

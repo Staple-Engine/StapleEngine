@@ -13,8 +13,6 @@ namespace Staple
         public T[] storage = [];
         public int[] indices = [];
 
-        private int length;
-
         public T this[int index]
         {
             get => storage[index];
@@ -22,7 +20,7 @@ namespace Staple
             set => storage[index] = value;
         }
 
-        public int Length => length;
+        public int Length { get; private set; }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int IndexOf(int hash)
@@ -62,14 +60,14 @@ namespace Staple
 
         public void Add(int hash, T item)
         {
-            if(length + 1 >= indices.Length)
+            if(Length + 1 >= indices.Length)
             {
                 Array.Resize(ref storage, (indices.Length + 1) * 2);
                 Array.Resize(ref indices, (indices.Length + 1) * 2);
             }
 
-            indices[length] = hash;
-            storage[length++] = item;
+            indices[Length] = hash;
+            storage[Length++] = item;
         }
     }
 }

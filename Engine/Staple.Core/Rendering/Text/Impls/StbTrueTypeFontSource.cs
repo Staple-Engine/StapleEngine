@@ -8,7 +8,6 @@ public class StbTrueTypeFontSource : ITextFontSource
 {
     private StbTrueType.stbtt_fontinfo font = null;
     private int fontSize = 0;
-    private int lineSpacing = 0;
 
     public int FontSize
     {
@@ -29,12 +28,12 @@ public class StbTrueTypeFontSource : ITextFontSource
 
                 StbTrueType.stbtt_GetFontVMetrics(font, &ascent, &descent, &lineGap);
 
-                lineSpacing = (int)(lineGap * StbTrueType.stbtt_ScaleForPixelHeight(font, fontSize));
+                LineSpacing = (int)(lineGap * StbTrueType.stbtt_ScaleForPixelHeight(font, fontSize));
             }
         }
     }
 
-    public int LineSpacing => lineSpacing;
+    public int LineSpacing { get; private set; } = 0;
 
     public void Dispose()
     {

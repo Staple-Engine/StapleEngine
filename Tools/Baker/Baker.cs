@@ -13,29 +13,42 @@ namespace Baker;
 
 static partial class Program
 {
-    private static string shadercBinName
+    private static string shaderCompilerBinName
     {
         get
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return "shadercRelease.exe";
+                return "bin/shadercross.exe";
             }
 
-            return "shadercRelease";
+            return "bin/shadercross";
         }
     }
-    
-    private static string texturecBinName
+
+    private static string shaderTranspilerBinName
     {
         get
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return "texturecRelease.exe";
+                return "slangc.exe";
             }
 
-            return "texturecRelease";
+            return "slangc";
+        }
+    }
+
+    private static string textureCompilerBinName
+    {
+        get
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return "cuttlefish.exe";
+            }
+
+            return "cuttlefish";
         }
     }
 
@@ -65,7 +78,7 @@ static partial class Program
                 }
 
                 var files = Directory.GetFiles(Path.GetFullPath(Path.Combine(string.Join(Path.DirectorySeparatorChar, pieces), "Tools", "ShaderIncludes")),
-                    "*.sh", SearchOption.AllDirectories);
+                    "*.slang", SearchOption.AllDirectories);
 
                 foreach(var file in files)
                 {
@@ -134,11 +147,8 @@ static partial class Program
                 $"\t-platform [platform]: specify the platform to build for ({string.Join(", ", Enum.GetValues<AppPlatform>().Select(x => x.ToString()))}\n" +
                 "\t-r [name]: set the renderer to compile for (can be repeated for multiple exports)\n" +
                 "\t\tValid values are:\n" +
-                "\t\t\td3d11\n" +
+                "\t\t\td3d12\n" +
                 "\t\t\tmetal\n" +
-                "\t\t\topengl\n" +
-                "\t\t\topengles\n" +
-                "\t\t\tpssl\n" +
                 "\t\t\tspirv\n");
 
             Environment.Exit(1);
@@ -157,6 +167,7 @@ static partial class Program
 #endif
 
             var toolPath = Path.GetFullPath(Path.Combine(baseDir, executable));
+
             var toolValid = false;
 
             try
@@ -179,8 +190,9 @@ static partial class Program
             return toolPath;
         }
 
-        var shadercPath = ValidateTool("shaderc", shadercBinName);
-        var texturecPath = ValidateTool("texturec", texturecBinName);
+        var shaderCompilerPath = ValidateTool("shadercross", shaderCompilerBinName);
+        var shaderTranspilerPath = ValidateTool("slang", shaderTranspilerBinName);
+        var textureCompilerPath = ValidateTool("cuttlefish", textureCompilerBinName);
 
         var outputPath = "out";
         var inputPaths = new List<string>();
@@ -386,7 +398,7 @@ static partial class Program
             {
                 var outPath = Path.Combine(outputPath, Path.GetFileName(path));
 
-                ProcessShaders(platform, shadercPath, path, outPath, shaderDefines, renderers);
+                ProcessShaders(platform, shaderCompilerPath, shaderTranspilerPath, path, outPath, shaderDefines, renderers);
             }
 
             lock(l)
@@ -415,7 +427,7 @@ static partial class Program
         {
             var outPath = Path.Combine(outputPath, Path.GetFileName(path));
 
-            ProcessTextures(platform, texturecPath, path, outPath);
+            ProcessTextures(platform, textureCompilerPath, path, outPath);
         }
 
         WorkScheduler.Main.WaitForTasks();
@@ -434,7 +446,7 @@ static partial class Program
         {
             var outPath = Path.Combine(outputPath, Path.GetFileName(path));
 
-            ProcessTextures(platform, texturecPath, path, outPath);
+            ProcessTextures(platform, textureCompilerPath, path, outPath);
         }
 
         WorkScheduler.Main.WaitForTasks();

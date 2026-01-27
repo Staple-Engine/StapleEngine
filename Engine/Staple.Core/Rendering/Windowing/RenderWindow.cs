@@ -1,7 +1,5 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 
 namespace Staple.Internal;
@@ -15,14 +13,13 @@ internal class RenderWindow
 
     //In case we have more than one window in the future
     internal static int windowReferences = 0;
-    internal static int bgfxReferences = 0;
+    internal static int rendererReferences = 0;
 
     internal int width = 0;
     internal int height = 0;
     internal bool hasFocus = true;
     internal IRenderWindow window;
-    internal bgfx.RendererType rendererType;
-    internal bgfx.ResetFlags resetFlags;
+    internal RenderModeFlags renderFlags;
     internal bool shouldStop = false;
     internal bool shouldRender = true;
     internal bool forceContextLoss = false;
@@ -54,11 +51,11 @@ internal class RenderWindow
 
     private bool renderThreadReady = false;
     private Thread renderThread;
-    private bgfx.Init init = new();
     private AppPlatform currentPlatform;
     private CursorLockMode lastCursorLockMode;
+    private uint frameCounter = 0;
 
-    public bool Paused => hasFocus == false && AppSettings.Current.runInBackground == false;
+    public bool Paused => !hasFocus && !AppSettings.Current.runInBackground;
 
     public static RendererType CurrentRenderer { get; internal set; }
 
@@ -88,9 +85,9 @@ internal class RenderWindow
 
             ResourceManager.instance.Destroy(ResourceManager.DestroyMode.Normal);
 
-            bgfx.shutdown();
+            RenderSystem.Backend.Destroy();
 
-            InitBGFX();
+            InitializeRenderer();
 
             ResourceManager.instance.RecreateResources();
         }
@@ -123,7 +120,7 @@ internal class RenderWindow
 
         var fixedTimer = 0.0f;
 
-        while (window.ShouldClose == false && shouldStop == false)
+        while (!window.ShouldClose && !shouldStop)
         {
             PerformanceProfilerSystem.StartFrame();
 
@@ -131,9 +128,11 @@ internal class RenderWindow
 
             window.PollEvents();
 
+            CheckEvents();
+
             lock (renderLock)
             {
-                shouldRender = window.Unavailable == false && (AppSettings.Current.runInBackground == true || window.IsFocused == true);
+                shouldRender = !window.Unavailable && (AppSettings.Current.runInBackground || window.IsFocused);
             }
 
             if (window.Unavailable)
@@ -141,9 +140,14 @@ internal class RenderWindow
                 continue;
             }
 
+            if(!Paused)
+            {
+                RenderSystem.Backend.BeginFrame();
+            }
+
             var size = window.Size;
 
-            if ((size.X != width || size.Y!= height) && window.ShouldClose == false)
+            if ((size.X != width || size.Y!= height) && !window.ShouldClose)
             {
                 width = size.X;
                 height = size.Y;
@@ -184,14 +188,7 @@ internal class RenderWindow
                 catch (Exception)
                 {
                 }
-
-                if (hasFocus == false)
-                {
-                    continue;
-                }
             }
-
-            CheckEvents();
 
             if (Paused)
             {
@@ -252,17 +249,17 @@ internal class RenderWindow
         {
             lock (renderLock)
             {
-                if (renderThread.IsAlive == false)
+                if (!renderThread.IsAlive)
                 {
                     if (renderThreadReady)
                     {
-                        if (bgfxReferences > 0)
+                        if (rendererReferences > 0)
                         {
-                            bgfxReferences--;
+                            rendererReferences--;
 
-                            if (bgfxReferences == 0)
+                            if (rendererReferences == 0)
                             {
-                                bgfx.shutdown();
+                                RenderSystem.Backend.Destroy();
                             }
                         }
 
@@ -310,7 +307,7 @@ internal class RenderWindow
 
         var fixedTimer = 0.0f;
 
-        while (window.ShouldClose == false && shouldStop == false)
+        while (!window.ShouldClose && !shouldStop)
         {
             PerformanceProfilerSystem.StartFrame();
 
@@ -320,17 +317,19 @@ internal class RenderWindow
 
             lock (renderLock)
             {
-                shouldRender = window.Unavailable == false && (AppSettings.Current.runInBackground == true || window.IsFocused == true);
+                shouldRender = !window.Unavailable && (AppSettings.Current.runInBackground || window.IsFocused);
             }
 
             if (window.Unavailable)
             {
+                RenderSystem.Backend.EndFrame();
+
                 continue;
             }
 
             var size = window.Size;
 
-            if ((size.X != width || size.Y != height) && window.ShouldClose == false)
+            if ((size.X != width || size.Y != height) && !window.ShouldClose)
             {
                 width = size.X;
                 height = size.Y;
@@ -356,11 +355,6 @@ internal class RenderWindow
                 }
                 catch (Exception)
                 {
-                }
-
-                if (hasFocus == false)
-                {
-                    continue;
                 }
             }
 
@@ -424,7 +418,7 @@ internal class RenderWindow
 
             for (; ;)
             {
-                if (renderThread.IsAlive == false)
+                if (!renderThread.IsAlive)
                 {
                     break;
                 }
@@ -441,13 +435,13 @@ internal class RenderWindow
     /// </summary>
     public void Cleanup()
     {
-        if (bgfxReferences > 0)
+        if (rendererReferences > 0)
         {
-            bgfxReferences--;
+            rendererReferences--;
 
-            if (bgfxReferences == 0)
+            if (rendererReferences == 0)
             {
-                bgfx.shutdown();
+                RenderSystem.Backend.Destroy();
             }
         }
 
@@ -465,93 +459,63 @@ internal class RenderWindow
         }
     }
 
-    internal void InitBGFX()
+    internal void InitializeRenderer()
     {
         var renderers = new List<RendererType>();
 
-        init = new bgfx.Init();
+        var platform = Platform.CurrentPlatform;
 
-        unsafe
+        if (!platform.HasValue)
         {
-            fixed(bgfx.Init *i = &init)
+            Log.Error("[RenderWindow] Unsupported platform");
+
+            rendererReferences--;
+
+            if(rendererReferences == 0)
             {
-                bgfx.init_ctor(i);
+                RenderSystem.Backend.Destroy();
             }
 
-            init.platformData.ndt = null;
+            windowReferences--;
 
-            var platform = Platform.CurrentPlatform;
-
-            if (platform.HasValue == false)
+            if(windowReferences == 0)
             {
-                Log.Error("[RenderWindow] Unsupported platform");
-
-                bgfxReferences--;
-
-                if(bgfxReferences == 0)
-                {
-                    bgfx.shutdown();
-                }
-
-                windowReferences--;
-
-                if(windowReferences == 0)
-                {
-                    window.Terminate();
-                }
-
-                Environment.Exit(1);
-
-                return;
+                window.Terminate();
             }
 
-            currentPlatform = platform.Value;
+            Environment.Exit(1);
 
-            window.GetNativePlatformData(currentPlatform, out var nativeWindowType, out var windowPointer, out var monitorPointer);
+            return;
+        }
 
-            init.platformData.ndt = monitorPointer.ToPointer();
-            init.platformData.nwh = windowPointer.ToPointer();
+        currentPlatform = platform.Value;
 
-            if (nativeWindowType == NativeWindowType.Wayland)
+        if (!AppSettings.Current.renderers.TryGetValue(currentPlatform, out renderers))
+        {
+            Log.Error($"[RenderWindow] No Renderers found for platform {platform}, terminating...");
+
+            rendererReferences--;
+
+            if(rendererReferences == 0)
             {
-                init.platformData.type = bgfx.NativeWindowHandleType.Wayland;
+                RenderSystem.Backend.Destroy();
             }
 
-            Log.Debug($"[RenderWindow] platformData ndt: {(nint)init.platformData.ndt} nwh {(nint)init.platformData.nwh}");
+            windowReferences--;
 
-            if (AppSettings.Current.renderers.TryGetValue(currentPlatform, out renderers) == false)
+            if(windowReferences == 0)
             {
-                Log.Error($"[RenderWindow] No Renderers found for platform {platform}, terminating...");
-
-                bgfxReferences--;
-
-                if(bgfxReferences == 0)
-                {
-                    bgfx.shutdown();
-                }
-
-                windowReferences--;
-
-                if(windowReferences == 0)
-                {
-                    window.Terminate();
-                }
-
-                Environment.Exit(1);
-
-                return;
+                window.Terminate();
             }
+
+            Environment.Exit(1);
+
+            return;
         }
 
         var size = window.Size;
 
         (width, height) = (size.X, size.Y);
-
-        rendererType = bgfx.RendererType.Count;
-
-        init.resolution.width = (uint)width;
-        init.resolution.height = (uint)height;
-        init.resolution.reset = (uint)resetFlags;
 
         Log.Info($"[RenderWindow] Initializing rendering: {width}x{height}");
 
@@ -561,92 +525,40 @@ internal class RenderWindow
         {
             Log.Info($"[RenderWindow] Attempting to find the right renderer");
 
+#if _DEBUG
+            bool debug = true;
+#else
+            bool debug = false;
+#endif
+
             foreach (var renderer in renderers)
             {
-                switch (renderer)
-                {
-                    case RendererType.Direct3D11:
-
-                        rendererType = bgfx.RendererType.Direct3D11;
-
-                        break;
-
-                    case RendererType.Direct3D12:
-
-                        rendererType = bgfx.RendererType.Direct3D12;
-
-                        break;
-
-                    case RendererType.OpenGL:
-
-                        rendererType = bgfx.RendererType.OpenGL;
-
-                        break;
-
-                    case RendererType.OpenGLES:
-
-                        rendererType = bgfx.RendererType.OpenGLES;
-
-                        break;
-
-                    case RendererType.Metal:
-
-                        rendererType = bgfx.RendererType.Metal;
-
-                        break;
-
-                    case RendererType.Vulkan:
-
-                        rendererType = bgfx.RendererType.Vulkan;
-
-                        break;
-                }
-
-                init.type = rendererType;
-
                 Log.Info($"[RenderWindow] Trying {renderer}");
 
                 unsafe
                 {
-                    fixed(bgfx.Init *i = &init)
-                    {
-                        ok = bgfx.init(i);
-                    }
+                    ok = RenderSystem.Backend.Initialize(renderer, debug, window, renderFlags);
 
                     if (ok)
                     {
                         Log.Info($"[RenderWindow] {renderer} OK!");
 
-                        var capabilities = (bgfx.CapsFlags)init.capabilities;
+                        CurrentRenderer = renderer;
 
-                        if(capabilities.HasFlag(bgfx.CapsFlags.Compute) == false)
-                        {
-                            Log.Error($"[RenderWindow] Device doesn't have the required features to continue, ignoring...");
-
-                            ok = false;
-
-                            bgfx.shutdown();
-                        }
-
-                        if(ok)
-                        {
-                            CurrentRenderer = renderer;
-
-                            break;
-                        }
+                        break;
                     }
                 }
             }
 
-            if (ok == false)
+            if (!ok)
             {
                 Log.Error($"[RenderWindow] Failed to find a working renderer, terminating...");
 
-                bgfxReferences--;
+                rendererReferences--;
 
-                if (bgfxReferences == 0)
+                if (rendererReferences == 0)
                 {
-                    bgfx.shutdown();
+                    RenderSystem.Backend.Destroy();
                 }
 
                 windowReferences--;
@@ -660,25 +572,6 @@ internal class RenderWindow
 
                 return;
             }
-        }
-
-        bgfx.set_view_clear(ClearView, (ushort)(bgfx.ClearFlags.Color | bgfx.ClearFlags.Depth), 0x334455FF, 1, 0);
-        bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
-
-        switch(AppSettings.Current?.profilingMode ?? AppProfilingMode.None)
-        {
-            case AppProfilingMode.None:
-            case AppProfilingMode.Profiler:
-
-                bgfx.set_debug((uint)bgfx.DebugFlags.Text);
-
-                break;
-
-            case AppProfilingMode.RenderStats:
-
-                bgfx.set_debug((uint)(bgfx.DebugFlags.Text | bgfx.DebugFlags.Stats));
-
-                break;
         }
     }
 
@@ -697,8 +590,8 @@ internal class RenderWindow
             {
                 case AppEventType.ResetFlags:
 
-                    bgfx.reset((uint)width, (uint)height, (uint)appEvent.reset.resetFlags, bgfx.TextureFormat.RGBA8);
-                    bgfx.set_view_rect_ratio(ClearView, 0, 0, bgfx.BackbufferRatio.Equal);
+                    RenderSystem.Backend.UpdateRenderMode(appEvent.reset.flags);
+                    RenderSystem.Backend.UpdateViewport(width, height);
 
                     break;
 
@@ -729,6 +622,8 @@ internal class RenderWindow
                     break;
 
                 case AppEventType.MaximizeWindow:
+
+                    RenderSystem.Backend.UpdateViewport(width, height);
 
                     try
                     {
@@ -791,53 +686,18 @@ internal class RenderWindow
 
         StapleHooks.ExecuteHooks(StapleHookEvent.FrameEnd, null);
 
-        var hasCamera = Scene.SortedCameras.Length != 0;
+        frameCounter++;
 
-        if (hasCamera == false)
-        {
-            bgfx.touch(ClearView);
-        }
+        RenderSystem.Instance.OnFrame(frameCounter);
 
-        var frame = bgfx.frame(false);
-
-        RenderSystem.Instance.OnFrame(frame);
+        RenderSystem.Backend.EndFrame();
 
         PerformanceProfilerSystem.FinishFrame();
-
-        bgfx.dbg_text_clear(0, false);
-
-        switch(AppSettings.Current?.profilingMode ?? AppProfilingMode.None)
-        {
-            case AppProfilingMode.Profiler:
-
-                {
-                    var counters = PerformanceProfilerSystem.AverageFrameCounters
-                        .OrderByDescending(x => x.Value)
-                        .ToArray();
-
-                    for (var i = 0; i < counters.Length; i++)
-                    {
-                        var y = i;
-                        var counter = counters[i];
-
-                        byte attr = 0x8a;
-
-                        if (counter.Value >= 16)
-                        {
-                            attr = 0x8c;
-                        }
-
-                        bgfx.dbg_text_printf(2, (ushort)y, attr, $"{counter.Key} - {counter.Value}ms", "");
-                    }
-                }
-
-                break;
-        }
     }
 
     private void RenderThread()
     {
-        InitBGFX();
+        InitializeRenderer();
 
         lock (renderLock)
         {
@@ -862,11 +722,16 @@ internal class RenderWindow
 
             CheckEvents();
 
-            if (renderNow == false)
+            if (!renderNow)
             {
                 Thread.Sleep(100);
 
                 continue;
+            }
+
+            if(!Paused)
+            {
+                RenderSystem.Backend.BeginFrame();
             }
 
             RenderFrame(ref last);
@@ -923,10 +788,10 @@ internal class RenderWindow
     /// <param name="maximized">Whether the window should be maximized</param>
     /// <param name="position">A specific position for the window, or null for default</param>
     /// <param name="monitorIndex">The monitor index to use</param>
-    /// <param name="resetFlags">The starting reset flags</param>
+    /// <param name="renderFlags">The starting render flags</param>
     /// <returns>The window, or null</returns>
     public static RenderWindow Create(int width, int height, bool resizable, WindowMode windowMode,
-        Vector2Int? position, bool maximized, int monitorIndex, bgfx.ResetFlags resetFlags)
+        Vector2Int? position, bool maximized, int monitorIndex, RenderModeFlags renderFlags)
     {
         var resizableString = resizable ? "Resizable" : "Not resizable";
         var maximizedString = maximized ? "Maximized" : "Normal";
@@ -944,12 +809,11 @@ internal class RenderWindow
 
         var renderWindow = new RenderWindow()
         {
-            resetFlags = resetFlags,
+            renderFlags = renderFlags,
+            window = Platform.platformProvider.CreateWindow(),
         };
 
-        renderWindow.window = Platform.platformProvider.CreateWindow();
-
-        if(renderWindow.window == null)
+        if (renderWindow.window == null)
         {
             Log.Error($"[RenderWindow] Missing render window implementation!");
 
@@ -963,12 +827,11 @@ internal class RenderWindow
 
         windowReferences++;
 
-        renderWindow.resetFlags = resetFlags;
-
         var originalWidth = width;
         var originalHeight = height;
 
-        if (renderWindow.window.Create(ref width, ref height, AppSettings.Current.appName, resizable, windowMode, position, maximized, monitorIndex) == false)
+        if (!renderWindow.window.Create(ref width, ref height, AppSettings.Current.appName, resizable, windowMode, position, maximized,
+            monitorIndex))
         {
             Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{AppSettings.Current.appName}\" with size {originalWidth}x{originalHeight}");
 
@@ -986,18 +849,12 @@ internal class RenderWindow
         Cursor.window = renderWindow.window;
         Screen.RefreshRate = renderWindow.window.RefreshRate;
 
-        //Issue with Metal
-        if(Platform.IsMacOS)
-        {
-            AppSettings.Current.multiThreadedRenderer = false;
-        }
-
 #if !ANDROID
-        bgfxReferences++;
+        rendererReferences++;
 
-        if (AppSettings.Current.multiThreadedRenderer == false)
+        if (!AppSettings.Current.multiThreadedRenderer)
         {
-            renderWindow.InitBGFX();
+            renderWindow.InitializeRenderer();
         }
 #endif
 

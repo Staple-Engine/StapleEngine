@@ -240,7 +240,7 @@ internal partial class StapleEditor
                     else if((typeof(IEntitySystemLifecycle).IsAssignableFrom(v) ||
                         typeof(IEntitySystemUpdate).IsAssignableFrom(v) ||
                         typeof(IEntitySystemFixedUpdate).IsAssignableFrom(v)) &&
-                        v.IsInterface == false)
+                        !v.IsInterface)
                     {
                         try
                         {
@@ -350,7 +350,13 @@ internal partial class StapleEditor
 
         Input.MousePosition = newMousePosition;
 
+        var previous = RenderTarget.Current;
+
+        RenderTarget.Current = gameRenderTarget;
+
         handler();
+
+        RenderTarget.Current = previous;
 
         Input.MousePosition = currentMousePosition;
 

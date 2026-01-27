@@ -18,7 +18,7 @@ public static class Screen
     /// <summary>
     /// The current window mode for the game/app.
     /// </summary>
-    public static WindowMode WindowMode => AppPlayer.instance == null ? WindowMode.Windowed : AppPlayer.instance.playerSettings.windowMode;
+    public static WindowMode WindowMode => AppPlayer.instance?.playerSettings?.windowMode ?? WindowMode.Windowed;
 
     /// <summary>
     /// The refresh rate of the screen
@@ -35,7 +35,7 @@ public static class Screen
     {
         if(AppPlayer.instance == null ||
             AppPlayer.instance.renderWindow == null ||
-            AppPlayer.instance.renderWindow.SetResolution(width, height, mode) == false)
+            !AppPlayer.instance.renderWindow.SetResolution(width, height, mode))
         {
             return;
         }

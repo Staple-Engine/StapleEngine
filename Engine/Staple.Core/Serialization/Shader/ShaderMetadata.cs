@@ -24,6 +24,8 @@ public enum ShaderUniformType
     ReadOnlyBuffer,
     WriteOnlyBuffer,
     ReadWriteBuffer,
+    Structure,
+    Array,
 }
 
 [MessagePackObject]
@@ -46,6 +48,110 @@ public class ShaderUniform
 
     [Key(5)]
     public string defaultValue;
+}
+
+[MessagePackObject]
+public class ShaderUniformField
+{
+    [Key(0)]
+    public string name;
+
+    [Key(1)]
+    public ShaderUniformType type;
+
+    [Key(2)]
+    public int offset;
+
+    [Key(3)]
+    public int size;
+
+    [Key(4)]
+    public int binding;
+
+    [Key(5)]
+    public int count;
+}
+
+[MessagePackObject]
+public class ShaderUniformTypeInfo
+{
+    [Key(0)]
+    public ShaderUniformType type;
+
+    [Key(1)]
+    public int size;
+
+    [Key(2)]
+    public List<ShaderUniformField> fields;
+}
+
+[MessagePackObject]
+public class ShaderUniformMapping
+{
+    [Key(0)]
+    public List<ShaderUniformField> fields = [];
+
+    [Key(1)]
+    public int binding;
+
+    [Key(2)]
+    public int size;
+
+    [Key(3)]
+    public string name;
+
+    [Key(4)]
+    public ShaderUniformType type;
+
+    [Key(5)]
+    public ShaderUniformTypeInfo elementType;
+
+    [Key(6)]
+    public int count;
+}
+
+[MessagePackObject]
+public class ShaderUniformContainer
+{
+    [Key(0)]
+    public List<ShaderUniformMapping> uniforms = [];
+
+    [Key(1)]
+    public List<ShaderUniformMapping> textures = [];
+
+    [Key(2)]
+    public List<ShaderUniformMapping> storageBuffers = [];
+
+    public void Merge(ShaderUniformContainer other)
+    {
+        static void Add(List<ShaderUniformMapping> container, ShaderUniformMapping target)
+        {
+            foreach(var uniform in container)
+            {
+                if(uniform.name == target.name)
+                {
+                    return;
+                }
+            }
+
+            container.Add(target);
+        }
+
+        foreach(var uniform in other.uniforms)
+        {
+            Add(uniforms, uniform);
+        }
+
+        foreach (var uniform in other.textures)
+        {
+            Add(textures, uniform);
+        }
+
+        foreach (var uniform in other.storageBuffers)
+        {
+            Add(storageBuffers, uniform);
+        }
+    }
 }
 
 [MessagePackObject]

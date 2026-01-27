@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -11,8 +10,6 @@ namespace Staple.Internal;
 /// </summary>
 public class SkinnedMeshRenderSystem : IRenderSystem
 {
-    private const int SkinningBufferIndex = 15;
-
     /// <summary>
     /// Info for rendering
     /// </summary>
@@ -29,24 +26,21 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         public Transform transform;
     }
 
-    private readonly Dictionary<ushort, ExpandableContainer<RenderInfo>> renderers = [];
+    private readonly ExpandableContainer<RenderInfo> renderers = new();
 
     private readonly SceneQuery<SkinnedMeshInstance, Transform> instances = new();
+
+    private readonly ComponentVersionTracker<Transform> transformVersions = new();
 
     public bool UsesOwnRenderProcess => false;
 
     public Type RelatedComponent => typeof(SkinnedMeshRenderer);
 
-    public void ClearRenderData(ushort viewID)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        renderers.Remove(viewID);
-    }
-
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
-    {
-        foreach (var (_, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            var renderer = relatedComponent as SkinnedMeshRenderer;
+            var renderer = entry.component as SkinnedMeshRenderer;
 
             if (renderer.mesh == null ||
                 renderer.mesh.meshAsset == null ||
@@ -62,7 +56,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             for (var i = 0; i < renderer.materials.Count; i++)
             {
-                if ((renderer.materials[i]?.IsValid ?? false) == false)
+                if (!(renderer.materials[i]?.IsValid ?? false))
                 {
                     skip = true;
 
@@ -75,39 +69,33 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if (transform.ChangedThisFrame || renderer.localBounds.size == Vector3.Zero)
+            if (transformVersions.ShouldUpdateComponent(entry.entity, in entry.transform))
             {
-                var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(transform.LocalRotation));
+                var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.LocalRotation));
 
-                var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(transform.Rotation));
+                var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.Rotation));
 
-                renderer.localBounds = new(transform.LocalPosition + renderer.mesh.bounds.center.Transformed(transform.LocalRotation) * transform.LocalScale,
-                    localSize * transform.LocalScale);
+                renderer.localBounds = new(entry.transform.LocalPosition +
+                    renderer.mesh.bounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
+                    localSize * entry.transform.LocalScale);
 
-                renderer.bounds = new(transform.Position + renderer.mesh.bounds.center.Transformed(transform.Rotation) * transform.Scale,
-                    globalSize * transform.Scale);
+                renderer.bounds = new(entry.transform.Position + renderer.mesh.bounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
+                    globalSize * entry.transform.Scale);
             }
         }
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform, ushort viewID)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        if(renderers.TryGetValue(viewID, out var container) == false)
-        {
-            container = new();
+        renderers.Clear();
 
-            renderers.Add(viewID, container);
-        }
-        else
-        {
-            container.Clear();
-        }
+        var needsInstanceUpdate = false;
 
-        foreach (var (entity, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            var renderer = relatedComponent as SkinnedMeshRenderer;
+            var renderer = entry.component as SkinnedMeshRenderer;
 
-            if (renderer.isVisible == false ||
+            if (!renderer.isVisible ||
                 renderer.mesh?.MeshAssetMesh == null ||
                 renderer.materials == null ||
                 renderer.materials.Count == 0)
@@ -119,7 +107,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             for (var i = 0; i < renderer.materials.Count; i++)
             {
-                if ((renderer.materials[i]?.IsValid ?? false) == false)
+                if (!(renderer.materials[i]?.IsValid ?? false))
                 {
                     skip = true;
 
@@ -132,9 +120,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            if(renderer.instance == null)
+            renderer.mesh.UploadMeshData();
+
+            if (renderer.instance == null)
             {
-                var rootTransform = FindRootTransform(transform, renderer.mesh.meshAsset.nodes.FirstOrDefault());
+                var rootTransform = FindRootTransform(entry.transform, renderer.mesh.meshAsset.nodes.FirstOrDefault());
 
                 if (rootTransform != null)
                 {
@@ -151,54 +141,48 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     }
                 }
 
-                renderer.instance ??= new(entity, EntityQueryMode.Parent, false);
+                if(renderer.instance == null)
+                {
+                    needsInstanceUpdate = true;
+                }
+
+                renderer.instance ??= new(entry.entity, EntityQueryMode.Parent, false);
             }
 
-            container.Add(new()
+            renderers.Add(new()
             {
                 renderer = renderer,
-                transform = transform,
+                transform = entry.transform,
             });
         }
-    }
 
-    public void Submit(ushort viewID)
-    {
-        if (renderers.TryGetValue(viewID, out var content) == false)
+        if(needsInstanceUpdate)
         {
-            return;
+            instances.WorldChanged();
         }
 
-        Material lastMaterial = null;
-
-        var lastMeshAsset = 0;
-        var lastLighting = MaterialLighting.Unlit;
-        var lastTopology = MeshTopology.Triangles;
-
-        bgfx.discard((byte)bgfx.DiscardFlags.All);
-
-        foreach(var (entity, instance, transform) in instances.Contents)
+        foreach (var (entity, instance, transform) in instances.Contents)
         {
-            if(instance.mesh?.MeshAssetMesh is null)
+            if (instance.mesh?.MeshAssetMesh is null)
             {
                 var animator = entity.GetComponent<SkinnedMeshAnimator>();
 
-                if(animator?.mesh is not null)
+                if (animator?.mesh is not null)
                 {
                     instance.mesh = animator.mesh;
                 }
 
                 var renderers = entity.GetComponentsInChildren<SkinnedMeshRenderer>();
 
-                foreach(var renderer in renderers)
+                foreach (var renderer in renderers)
                 {
-                    if(renderer.mesh is not null)
+                    if (renderer.mesh is not null)
                     {
                         instance.mesh = renderer.mesh;
                     }
                 }
 
-                if(instance.mesh is null)
+                if (instance.mesh is null)
                 {
                     continue;
                 }
@@ -224,14 +208,12 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             if ((instance.boneBuffer?.Disposed ?? true))
             {
-                instance.boneBuffer = VertexBuffer.CreateDynamic(new VertexLayoutBuilder()
-                    .Add(VertexAttribute.TexCoord0, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord1, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord2, 4, VertexAttributeType.Float)
-                    .Add(VertexAttribute.TexCoord3, 4, VertexAttributeType.Float)
-                    .Build(), RenderBufferFlags.ComputeRead, true, (uint)boneMatrices.Length);
-
-                instance.boneBuffer.Update(boneMatrices.AsSpan(), 0, true);
+                instance.boneBuffer = VertexBuffer.Create(boneMatrices.AsSpan(), VertexLayoutBuilder.CreateNew()
+                    .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float4)
+                    .Add(VertexAttribute.TexCoord1, VertexAttributeType.Float4)
+                    .Add(VertexAttribute.TexCoord2, VertexAttributeType.Float4)
+                    .Add(VertexAttribute.TexCoord3, VertexAttributeType.Float4)
+                    .Build(), RenderBufferFlags.GraphicsRead);
             }
 
             instance.transformUpdateTimer += Time.deltaTime;
@@ -246,9 +228,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 instance.animator ??= new(entity, EntityQueryMode.Self, false);
 
-                foreach(var (t, modifier) in instance.modifiers.Contents)
+                foreach (var (t, modifier) in instance.modifiers.Contents)
                 {
-                    if(instance.animator.Content?.evaluator != null)
+                    if (instance.animator.Content?.evaluator != null)
                     {
                         continue;
                     }
@@ -258,15 +240,26 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 UpdateBoneMatrices(instance.mesh.meshAsset, instance.boneMatrices, instance.transformCache);
 
-                instance.boneBuffer.Update(instance.boneMatrices.AsSpan(), 0, true);
+                instance.boneBuffer.Update(instance.boneMatrices.AsSpan());
             }
         }
+    }
 
-        var l = content.Length;
+    public void Submit()
+    {
+        Material lastMaterial = null;
+
+        var lastMeshAsset = 0;
+        var lastLighting = MaterialLighting.Unlit;
+        var lastTopology = MeshTopology.Triangles;
+
+        var renderState = RenderState.Default;
+
+        var l = renderers.Length;
 
         for (var i = 0; i < l; i++)
         {
-            var item = content.Contents[i];
+            var item = renderers.Contents[i];
 
             var renderer = item.renderer;
             var instance = renderer.instance.Content;
@@ -296,15 +289,13 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     lastLighting != lighting ||
                     lastTopology != renderer.mesh.MeshTopology;
 
-                var lightSystem = RenderSystem.Instance.Get<LightSystem>();
-
                 void SetupMaterial()
                 {
                     material.EnableShaderKeyword(Shader.SkinningKeyword);
 
                     material.DisableShaderKeyword(Shader.InstancingKeyword);
 
-                    lightSystem?.ApplyMaterialLighting(material, lighting);
+                    LightSystem.Instance.ApplyMaterialLighting(material, lighting);
                 }
 
                 if (needsChange)
@@ -314,57 +305,34 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     lastLighting = lighting;
                     lastTopology = renderer.mesh.MeshTopology;
 
-                    bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                     SetupMaterial();
 
-                    if (material.ShaderProgram.Valid == false)
+                    if (material.ShaderProgram == null)
                     {
-                        bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                         continue;
                     }
 
-                    material.ApplyProperties(Material.ApplyMode.All);
+                    material.ApplyProperties(ref renderState);
                 }
 
                 SetupMaterial();
 
-                if (material.ShaderProgram.Valid == false)
+                if (material.ShaderProgram == null)
                 {
-                    bgfx.discard((byte)bgfx.DiscardFlags.All);
-
                     continue;
                 }
 
-                unsafe
-                {
-                    var transform = item.transform.Matrix;
+                renderState.world = item.transform.Matrix;
 
-                    _ = bgfx.set_transform(&transform, 1);
-                }
+                renderer.mesh.SetActive(ref renderState, j);
 
-                renderer.mesh.SetActive(j);
+                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                renderState.ApplyStorageBufferIfNeeded("StapleBoneMatrices", instance.boneBuffer);
 
-                var program = material.ShaderProgram;
-
-                bgfx.set_state((ulong)(material.shader.StateFlags |
-                    renderer.mesh.PrimitiveFlag() |
-                    material.CullingFlag), 0);
-
-                var flags = bgfx.DiscardFlags.State;
-
-                var buffer = instance.boneBuffer;
-
-                buffer?.SetBufferActive(SkinningBufferIndex, Access.Read);
-
-                RenderSystem.Submit(viewID, program, flags, renderer.mesh.SubmeshTriangleCount(j), 1);
+                RenderSystem.Submit(renderState, renderer.mesh.SubmeshTriangleCount(j), 1);
             }
         }
-
-        bgfx.discard((byte)bgfx.DiscardFlags.All);
     }
 
     /// <summary>
@@ -390,7 +358,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         {
             if(current.Parent?.Parent?.Parent?.Entity.Name == rootNode.name)
             {
-                return current.Parent.Parent.Parent;
+                return current.Parent?.Parent?.Parent;
             }
         }
 
@@ -429,14 +397,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
         var reverseParentTransform = Matrix4x4.Identity;
 
-        if (transforms[0]?.Parent != null)
-        {
-            var parent = transforms[0].Parent;
+        var parent = transforms[0]?.Parent;
 
-            if (parent != null)
-            {
-                Matrix4x4.Invert(parent.Matrix, out reverseParentTransform);
-            }
+        if (parent != null)
+        {
+            Matrix4x4.Invert(parent.Matrix, out reverseParentTransform);
         }
 
         for (var i = 0; i < meshAsset.meshes.Count; i++)

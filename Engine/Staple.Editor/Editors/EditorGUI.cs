@@ -541,7 +541,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static T EnumDropdown<T>(string label, string key, T value) where T: struct, Enum
     {
-        if (cachedEnumValues.TryGetValue(typeof(T).FullName, out var v) == false || v is not List<T>)
+        if (!cachedEnumValues.TryGetValue(typeof(T).FullName, out var v) || v is not List<T>)
         {
             v = Enum.GetValues<T>()
                 .ToList();
@@ -871,7 +871,7 @@ public static class EditorGUI
 
         selectedName ??= current?.ToString() ?? "(None)";
 
-        if((type == typeof(Texture) || type.IsSubclassOf(typeof(Texture))) && current is Texture t && t.Disposed == false)
+        if((type == typeof(Texture) || type.IsSubclassOf(typeof(Texture))) && current is Texture t && !t.Disposed)
         {
             ImGui.Image(ImGuiProxy.GetImGuiTexture(t), new Vector2(32, 32));
         }
@@ -913,7 +913,7 @@ public static class EditorGUI
             editor.ShowAssetPicker(type, key, ignoredGuids ?? [], filter);
         }
 
-        if(pendingObjectPickers.ContainsKey(key) == false)
+        if(!pendingObjectPickers.ContainsKey(key))
         {
             pendingObjectPickers.Add(key, current);
         }
@@ -1078,7 +1078,7 @@ public static class EditorGUI
 
         var stateKey = $"{label}-{key}";
 
-        if (treeViewStates.TryGetValue(stateKey, out var isOpen) == false)
+        if (!treeViewStates.TryGetValue(stateKey, out var isOpen))
         {
             isOpen = false;
 
@@ -1111,7 +1111,7 @@ public static class EditorGUI
         {
             ExecuteHandler(openHandler, $"TreeNode {label} open");
 
-            if (leaf == false)
+            if (!leaf)
             {
                 ImGui.TreePop();
             }
@@ -1151,7 +1151,7 @@ public static class EditorGUI
 
         var stateKey = $"{label}-{key}";
 
-        if (treeViewStates.TryGetValue(stateKey, out var isOpen) == false)
+        if (!treeViewStates.TryGetValue(stateKey, out var isOpen))
         {
             isOpen = false;
 
@@ -1184,7 +1184,7 @@ public static class EditorGUI
         {
             ExecuteHandler(openHandler, $"TreeNode {label} open");
 
-            if (leaf == false)
+            if (!leaf)
             {
                 ImGui.TreePop();
             }
@@ -1223,7 +1223,7 @@ public static class EditorGUI
 
         var stateKey = $"{label}-{key}";
 
-        if (treeViewStates.TryGetValue(stateKey, out var isOpen) == false)
+        if (!treeViewStates.TryGetValue(stateKey, out var isOpen))
         {
             isOpen = false;
 
@@ -1263,7 +1263,7 @@ public static class EditorGUI
         {
             ExecuteHandler(openHandler, $"TreeNode {label} open");
 
-            if (leaf == false)
+            if (!leaf)
             {
                 ImGui.TreePop();
             }
@@ -1322,7 +1322,7 @@ public static class EditorGUI
 
         var stateKey = $"{label}-{key}";
 
-        if (treeViewStates.TryGetValue(stateKey, out var isOpen) == false)
+        if (!treeViewStates.TryGetValue(stateKey, out var isOpen))
         {
             isOpen = false;
 
@@ -1362,7 +1362,7 @@ public static class EditorGUI
         {
             ExecuteHandler(openHandler, $"TreeNode {label} open");
 
-            if (leaf == false)
+            if (!leaf)
             {
                 ImGui.TreePop();
             }
@@ -1584,7 +1584,7 @@ public static class EditorGUI
         {
             var result = ImGui.AcceptDragDropPayload(payload);
 
-            if(result.IsNull == false)
+            if(!result.IsNull)
             {
                 success();
             }
@@ -1729,7 +1729,7 @@ public static class EditorGUI
                 var editor = StapleEditor.instance;
                 var assetPath = AssetSerialization.GetAssetPathFromCache(AssetDatabase.GetAssetPath(value.texture.Guid.Guid));
 
-                if (assetPath != value.texture.Guid.Guid && Path.IsPathRooted(assetPath) == false)
+                if (assetPath != value.texture.Guid.Guid && !Path.IsPathRooted(assetPath))
                 {
                     assetPath = $"Assets{Path.DirectorySeparatorChar}{assetPath}";
                 }
@@ -1939,7 +1939,7 @@ public static class EditorGUI
 
         var stateKey = $"{label}-{key}";
 
-        if (collapsingHeaderStates.TryGetValue(stateKey, out var isOpen) == false)
+        if (!collapsingHeaderStates.TryGetValue(stateKey, out var isOpen))
         {
             isOpen = false;
 
@@ -1960,7 +1960,7 @@ public static class EditorGUI
             ExecuteHandler(handler, key);
         }
 
-        if(showCloseButton && visible == false)
+        if(showCloseButton && !visible)
         {
             ExecuteHandler(closed, $"{key} closed");
         }
@@ -1999,7 +1999,7 @@ public static class EditorGUI
 
         var stateKey = $"{label}-{key}";
 
-        if (collapsingHeaderStates.TryGetValue(stateKey, out var isOpen) == false)
+        if (!collapsingHeaderStates.TryGetValue(stateKey, out var isOpen))
         {
             isOpen = false;
 
@@ -2020,7 +2020,7 @@ public static class EditorGUI
             ExecuteHandler(handler, key);
         }
 
-        if(showCloseButton && visible == false)
+        if(showCloseButton && !visible)
         {
             ExecuteHandler(closed, $"{key} closed");
         }

@@ -1,4 +1,5 @@
-﻿using MessagePack;
+﻿using Evergine.Bindings.KTX;
+using MessagePack;
 using Newtonsoft.Json;
 using Staple;
 using Staple.Internal;
@@ -491,21 +492,80 @@ static partial class Program
                     metadata.sprites.Clear();
                 }
 
-                var parameters = $"-t {format} -q {quality.ToString().ToLowerInvariant()} --as dds";
+                var formatString = format switch
+                {
+                    TextureMetadataFormat.BC1 => "BC1_RGBA",
+                    TextureMetadataFormat.BC2 => "BC2",
+                    TextureMetadataFormat.BC3 => "BC3",
+                    TextureMetadataFormat.BC4 => "BC4",
+                    TextureMetadataFormat.BC5 => "BC5",
+                    TextureMetadataFormat.BC6H => "BC6H",
+                    TextureMetadataFormat.BC7 => "BC7",
+                    TextureMetadataFormat.ASTC4x4 or TextureMetadataFormat.ASTC4x4F => "ASTC_4x4",
+                    TextureMetadataFormat.ASTC5x4 or TextureMetadataFormat.ASTC5x4F => "ASTC_5x4",
+                    TextureMetadataFormat.ASTC5x5 or TextureMetadataFormat.ASTC5x5F => "ASTC_4x5",
+                    TextureMetadataFormat.ASTC6x5 or TextureMetadataFormat.ASTC6x5F => "ASTC_6x5",
+                    TextureMetadataFormat.ASTC6x6 or TextureMetadataFormat.ASTC6x6F => "ASTC_6x6",
+                    TextureMetadataFormat.ASTC8x5 or TextureMetadataFormat.ASTC8x5F => "ASTC_8x5",
+                    TextureMetadataFormat.ASTC8x6 or TextureMetadataFormat.ASTC8x6F => "ASTC_8x6",
+                    TextureMetadataFormat.ASTC8x8 or TextureMetadataFormat.ASTC8x8F => "ASTC_8x8",
+                    TextureMetadataFormat.ASTC10x5 or TextureMetadataFormat.ASTC10x5F => "ASTC_10x5",
+                    TextureMetadataFormat.ASTC10x6 or TextureMetadataFormat.ASTC10x6F => "ASTC_10x6",
+                    TextureMetadataFormat.ASTC10x8 or TextureMetadataFormat.ASTC10x8F => "ASTC_10x8",
+                    TextureMetadataFormat.ASTC10x10 or TextureMetadataFormat.ASTC10x10F => "ASTC_10x10",
+                    TextureMetadataFormat.ASTC12x10 or TextureMetadataFormat.ASTC12x10F => "ASTC_12x10",
+                    TextureMetadataFormat.ASTC12x12 or TextureMetadataFormat.ASTC12x12F => "ASTC_12x12",
+                    TextureMetadataFormat.R8 or TextureMetadataFormat.R8I or TextureMetadataFormat.R8U or
+                        TextureMetadataFormat.R8S => "R8",
+                    TextureMetadataFormat.R16 or TextureMetadataFormat.R16I or TextureMetadataFormat.R16U or
+                        TextureMetadataFormat.R16S or TextureMetadataFormat.R16F => "R16",
+                    TextureMetadataFormat.RG8 or TextureMetadataFormat.RG8I or TextureMetadataFormat.RG8U or
+                        TextureMetadataFormat.RG8S => "R8G8",
+                    TextureMetadataFormat.RG16 or TextureMetadataFormat.RG16I or TextureMetadataFormat.RG16U or TextureMetadataFormat.RG16S or
+                        TextureMetadataFormat.RG16F => "R16G16",
+                    TextureMetadataFormat.BGRA8 => "B8G8R8A8",
+                    TextureMetadataFormat.RGBA8 or TextureMetadataFormat.RGBA8I or TextureMetadataFormat.RGBA8U or
+                        TextureMetadataFormat.RGBA8S => "R8G8B8A8",
+                    TextureMetadataFormat.RGBA16 or TextureMetadataFormat.RGBA16I or TextureMetadataFormat.RGBA16U or
+                        TextureMetadataFormat.RGBA16S or TextureMetadataFormat.RGBA16F => "R16G16B16A16",
+                    TextureMetadataFormat.B5G6R5 => "B5G6R5",
+                    TextureMetadataFormat.BGRA4 => "B4G4R4A4",
+                    TextureMetadataFormat.BGR5A1 => "B5G5R5A1",
+                    _ => "(invalid)"
+                };
+
+                var formatType = format.ToString() switch
+                {
+                    string s when s.EndsWith('I') => "int",
+                    string s when s.EndsWith('U') => "uint",
+                    string s when s.EndsWith('F') => "float",
+                    string s when s.EndsWith('S') => "snorm",
+                    _ => "unorm",
+                };
+
+                var qualityString = quality switch
+                {
+                    TextureMetadataQuality.Default => "normal",
+                    TextureMetadataQuality.Fastest => "lowest",
+                    TextureMetadataQuality.Highest => "highest",
+                    _ => "normal",
+                };
+
+                var parameters = $"--format {formatString} --type {formatType} --quality {qualityString} --file-format ktx -q ";
 
                 if (premultiplyAlpha)
                 {
-                    parameters += " --pma";
+                    parameters += " --pre-multiply";
                 }
 
                 if (metadata.isLinear)
                 {
-                    parameters += " --linear";
+                    parameters += " --srgb";
                 }
 
                 if (metadata.useMipmaps)
                 {
-                    parameters += " --mips";
+                    parameters += " --mipmap";
                 }
 
                 switch (metadata.type)
@@ -532,7 +592,7 @@ static partial class Program
                     StartInfo = new ProcessStartInfo
                     {
                         FileName = texturecPath,
-                        Arguments = $"-f \"{inputFile}\" -o \"{outputFileTemp}\" {parameters}",
+                        Arguments = $"-i \"{inputFile}\" -o \"{outputFileTemp}\" {parameters}",
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
@@ -563,11 +623,45 @@ static partial class Program
 
                 try
                 {
+                    var fileData = File.ReadAllBytes(outputFileTemp);
+
                     var texture = new SerializableTexture()
                     {
                         metadata = metadata,
-                        data = File.ReadAllBytes(outputFileTemp),
                     };
+
+                    unsafe
+                    {
+                        fixed(byte *ptr = fileData)
+                        {
+                            ktxTexture* t = null;
+
+                            var error = KTX.ktxTexture_CreateFromMemory(ptr, (nuint)fileData.Length,
+                                (uint)ktxTextureCreateFlagBits.KTX_TEXTURE_CREATE_LOAD_IMAGE_DATA_BIT, &t);
+
+                            if(error != ktx_error_code_e.KTX_SUCCESS)
+                            {
+                                Console.WriteLine($"\t\tError:\nFailed to load converted texture for {inputFile}: {error}");
+
+                                File.Delete(outputFileTemp);
+
+                                return;
+                            }
+
+                            var textureData = KTX.ktxTexture_GetData(t);
+                            var size = KTX.ktxTexture_GetDataSize(t);
+                            var width = t->baseWidth;
+                            var height = t->baseHeight;
+
+                            var finalData = new Span<byte>(textureData, (int)size).ToArray();
+
+                            KTX.ktxTexture_Destroy(t);
+
+                            texture.width = (int)width;
+                            texture.height = (int)height;
+                            texture.data = finalData;
+                        }
+                    }
 
                     if (metadata.keepOnCPU)
                     {

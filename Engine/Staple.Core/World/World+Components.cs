@@ -26,7 +26,7 @@ public partial class World
             {
                 var key = keys[i];
 
-                if (componentNameHashes.TryGetValue(key, out var typeName) == false)
+                if (!componentNameHashes.TryGetValue(key, out var typeName))
                 {
                     continue;
                 }
@@ -79,7 +79,7 @@ public partial class World
         Type t)
     {
         if(t.GetCustomAttribute<AbstractComponentAttribute>() != null ||
-            TryGetEntity(entity, out var entityInfo) == false)
+            !TryGetEntity(entity, out var entityInfo))
         {
             return default;
         }
@@ -111,7 +111,7 @@ public partial class World
 
                 entityInfo.components.Add(hash, component);
 
-                if (Scene.InstancingComponent == false)
+                if (!Scene.InstancingComponent)
                 {
                     EmitAddComponentEvent(entity, ref component);
                 }
@@ -151,7 +151,7 @@ public partial class World
             }
 
             if(Platform.IsPlaying &&
-                Scene.InstancingComponent == false &&
+                !Scene.InstancingComponent &&
                 callableComponentTypes.Count != 0 &&
                 component is CallbackComponent callback)
             {
@@ -165,6 +165,11 @@ public partial class World
                 }
             }
 
+            if(component is Transform transform)
+            {
+                entityInfo.transform = transform;
+            }
+
             return component;
         }
     }
@@ -174,7 +179,7 @@ public partial class World
         var added = false;
         var hash = t.FullName.GetHashCode();
 
-        if (componentCompatibilityCache.TryGetValue(hash, out var compatibleTypes) == false)
+        if (!componentCompatibilityCache.TryGetValue(hash, out var compatibleTypes))
         {
             added = true;
             compatibleTypes = [];
@@ -206,7 +211,7 @@ public partial class World
 
                 if (target.BaseType == null ||
                     target.BaseType == typeof(IComponent) ||
-                    target.BaseType.IsAssignableTo(typeof(IComponent)) == false)
+                    !target.BaseType.IsAssignableTo(typeof(IComponent)))
                 {
                     return;
                 }
@@ -253,7 +258,7 @@ public partial class World
     /// <param name="t">The type to remove</param>
     public void RemoveComponent(Entity entity, Type t)
     {
-        if(TryGetEntity(entity, out var entityInfo) == false)
+        if(!TryGetEntity(entity, out var entityInfo))
         {
             return;
         }
@@ -262,7 +267,7 @@ public partial class World
         {
             var tHash = t.FullName.GetHashCode();
 
-            if (componentCompatibilityCache.TryGetValue(tHash, out var compatibility) == false)
+            if (!componentCompatibilityCache.TryGetValue(tHash, out var compatibility))
             {
                 return;
             }
@@ -274,6 +279,11 @@ public partial class World
                     needsEmitWorldChange = true;
 
                     removedComponents.Add((entity, typeName));
+
+                    if(t == typeof(Transform))
+                    {
+                        entityInfo.transform = null;
+                    }
 
                     if (Platform.IsPlaying &&
                         callableComponentTypes.Count != 0 &&
@@ -310,15 +320,15 @@ public partial class World
     /// <returns>The component instance, or default</returns>
     public IComponent GetComponent(Entity entity, Type t)
     {
-        if (typeof(IComponent).IsAssignableFrom(t) == false ||
-            TryGetEntity(entity, out var entityInfo) == false)
+        if (!typeof(IComponent).IsAssignableFrom(t) ||
+            !TryGetEntity(entity, out var entityInfo))
         {
             return default;
         }
 
         lock (lockObject)
         {
-            if (componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility) == false)
+            if (!componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility))
             {
                 return default;
             }
@@ -347,6 +357,35 @@ public partial class World
     }
 
     /// <summary>
+    /// Attempts to get a component from an internal entity, without locking
+    /// </summary>
+    /// <param name="info">The entity info</param>
+    /// <param name="t">The type</param>
+    /// <param name="component">The component</param>
+    /// <returns>Whether the component was found</returns>
+    internal bool TryGetComponentNoLock(EntityInfo info, Type t, out IComponent component)
+    {
+        if (!componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility))
+        {
+            component = default;
+
+            return false;
+        }
+
+        foreach (var typeName in compatibility)
+        {
+            if (info.components.TryGetValue(typeName, out component))
+            {
+                return true;
+            }
+        }
+
+        component = default;
+
+        return false;
+    }
+
+    /// <summary>
     /// Attempts to get a component from an entity
     /// </summary>
     /// <param name="entity">The entity to get from</param>
@@ -355,8 +394,8 @@ public partial class World
     /// <returns>Whether the component was found</returns>
     public bool TryGetComponent(Entity entity, Type t, out IComponent component)
     {
-        if (typeof(IComponent).IsAssignableFrom(t) == false ||
-            TryGetEntity(entity, out var entityInfo) == false)
+        if (!typeof(IComponent).IsAssignableFrom(t) ||
+            !TryGetEntity(entity, out var entityInfo))
         {
             component = default;
 
@@ -365,24 +404,7 @@ public partial class World
 
         lock (lockObject)
         {
-            if (componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility) == false)
-            {
-                component = default;
-
-                return false;
-            }
-
-            foreach (var typeName in compatibility)
-            {
-                if (entityInfo.components.TryGetValue(typeName, out component))
-                {
-                    return true;
-                }
-            }
-
-            component = default;
-
-            return false;
+            return TryGetComponentNoLock(entityInfo, t, out component);
         }
     }
 
@@ -416,7 +438,7 @@ public partial class World
     /// <param name="component">The component instance to replace</param>
     public void SetComponent(Entity entity, IComponent component)
     {
-        if (TryGetEntity(entity, out var entityInfo) == false ||
+        if (!TryGetEntity(entity, out var entityInfo) ||
             component is null)
         {
             return;
@@ -429,7 +451,7 @@ public partial class World
 
         lock (lockObject)
         {
-            if (componentCompatibilityCache.TryGetValue(component.GetType().FullName.GetHashCode(), out var compatibility) == false)
+            if (!componentCompatibilityCache.TryGetValue(component.GetType().FullName.GetHashCode(), out var compatibility))
             {
                 return;
             }
@@ -493,7 +515,7 @@ public partial class World
 
         lock(globalLockObject)
         {
-            if(componentAddedCallbacks.TryGetValue(componentType.FullName.GetHashCode(), out var c) == false)
+            if(!componentAddedCallbacks.TryGetValue(componentType.FullName.GetHashCode(), out var c))
             {
                 c = [];
 
@@ -524,7 +546,7 @@ public partial class World
 
         lock (globalLockObject)
         {
-            if (componentRemovedCallbacks.TryGetValue(componentType.FullName.GetHashCode(), out var c) == false)
+            if (!componentRemovedCallbacks.TryGetValue(componentType.FullName.GetHashCode(), out var c))
             {
                 c = [];
 
@@ -550,7 +572,7 @@ public partial class World
         var hash = component?.GetType().FullName.GetHashCode() ?? 0;
 
         if (component == null ||
-            TryGetEntity(entity, out var entityInfo) == false ||
+            !TryGetEntity(entity, out var entityInfo) ||
             entityInfo.emittedAddComponents.Contains(hash))
         {
             return;
@@ -605,8 +627,8 @@ public partial class World
         var hash = component?.GetType().FullName.GetHashCode() ?? 0;
 
         if (component == null ||
-            TryGetEntity(entity, out var entityInfo) == false ||
-            entityInfo.emittedAddComponents.Contains(hash) == false)
+            !TryGetEntity(entity, out var entityInfo) ||
+            !entityInfo.emittedAddComponents.Contains(hash))
         {
             return;
         }
@@ -664,7 +686,7 @@ public partial class World
 
         lock (lockObject)
         {
-            if(componentCompatibilityCache.TryGetValue(component.GetType().FullName.GetHashCode(), out var compatibility) == false)
+            if(!componentCompatibilityCache.TryGetValue(component.GetType().FullName.GetHashCode(), out var compatibility))
             {
                 return default;
             }

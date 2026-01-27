@@ -149,7 +149,7 @@ static partial class Program
 
         Console.WriteLine($"Processing {meshFiles.Count} meshes...");
 
-        RenderWindow.CurrentRenderer = RendererType.Direct3D11;
+        RenderWindow.CurrentRenderer = RendererType.Direct3D12;
 
         var standardShader = ResourceManager.instance.LoadShaderData(AssetDatabase.GetAssetGuid(AssetSerialization.StandardShaderPath));
 
@@ -169,7 +169,6 @@ static partial class Program
             [
                 new UFXImporter(),
                 new SharpGLTFImporter(),
-                new AssimpImporter(),
                 new OBJImporter(),
             ];
 

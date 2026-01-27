@@ -58,9 +58,9 @@ internal class MathTests
 
         Assert.That(v, Is.EqualTo(new Vector3(1, 2, 3)));
 
-        Assert.IsTrue(v == new Vector3(1, 2, 3));
+        Assert.That(v == new Vector3(1, 2, 3), Is.True);
 
-        Assert.IsFalse(v == new Vector3(3, 2, 1));
+        Assert.That(v == new Vector3(3, 2, 1), Is.False);
 
         v *= Vector3.One * 2.0f;
 

@@ -109,7 +109,7 @@ internal class AndroidPlatformProvider : IPlatformProvider
 
     public string StorageBasePath => Environment.ExternalStorageDirectory.AbsolutePath;
 
-    public IRenderWindow CreateWindow() => AndroidRenderWindow.Instance;
+    public IRenderWindow CreateWindow() => new SDL3RenderWindow();
 
     public void ConsoleLog(object message) => Android.Util.Log.Debug("Staple Engine", $"{message}");
 

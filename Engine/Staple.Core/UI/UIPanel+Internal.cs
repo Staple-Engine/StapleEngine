@@ -96,7 +96,7 @@ public partial class UIPanel
 
     internal void OnMouseJustPressedInternal(MouseButton button)
     {
-        if (AllowMouseInput == false || Enabled == false)
+        if (!AllowMouseInput || !Enabled)
         {
             return;
         }
@@ -114,7 +114,7 @@ public partial class UIPanel
 
     internal void OnMousePressedInternal(MouseButton button)
     {
-        if (AllowMouseInput == false || Enabled == false)
+        if (!AllowMouseInput || !Enabled)
         {
             return;
         }
@@ -126,7 +126,7 @@ public partial class UIPanel
 
     internal void OnMouseReleasedInternal(MouseButton button)
     {
-        if (AllowMouseInput == false || Enabled == false)
+        if (!AllowMouseInput || !Enabled)
         {
             return;
         }
@@ -150,7 +150,7 @@ public partial class UIPanel
 
     internal void OnMouseMoveInternal(Vector2Int position)
     {
-        if (AllowMouseInput == false || Enabled == false)
+        if (!AllowMouseInput || !Enabled)
         {
             return;
         }
@@ -162,7 +162,7 @@ public partial class UIPanel
 
     internal void OnKeyJustPressedInternal(KeyCode key)
     {
-        if (AllowKeyboardInput == false || Enabled == false)
+        if (!AllowKeyboardInput || !Enabled)
         {
             return;
         }
@@ -174,7 +174,7 @@ public partial class UIPanel
 
     internal void OnKeyPressedInternal(KeyCode key)
     {
-        if (AllowKeyboardInput == false || Enabled == false)
+        if (!AllowKeyboardInput || !Enabled)
         {
             return;
         }
@@ -186,7 +186,7 @@ public partial class UIPanel
 
     internal void OnKeyReleasedInternal(KeyCode key)
     {
-        if (AllowKeyboardInput == false || Enabled == false)
+        if (!AllowKeyboardInput || !Enabled)
         {
             return;
         }
@@ -198,7 +198,7 @@ public partial class UIPanel
 
     internal void OnCharacterEnteredInternal(char character)
     {
-        if (AllowKeyboardInput == false || Enabled == false)
+        if (!AllowKeyboardInput || !Enabled)
         {
             return;
         }

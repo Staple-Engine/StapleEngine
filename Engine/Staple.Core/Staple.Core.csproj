@@ -67,15 +67,10 @@
 		<IsAotCompatible>true</IsAotCompatible>
 	</PropertyGroup>
 
-	<ItemGroup Condition=" '$(TargetFramework)' == 'net10.0' ">
-
-		<Reference Include="SDL3-CS">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\SDL3-CS.dll</HintPath>
-		</Reference>
-
-	</ItemGroup>
-
 	<ItemGroup>
+		<Reference Include="SDL3-CS">
+			<HintPath>..\..\Dependencies\SDL3-CS\$(TargetFramework)\SDL3-CS.dll</HintPath>
+		</Reference>
 		<Reference Include="MessagePack">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\MessagePack.dll</HintPath>
 		</Reference>
@@ -84,6 +79,12 @@
 		</Reference>
 		<Reference Include="NAudio">
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\NAudio.dll</HintPath>
+		</Reference>
+		<Reference Include="xxHash">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\xxHash.dll</HintPath>
+		</Reference>
+		<Reference Include="Evergine.Bindings.Vulkan">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\Evergine.Bindings.Vulkan.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	
@@ -94,6 +95,7 @@
 
 	<ItemGroup>
 		<Compile Include="AppSettings\AppProfilingMode.cs" />
+		<Compile Include="AppSettings\X64InstructionLevel.cs" />
 		<Compile Include="Assets\IAssetDatabaseObserver.cs" />
 		<Compile Include="Assets\NoiseGeneratorSettings.cs" />
 		<Compile Include="Assets\TextAsset.cs" />
@@ -123,6 +125,8 @@
 		<Compile Include="Audio\Readers\OggAudioStream.cs" />
 		<Compile Include="Audio\Readers\WaveAudioStream.cs" />
 		<Compile Include="Entities\CallbackComponent.cs" />
+		<Compile Include="Entities\ComponentVersionTracker.cs" />
+		<Compile Include="Entities\IComponentVersion.cs" />
 		<Compile Include="Entities\Entity+Components.cs" />
 		<Compile Include="Entities\Entity+Instantiate.cs" />
 		<Compile Include="Entities\Entity+Iteration.cs" />
@@ -133,7 +137,6 @@
 		<Compile Include="Entities\EntityQuery.cs" />
 		<Compile Include="Entities\IComponentDisposable.cs" />
 		<Compile Include="Entities\Prefab.cs" />
-		<Compile Include="External\BGFX\BGFXUtils.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\FastNoiseLite\FastNoiseLite.cs" />
 		<Compile Include="External\FreeType\FreeType.cs" />
@@ -197,17 +200,46 @@
 		<Compile Include="Rendering\Lighting\LightSystem.cs" />
 		<Compile Include="Rendering\Lighting\LightType.cs" />
 		<Compile Include="Rendering\MaterialLighting.cs" />
-		<Compile Include="Rendering\Access.cs" />
 		<Compile Include="Rendering\Mesh\MeshCombine.cs" />
 		<Compile Include="Rendering\Mesh\MeshCombineSystem.cs" />
 		<Compile Include="Rendering\Mesh\MeshInstanceOptions.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\BufferAttributeContainer.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUBeginRenderPassCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUDestroyIndexBufferCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUDestroyTextureCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUDestroyVertexBufferCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUReadTextureCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPURenderCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPURenderStaticCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPURenderTransientCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPURenderTransientUIntCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUUpdateIndexBufferCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUUpdateTextureCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUUpdateVertexBufferCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURendererBackend+Buffers.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUIndexBuffer.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURendererBackend+Textures.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURendererBackend.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUShaderProgram.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUTexture.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexBuffer.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexLayout.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUVertexLayoutBuilder.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\IRenderCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\IRendererBackend.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\BufferAttributeSource.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\MultidrawEntry.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\RenderState.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderEntry.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderStats.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
+		<Compile Include="Rendering\RenderSystem\StapleShaderUniform.cs" />
 		<Compile Include="Rendering\Shader\ComputeShader.cs" />
+		<Compile Include="Rendering\Shader\IShaderProgram.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
 		<Compile Include="Rendering\Sprites\Sprite.cs" />
 		<Compile Include="Rendering\Sprites\SpriteUtils.cs" />
-		<Compile Include="Rendering\Texture\RenderTargetBackbufferRatio.cs" />
+		<Compile Include="Rendering\Texture\ITexture.cs" />
 		<Compile Include="Rendering\Texture\TextureFormat.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />
 		<Compile Include="Rendering\Text\Impls\FreeTypeFontSource.cs" />
@@ -217,6 +249,8 @@
 		<Compile Include="Rendering\Vertex\VertexAttributeType.cs" />
 		<Compile Include="Rendering\Windowing\Impls\SDL3RenderWindow.cs" />
 		<Compile Include="Rendering\Windowing\NativeWindowType.cs" />
+		<Compile Include="Rendering\Windowing\RenderModeFlags.cs" />
+		<Compile Include="Resources\ResourceHandle.cs" />
 		<Compile Include="Scene\ISceneQuery.cs" />
 		<Compile Include="Scene\SceneQuery.cs" />
 		<Compile Include="Serialization\Asset\GuidHasher.cs" />
@@ -257,6 +291,7 @@
 		<Compile Include="UI\UIPanel+API.cs" />
 		<Compile Include="UI\UIPanel+Internal.cs" />
 		<Compile Include="UI\UIPanel.cs" />
+		<Compile Include="UI\UIPerformanceDisplayer.cs" />
 		<Compile Include="UI\UIRenderStats.cs" />
 		<Compile Include="UI\UIScrollableFrame.cs" />
 		<Compile Include="UI\UIScrollBar.cs" />
@@ -286,8 +321,6 @@
 		<Compile Include="Attributes\ComponentCategoryAttribute.cs" />
 		<Compile Include="Attributes\HideInInspectorAttribute.cs" />
 		<Compile Include="Attributes\SortingLayerAttribute.cs" />
-		<Compile Include="External\BGFX\bgfx.cs" />
-		<Compile Include="External\BGFX\bgfx_dllname.cs" />
 		<Compile Include="Rendering\Camera\Camera.cs" />
 		<Compile Include="Rendering\Camera\CameraClearMode.cs" />
 		<Compile Include="Rendering\Camera\CameraType.cs" />
@@ -308,7 +341,6 @@
 		<Compile Include="External\StbImageWriteSharp\src\MemoryStats.cs" />
 		<Compile Include="External\StbImageWriteSharp\src\StbImageWrite.cs" />
 		<Compile Include="External\StbImageWriteSharp\src\StbImageWrite.Generated.cs" />
-		<Compile Include="Player\iOS\StapleViewController.cs" />
 		<Compile Include="External\StbImageSharp\src\AnimatedFrameResult.cs" />
 		<Compile Include="External\StbImageSharp\src\AnimatedGifEnumerator.cs" />
 		<Compile Include="External\StbImageSharp\src\ColorComponents.cs" />
@@ -351,7 +383,7 @@
 		<Compile Include="Physics\ColliderMask.cs" />
 		<Compile Include="Physics\Physics.cs" />
 		<Compile Include="Rendering\BlendMode.cs" />
-		<Compile Include="Rendering\Texture\BGFXTextureCreateMethod.cs" />
+		<Compile Include="Rendering\Texture\TextureAssetCreateMethod.cs" />
 		<Compile Include="Rendering\Texture\EmptyTextureCreateMethod.cs" />
 		<Compile Include="Rendering\Texture\ITextureCreateMethod.cs" />
 		<Compile Include="Rendering\Texture\PixelTextureCreateMethod.cs" />
@@ -361,8 +393,6 @@
 		<Compile Include="Rendering\Text\Glyph.cs" />
 		<Compile Include="Rendering\Text\TextFont.cs" />
 		<Compile Include="Rendering\Text\TextParameters.cs" />
-		<Compile Include="Rendering\Windowing\Impls\iOSRenderWindow.cs" />
-		<Compile Include="Rendering\Windowing\Impls\MetalView.cs" />
 		<Compile Include="Rendering\Windowing\IRenderWindow.cs" />
 		<Compile Include="Rendering\Mesh\MeshRenderSystem.cs" />
 		<Compile Include="Rendering\Mesh\Mesh+Internal.cs" />
@@ -387,14 +417,20 @@
 		<Compile Include="Serialization\App\AppSettingsHeader.cs" />
 		<Compile Include="Utilities\DictionaryExtensions.cs" />
 		<Compile Include="Utilities\ExpandableContainer.cs" />
+		<Compile Include="Utilities\MemoryAllocator.cs" />
+		<Compile Include="Utilities\NativePointerWrapper.cs" />
+		<Compile Include="Utilities\UnmanagedFreeformAllocator.cs" />
+		<Compile Include="Utilities\GlobalAllocator.cs" />
 		<Compile Include="Utilities\GuidGenerator.cs" />
 		<Compile Include="Utilities\IntLookupCache.cs" />
+		<Compile Include="Utilities\ManagedFreeformAllocator.cs" />
 		<Compile Include="Utilities\ObjectCreation.cs" />
 		<Compile Include="Utilities\Observables\IObservableBox.cs" />
 		<Compile Include="Utilities\Observables\ObservableBox.cs" />
 		<Compile Include="Utilities\Observables\ObservableBoxStrong.cs" />
 		<Compile Include="Utilities\Observables\ObservableManager.cs" />
 		<Compile Include="Utilities\StorageUtils.cs" />
+		<Compile Include="Utilities\StringID.cs" />
 		<Compile Include="Utilities\ThreadHelper.cs" />
 		<Compile Include="Utilities\TypeCache.cs" />
 		<Compile Include="World\IWorldChangeReceiver.cs" />
@@ -459,7 +495,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.7.0-beta.1">
+		<PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.8.2-beta.1">
 	    <PrivateAssets>all</PrivateAssets>
 	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>

@@ -1,5 +1,4 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using System;
 using System.Numerics;
 
@@ -16,18 +15,16 @@ namespace Staple
         /// <param name="vertex">The vertex buffer</param>
         /// <param name="index">The index buffer</param>
         /// <param name="startVertex">The starting vertex</param>
-        /// <param name="vertexCount">The amount of vertexes to draw</param>
         /// <param name="startIndex">The start index</param>
         /// <param name="indexCount">The amount of indices to draw</param>
         /// <param name="material">The material to use</param>
         /// <param name="transform">The transform for the model</param>
         /// <param name="topology">The geometry topology</param>
         /// <param name="lighting">What kind of lighting to apply</param>
-        /// <param name="viewID">The bgfx view ID to render to</param>
         /// <param name="materialSetupCallback">A callback to setup the material. If it's not set, the default behaviour will be used</param>
         public static void RenderGeometry(VertexBuffer vertex, IndexBuffer index,
-            int startVertex, int vertexCount, int startIndex, int indexCount, Material material,
-            Vector3 position, Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, ushort viewID,
+            int startVertex, int startIndex, int indexCount, Material material,
+            Vector3 position, Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting,
             Action materialSetupCallback = null)
         {
             if(vertex == null ||
@@ -36,29 +33,23 @@ namespace Staple
                 index.Disposed ||
                 startVertex < 0 || 
                 startIndex < 0 ||
-                vertexCount <= 0 ||
                 indexCount <= 0 ||
                 material == null ||
-                material.IsValid == false)
+                !material.IsValid)
             {
                 throw new Exception("Invalid arguments passed");
             }
 
-            bgfx.discard((byte)bgfx.DiscardFlags.All);
+            var renderState = RenderState.Default;
 
-            unsafe
-            {
-                _ = bgfx.set_transform(&transform, 1);
-            }
-
-            bgfx.StateFlags state = material.shader.StateFlags |
-                (bgfx.StateFlags)topology |
-                material.CullingFlag;
-
-            bgfx.set_state((ulong)state, 0);
-
-            vertex.SetActive(0, (uint)startVertex, (uint)vertexCount);
-            index.SetActive((uint)startIndex, (uint)indexCount);
+            renderState.cull = material.CullingMode;
+            renderState.primitiveType = topology;
+            renderState.indexBuffer = index;
+            renderState.vertexBuffer = vertex;
+            renderState.startVertex = startVertex;
+            renderState.startIndex = startIndex;
+            renderState.indexCount = indexCount;
+            renderState.world = transform;
 
             if(materialSetupCallback != null)
             {
@@ -66,65 +57,41 @@ namespace Staple
             }
             else
             {
-                material.ApplyProperties(Material.ApplyMode.All);
-
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
                 material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                material.ApplyProperties(ref renderState);
             }
 
-            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
 
-            lightSystem?.ApplyMaterialLighting(material, lighting);
-
-            var program = material.ShaderProgram;
-
-            if(program.Valid)
+            if (material.ShaderProgram == null)
             {
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                return;
+            }
 
-                RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(topology, indexCount), 1);
-            }
-            else
-            {
-                bgfx.discard((byte)bgfx.DiscardFlags.All);
-            }
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+
+            RenderSystem.Submit(renderState, Mesh.TriangleCount(topology, indexCount), 1);
         }
 
         public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, Material material, Vector3 position,
-            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, ushort viewID, Action materialSetupCallback = null) where T: unmanaged
+            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, Action materialSetupCallback = null)
+            where T: unmanaged
         {
             if (vertices.Length == 0||
                 indices.Length == 0 ||
                 material == null ||
-                material.IsValid == false)
+                !material.IsValid)
             {
                 throw new Exception("Invalid arguments passed");
             }
 
-            bgfx.discard((byte)bgfx.DiscardFlags.All);
+            var renderState = RenderState.Default;
 
-            var vertexBuffer = VertexBuffer.CreateTransient(vertices, layout);
-            var indexBuffer = IndexBuffer.CreateTransient(indices);
-
-            if(vertexBuffer == null || indexBuffer == null)
-            {
-                return;
-            }
-
-            unsafe
-            {
-                _ = bgfx.set_transform(&transform, 1);
-            }
-
-            bgfx.StateFlags state = material.shader.StateFlags |
-                (bgfx.StateFlags)topology |
-                material.CullingFlag;
-
-            bgfx.set_state((ulong)state, 0);
-
-            vertexBuffer.SetActive(0, 0, (uint)vertices.Length);
-            indexBuffer.SetActive(0, (uint)indices.Length);
+            renderState.primitiveType = topology;
+            renderState.world = transform;
 
             if (materialSetupCallback != null)
             {
@@ -132,65 +99,41 @@ namespace Staple
             }
             else
             {
-                material.ApplyProperties(Material.ApplyMode.All);
-
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
                 material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                material.ApplyProperties(ref renderState);
             }
 
-            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
 
-            lightSystem?.ApplyMaterialLighting(material, lighting);
-
-            var program = material.ShaderProgram;
-
-            if (program.Valid)
+            if (material.ShaderProgram == null)
             {
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                return;
+            }
 
-                RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(topology, indices.Length), 1);
-            }
-            else
-            {
-                bgfx.discard((byte)bgfx.DiscardFlags.All);
-            }
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+
+            RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }
 
         public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, Material material, Vector3 position,
-            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, ushort viewID, Action materialSetupCallback = null) where T : unmanaged
+            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, Action materialSetupCallback = null)
+            where T : unmanaged
         {
             if (vertices.Length == 0 ||
                 indices.Length == 0 ||
                 material == null ||
-                material.IsValid == false)
+                !material.IsValid)
             {
                 throw new Exception("Invalid arguments passed");
             }
 
-            bgfx.discard((byte)bgfx.DiscardFlags.All);
+            var renderState = RenderState.Default;
 
-            var vertexBuffer = VertexBuffer.CreateTransient(vertices, layout);
-            var indexBuffer = IndexBuffer.CreateTransient(indices);
-
-            if (vertexBuffer == null || indexBuffer == null)
-            {
-                return;
-            }
-
-            unsafe
-            {
-                _ = bgfx.set_transform(&transform, 1);
-            }
-
-            bgfx.StateFlags state = material.shader.StateFlags |
-                (bgfx.StateFlags)topology |
-                material.CullingFlag;
-
-            bgfx.set_state((ulong)state, 0);
-
-            vertexBuffer.SetActive(0, 0, (uint)vertices.Length);
-            indexBuffer.SetActive(0, (uint)indices.Length);
+            renderState.primitiveType = topology;
+            renderState.world = transform;
 
             if (materialSetupCallback != null)
             {
@@ -198,29 +141,23 @@ namespace Staple
             }
             else
             {
-                material.ApplyProperties(Material.ApplyMode.All);
-
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
                 material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                material.ApplyProperties(ref renderState);
             }
 
-            var lightSystem = RenderSystem.Instance.Get<LightSystem>();
+            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
 
-            lightSystem?.ApplyMaterialLighting(material, lighting);
-
-            var program = material.ShaderProgram;
-
-            if (program.Valid)
+            if (material.ShaderProgram == null)
             {
-                lightSystem?.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                return;
+            }
 
-                RenderSystem.Submit(viewID, program, bgfx.DiscardFlags.All, Mesh.TriangleCount(topology, indices.Length), 1);
-            }
-            else
-            {
-                bgfx.discard((byte)bgfx.DiscardFlags.All);
-            }
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+
+            RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }
     }
 }

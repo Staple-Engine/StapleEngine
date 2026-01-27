@@ -46,7 +46,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
                 callback.entityID = entity.Identifier.ID;
 
-                if (entity.IsValid == false)
+                if (!entity.IsValid)
                 {
                     EditorGUI.SameLine();
 
@@ -99,9 +99,9 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
                 var methods = type.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public)
                     .Where(x => x.GetParameters().Length == 0 &&
                         x.DeclaringType != typeof(object) &&
-                        x.IsAbstract == false &&
-                        x.Name.StartsWith("get_") == false &&
-                        x.Name.StartsWith("set_") == false)
+                        !x.IsAbstract &&
+                        !x.Name.StartsWith("get_") &&
+                        !x.Name.StartsWith("set_"))
                     .ToArray();
 
                 var methodNames = methods.Select(x => x.Name).ToList();
@@ -150,7 +150,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
         var value = getter();
 
         if (value == null ||
-            value.GetType().IsGenericType == false)
+            !value.GetType().IsGenericType)
         {
             return;
         }
@@ -203,7 +203,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
 
                     entry.entityID = entity.Identifier.ID;
 
-                    if (entity.IsValid == false)
+                    if (!entity.IsValid)
                     {
                         EditorGUI.SameLine();
 
@@ -269,7 +269,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
 
                         for(var j = 0; j < parameters.Length; j++)
                         {
-                            if (parameters[j].ParameterType.IsAssignableTo(value.GetType().GetGenericArguments()[j]) == false)
+                            if (!parameters[j].ParameterType.IsAssignableTo(value.GetType().GetGenericArguments()[j]))
                             {
                                 remove = true;
 

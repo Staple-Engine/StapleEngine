@@ -1,9 +1,10 @@
-﻿using Bgfx;
-using Staple.Internal;
+﻿using Staple.Internal;
 using Staple.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -275,6 +276,10 @@ public sealed partial class Mesh
 
     internal bool HasBoneWeights => (boneWeights?.Length ?? 0) > 0;
 
+    internal bool IsStaticMesh;
+
+    internal BufferAttributeContainer.Entries staticMeshEntries;
+
     /// <summary>
     /// List of default meshes
     /// </summary>
@@ -294,20 +299,27 @@ public sealed partial class Mesh
     {
         get
         {
-            if(_quad == null)
+            if (_quad != null)
             {
-                var builder = new CubicMeshBuilder();
-
-                builder.QuadVertices(Vector3.Zero, 1);
-                builder.CubeTexture(new(0, 1, 0, 1));
-                builder.CubeFaces();
-
-                _quad = builder.BuildMesh(true);
-
-                _quad.Guid.Guid = "Internal/Quad";
-
-                _quad.UpdateBounds();
+                return _quad;
             }
+            
+            var builder = new CubicMeshBuilder();
+
+            builder.QuadVertices(Vector3.Zero, 1);
+            builder.CubeTexture(new(0, 1, 0, 1));
+            builder.CubeFaces();
+
+            _quad = builder.BuildMesh(true);
+
+            _quad.colors = Enumerable.Repeat(Color.White, _quad.vertices.Length).ToArray();
+
+            GenerateTangents(_quad.vertices.AsSpan(), _quad.uv.AsSpan(), _quad.normals.AsSpan(), _quad.indices.AsSpan(),
+                out _quad.tangents, out _quad.bitangents);
+
+            _quad.Guid.Guid = "Internal/Quad";
+
+            _quad.UpdateBounds();
 
             return _quad;
         }
@@ -322,23 +334,30 @@ public sealed partial class Mesh
     {
         get
         {
-            if(_cube == null)
+            if (_cube != null)
             {
-                var builder = new CubicMeshBuilder();
-
-                foreach(var direction in Enum.GetValues<CubicMeshBuilder.Direction>())
-                {
-                    builder.CubeVertices(Vector3.Zero, 1, direction);
-                    builder.CubeTexture(new RectFloat(0, 1, 0, 1));
-                    builder.CubeFaces();
-                }
-
-                _cube = builder.BuildMesh(true);
-
-                _cube.Guid.Guid = "Internal/Cube";
-
-                _cube.UpdateBounds();
+                return _cube;
             }
+            
+            var builder = new CubicMeshBuilder();
+
+            foreach(var direction in Enum.GetValues<CubicMeshBuilder.Direction>())
+            {
+                builder.CubeVertices(Vector3.Zero, 1, direction);
+                builder.CubeTexture(new RectFloat(0, 1, 0, 1));
+                builder.CubeFaces();
+            }
+
+            _cube = builder.BuildMesh(true);
+
+            _cube.colors = Enumerable.Repeat(Color.White, _cube.vertices.Length).ToArray();
+
+            GenerateTangents(_cube.vertices.AsSpan(), _cube.uv.AsSpan(), _cube.normals.AsSpan(), _cube.indices.AsSpan(),
+                out _cube.tangents, out _cube.bitangents);
+
+            _cube.Guid.Guid = "Internal/Cube";
+
+            _cube.UpdateBounds();
 
             return _cube;
         }
@@ -353,14 +372,21 @@ public sealed partial class Mesh
     {
         get
         {
-            if (_sphere == null)
+            if (_sphere != null)
             {
-                _sphere = GenerateSphere(36, 18, 0.5f, false);
-
-                _sphere.Guid.Guid = "Internal/Sphere";
-
-                _sphere.UpdateBounds();
+                return _sphere;
             }
+            
+            _sphere = GenerateSphere(36, 18, 0.5f, false);
+
+            _sphere.colors = Enumerable.Repeat(Color.White, _sphere.vertices.Length).ToArray();
+
+            GenerateTangents(_sphere.vertices.AsSpan(), _sphere.uv.AsSpan(), _sphere.normals.AsSpan(), _sphere.indices.AsSpan(),
+                out _sphere.tangents, out _sphere.bitangents);
+
+            _sphere.Guid.Guid = "Internal/Sphere";
+
+            _sphere.UpdateBounds();
 
             return _sphere;
         }
@@ -431,12 +457,14 @@ public sealed partial class Mesh
                     indices.Add(k1 + 1);
                 }
 
-                if (i != (stackCount - 1))
+                if (i == (stackCount - 1))
                 {
-                    indices.Add(k1 + 1);
-                    indices.Add(k2);
-                    indices.Add(k2 + 1);
+                    continue;
                 }
+                
+                indices.Add(k1 + 1);
+                indices.Add(k2);
+                indices.Add(k2 + 1);
             }
         }
 
@@ -457,15 +485,8 @@ public sealed partial class Mesh
     {
         isReadable = readable;
         isWritable = writable;
-    }
 
-    /// <summary>
-    /// Gets the rendering primitive flag
-    /// </summary>
-    /// <returns>The state flag</returns>
-    internal bgfx.StateFlags PrimitiveFlag()
-    {
-        return (bgfx.StateFlags)meshTopology;
+        ResourceManager.instance.userCreatedMeshes.Add(new(this));
     }
 
     /// <summary>
@@ -479,7 +500,6 @@ public sealed partial class Mesh
         vertexBuffer = null;
         indexBuffer = null;
     }
-
 
     /// <summary>
     /// Generates a vertex layout for a mesh
@@ -602,93 +622,93 @@ public sealed partial class Mesh
             return layout;
         }
 
-        var builder = new VertexLayoutBuilder();
+        var builder = VertexLayoutBuilder.CreateNew();
 
-        builder.Add(VertexAttribute.Position, 3, VertexAttributeType.Float);
+        builder.Add(VertexAttribute.Position, VertexAttributeType.Float3);
 
         if(mesh.HasNormals)
         {
-            builder.Add(VertexAttribute.Normal, 3, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Normal, VertexAttributeType.Float3);
         }
 
         if (mesh.HasTangents)
         {
-            builder.Add(VertexAttribute.Tangent, 3, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Tangent, VertexAttributeType.Float3);
         }
 
         if (mesh.HasBitangents)
         {
-            builder.Add(VertexAttribute.Bitangent, 3, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Bitangent, VertexAttributeType.Float3);
         }
 
         if (mesh.HasColors || mesh.HasColors32)
         {
-            builder.Add(VertexAttribute.Color0, 4, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Color0, VertexAttributeType.Float4);
         }
 
         if (mesh.HasColors2 || mesh.HasColors322)
         {
-            builder.Add(VertexAttribute.Color1, 4, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Color1, VertexAttributeType.Float4);
         }
 
         if (mesh.HasColors3 || mesh.HasColors323)
         {
-            builder.Add(VertexAttribute.Color2, 4, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Color2, VertexAttributeType.Float4);
         }
 
         if (mesh.HasColors4 || mesh.HasColors324)
         {
-            builder.Add(VertexAttribute.Color3, 4, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.Color3, VertexAttributeType.Float4);
         }
 
         if (mesh.HasUV)
         {
-            builder.Add(VertexAttribute.TexCoord0, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV2)
         {
-            builder.Add(VertexAttribute.TexCoord1, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord1, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV3)
         {
-            builder.Add(VertexAttribute.TexCoord2, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord2, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV4)
         {
-            builder.Add(VertexAttribute.TexCoord3, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord3, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV5)
         {
-            builder.Add(VertexAttribute.TexCoord4, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord4, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV6)
         {
-            builder.Add(VertexAttribute.TexCoord5, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord5, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV7)
         {
-            builder.Add(VertexAttribute.TexCoord6, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord6, VertexAttributeType.Float2);
         }
 
         if (mesh.HasUV8)
         {
-            builder.Add(VertexAttribute.TexCoord7, 2, VertexAttributeType.Float);
+            builder.Add(VertexAttribute.TexCoord7, VertexAttributeType.Float2);
         }
 
         if(mesh.HasBoneIndices)
         {
-            builder.Add(VertexAttribute.BoneIndices, 4, VertexAttributeType.Float, false, false);
+            builder.Add(VertexAttribute.BlendIndices, VertexAttributeType.Float4);
         }
 
         if(mesh.HasBoneWeights)
         {
-            builder.Add(VertexAttribute.BoneWeight, 4, VertexAttributeType.Float, false, false);
+            builder.Add(VertexAttribute.BlendWeights, VertexAttributeType.Float4);
         }
 
         layout = builder.Build();
@@ -709,10 +729,11 @@ public sealed partial class Mesh
     /// <exception cref="InvalidOperationException">Thrown if the mesh data is invalid</exception>
     internal byte[] MakeVertexDataBlob(VertexLayout layout)
     {
-        var size = layout.layout.stride * vertices.Length;
+        var size = layout.Stride * vertices.Length;
 
         var buffer = new byte[size];
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         void Copy<T>(T source, ref int index) where T: unmanaged
         {
             var sourceSize = TypeCache.SizeOf(source.GetType().ToString());
@@ -725,7 +746,7 @@ public sealed partial class Mesh
 
             unsafe
             {
-                byte* src = (byte*)&source;
+                var src = (byte*)&source;
 
                 Marshal.Copy((nint)src, buffer, index, sourceSize);
             }
@@ -735,7 +756,7 @@ public sealed partial class Mesh
 
         for (int i = 0, index = 0; i < vertices.Length; i++)
         {
-            if(index % layout.layout.stride != 0)
+            if(index % layout.Stride != 0)
             {
                 throw new InvalidOperationException("[Mesh] Exceeded expected byte count while generating vertex data blob");
             }
@@ -858,28 +879,37 @@ public sealed partial class Mesh
     /// <summary>
     /// Makes this mesh active for rendering
     /// </summary>
+    /// <param name="state">The render state</param>
     /// <param name="submeshIndex">A submesh index, or 0</param>
     /// <returns>Whether it was set active</returns>
-    internal bool SetActive(int submeshIndex = 0)
+    internal bool SetActive(ref RenderState state, int submeshIndex = 0)
     {
-        UploadMeshData();
-
-        if(vertexBuffer == null || indexBuffer == null)
+        if(!IsStaticMesh && (vertexBuffer == null || indexBuffer == null))
         {
             return false;
         }
 
+        state.staticMeshEntries = null;
+
+        state.primitiveType = MeshTopology;
+
         if(submeshes.Count == 0)
         {
-            vertexBuffer.SetActive(0, 0, (uint)VertexCount);
-            indexBuffer.SetActive(0, (uint)indices.Length);
+            state.vertexBuffer = vertexBuffer;
+            state.indexBuffer = indexBuffer;
+            state.staticMeshEntries = staticMeshEntries;
+            state.indexCount = indices.Length;
         }
         else if(submeshIndex >= 0 && submeshIndex < submeshes.Count)
         {
             var submesh = submeshes[submeshIndex];
 
-            vertexBuffer.SetActive(0, (uint)submesh.startVertex, (uint)submesh.vertexCount);
-            indexBuffer.SetActive((uint)submesh.startIndex, (uint)submesh.indexCount);
+            state.vertexBuffer = vertexBuffer;
+            state.indexBuffer = indexBuffer;
+            state.staticMeshEntries = staticMeshEntries;
+            state.startVertex = submesh.startVertex;
+            state.startIndex = submesh.startIndex;
+            state.indexCount = submesh.indexCount;
         }
         else
         {
@@ -896,12 +926,7 @@ public sealed partial class Mesh
     /// <returns>The mesh, or null</returns>
     internal static Mesh GetDefaultMesh(string path)
     {
-        if(defaultMeshes.TryGetValue(path, out var mesh))
-        {
-            return mesh;
-        }
-
-        return null;
+        return defaultMeshes.GetValueOrDefault(path);
     }
 
     internal static int TriangleCount(MeshTopology topology, int indexCount)
@@ -913,6 +938,179 @@ public sealed partial class Mesh
             //Can't calculate for other modes
             _ => indexCount,
         };
+    }
+
+    internal void MarkStaticMesh()
+    {
+        if(IsStaticMesh ||
+            (vertices?.Length ?? 0) == 0 ||
+            (indices?.Length ?? 0) == 0)
+        {
+            return;
+        }
+
+        IsStaticMesh = true;
+
+        UpdateStaticMeshData();
+    }
+
+    internal void UpdateStaticMeshData()
+    {
+        if (staticMeshEntries == null)
+        {
+            var vertexCount = vertices.Length;
+            var indexCount = indices.Length;
+
+            staticMeshEntries = RenderSystem.Backend.StaticMeshData.Allocate(vertexCount, indexCount);
+        }
+
+        if ((vertices?.Length ?? 0) > staticMeshEntries.positionEntry.length ||
+            (indices?.Length ?? 0) > staticMeshEntries.indicesEntry.length)
+        {
+            RenderSystem.Backend.StaticMeshData.Free(staticMeshEntries);
+
+            staticMeshEntries = RenderSystem.Backend.StaticMeshData.Allocate(vertices.Length, indices.Length);
+        }
+
+        if (RenderSystem.Backend.StaticMeshData.TryGetPositions(staticMeshEntries, out var positions, true))
+        {
+            var source = vertices.AsSpan();
+
+            source.CopyTo(positions);
+        }
+
+        if (HasNormals && RenderSystem.Backend.StaticMeshData.TryGetNormals(staticMeshEntries, out var normals, true))
+        {
+            var source = this.normals.AsSpan();
+
+            source.CopyTo(normals);
+        }
+
+        if (HasTangents && RenderSystem.Backend.StaticMeshData.TryGetTangents(staticMeshEntries, out var tangents, true))
+        {
+            var source = this.tangents.AsSpan();
+
+            source.CopyTo(tangents);
+        }
+
+        if (HasBitangents && RenderSystem.Backend.StaticMeshData.TryGetBitangents(staticMeshEntries, out var bitangents, true))
+        {
+            var source = this.bitangents.AsSpan();
+
+            source.CopyTo(bitangents);
+        }
+
+        if (HasBoneIndices && RenderSystem.Backend.StaticMeshData.TryGetBlendIndices(staticMeshEntries, out var boneIndices, true))
+        {
+            var source = this.boneIndices.AsSpan();
+
+            source.CopyTo(boneIndices);
+        }
+
+        if (HasBoneWeights && RenderSystem.Backend.StaticMeshData.TryGetBlendWeights(staticMeshEntries, out var boneWeights, true))
+        {
+            var source = this.boneWeights.AsSpan();
+
+            source.CopyTo(boneWeights);
+        }
+
+        if (HasColors && RenderSystem.Backend.StaticMeshData.TryGetColor0(staticMeshEntries, out var colors, true))
+        {
+            var source = this.colors.AsSpan();
+
+            source.CopyTo(colors);
+        }
+
+        if (HasColors2 && RenderSystem.Backend.StaticMeshData.TryGetColor1(staticMeshEntries, out var colors2, true))
+        {
+            var source = this.colors2.AsSpan();
+
+            source.CopyTo(colors2);
+        }
+
+        if (HasColors3 && RenderSystem.Backend.StaticMeshData.TryGetColor2(staticMeshEntries, out var colors3, true))
+        {
+            var source = this.colors3.AsSpan();
+
+            source.CopyTo(colors3);
+        }
+
+        if (HasColors4 && RenderSystem.Backend.StaticMeshData.TryGetColor3(staticMeshEntries, out var colors4, true))
+        {
+            var source = this.colors4.AsSpan();
+
+            source.CopyTo(colors4);
+        }
+
+        if (HasUV && RenderSystem.Backend.StaticMeshData.TryGetTexCoord0(staticMeshEntries, out var uv0, true))
+        {
+            var source = this.uv.AsSpan();
+
+            source.CopyTo(uv0);
+        }
+
+        if (HasUV2 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord1(staticMeshEntries, out var uv1, true))
+        {
+            var source = this.uv2.AsSpan();
+
+            source.CopyTo(uv1);
+        }
+
+        if (HasUV3 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord2(staticMeshEntries, out var uv2, true))
+        {
+            var source = this.uv3.AsSpan();
+
+            source.CopyTo(uv2);
+        }
+
+        if (HasUV4 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord3(staticMeshEntries, out var uv3, true))
+        {
+            var source = this.uv4.AsSpan();
+
+            source.CopyTo(uv3);
+        }
+
+        if (HasUV5 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord4(staticMeshEntries, out var uv4, true))
+        {
+            var source = this.uv5.AsSpan();
+
+            source.CopyTo(uv4);
+        }
+
+        if (HasUV6 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord5(staticMeshEntries, out var uv5, true))
+        {
+            var source = this.uv6.AsSpan();
+
+            source.CopyTo(uv5);
+        }
+
+        if (HasUV7 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord6(staticMeshEntries, out var uv6, true))
+        {
+            var source = this.uv7.AsSpan();
+
+            source.CopyTo(uv6);
+        }
+
+        if (HasUV8 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord7(staticMeshEntries, out var uv7, true))
+        {
+            var source = this.uv8.AsSpan();
+
+            source.CopyTo(uv7);
+        }
+
+        if(RenderSystem.Backend.StaticMeshData.TryGetIndices(staticMeshEntries, out var meshIndices, true))
+        {
+            var from = indices.AsSpan();
+
+            from.CopyTo(meshIndices);
+
+            var start = staticMeshEntries.positionEntry.start;
+
+            for (var i = 0; i < meshIndices.Length; i++)
+            {
+                meshIndices[i] += start;
+            }
+        }
     }
 
     internal int SubmeshTriangleCount(int submeshIndex)

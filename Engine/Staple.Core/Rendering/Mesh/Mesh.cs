@@ -12,6 +12,25 @@ namespace Staple;
 /// </summary>
 public sealed partial class Mesh : IGuidAsset
 {
+    public struct StandardVertex
+    {
+        public Vector3 position;
+        public Vector2 uv;
+        public Vector3 normal;
+        public Vector3 tangent;
+        public Vector3 bitangent;
+        public Color color;
+    }
+
+    public static readonly Lazy<VertexLayout> StandardVertexLayout = new(() => VertexLayoutBuilder.CreateNew()
+        .Add(VertexAttribute.Position, VertexAttributeType.Float3)
+        .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float2)
+        .Add(VertexAttribute.Normal, VertexAttributeType.Float3)
+        .Add(VertexAttribute.Tangent, VertexAttributeType.Float3)
+        .Add(VertexAttribute.Bitangent, VertexAttributeType.Float3)
+        .Add(VertexAttribute.Color0, VertexAttributeType.Float4)
+        .Build());
+
     /// <summary>
     /// Whether this mesh is readable by the CPU
     /// </summary>
@@ -36,7 +55,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false)
+            if (!isWritable)
             {
                 return;
             }
@@ -58,7 +77,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if(isWritable == false)
+            if(!isWritable)
             {
                 return;
             }
@@ -78,7 +97,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if(isReadable == false || meshDataBlob != null)
+            if(!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -88,7 +107,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if(isWritable == false || meshDataBlob != null)
+            if(!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -98,29 +117,31 @@ public sealed partial class Mesh : IGuidAsset
             vertices = value;
             changed = true;
 
-            if(needsReset)
+            if (!needsReset)
             {
-                normals = null;
-                tangents = null;
-                bitangents = null;
-                colors = null;
-                colors2 = null;
-                colors3 = null;
-                colors4 = null;
-                colors32 = null;
-                colors322 = null;
-                colors323 = null;
-                colors323 = null;
-                uv = null;
-                uv2 = null;
-                uv3 = null;
-                uv4 = null;
-                uv5 = null;
-                uv6 = null;
-                uv7 = null;
-                uv8 = null;
-                indices = null;
+                return;
             }
+            
+            normals = null;
+            tangents = null;
+            bitangents = null;
+            colors = null;
+            colors2 = null;
+            colors3 = null;
+            colors4 = null;
+            colors32 = null;
+            colors322 = null;
+            colors323 = null;
+            colors323 = null;
+            uv = null;
+            uv2 = null;
+            uv3 = null;
+            uv4 = null;
+            uv5 = null;
+            uv6 = null;
+            uv7 = null;
+            uv8 = null;
+            indices = null;
         }
     }
 
@@ -133,7 +154,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -143,7 +164,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -167,7 +188,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -177,7 +198,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -201,7 +222,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -211,7 +232,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -235,7 +256,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -245,7 +266,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -269,7 +290,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -279,7 +300,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -303,7 +324,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -313,7 +334,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -337,7 +358,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -347,7 +368,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -371,7 +392,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -381,7 +402,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -405,7 +426,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -415,7 +436,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -439,7 +460,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -449,7 +470,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -473,7 +494,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -483,7 +504,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -507,7 +528,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -517,7 +538,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -541,7 +562,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -551,7 +572,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -575,7 +596,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -585,7 +606,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -609,7 +630,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -619,7 +640,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -643,7 +664,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -653,7 +674,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -677,7 +698,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -687,7 +708,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -711,7 +732,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -721,7 +742,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -745,7 +766,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -755,7 +776,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -778,7 +799,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -788,7 +809,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -811,7 +832,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false || meshDataBlob != null)
+            if (!isReadable || meshDataBlob != null)
             {
                 return [];
             }
@@ -821,7 +842,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false || meshDataBlob != null)
+            if (!isWritable || meshDataBlob != null)
             {
                 return;
             }
@@ -844,7 +865,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         get
         {
-            if (isReadable == false)
+            if (!isReadable)
             {
                 return [];
             }
@@ -854,7 +875,7 @@ public sealed partial class Mesh : IGuidAsset
 
         set
         {
-            if (isWritable == false)
+            if (!isWritable)
             {
                 return;
             }
@@ -873,7 +894,7 @@ public sealed partial class Mesh : IGuidAsset
         {
             if(meshDataBlob != null && meshDataVertexLayout != null)
             {
-                return meshDataBlob.Length / meshDataVertexLayout.layout.stride;
+                return meshDataBlob.Length / meshDataVertexLayout.Stride;
             }
 
             return vertices?.Length ?? 0;
@@ -985,9 +1006,7 @@ public sealed partial class Mesh : IGuidAsset
         }
     }
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     /// <summary>
     /// Loads a mesh from a guid
@@ -1001,6 +1020,7 @@ public sealed partial class Mesh : IGuidAsset
 
     public Mesh()
     {
+        ResourceManager.instance.userCreatedMeshes.Add(new(this));
     }
 
     /// <summary>
@@ -1060,17 +1080,17 @@ public sealed partial class Mesh : IGuidAsset
             throw new Exception("Vertex Layout is null");
         }
 
-        if(meshData.Length % vertexLayout.layout.stride != 0)
+        if(meshData.Length % vertexLayout.Stride != 0)
         {
-            throw new Exception($"Mesh Data Blob has misaligned data (has {meshData.Length} bytes, should be multiples of {vertexLayout.layout.stride})");
+            throw new Exception($"Mesh Data Blob has misaligned data (has {meshData.Length} bytes, should be multiples of {vertexLayout.Stride})");
         }
 
         meshDataBlob = meshData.ToArray();
         meshDataVertexLayout = vertexLayout;
 
-        if(vertexBuffer != null && vertexBuffer.Disposed == false && isDynamic)
+        if(vertexBuffer is { Disposed: false } && isDynamic)
         {
-            vertexBuffer.Update(meshDataBlob, 0, false);
+            vertexBuffer.Update(meshDataBlob);
         }
         else
         {
@@ -1093,9 +1113,9 @@ public sealed partial class Mesh : IGuidAsset
 
         var size = Marshal.SizeOf<T>();
 
-        if(size != vertexLayout.layout.stride)
+        if(size != vertexLayout.Stride)
         {
-            throw new Exception($"Mesh Data element size does not equal vertex layout size (has: {size}, needs: {vertexLayout.layout.stride})");
+            throw new Exception($"Mesh Data element size does not equal vertex layout size (has: {size}, needs: {vertexLayout.Stride})");
         }
 
         unsafe
@@ -1112,9 +1132,9 @@ public sealed partial class Mesh : IGuidAsset
 
         meshDataVertexLayout = vertexLayout;
 
-        if (vertexBuffer != null && vertexBuffer.Disposed == false && isDynamic)
+        if (vertexBuffer is { Disposed: false } && isDynamic)
         {
-            vertexBuffer.Update(meshDataBlob, 0, false);
+            vertexBuffer.Update(meshDataBlob);
         }
         else
         {
@@ -1125,16 +1145,23 @@ public sealed partial class Mesh : IGuidAsset
     /// <summary>
     /// Uploads the mesh data to the GPU
     /// </summary>
-    public void UploadMeshData()
+    internal void UploadMeshData()
     {
-        if (changed == false &&
-            (vertexBuffer?.Disposed ?? true) == false &&
-            (indexBuffer?.Disposed ?? true) == false)
+        if (!changed &&
+            (IsStaticMesh || 
+            (!IsStaticMesh && ((vertexBuffer?.Disposed ?? true) == false || (indexBuffer?.Disposed ?? true) == false))))
         {
             return;
         }
 
         changed = false;
+
+        if(IsStaticMesh)
+        {
+            UpdateStaticMeshData();
+
+            return;
+        }
 
         vertexBuffer?.Destroy();
         indexBuffer?.Destroy();
@@ -1160,10 +1187,6 @@ public sealed partial class Mesh : IGuidAsset
                 {
                     throw new InvalidOperationException($"Triangle mesh doesn't have the right amount of indices. Has: {indices.Length}. Should be a multiple of 3");
                 }
-
-                break;
-
-            case MeshTopology.Points:
 
                 break;
 
@@ -1204,9 +1227,9 @@ public sealed partial class Mesh : IGuidAsset
             return;
         }
 
-        if(meshDataBlob != null && meshDataBlob.Length % layout.layout.stride != 0)
+        if(meshDataBlob != null && meshDataBlob.Length % layout.Stride != 0)
         {
-            Log.Error($"[Mesh] Mesh Data Blob has misaligned data (has {meshDataBlob.Length} bytes, should be multiples of {layout.layout.stride})");
+            Log.Error($"[Mesh] Mesh Data Blob has misaligned data (has {meshDataBlob.Length} bytes, should be multiples of {layout.Stride})");
 
             return;
         }
@@ -1218,16 +1241,11 @@ public sealed partial class Mesh : IGuidAsset
             return;
         }
 
-        vertexBuffer = isDynamic ? VertexBuffer.CreateDynamic(layout) : VertexBuffer.Create(vertexBlob, layout);
+        vertexBuffer = VertexBuffer.Create(vertexBlob, layout);
 
         if(vertexBuffer == null)
         {
             return;
-        }
-
-        if(vertexBuffer.type == RenderBufferType.Dynamic)
-        {
-            vertexBuffer.Update(vertexBlob, 0, false);
         }
 
         switch (indexFormat)
@@ -1255,24 +1273,26 @@ public sealed partial class Mesh : IGuidAsset
             case MeshIndexFormat.UInt32:
 
                 {
-                    uint[] data = new uint[indices.Length];
+                    var data = new uint[indices.Length];
 
                     for (var i = 0; i < indices.Length; i++)
                     {
                         data[i] = (uint)indices[i];
                     }
 
-                    indexBuffer = IndexBuffer.Create(data, RenderBufferFlags.Index32);
+                    indexBuffer = IndexBuffer.Create(data);
                 }
 
                 break;
         }
 
-        if(indexBuffer == null)
+        if (indexBuffer != null)
         {
-            vertexBuffer?.Destroy();
-            vertexBuffer = null;
+            return;
         }
+        
+        vertexBuffer?.Destroy();
+        vertexBuffer = null;
     }
 
     /// <summary>
@@ -1373,7 +1393,7 @@ public sealed partial class Mesh : IGuidAsset
             {
                 var p = positions[i];
 
-                if (uniquePositions.TryGetValue(p, out var list) == false)
+                if (!uniquePositions.TryGetValue(p, out var list))
                 {
                     list = [];
 
@@ -1460,7 +1480,7 @@ public sealed partial class Mesh : IGuidAsset
             {
                 var p = positions[i];
 
-                if (uniquePositions.TryGetValue(p, out var list) == false)
+                if (!uniquePositions.TryGetValue(p, out var list))
                 {
                     list = [];
 
@@ -1500,6 +1520,168 @@ public sealed partial class Mesh : IGuidAsset
     }
 
     /// <summary>
+    /// Generates tangents and bitangents from a few components
+    /// </summary>
+    /// <param name="positions">The vertex positions</param>
+    /// <param name="UVs">The vertex UVs</param>
+    /// <param name="normals">The vertex normals</param>
+    /// <param name="indices">The vertex indices</param>
+    /// <param name="outTangents">The generated tangents</param>
+    /// <param name="outBitangents">The generated bitangents</param>
+    /// <remarks>Requires the data to be for triangle primitives</remarks>
+    public static void GenerateTangents(ReadOnlySpan<Vector3> positions, ReadOnlySpan<Vector2> UVs,
+        ReadOnlySpan<Vector3> normals, ReadOnlySpan<ushort> indices, out Vector3[] outTangents, out Vector3[] outBitangents)
+    {
+        if(positions.Length != UVs.Length ||
+            positions.Length != normals.Length ||
+            indices.Length % 3 != 0)
+        {
+            outTangents = null;
+            outBitangents = null;
+
+            return;
+        }
+
+        var tangents = new Vector3[positions.Length];
+        var bitangents = new Vector3[positions.Length];
+
+        outTangents = new Vector3[positions.Length];
+        outBitangents = new Vector3[positions.Length];
+
+        for (var i = 0; i < indices.Length; i += 3)
+        {
+            var vertexIndices = (indices[i], indices[i + 1], indices[i + 2]);
+
+            var vectors = (positions[vertexIndices.Item1],
+                positions[vertexIndices.Item2],
+                positions[vertexIndices.Item3]);
+
+            var uvs = (UVs[vertexIndices.Item1],
+                UVs[vertexIndices.Item2],
+                UVs[vertexIndices.Item3]);
+
+            var edge1 = vectors.Item2 - vectors.Item1;
+            var edge2 = vectors.Item3 - vectors.Item1;
+
+            var uvDelta1 = uvs.Item2 - uvs.Item1;
+            var uvDelta2 = uvs.Item3 - uvs.Item1;
+
+            var f = 1.0f / (uvDelta1.X * uvDelta2.Y - uvDelta2.X * uvDelta1.Y);
+
+            var tangent = Vector3.Normalize(f * (uvDelta2.Y * edge1 - uvDelta1.Y * edge2));
+            var bitangent = Vector3.Normalize(f * (-uvDelta2.X * edge1 + uvDelta1.X * edge2));
+
+            tangents[vertexIndices.Item1] += tangent;
+            tangents[vertexIndices.Item2] += tangent;
+            tangents[vertexIndices.Item3] += tangent;
+
+            bitangents[vertexIndices.Item1] += bitangent;
+            bitangents[vertexIndices.Item2] += bitangent;
+            bitangents[vertexIndices.Item3] += bitangent;
+        }
+
+        for (var i = 0; i < positions.Length; i++)
+        {
+            var normal = normals[i];
+            var t = Vector3.Normalize(tangents[i]);
+            var b = Vector3.Normalize(bitangents[i]);
+
+            var tangent = Vector3.Normalize(t - normal * Vector3.Dot(normal, t));
+
+            var bitangent = Vector3.Cross(normal, Vector3.Normalize(tangent));
+
+            if (Vector3.Dot(bitangent, b) < 0)
+            {
+                bitangent = -bitangent;
+            }
+
+            outTangents[i] = tangent;
+            outBitangents[i] = bitangent;
+        }
+    }
+
+    /// <summary>
+    /// Generates tangents and bitangents from a few components
+    /// </summary>
+    /// <param name="positions">The vertex positions</param>
+    /// <param name="UVs">The vertex UVs</param>
+    /// <param name="normals">The vertex normals</param>
+    /// <param name="indices">The vertex indices</param>
+    /// <param name="outTangents">The generated tangents</param>
+    /// <param name="outBitangents">The generated bitangents</param>
+    /// <remarks>Requires the data to be for triangle primitives</remarks>
+    public static void GenerateTangents(ReadOnlySpan<Vector3> positions, ReadOnlySpan<Vector2> UVs,
+        ReadOnlySpan<Vector3> normals, ReadOnlySpan<int> indices, out Vector3[] outTangents, out Vector3[] outBitangents)
+    {
+        if (positions.Length != UVs.Length ||
+            positions.Length != normals.Length ||
+            indices.Length % 3 != 0)
+        {
+            outTangents = null;
+            outBitangents = null;
+
+            return;
+        }
+
+        var tangents = new Vector3[positions.Length];
+        var bitangents = new Vector3[positions.Length];
+
+        outTangents = new Vector3[positions.Length];
+        outBitangents = new Vector3[positions.Length];
+
+        for (var i = 0; i < indices.Length; i += 3)
+        {
+            var vertexIndices = (indices[i], indices[i + 1], indices[i + 2]);
+
+            var vectors = (positions[vertexIndices.Item1],
+                positions[vertexIndices.Item2],
+                positions[vertexIndices.Item3]);
+
+            var uvs = (UVs[vertexIndices.Item1],
+                UVs[vertexIndices.Item2],
+                UVs[vertexIndices.Item3]);
+
+            var edge1 = vectors.Item2 - vectors.Item1;
+            var edge2 = vectors.Item3 - vectors.Item1;
+
+            var uvDelta1 = uvs.Item2 - uvs.Item1;
+            var uvDelta2 = uvs.Item3 - uvs.Item1;
+
+            var f = 1.0f / (uvDelta1.X * uvDelta2.Y - uvDelta2.X * uvDelta1.Y);
+
+            var tangent = Vector3.Normalize(f * (uvDelta2.Y * edge1 - uvDelta1.Y * edge2));
+            var bitangent = Vector3.Normalize(f * (-uvDelta2.X * edge1 + uvDelta1.X * edge2));
+
+            tangents[vertexIndices.Item1] += tangent;
+            tangents[vertexIndices.Item2] += tangent;
+            tangents[vertexIndices.Item3] += tangent;
+
+            bitangents[vertexIndices.Item1] += bitangent;
+            bitangents[vertexIndices.Item2] += bitangent;
+            bitangents[vertexIndices.Item3] += bitangent;
+        }
+
+        for (var i = 0; i < positions.Length; i++)
+        {
+            var normal = normals[i];
+            var t = Vector3.Normalize(tangents[i]);
+            var b = Vector3.Normalize(bitangents[i]);
+
+            var tangent = Vector3.Normalize(t - normal * Vector3.Dot(normal, t));
+
+            var bitangent = Vector3.Cross(normal, Vector3.Normalize(tangent));
+
+            if (Vector3.Dot(bitangent, b) < 0)
+            {
+                bitangent = -bitangent;
+            }
+
+            outTangents[i] = tangent;
+            outBitangents[i] = bitangent;
+        }
+    }
+
+    /// <summary>
     /// Creates an instance of a specific mesh. This will only create an object with the mesh itself.
     /// </summary>
     /// <param name="name">The new entity name</param>
@@ -1530,7 +1712,7 @@ public sealed partial class Mesh : IGuidAsset
             .Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList() :
             [ResourceManager.instance.LoadMaterial(AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath))];
 
-        if (mesh.HasBoneIndices && mesh.meshAsset != null && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
+        if (mesh.HasBoneIndices && mesh.meshAsset != null && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
         {
             meshEntity.AddComponent<SkinnedMeshInstance>();
 
@@ -1609,14 +1791,6 @@ public sealed partial class Mesh : IGuidAsset
 
                 var nodeTarget = parentIndex >= 0 ? parents[parentIndex] : (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
 
-                foreach(var meshIndex in node.meshIndices)
-                {
-                    if(meshIndex < 0 || meshIndex >= asset.meshes.Count)
-                    {
-                        continue;
-                    }
-                }
-
                 nodeTransform.SetParent(nodeTarget);
 
                 nodeTransform.LocalPosition = node.Position;
@@ -1638,29 +1812,31 @@ public sealed partial class Mesh : IGuidAsset
 
                     var isSkinned = mesh.bones.Any(x => x.Length > 0);
 
-                    meshTransform.SetParent(isSkinned && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false ? baseTransform : nodeTransform);
+                    meshTransform.SetParent(isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned) ? baseTransform : nodeTransform);
 
                     var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{index}", Platform.IsEditor);
                     var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList();
 
-                    if (outMesh != null)
+                    if (outMesh == null)
                     {
-                        if (isSkinned && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
-                        {
-                            var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+                        continue;
+                    }
+                    
+                    if (isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
+                    {
+                        var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 
-                            skinnedRenderer.mesh = outMesh;
-                            skinnedRenderer.materials = outMaterials;
-                            skinnedRenderer.lighting = mesh.lighting;
-                        }
-                        else
-                        {
-                            var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+                        skinnedRenderer.mesh = outMesh;
+                        skinnedRenderer.materials = outMaterials;
+                        skinnedRenderer.lighting = mesh.lighting;
+                    }
+                    else
+                    {
+                        var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
 
-                            meshRenderer.mesh = outMesh;
-                            meshRenderer.materials = outMaterials;
-                            meshRenderer.lighting = mesh.lighting;
-                        }
+                        meshRenderer.mesh = outMesh;
+                        meshRenderer.materials = outMaterials;
+                        meshRenderer.lighting = mesh.lighting;
                     }
                 }
             }
@@ -1682,24 +1858,26 @@ public sealed partial class Mesh : IGuidAsset
                 var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{i}", true);
                 var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, true)).ToList();
 
-                if (outMesh != null)
+                if (outMesh == null)
                 {
-                    if (isSkinned && options.HasFlag(MeshInstanceOptions.MakeUnskinned) == false)
-                    {
-                        var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+                    continue;
+                }
+                
+                if (isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
+                {
+                    var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
 
-                        skinnedRenderer.mesh = outMesh;
-                        skinnedRenderer.materials = outMaterials;
-                        skinnedRenderer.lighting = mesh.lighting;
-                    }
-                    else
-                    {
-                        var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+                    skinnedRenderer.mesh = outMesh;
+                    skinnedRenderer.materials = outMaterials;
+                    skinnedRenderer.lighting = mesh.lighting;
+                }
+                else
+                {
+                    var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
 
-                        meshRenderer.mesh = outMesh;
-                        meshRenderer.materials = outMaterials;
-                        meshRenderer.lighting = mesh.lighting;
-                    }
+                    meshRenderer.mesh = outMesh;
+                    meshRenderer.materials = outMaterials;
+                    meshRenderer.lighting = mesh.lighting;
                 }
             }
         }

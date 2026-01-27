@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace Staple;
@@ -59,7 +60,7 @@ public sealed class Camera : IComponent
     /// <summary>
     /// The clear color for the camera
     /// </summary>
-    public Color32 clearColor;
+    public Color32 clearColor = Color32.LightBlue;
 
     /// <summary>
     /// The layers this camera handles
@@ -79,7 +80,7 @@ public sealed class Camera : IComponent
     /// <summary>
     /// The frustum culler for this camera
     /// </summary>
-    private readonly FrustumCuller frustumCuller = new();
+    internal readonly FrustumCuller frustumCuller = new();
 
     /// <summary>
     /// Gets the camera's frustum corners
@@ -126,10 +127,10 @@ public sealed class Camera : IComponent
             case CameraType.Perspective:
 
                 {
-                    var nearHeight = 2 * (float)Math.Tan(Math.Deg2Rad * fov * 0.5f) * nearPlane;
+                    var nearHeight = 2 * Math.Tan(Math.Deg2Rad * fov * 0.5f) * nearPlane;
                     var nearWidth = nearHeight * Width / Height;
 
-                    var farHeight = 2 * (float)Math.Tan(Math.Deg2Rad * fov * 0.5f) * farPlane;
+                    var farHeight = 2 * Math.Tan(Math.Deg2Rad * fov * 0.5f) * farPlane;
                     var farWidth = farHeight * Width / Height;
 
                     var z = cameraTransform.Forward;
@@ -164,11 +165,7 @@ public sealed class Camera : IComponent
     /// <returns>Whether it's visible</returns>
     public bool IsVisible(AABB bounds)
     {
-#if FRUSTUM_TEST_AABB
         return frustumCuller.AABBTest(bounds) != FrustumResult.Invisible;
-#else
-        return frustumCuller.SphereTest(BoundingSphere.CreateFromAABB(bounds)) != FrustumResult.Invisible;
-#endif
     }
 
     /// <summary>
@@ -221,7 +218,7 @@ public sealed class Camera : IComponent
 
             default:
 
-                throw new System.ArgumentException("Camera Type is invalid", "cameraType");
+                throw new System.ArgumentException("Camera Type is invalid", nameof(cameraType));
         }
     }
 
@@ -241,7 +238,7 @@ public sealed class Camera : IComponent
 
         var p = Projection(entity, camera);
 
-        if (Matrix4x4.Invert(p, out var invP) == false)
+        if (!Matrix4x4.Invert(p, out var invP))
         {
             return default;
         }
@@ -270,7 +267,7 @@ public sealed class Camera : IComponent
 
         var p = Projection(entity, camera);
 
-        if(Matrix4x4.Invert(p, out var invP) == false)
+        if(!Matrix4x4.Invert(p, out var invP))
         {
             return new Ray();
         }

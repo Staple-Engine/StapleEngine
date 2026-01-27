@@ -1,8 +1,9 @@
-﻿using Bgfx;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 
 namespace Staple.Internal;
@@ -29,6 +30,7 @@ public partial class Shader : IGuidAsset
         public string attribute;
         public string variant;
         public string defaultValue;
+        public int slot;
 
         public static DefaultUniform FromShaderUniform(ShaderUniform uniform)
         {
@@ -38,7 +40,8 @@ public partial class Shader : IGuidAsset
                 type = uniform.type,
                 attribute = uniform.attribute,
                 variant = uniform.variant,
-                defaultValue = uniform.defaultValue
+                defaultValue = uniform.defaultValue,
+                slot = uniform.slot,
             };
         }
     }
@@ -46,65 +49,9 @@ public partial class Shader : IGuidAsset
     public class UniformInfo
     {
         internal ShaderUniform uniform;
-        internal bgfx.UniformHandle handle;
-        internal byte stage;
         internal int count = 1;
         internal bool isAlias = false;
-
-        internal bool Create()
-        {
-            if(isAlias)
-            {
-                return true;
-            }
-
-            bgfx.UniformType type;
-
-            switch (uniform.type)
-            {
-                case ShaderUniformType.Int:
-                case ShaderUniformType.Float:
-                case ShaderUniformType.Vector2:
-                case ShaderUniformType.Vector3:
-                case ShaderUniformType.Vector4:
-
-                    type = bgfx.UniformType.Vec4;
-
-                    break;
-
-                case ShaderUniformType.Color:
-
-                    type = bgfx.UniformType.Vec4;
-
-                    break;
-
-                case ShaderUniformType.Matrix4x4:
-
-                    type = bgfx.UniformType.Mat4;
-
-                    break;
-
-                case ShaderUniformType.Matrix3x3:
-
-                    type = bgfx.UniformType.Mat3;
-
-                    break;
-
-                case ShaderUniformType.Texture:
-
-                    type = bgfx.UniformType.Sampler;
-
-                    break;
-
-                default:
-
-                    return false;
-            }
-
-            handle = bgfx.create_uniform(uniform.name, type, (ushort)count);
-
-            return handle.Valid;
-        }
+        internal StringID handle;
 
         public override string ToString()
         {
@@ -112,14 +59,41 @@ public partial class Shader : IGuidAsset
         }
     }
 
+    internal class ShaderUniformData
+    {
+        public int offset;
+        public int length;
+        public byte[] buffer;
+        public int binding;
+    }
+
     internal class ShaderInstance
     {
-        public bgfx.ProgramHandle program;
+        public IShaderProgram program;
         public int[] keyPieces;
 
         public byte[] vertexShaderSource;
         public byte[] fragmentShaderSource;
         public byte[] computeShaderSource;
+        public VertexFragmentShaderMetrics vertexShaderMetrics;
+        public VertexFragmentShaderMetrics fragmentShaderMetrics;
+        public ComputeShaderMetrics computeShaderMetrics;
+        public VertexAttribute[] attributes = [];
+        public ShaderUniformContainer vertexUniforms;
+        public ShaderUniformContainer fragmentUniforms;
+        public Dictionary<StringID, ShaderUniformMapping> vertexMappings = [];
+        public Dictionary<StringID, ShaderUniformField> vertexFields = [];
+        public Dictionary<StringID, ShaderUniformData> vertexUniformData = [];
+        public Dictionary<StringID, ShaderUniformData> vertexUniformContainers = [];
+        public Dictionary<StringID, ShaderUniformMapping> fragmentMappings = [];
+        public Dictionary<StringID, ShaderUniformField> fragmentFields = [];
+        public Dictionary<StringID, ShaderUniformData> fragmentUniformData = [];
+        public Dictionary<StringID, ShaderUniformData> fragmentUniformContainers = [];
+        public Dictionary<StringID, int> vertexTextureBindings = [];
+        public Dictionary<StringID, int> fragmentTextureBindings = [];
+        public readonly Dictionary<StringID, UniformInfo> uniforms = [];
+        public int entityTransformsBufferBinding = -1;
+        public int entityTransformIDsBufferBinding = -1;
     }
 
     internal readonly ShaderMetadata metadata;
@@ -127,52 +101,22 @@ public partial class Shader : IGuidAsset
 
     internal static readonly List<DefaultUniform> DefaultUniforms = [];
 
-    internal readonly Dictionary<string, ShaderInstance> instances = [];
-
-    private UniformInfo[] uniforms = [];
-    private readonly IntLookupCache<int> uniformIndices = new();
-
-    private int usedTextureStages = 0;
+    internal readonly Dictionary<StringID, ShaderInstance> instances = [];
 
     [GeneratedRegex("\\[([0-9]+)\\]")]
     private static partial Regex UniformCountRegex();
 
     private static readonly Regex uniformCountRegex = UniformCountRegex();
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
-
-    internal bgfx.StateFlags BlendingFlag
-    {
-        get
-        {
-            if (sourceBlend != BlendMode.Off && destinationBlend != BlendMode.Off)
-            {
-                return (bgfx.StateFlags)RenderSystem.BlendFunction((bgfx.StateFlags)sourceBlend, (bgfx.StateFlags)destinationBlend);
-            }
-
-            return 0;
-        }
-    }
+    public GuidHasher Guid { get; } = new();
 
     internal bool IsTransparent
     {
         get
         {
-            return ((sourceBlend == BlendMode.Off && destinationBlend == BlendMode.Off) ||
+            return !((sourceBlend == BlendMode.Off && destinationBlend == BlendMode.Off) ||
                 (sourceBlend == BlendMode.One && destinationBlend == BlendMode.Zero) ||
-                (sourceBlend == BlendMode.Zero && destinationBlend == BlendMode.One)) == false;
-        }
-    }
-
-    internal bgfx.StateFlags StateFlags
-    {
-        get
-        {
-            var baseFlags = bgfx.StateFlags.WriteRgb | bgfx.StateFlags.WriteA | bgfx.StateFlags.WriteZ | bgfx.StateFlags.DepthTestLequal;
-
-            return baseFlags | BlendingFlag;
+                (sourceBlend == BlendMode.Zero && destinationBlend == BlendMode.One));
         }
     }
 
@@ -192,13 +136,134 @@ public partial class Shader : IGuidAsset
 
         foreach(var pair in entries)
         {
-            instances.AddOrSetKey(pair.Key, new()
+            var vertexMappings = new Dictionary<StringID, ShaderUniformMapping>();
+            var vertexFields = new Dictionary<StringID, ShaderUniformField>();
+            var fragmentMappings = new Dictionary<StringID, ShaderUniformMapping>();
+            var fragmentFields = new Dictionary<StringID, ShaderUniformField>();
+            var vertexTextureBindings = new Dictionary<StringID, int>();
+            var fragmentTextureBindings = new Dictionary<StringID, int>();
+            var vertexUniformData = new Dictionary<StringID, ShaderUniformData>();
+            var fragmentUniformData = new Dictionary<StringID, ShaderUniformData>();
+            var vertexUniformContainers = new Dictionary<StringID, ShaderUniformData>();
+            var fragmentUniformContainers = new Dictionary<StringID, ShaderUniformData>();
+            var entityTransformsBufferBinding = -1;
+            var entityTransformIDsBufferBinding = -1;
+
+            foreach(var buffer in pair.Value.vertexUniforms.storageBuffers)
             {
-                keyPieces = pair.Key.Split(' ').Select(x => x.GetHashCode()).ToArray(),
-                fragmentShaderSource = pair.Value.fragmentShader,
+                if(buffer.name == "StapleEntityTransforms")
+                {
+                    entityTransformsBufferBinding = buffer.binding;
+                }
+                else if(buffer.name == "StapleEntityTransformIDs")
+                {
+                    entityTransformIDsBufferBinding = buffer.binding;
+                }
+            }
+
+            foreach (var uniform in pair.Value.vertexUniforms.uniforms)
+            {
+                vertexMappings.AddOrSetKey(uniform.name, uniform);
+
+                var buffer = new byte[uniform.size];
+
+                vertexUniformData.Add(uniform.name, new()
+                {
+                    binding = uniform.binding,
+                    length = uniform.size,
+                    buffer = buffer,
+                });
+
+                vertexUniformContainers.Add(uniform.name, new()
+                {
+                    binding = uniform.binding,
+                    length = uniform.size,
+                    buffer = buffer,
+                });
+
+                foreach(var field in uniform.fields)
+                {
+                    vertexFields.AddOrSetKey(field.name, field);
+
+                    vertexUniformData.Add(field.name, new()
+                    {
+                        offset = field.offset,
+                        length = field.size,
+                        buffer = buffer,
+                    });
+                }
+            }
+
+            foreach (var uniform in pair.Value.fragmentUniforms.uniforms)
+            {
+                fragmentMappings.AddOrSetKey(new(uniform.name), uniform);
+
+                var buffer = new byte[uniform.size];
+
+                fragmentUniformData.Add(uniform.name, new()
+                {
+                    binding = uniform.binding,
+                    length = uniform.size,
+                    buffer = buffer,
+                });
+
+                fragmentUniformContainers.Add(uniform.name, new()
+                {
+                    binding = uniform.binding,
+                    length = uniform.size,
+                    buffer = buffer,
+                });
+
+                foreach (var field in uniform.fields)
+                {
+                    fragmentFields.AddOrSetKey(new(field.name), field);
+
+                    fragmentUniformData.Add(field.name, new()
+                    {
+                        offset = field.offset,
+                        length = field.size,
+                        buffer = buffer,
+                    });
+                }
+            }
+
+            foreach(var texture in pair.Value.vertexUniforms.textures)
+            {
+                vertexTextureBindings.Add(texture.name, texture.binding);
+            }
+
+            foreach (var texture in pair.Value.fragmentUniforms.textures)
+            {
+                fragmentTextureBindings.Add(texture.name, texture.binding);
+            }
+
+            var instance = new ShaderInstance()
+            {
+                keyPieces = pair.Key.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(x => x.GetHashCode()).ToArray(),
                 vertexShaderSource = pair.Value.vertexShader,
+                fragmentShaderSource = pair.Value.fragmentShader,
                 computeShaderSource = pair.Value.computeShader,
-            });
+                vertexShaderMetrics = pair.Value.vertexMetrics,
+                fragmentShaderMetrics = pair.Value.fragmentMetrics,
+                computeShaderMetrics = pair.Value.computeMetrics,
+                attributes = pair.Value.vertexAttributes,
+                vertexUniforms = pair.Value.vertexUniforms,
+                fragmentUniforms = pair.Value.fragmentUniforms,
+                vertexMappings = vertexMappings,
+                vertexFields = vertexFields,
+                vertexTextureBindings = vertexTextureBindings,
+                vertexUniformContainers = vertexUniformContainers,
+                vertexUniformData = vertexUniformData,
+                fragmentMappings = fragmentMappings,
+                fragmentFields = fragmentFields,
+                fragmentTextureBindings = fragmentTextureBindings,
+                fragmentUniformContainers = fragmentUniformContainers,
+                fragmentUniformData = fragmentUniformData,
+                entityTransformIDsBufferBinding = entityTransformIDsBufferBinding,
+                entityTransformsBufferBinding = entityTransformsBufferBinding,
+            };
+
+            instances.AddOrSetKey(pair.Key, instance);
         }
 
         sourceBlend = metadata.sourceBlend;
@@ -217,16 +282,12 @@ public partial class Shader : IGuidAsset
             name = name.Replace(uniformCountRegex.Match(name).Value, string.Empty);
         }
 
-        return type switch
-        {
-            ShaderUniformType.Int or ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => $"{name}_uniform",
-            _ => name
-        };
+        return name;
     }
 
     private static int NormalizeUniformCount(string name)
     {
-        if(uniformCountRegex.IsMatch(name) == false)
+        if(!uniformCountRegex.IsMatch(name))
         {
             return 1;
         }
@@ -245,74 +306,35 @@ public partial class Shader : IGuidAsset
     {
         foreach(var pair in instances)
         {
-            bgfx.Memory* vs, fs;
+            pair.Value.program = RenderSystem.Backend.CreateShaderVertexFragment(pair.Value.vertexShaderSource, pair.Value.fragmentShaderSource,
+                pair.Value.vertexShaderMetrics, pair.Value.fragmentShaderMetrics);
 
-            fixed (void* ptr = pair.Value.vertexShaderSource)
+            if(pair.Value.program == null)
             {
-                vs = bgfx.copy(ptr, (uint)pair.Value.vertexShaderSource.Length);
-            }
-
-            fixed (void* ptr = pair.Value.fragmentShaderSource)
-            {
-                fs = bgfx.copy(ptr, (uint)pair.Value.fragmentShaderSource.Length);
-            }
-
-            var vertexShader = bgfx.create_shader(vs);
-            var fragmentShader = bgfx.create_shader(fs);
-
-            if (vertexShader.Valid == false || fragmentShader.Valid == false)
-            {
-                if (vertexShader.Valid)
-                {
-                    bgfx.destroy_shader(vertexShader);
-                }
-
-                if (fragmentShader.Valid)
-                {
-                    bgfx.destroy_shader(fragmentShader);
-                }
-
                 return false;
             }
 
-            pair.Value.program = bgfx.create_program(vertexShader, fragmentShader, true);
-
-            if (pair.Value.program.Valid == false)
+            if (pair.Value.uniforms.Count == 0)
             {
-                bgfx.destroy_shader(vertexShader);
-                bgfx.destroy_shader(fragmentShader);
-
-                return false;
-            }
-        }
-
-        if (uniforms.Length > 0)
-        {
-            foreach (var uniform in uniforms)
-            {
-                uniform.Create();
-            }
-        }
-        else
-        {
-            foreach (var uniform in metadata.uniforms)
-            {
-                AddUniform(DefaultUniform.FromShaderUniform(uniform));
-            }
-
-            void EnsureUniform(DefaultUniform u)
-            {
-                var uniform = GetUniform(u.name.GetHashCode());
-
-                if (uniform == null)
+                foreach (var uniform in metadata.uniforms)
                 {
-                    AddUniform(u);
+                    AddUniform(DefaultUniform.FromShaderUniform(uniform), pair.Value);
                 }
-            }
 
-            foreach(var uniform in DefaultUniforms)
-            {
-                EnsureUniform(uniform);
+                void EnsureUniform(DefaultUniform u)
+                {
+                    var uniform = GetUniform(u.name, pair.Value);
+
+                    if (uniform == null)
+                    {
+                        AddUniform(u, pair.Value);
+                    }
+                }
+
+                foreach (var uniform in DefaultUniforms)
+                {
+                    EnsureUniform(uniform);
+                }
             }
         }
 
@@ -321,22 +343,11 @@ public partial class Shader : IGuidAsset
         return true;
     }
 
-    internal void AddUniform(DefaultUniform uniform)
+    internal void AddUniform(DefaultUniform uniform, ShaderInstance instance)
     {
         var normalizedName = NormalizeUniformName(uniform.name, uniform.type);
-        var nameHash = uniform.name.GetHashCode();
-        var normalizedHash = normalizedName.GetHashCode();
 
-        var uniformIndex = uniformIndices.IndexOf(nameHash);
-
-        if(uniformIndex >= 0)
-        {
-            return;
-        }
-
-        uniformIndex = uniformIndices.IndexOf(normalizedHash);
-
-        if (uniformIndex >= 0)
+        if(instance.uniforms.ContainsKey(uniform.name) || instance.uniforms.ContainsKey(normalizedName))
         {
             return;
         }
@@ -350,60 +361,130 @@ public partial class Shader : IGuidAsset
                 attribute = uniform.attribute,
                 variant = uniform.variant,
                 defaultValue = uniform.defaultValue,
+                slot = uniform.slot,
             },
-            count = NormalizeUniformCount(uniform.name),
+            handle = new(normalizedName),
+            count = 1,
         };
 
-        if (u.Create())
+        instance.uniforms.Add(normalizedName, u);
+
+        if (!instance.uniforms.ContainsKey(uniform.name))
         {
-            if (uniform.type == ShaderUniformType.Texture)
+            instance.uniforms.Add(uniform.name, new()
             {
-                u.stage = (byte)usedTextureStages;
-
-                usedTextureStages++;
-            }
-
-            var i = uniforms.Length;
-
-            uniformIndices.Add(normalizedHash, i);
-            uniforms = uniforms.Concat([u]).ToArray();
-
-            if (uniformIndices.IndexOf(nameHash) < 0)
-            {
-                uniformIndices.Add(nameHash, i);
-
-                uniforms = uniforms.Concat([new()
+                count = u.count,
+                isAlias = true,
+                uniform = new()
                 {
-                    count = u.count,
-                    isAlias = true,
-                    handle = u.handle,
-                    stage = u.stage,
-                    uniform = new()
-                    {
-                        name = u.uniform.name,
-                        type = uniform.type,
-                        attribute = uniform.attribute,
-                        variant = uniform.variant,
-                        defaultValue = uniform.defaultValue,
-                    },
-                }]).ToArray();
-            }
+                    name = u.uniform.name,
+                    type = uniform.type,
+                    attribute = uniform.attribute,
+                    variant = uniform.variant,
+                    defaultValue = uniform.defaultValue,
+                    slot = uniform.slot,
+                },
+                handle = new(normalizedName),
+            });
         }
     }
 
-    internal UniformInfo GetUniform(int hash)
+    internal UniformInfo GetUniform(StringID name, ShaderInstance instance)
     {
         if (Disposed)
         {
             return null;
         }
 
-        return uniformIndices.TryGetValue(hash, out var index) ? uniforms[index] : null;
+        if(instance.uniforms.TryGetValue(name, out var u))
+        {
+            return u;
+        }
+
+        foreach(var uniform in instance.vertexUniforms.uniforms)
+        {
+            if(uniform.name == name)
+            {
+                return new()
+                {
+                    uniform = new()
+                    {
+                        name = uniform.name,
+                        type = uniform.type,
+                    },
+                    handle = name,
+                    count = uniform.count,
+                };
+            }
+        }
+
+        foreach (var uniform in instance.fragmentUniforms.uniforms)
+        {
+            if (uniform.name == name)
+            {
+                return new()
+                {
+                    uniform = new()
+                    {
+                        name = uniform.name,
+                        type = uniform.type,
+                    },
+                    handle = name,
+                    count = uniform.count,
+                };
+            }
+        }
+
+        foreach (var pair in instance.vertexFields)
+        {
+            if (pair.Key == name)
+            {
+                return new()
+                {
+                    uniform = new()
+                    {
+                        name = pair.Value.name,
+                        type = pair.Value.type,
+                    },
+                    handle = pair.Key,
+                    count = pair.Value.count,
+                };
+            }
+        }
+
+        foreach (var pair in instance.fragmentFields)
+        {
+            if (pair.Key == name)
+            {
+                return new()
+                {
+                    uniform = new()
+                    {
+                        name = pair.Value.name,
+                        type = pair.Value.type,
+                    },
+                    handle = pair.Key,
+                    count = pair.Value.count,
+                };
+            }
+        }
+
+        return null;
     }
 
-    internal ShaderHandle GetUniformHandle(int hash)
+    internal UniformInfo GetUniform(StringID name, StringID variantKey)
     {
-        var uniform = GetUniform(hash);
+        if (Disposed || !instances.TryGetValue(variantKey, out var instance))
+        {
+            return null;
+        }
+
+        return GetUniform(name, instance);
+    }
+
+    internal ShaderHandle GetUniformHandle(StringID name, StringID variantKey)
+    {
+        var uniform = GetUniform(name, variantKey);
 
         if(uniform == null)
         {
@@ -413,300 +494,254 @@ public partial class Shader : IGuidAsset
         return new(this, uniform);
     }
 
+    internal bool TryGetUniformData(StringID variantKey, ShaderHandle handle, out UniformInfo uniform,
+        out (int, byte[])? vertexData, out (int, byte[])? fragmentData)
+    {
+        uniform = default;
+        vertexData = default;
+        fragmentData = default;
+
+        if (Disposed ||
+            !handle.TryGetUniform(this, out uniform) ||
+            !instances.TryGetValue(variantKey, out var shaderInstance))
+        {
+            return false;
+        }
+
+        if(shaderInstance.vertexUniformData.TryGetValue(uniform.handle, out var d))
+        {
+            vertexData = (d.offset, d.buffer);
+        }
+
+        if (shaderInstance.fragmentUniformData.TryGetValue(uniform.handle, out d))
+        {
+            fragmentData = (d.offset, d.buffer);
+        }
+
+        return vertexData != null || fragmentData != null;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static bool CanStoreUniformData((int, byte[]) data, int size)
+    {
+        //Logic: If we have an array of 1 element, 0 + 1 < 1 fails, so must be <=
+        return data.Item1 >= 0 && data.Item1 + size <= data.Item2.Length;
+    }
+
+    private static void SetValueInternal(Span<byte> source, (int, byte[])? vertexData, (int, byte[])? fragmentData)
+    {
+        if (vertexData != null && CanStoreUniformData(vertexData.Value, source.Length))
+        {
+            var target = new Span<byte>(vertexData.Value.Item2, vertexData.Value.Item1, source.Length);
+
+            source.CopyTo(target);
+        }
+
+        if (fragmentData != null && CanStoreUniformData(fragmentData.Value, source.Length))
+        {
+            var target = new Span<byte>(fragmentData.Value.Item2, fragmentData.Value.Item1, source.Length);
+
+            source.CopyTo(target);
+        }
+    }
+
+    private void SetValue<T>(StringID variantKey, ShaderHandle handle, T value) where T: unmanaged
+    {
+        if (!TryGetUniformData(variantKey, handle, out _, out var vertexData, out var fragmentData))
+        {
+            return;
+        }
+
+        var size = Marshal.SizeOf<T>();
+
+        unsafe
+        {
+            var source = new Span<byte>(&value, size);
+
+            SetValueInternal(source, vertexData, fragmentData);
+        }
+    }
+
+    private void SetValue<T>(StringID variantKey, ShaderHandle handle, ReadOnlySpan<T> value) where T: unmanaged
+    {
+        if (!TryGetUniformData(variantKey, handle, out var uniform, out var vertexData, out var fragmentData))
+        {
+            return;
+        }
+
+        unsafe
+        {
+            fixed (void* ptr = value)
+            {
+                var count = value.Length < uniform.count ? value.Length : uniform.count;
+                var size = Marshal.SizeOf<T>() * count;
+                var source = new Span<byte>(ptr, size);
+
+                SetValueInternal(source, vertexData, fragmentData);
+            }
+        }
+    }
+
     /// <summary>
     /// Sets a float uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetFloat(ShaderHandle handle, float value)
+    public void SetFloat(StringID variantKey, ShaderHandle handle, float value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var temp = new Vector4(value, 0, 0, 0);
-
-            bgfx.set_uniform(uniform.handle, &temp, 1);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Vector2 uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector2(ShaderHandle handle, Vector2 value)
+    public void SetVector2(StringID variantKey, ShaderHandle handle, Vector2 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var temp = new Vector4(value, 0, 0);
-
-            bgfx.set_uniform(uniform.handle, &temp, 1);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Vector2 uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector2(ShaderHandle handle, ReadOnlySpan<Vector2> value)
+    public void SetVector2(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Vector2> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var temp = new Vector4[value.Length];
-
-            for (var i = 0; i < value.Length; i++)
-            {
-                temp[i] = value[i].ToVector4();
-            }
-
-            fixed (void* ptr = temp)
-            {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Vector3 uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector3(ShaderHandle handle, Vector3 value)
+    public void SetVector3(StringID variantKey, ShaderHandle handle, Vector3 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var temp = new Vector4(value, 0);
-
-            bgfx.set_uniform(uniform.handle, &temp, 1);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Vector3 uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector3(ShaderHandle handle, ReadOnlySpan<Vector3> value)
+    public void SetVector3(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Vector3> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            var temp = new Vector4[value.Length];
-
-            for (var i = 0; i < value.Length; i++)
-            {
-                temp[i] = value[i].ToVector4();
-            }
-
-            fixed (void* ptr = temp)
-            {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Vector4 uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector4(ShaderHandle handle, Vector4 value)
+    public void SetVector4(StringID variantKey, ShaderHandle handle, Vector4 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            bgfx.set_uniform(uniform.handle, &value, 1);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Vector4 uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetVector4(ShaderHandle handle, ReadOnlySpan<Vector4> value)
+    public void SetVector4(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Vector4> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            fixed (void* ptr = value)
-            {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Color uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetColor(ShaderHandle handle, Color value)
+    public void SetColor(StringID variantKey, ShaderHandle handle, Color value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        var colorValue = new Vector4(value.r, value.g, value.b, value.a);
-
-        unsafe
-        {
-            bgfx.set_uniform(uniform.handle, &colorValue, 1);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Color uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetColor(ShaderHandle handle, ReadOnlySpan<Color> value)
+    public void SetColor(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Color> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            fixed (void* ptr = value)
-            {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Texture uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    /// <param name="overrideFlags">Flags to override texture state</param>
-    public void SetTexture(ShaderHandle handle, Texture value, TextureFlags overrideFlags = (TextureFlags)uint.MaxValue)
+    public void SetTexture(StringID variantKey, ShaderHandle handle, Texture value)
     {
         if (Disposed ||
             value == null ||
             value.Disposed ||
-            handle.TryGetUniform(this, out var uniform) == false)
+            !handle.TryGetUniform(this, out var uniform))
         {
             return;
         }
 
-        unsafe
-        {
-            value.SetActive(uniform.stage, uniform.handle, overrideFlags);
-        }
+        //TODO
     }
 
     /// <summary>
     /// Sets a Matrix3x3 uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetMatrix3x3(ShaderHandle handle, Matrix3x3 value)
+    public void SetMatrix3x3(StringID variantKey, ShaderHandle handle, Matrix3x3 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            bgfx.set_uniform(uniform.handle, &value, 1);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Matrix3x3 uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetMatrix3x3(ShaderHandle handle, ReadOnlySpan<Matrix3x3> value)
+    public void SetMatrix3x3(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Matrix3x3> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            fixed (void* ptr = value)
-            {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Matrix4x4 uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetMatrix4x4(ShaderHandle handle, Matrix4x4 value)
+    public void SetMatrix4x4(StringID variantKey, ShaderHandle handle, Matrix4x4 value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            bgfx.set_uniform(uniform.handle, &value, 1);
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
     /// Sets a Matrix4x4 array uniform's value
     /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
     /// <param name="handle">The shader handle to use</param>
     /// <param name="value">The value</param>
-    public void SetMatrix4x4(ShaderHandle handle, ReadOnlySpan<Matrix4x4> value)
+    public void SetMatrix4x4(StringID variantKey, ShaderHandle handle, ReadOnlySpan<Matrix4x4> value)
     {
-        if (Disposed || handle.TryGetUniform(this, out var uniform) == false)
-        {
-            return;
-        }
-
-        unsafe
-        {
-            fixed (void* ptr = value)
-            {
-                bgfx.set_uniform(uniform.handle, ptr, (ushort)value.Length);
-            }
-        }
+        SetValue(variantKey, handle, value);
     }
 
     /// <summary>
@@ -723,32 +758,9 @@ public partial class Shader : IGuidAsset
 
         foreach(var pair in instances)
         {
-            if (pair.Value.program.Valid)
-            {
-                bgfx.destroy_program(pair.Value.program);
+            pair.Value.program?.Destroy();
 
-                pair.Value.program = new()
-                {
-                    idx = ushort.MaxValue,
-                };
-            }
-        }
-
-        foreach (var uniform in uniforms)
-        {
-            if (uniform.isAlias)
-            {
-                uniform.handle.idx = ushort.MaxValue;
-
-                continue;
-            }
-
-            if(uniform.handle.Valid)
-            {
-                bgfx.destroy_uniform(uniform.handle);
-
-                uniform.handle.idx = ushort.MaxValue;
-            }
+            pair.Value.program = null;
         }
     }
 

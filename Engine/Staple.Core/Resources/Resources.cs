@@ -65,7 +65,7 @@ public static class Resources
     {
         var result = Load(pathOrGuid);
 
-        if(result == null || result.GetType().IsAssignableTo(typeof(T)) == false)
+        if(result == null || !result.GetType().IsAssignableTo(typeof(T)))
         {
             return null;
         }

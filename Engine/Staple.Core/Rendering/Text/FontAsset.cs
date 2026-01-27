@@ -5,10 +5,7 @@ namespace Staple;
 
 public class FontAsset : IGuidAsset
 {
-
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     internal FontMetadata metadata;
 
@@ -51,7 +48,7 @@ public class FontAsset : IGuidAsset
 
             foreach(var size in metadata.expectedSizes)
             {
-                if(asset.font.MakePixelData(size, metadata.textureSize, out _, out _, out _) == false)
+                if(!asset.font.MakePixelData(size, metadata.textureSize, out _, out _, out _))
                 {
                     return false;
                 }

@@ -28,7 +28,7 @@ internal static class ResourceUtils
             var header = MessagePackSerializer.Deserialize<SerializableTextureHeader>(stream);
 
             if (header == null ||
-                header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) == false ||
+                !header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) ||
                 header.version != SerializableTextureHeader.ValidVersion)
             {
                 return null;
@@ -41,7 +41,7 @@ internal static class ResourceUtils
                 return null;
             }
 
-            var texture = Texture.Create(path, textureData.data, textureData.metadata);
+            var texture = Texture.Create(path, textureData);
 
             if (texture == null)
             {

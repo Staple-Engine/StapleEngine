@@ -88,10 +88,10 @@ public abstract class ModuleInitializer
 
                             {
                                 if (types == null ||
-                                    types.TryGetValue(nameof(AudioSystem.AudioListenerImpl), out var audioListener) == false ||
-                                    types.TryGetValue(nameof(AudioSystem.AudioSourceImpl), out var audioSource) == false ||
-                                    types.TryGetValue(nameof(AudioSystem.AudioDeviceImpl), out var audioDevice) == false ||
-                                    types.TryGetValue(nameof(AudioSystem.AudioClipImpl), out var audioClip) == false)
+                                    !types.TryGetValue(nameof(AudioSystem.AudioListenerImpl), out var audioListener) ||
+                                    !types.TryGetValue(nameof(AudioSystem.AudioSourceImpl), out var audioSource) ||
+                                    !types.TryGetValue(nameof(AudioSystem.AudioDeviceImpl), out var audioDevice) ||
+                                    !types.TryGetValue(nameof(AudioSystem.AudioClipImpl), out var audioClip))
                                 {
                                     Log.Error($"Failed to use audio provider for module {type.FullName}: Invalid types");
                                 }
@@ -110,7 +110,7 @@ public abstract class ModuleInitializer
 
                             {
                                 if (types == null ||
-                                    types.TryGetValue(nameof(Physics3D.Impl), out var physics) == false)
+                                    !types.TryGetValue(nameof(Physics3D.Impl), out var physics))
                                 {
                                     Log.Error($"Failed to use physics provider for module {type.FullName}: Invalid types");
                                 }

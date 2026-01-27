@@ -42,7 +42,7 @@ public class VisualShaderAsset : IGeneratorAsset
     {
         var content = ResourceManager.instance.LoadFileString(guid);
 
-        if(content == null || content.StartsWith(Header) == false)
+        if(content == null || !content.StartsWith(Header))
         {
             asset = default;
 
@@ -113,7 +113,7 @@ public class VisualShaderAsset : IGeneratorAsset
             {
                 case PairType.Type:
 
-                    if(Enum.TryParse(itemContent, true, out instance.shaderType) == false)
+                    if(!Enum.TryParse(itemContent, true, out instance.shaderType))
                     {
                         asset = default;
 
@@ -132,7 +132,7 @@ public class VisualShaderAsset : IGeneratorAsset
                             var parts = p.Split(':');
 
                             if (parts.Length < 3 ||
-                                Staple.Tooling.Utilities.TryGetShaderUniformType(parts[1], out var uniformType) == false)
+                                !Staple.Tooling.Utilities.TryGetShaderUniformType(parts[1], out var uniformType))
                             {
                                 asset = default;
 
@@ -168,7 +168,7 @@ public class VisualShaderAsset : IGeneratorAsset
                             var parts = p.Split(':');
 
                             if (parts.Length != 2 ||
-                                Staple.Tooling.Utilities.TryGetShaderUniformType(parts[0], out var uniformType) == false)
+                                !Staple.Tooling.Utilities.TryGetShaderUniformType(parts[0], out var uniformType))
                             {
                                 asset = default;
 

@@ -15,7 +15,7 @@ public class LinuxBuildProcessor : IBuildPreprocessor
 
         var projectDirectory = buildInfo.assemblyProjectPath;
 
-        if(StorageUtils.CopyFile(Path.Combine(buildInfo.backendResourcesPath, "Program.cs"), Path.Combine(projectDirectory, "Program.cs")) == false)
+        if(!StorageUtils.CopyFile(Path.Combine(buildInfo.backendResourcesPath, "Program.cs"), Path.Combine(projectDirectory, "Program.cs")))
         {
             Log.Debug($"{GetType().Name}: Failed to copy program script");
 

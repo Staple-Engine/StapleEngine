@@ -1,0 +1,509 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Release;Debug</Configurations>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <IntermediateOutputPath>obj\Release\NAudio\</IntermediateOutputPath>
+    <DefineConstants>NDEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <IntermediateOutputPath>obj\Debug\NAudio\</IntermediateOutputPath>
+    <DefineConstants>_DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\NAudio\NAudio.Core\Codecs\ALawDecoder.cs">
+      <Link>NAudio\NAudio.Core\Codecs\ALawDecoder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Codecs\ALawEncoder.cs">
+      <Link>NAudio\NAudio.Core\Codecs\ALawEncoder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Codecs\G722Codec.cs">
+      <Link>NAudio\NAudio.Core\Codecs\G722Codec.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Codecs\MuLawDecoder.cs">
+      <Link>NAudio\NAudio.Core\Codecs\MuLawDecoder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Codecs\MuLawEncoder.cs">
+      <Link>NAudio\NAudio.Core\Codecs\MuLawEncoder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Dsp\BiQuadFilter.cs">
+      <Link>NAudio\NAudio.Core\Dsp\BiQuadFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Dsp\Complex.cs">
+      <Link>NAudio\NAudio.Core\Dsp\Complex.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Dsp\EnvelopeDetector.cs">
+      <Link>NAudio\NAudio.Core\Dsp\EnvelopeDetector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Dsp\EnvelopeGenerator.cs">
+      <Link>NAudio\NAudio.Core\Dsp\EnvelopeGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Dsp\FastFourierTransform.cs">
+      <Link>NAudio\NAudio.Core\Dsp\FastFourierTransform.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Dsp\ImpulseResponseConvolution.cs">
+      <Link>NAudio\NAudio.Core\Dsp\ImpulseResponseConvolution.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Dsp\SimpleCompressor.cs">
+      <Link>NAudio\NAudio.Core\Dsp\SimpleCompressor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Dsp\SimpleGate.cs">
+      <Link>NAudio\NAudio.Core\Dsp\SimpleGate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Dsp\SmbPitchShifter.cs">
+      <Link>NAudio\NAudio.Core\Dsp\SmbPitchShifter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Dsp\WdlResampler.cs">
+      <Link>NAudio\NAudio.Core\Dsp\WdlResampler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\Mp3\ChannelMode.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\Mp3\ChannelMode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\Mp3\IMp3FrameDecompressor.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\Mp3\IMp3FrameDecompressor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\Mp3\Id3v2Tag.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\Mp3\Id3v2Tag.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\Mp3\Mp3Frame.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\Mp3\Mp3Frame.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\Mp3\MpegLayer.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\Mp3\MpegLayer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\Mp3\MpegVersion.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\Mp3\MpegVersion.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\Mp3\XingHeader.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\Mp3\XingHeader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\Generator.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\Generator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\GeneratorBuilder.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\GeneratorBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\GeneratorEnum.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\GeneratorEnum.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\InfoChunk.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\InfoChunk.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\Instrument.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\Instrument.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\InstrumentBuilder.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\InstrumentBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\Modulator.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\Modulator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\ModulatorBuilder.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\ModulatorBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\ModulatorType.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\ModulatorType.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\Preset.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\Preset.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\PresetBuilder.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\PresetBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\PresetsChunk.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\PresetsChunk.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\RiffChunk.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\RiffChunk.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\SFSampleLink.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\SFSampleLink.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\SFVersion.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\SFVersion.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\SFVersionBuilder.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\SFVersionBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\SampleDataChunk.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\SampleDataChunk.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\SampleHeader.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\SampleHeader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\SampleHeaderBuilder.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\SampleHeaderBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\SampleMode.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\SampleMode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\SoundFont.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\SoundFont.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\StructureBuilder.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\StructureBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\Zone.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\Zone.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\SoundFont\ZoneBuilder.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\SoundFont\ZoneBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\FileFormats\Wav\WaveFileChunkReader.cs">
+      <Link>NAudio\NAudio.Core\FileFormats\Wav\WaveFileChunkReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Manufacturers.cs">
+      <Link>NAudio\NAudio.Core\Manufacturers.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\MmException.cs">
+      <Link>NAudio\NAudio.Core\MmException.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\MmResult.cs">
+      <Link>NAudio\NAudio.Core\MmResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\BufferHelpers.cs">
+      <Link>NAudio\NAudio.Core\Utils\BufferHelpers.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\ByteArrayExtensions.cs">
+      <Link>NAudio\NAudio.Core\Utils\ByteArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\ByteEncoding.cs">
+      <Link>NAudio\NAudio.Core\Utils\ByteEncoding.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\ChunkIdentifier.cs">
+      <Link>NAudio\NAudio.Core\Utils\ChunkIdentifier.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\CircularBuffer.cs">
+      <Link>NAudio\NAudio.Core\Utils\CircularBuffer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\Decibels.cs">
+      <Link>NAudio\NAudio.Core\Utils\Decibels.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\FieldDescriptionAttribute.cs">
+      <Link>NAudio\NAudio.Core\Utils\FieldDescriptionAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\FieldDescriptionHelper.cs">
+      <Link>NAudio\NAudio.Core\Utils\FieldDescriptionHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\HResult.cs">
+      <Link>NAudio\NAudio.Core\Utils\HResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\IEEE.cs">
+      <Link>NAudio\NAudio.Core\Utils\IEEE.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\IgnoreDisposeStream.cs">
+      <Link>NAudio\NAudio.Core\Utils\IgnoreDisposeStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\NativeMethods.cs">
+      <Link>NAudio\NAudio.Core\Utils\NativeMethods.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Utils\WavePositionExtensions.cs">
+      <Link>NAudio\NAudio.Core\Utils\WavePositionExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleChunkConverters\ISampleChunkConverter.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleChunkConverters\ISampleChunkConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleChunkConverters\Mono16SampleChunkConverter.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleChunkConverters\Mono16SampleChunkConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleChunkConverters\Mono24SampleChunkConverter.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleChunkConverters\Mono24SampleChunkConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleChunkConverters\Mono8SampleChunkConverter.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleChunkConverters\Mono8SampleChunkConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleChunkConverters\MonoFloatSampleChunkConverter.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleChunkConverters\MonoFloatSampleChunkConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleChunkConverters\Stereo16SampleChunkConverter.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleChunkConverters\Stereo16SampleChunkConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleChunkConverters\Stereo24SampleChunkConverter.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleChunkConverters\Stereo24SampleChunkConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleChunkConverters\Stereo8SampleChunkConverter.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleChunkConverters\Stereo8SampleChunkConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleChunkConverters\StereoFloatSampleChunkConverter.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleChunkConverters\StereoFloatSampleChunkConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\AdsrSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\AdsrSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\ConcatenatingSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\ConcatenatingSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\FadeInOutSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\FadeInOutSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\MeteringSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\MeteringSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\MixingSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\MixingSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\MonoToStereoSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\MonoToStereoSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\MultiplexingSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\MultiplexingSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\NotifyingSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\NotifyingSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\OffsetSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\OffsetSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\PanningSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\PanningSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\Pcm16BitToSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\Pcm16BitToSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\Pcm24BitToSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\Pcm24BitToSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\Pcm32BitToSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\Pcm32BitToSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\Pcm8BitToSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\Pcm8BitToSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\SMBPitchShiftingSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\SMBPitchShiftingSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\SampleChannel.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\SampleChannel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\SampleProviderConverterBase.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\SampleProviderConverterBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\SampleProviderConverters.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\SampleProviderConverters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\SampleToWaveProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\SampleToWaveProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\SampleToWaveProvider16.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\SampleToWaveProvider16.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\SampleToWaveProvider24.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\SampleToWaveProvider24.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\SignalGenerator.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\SignalGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\StereoToMonoSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\StereoToMonoSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\VolumeSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\VolumeSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\WaveToSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\WaveToSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\WaveToSampleProvider64.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\WaveToSampleProvider64.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\SampleProviders\WdlResamplingSampleProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\SampleProviders\WdlResamplingSampleProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveExtensionMethods.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveExtensionMethods.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\AdpcmWaveFormat.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\AdpcmWaveFormat.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\AudioMediaSubtypes.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\AudioMediaSubtypes.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\Gsm610WaveFormat.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\Gsm610WaveFormat.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\ImaAdpcmWaveFormat.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\ImaAdpcmWaveFormat.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\Mp3WaveFormat.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\Mp3WaveFormat.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\OggWaveFormat.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\OggWaveFormat.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\TrueSpeechWaveFormat.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\TrueSpeechWaveFormat.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\WaveFormat.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\WaveFormat.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\WaveFormatCustomMarshaler.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\WaveFormatCustomMarshaler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\WaveFormatEncoding.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\WaveFormatEncoding.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\WaveFormatExtensible.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\WaveFormatExtensible.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\WaveFormatExtraData.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\WaveFormatExtraData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveFormats\WmaWaveFormat.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveFormats\WmaWaveFormat.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveInputs\CaptureState.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveInputs\CaptureState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveInputs\IWaveIn.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveInputs\IWaveIn.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveInputs\WaveInEventArgs.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveInputs\WaveInEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\AiffFileWriter.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\AiffFileWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\BextChunkInfo.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\BextChunkInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\BwfWriter.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\BwfWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\CueWaveFileWriter.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\CueWaveFileWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\DirectSoundOut.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\DirectSoundOut.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\IWaveBuffer.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\IWaveBuffer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\IWavePlayer.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\IWavePlayer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\IWaveProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\IWaveProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\IWaveProviderFloat.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\IWaveProviderFloat.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\PlaybackState.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\PlaybackState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\StoppedEventArgs.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\StoppedEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\WaveBuffer.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\WaveBuffer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveOutputs\WaveFileWriter.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveOutputs\WaveFileWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\BufferedWaveProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\BufferedWaveProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\MixingWaveProvider32.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\MixingWaveProvider32.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\MonoToStereoProvider16.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\MonoToStereoProvider16.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\MultiplexingWaveProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\MultiplexingWaveProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\SilenceWaveProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\SilenceWaveProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\StereoToMonoProvider16.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\StereoToMonoProvider16.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\VolumeWaveProvider16.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\VolumeWaveProvider16.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\Wave16toFloatProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\Wave16toFloatProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\WaveFloatTo16Provider.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\WaveFloatTo16Provider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\WaveInProvider.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\WaveInProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\WaveProvider16.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\WaveProvider16.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\WaveProvider32.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\WaveProvider32.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveProviders\WaveRecorder.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveProviders\WaveRecorder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\AiffFileReader.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\AiffFileReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\BlockAlignReductionStream.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\BlockAlignReductionStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\CueList.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\CueList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\CueWaveFileReader.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\CueWaveFileReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\ISampleNotifier.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\ISampleNotifier.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\Mp3FileReaderBase.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\Mp3FileReaderBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\RawSourceWaveStream.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\RawSourceWaveStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\RiffChunk.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\RiffChunk.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\SimpleCompressorStream.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\SimpleCompressorStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\Wave32To16Stream.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\Wave32To16Stream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\WaveChannel32.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\WaveChannel32.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\WaveFileReader.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\WaveFileReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\WaveMixerStream32.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\WaveMixerStream32.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\WaveOffsetStream.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\WaveOffsetStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NAudio\NAudio.Core\Wave\WaveStreams\WaveStream.cs">
+      <Link>NAudio\NAudio.Core\Wave\WaveStreams\WaveStream.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

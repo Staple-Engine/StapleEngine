@@ -23,7 +23,7 @@ internal class MaterialEditor : AssetEditor
 
         if (shaderPath != null)
         {
-            if (cachedShaders.TryGetValue(shaderPath, out shader) == false)
+            if (!cachedShaders.TryGetValue(shaderPath, out shader))
             {
                 if (shaderPath.Length > 0)
                 {
@@ -69,12 +69,12 @@ internal class MaterialEditor : AssetEditor
                      _ => true,
                 };
 
-                if(isValidType == false)
+                if(!isValidType)
                 {
                     continue;
                 }
 
-                if(material.parameters.TryGetValue(uniform.name, out var parameter) == false)
+                if(!material.parameters.TryGetValue(uniform.name, out var parameter))
                 {
                     parameter = new()
                     {
@@ -123,7 +123,7 @@ internal class MaterialEditor : AssetEditor
                                     }
                                 }
 
-                                if(cachedTextures.ContainsKey(key) == false && key.Length > 0)
+                                if(!cachedTextures.ContainsKey(key) && key.Length > 0)
                                 {
                                     var t = ResourceManager.instance.LoadTexture(key);
 

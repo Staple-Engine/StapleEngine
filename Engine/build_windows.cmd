@@ -5,5 +5,5 @@ rem so we restore twice...
 dotnet workload restore
 dotnet workload restore
 
-dotnet build Engine.sln -c Debug
-dotnet build Engine.sln -c Release
+dotnet build Engine.sln -c Debug -p:Platform="Any CPU"
+dotnet build Engine.sln -c Release -p:Platform="Any CPU"

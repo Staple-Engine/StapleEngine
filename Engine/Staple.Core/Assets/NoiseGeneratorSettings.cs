@@ -23,9 +23,7 @@ public class NoiseGeneratorSettings : IStapleAsset, IGuidAsset
     public NoiseGenerator.DomainWarpType domainWarpType = NoiseGenerator.DomainWarpType.OpenSimplex2;
     public float domainWarpAmp = 1;
 
-    private readonly GuidHasher guidHasher = new();
-
-    public GuidHasher Guid => guidHasher;
+    public GuidHasher Guid { get; } = new();
 
     public static object Create(string guid)
     {

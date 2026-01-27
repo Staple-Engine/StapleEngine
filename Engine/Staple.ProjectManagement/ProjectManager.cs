@@ -137,7 +137,7 @@ public partial class ProjectManager
                 {
                     var filePath = Path.GetFullPath(file);
 
-                    if(fileModifyStates.ContainsKey(filePath) == false ||
+                    if(!fileModifyStates.ContainsKey(filePath) ||
                         fileModifyStates[filePath] < File.GetLastWriteTime(filePath))
                     {
                         CollectGameScriptModifyStates();
@@ -173,12 +173,34 @@ public partial class ProjectManager
     {
         var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Sandbox");
 
-        var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Sandbox.sln"))
+        switch (Platform.CurrentPlatform)
         {
-            UseShellExecute = true
-        };
+            case AppPlatform.Linux:
+                {
+                    var startInfo = new ProcessStartInfo()
+                    {
+                        FileName = "xdg-open",
+                        Arguments = Path.Combine(projectDirectory, "Sandbox.sln"),
+                        UseShellExecute = true,
+                    };
 
-        Process.Start(startInfo);
+                    Process.Start(startInfo);
+                }
+
+                break;
+
+            default:
+                {
+                    var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Sandbox.sln"))
+                    {
+                        UseShellExecute = true,
+                    };
+
+                    Process.Start(startInfo);
+                }
+
+                break;
+        }
     }
 
     /// <summary>
@@ -229,7 +251,7 @@ public partial class ProjectManager
 
                 var plugin = JsonConvert.DeserializeObject<PluginAsset>(text, Tooling.Utilities.JsonSettings);
 
-                if(plugin.autoReferenced || (plugin.anyPlatform == false && plugin.platforms.Contains(platform) == false))
+                if(plugin.autoReferenced || (!plugin.anyPlatform && !plugin.platforms.Contains(platform)))
                 {
                     continue;
                 }
@@ -240,7 +262,7 @@ public partial class ProjectManager
                 }
                 else if(Directory.Exists(path))
                 {
-                    if(StorageUtils.CopyDirectory(path, Path.Combine(targetPath, Path.GetFileName(path))) == false)
+                    if(!StorageUtils.CopyDirectory(path, Path.Combine(targetPath, Path.GetFileName(path))))
                     {
                         return false;
                     }
@@ -505,7 +527,7 @@ public partial class ProjectManager
 
         var (p, debugProperty, releaseProperty) = MakeProject(collection, projectDefines, projectProperties);
 
-        if (flags.HasFlag(ProjectGenerationFlags.IsPlayer) == false)
+        if (!flags.HasFlag(ProjectGenerationFlags.IsPlayer))
         {
             p.AddItem("Reference", "Staple.Core", [new("HintPath", Path.Combine(AppContext.BaseDirectory, StapleCoreFileName))]);
 
@@ -528,7 +550,7 @@ public partial class ProjectManager
 
                 foreach (var file in files)
                 {
-                    if (flags.HasFlag(ProjectGenerationFlags.ReferenceEditor) == false &&
+                    if (!flags.HasFlag(ProjectGenerationFlags.ReferenceEditor) &&
                         file.Replace(Path.DirectorySeparatorChar, '/').Contains($"/Editor/"))
                     {
                         continue;
@@ -544,11 +566,11 @@ public partial class ProjectManager
                         fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
                     }
 
-                    if (parentAsmDef != null && excludedAsmDefs.Contains(parentAsmDef) == false)
+                    if (parentAsmDef != null && !excludedAsmDefs.Contains(parentAsmDef))
                     {
                         var projectName = Path.GetFileNameWithoutExtension(parentAsmDef);
 
-                        if (projects.TryGetValue(parentAsmDef, out var pair) == false)
+                        if (!projects.TryGetValue(parentAsmDef, out var pair))
                         {
                             AssemblyDefinition def = null;
                             Project asmProj = null;
@@ -571,7 +593,7 @@ public partial class ProjectManager
                             }
 
                             if ((def.anyPlatform && def.excludedPlatforms.Contains(platform)) ||
-                                (def.anyPlatform == false && def.platforms.Contains(platform) == false))
+                                (!def.anyPlatform && !def.platforms.Contains(platform)))
                             {
                                 excludedAsmDefs.Add(parentAsmDef);
 
@@ -588,7 +610,7 @@ public partial class ProjectManager
 
                                         asmProj = p;
 
-                                        if (def.allowUnsafeCode && asmDefProperties.ContainsKey("AllowUnsafeBlocks") == false)
+                                        if (def.allowUnsafeCode && !asmDefProperties.ContainsKey("AllowUnsafeBlocks"))
                                         {
                                             asmProj.SetProperty("AllowUnsafeBlocks", "true");
                                         }
@@ -615,7 +637,7 @@ public partial class ProjectManager
                                     }
                                     else if (def.allowUnsafeCode)
                                     {
-                                        shouldAddUnsafeFlag |= projectAppSettings.allowUnsafeCode == false;
+                                        shouldAddUnsafeFlag |= !projectAppSettings.allowUnsafeCode;
                                     }
 
                                     break;
@@ -625,7 +647,7 @@ public partial class ProjectManager
                                     {
                                         asmProj = MakeCodeGeneratorProject(collection);
 
-                                        if (def.allowUnsafeCode && asmDefProperties.ContainsKey("AllowUnsafeBlocks") == false)
+                                        if (def.allowUnsafeCode && !asmDefProperties.ContainsKey("AllowUnsafeBlocks"))
                                         {
                                             asmProj.SetProperty("AllowUnsafeBlocks", "true");
                                         }
@@ -726,7 +748,7 @@ public partial class ProjectManager
 
                         Recursive(pair.Value.Item1, pair.Value.Item1, project);
 
-                        if(project.Items.Any(x => x.ItemType == "Compile") == false)
+                        if(!project.Items.Any(x => x.ItemType == "Compile"))
                         {
                             continue;
                         }
@@ -805,7 +827,7 @@ public partial class ProjectManager
             }
         }
 
-        if (flags.HasFlag(ProjectGenerationFlags.IsSandbox) == false)
+        if (!flags.HasFlag(ProjectGenerationFlags.IsSandbox))
         {
             var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
 
@@ -1064,10 +1086,18 @@ public partial class ProjectManager
                     p.SetProperty("EnableSingleFileAnalyzer", "true");
                     p.SetProperty("EnableAotAnalyzer", "true");
                     p.SetProperty("AndroidEnableMarshalMethods", "false");
-                    p.SetProperty("AndroidEnableProguard", "true");
-                    p.SetProperty("AndroidLinkTool", "r8");
-                    p.SetProperty("AndroidEnableResourceShrinking", "true");
                     p.SetProperty("PublishTrimmed", "true");
+
+                    var item = p.AddItem("AndroidLibrary", "DUMMY");
+
+                    item[0].Xml.Include = null;
+                    item[0].Xml.Update = "SDL3AndroidBridge.jar";
+                    item[0].Xml.AddMetadata("Bind", "false");
+
+                    p.AddItem("Reference", "SDL3-CS",
+                        [
+                            new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "SDL3-CS.dll"))
+                        ]);
 
                     releaseProperty.SetProperty("AndroidLinkMode", "Full");
 
@@ -1184,7 +1214,7 @@ public partial class ProjectManager
             File.Delete(target);
         }
 
-        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {mainProjectName}")
+        var startInfo = new ProcessStartInfo("dotnet", $"new sln -n {mainProjectName} --format sln")
         {
             WorkingDirectory = projectDirectory
         };
@@ -1289,7 +1319,8 @@ public partial class ProjectManager
     /// <param name="nativeAOT">Whether to build natively</param>
     /// <param name="debugRedists">Whether to use debug dependencies</param>
     /// <param name="publishSingleFile">Whether to build to a single file</param>
-    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists, bool publishSingleFile)
+    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists,
+        bool publishSingleFile)
     {
         var platform = backend.platform;
 
@@ -1301,7 +1332,7 @@ public partial class ProjectManager
 
         StorageUtils.CopyDirectory(Path.Combine(backend.basePath, "Resources"), Path.Combine(projectDirectory, "Player"));
 
-        if(backend.dataDirIsOutput == false)
+        if(!backend.dataDirIsOutput)
         {
             CopyModuleRedists(Path.Combine(projectDirectory, "Player", backend.redistOutput), projectAppSettings,
                 platform, backend.basePath, redistConfigurationName);
@@ -1362,6 +1393,21 @@ public partial class ProjectManager
             { "InvariantGlobalization", "true" },
             { "IsAOTCompatible", "true" },
         };
+
+        if(nativeAOT)
+        {
+            var cpuInstructions = projectAppSettings.overrideNativeInstructionSetX64 ?
+                projectAppSettings.x64InstructionLevel switch
+                {
+                    X64InstructionLevel.x86_64v1 => "x86-64-v1",
+                    X64InstructionLevel.x86_64v2 => "x86-64-v2",
+                    X64InstructionLevel.x86_64v3 => "x86-64-v3",
+                    X64InstructionLevel.x86_64v4 => "x86-64-v4",
+                    _ => "x86-64-v3",
+                } : "x86-64-v3";
+
+            projectProperties.Add("IlcInstructionSet", cpuInstructions);
+        }
 
         var platformUsesSeparateProjects = platform switch
         {

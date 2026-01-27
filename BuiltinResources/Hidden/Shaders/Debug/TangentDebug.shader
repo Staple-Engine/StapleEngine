@@ -2,53 +2,80 @@ Variants BITANGENT_COLOR
 
 Begin Parameters
 
-varying vec3 v_tangent : TANGENT
-varying vec3 v_bitangent : BITANGENT
-
-variant: BITANGENT_COLOR uniform float tangentOrBitangent
+variant: BITANGENT_COLOR float tangentOrBitangent
 
 End Parameters
+
+Begin Input
+POSITION
+TANGENT
+variant: SKINNING BLENDINDICES
+variant: SKINNING BLENDWEIGHTS
+End Input
 
 Begin Instancing
 End Instancing
 
+Begin Common
+
+struct VertexOutput
+{
+    float4 position : SV_Position;
+    float3 tangent;
+};
+
+End Common
+
 Begin Vertex
 
-$input a_position, a_tangent, a_bitangent
-$output v_tangent, v_bitangent
-
-void main()
+struct Input
 {
-	mat4 model = StapleModelMatrix;
+    float3 position : POSITION;
 
-	#ifdef SKINNING
-	model = StapleGetSkinningMatrix(model, a_indices, a_weight);
-	#endif
+#ifdef BITANGENT
+	float3 tangent : BITANGENT;
+#else
+	float3 tangent : TANGENT;
+#endif
 
-	mat4 projViewWorld = mul(mul(u_proj, u_view), model);
-	vec4 v_pos = mul(projViewWorld, vec4(a_position, 1.0));
+#ifdef SKINNING
+	float4 indices : BLENDINDICES;
+	float4 weights : BLENDWEIGHTS;
+#endif
 
-	v_tangent = a_tangent;
-	v_bitangent = a_bitangent;
+    uint baseInstance : SV_StartInstanceLocation;
+    uint instanceID : SV_InstanceID;
+};
 
-	gl_Position = v_pos;
+[shader("vertex")]
+VertexOutput VertexMain(Input input)
+{
+    VertexOutput output;
+
+	float4x4 model = StapleWorldMatrix(input.baseInstance, input.instanceID);
+
+#ifdef SKINNING
+	model = StapleGetSkinningMatrix(model, input.indices, input.weights);
+#endif
+
+	float4x4 projectionViewWorld = ProjectionViewWorld(model);
+
+    float3 position = input.position;
+
+    output.tangent = input.tangent;
+    output.position = mul(projectionViewWorld, float4(position, 1.0));
+
+    return output;
 }
 
 End Vertex
 
 Begin Fragment
 
-$input v_tangent, v_bitangent
-
-void main()
+[shader("fragment")]
+float4 FragmentMain(VertexOutput input) : SV_Target
 {
-#if BITANGENT
-	vec3 color = v_bitangent;
-#else
-	vec3 color = v_tangent;
-#endif
-	
-	gl_FragColor = vec4(color * 0.5 + 0.5, 1);
+    return float4(normalize(input.tangent) * 0.5 + 0.5, 1);
 }
 
 End Fragment
