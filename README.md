@@ -1,3 +1,4 @@
+[![No AI](https://custom-icon-badges.demolab.com/badge/No%20AI-2f2f2f?logo=non-ai&logoColor=white)](#)
 ![Github top languages](https://img.shields.io/github/languages/top/staple-engine/stapleengine)
 [![GitHub version](https://img.shields.io/github/v/release/staple-engine/stapleengine?include_prereleases&style=flat-square)](https://github.com/staple-engine/stapleengine/releases) 
 [![GitHub license](https://img.shields.io/github/license/staple-engine/stapleengine?style=flat-square)](https://github.com/staple-engine/stapleengine/blob/main/LICENSE) 
