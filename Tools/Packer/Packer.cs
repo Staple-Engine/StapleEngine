@@ -1,3 +1,4 @@
+using MessagePack;
 using Newtonsoft.Json;
 using Staple;
 using Staple.Internal;
@@ -20,7 +21,8 @@ static class Program
     private static Mode mode;
     private static string outputPath;
     private static bool recursive = false;
-    private static List<string> inputDirectories = new();
+    private static bool unpackTextures;
+    private static readonly List<string> inputDirectories = [];
 
     public static void Main(string[] args)
     {
@@ -33,6 +35,7 @@ static class Program
                 "\t-r: search subfolders as well\n" +
                 "\t-p: set mode to pack\n" +
                 "\t-up: set mode to unpack\n" +
+                "\t-upt: unpack textures (requires unpack mode enabled)\n" +
                 "\t-l: set mode to list\n");
 
             Environment.Exit(1);
@@ -98,6 +101,12 @@ static class Program
 
                     break;
 
+                case "-upt":
+
+                    unpackTextures = true;
+
+                    break;
+
                 case "-l":
 
                     mode = Mode.List;
@@ -106,8 +115,10 @@ static class Program
             }
         }
 
+        var unpackTexturesString = mode == Mode.Unpack && unpackTextures ? " (unpack textures)" : "";
+
         Console.WriteLine($"Packer starting with parameters:\n" +
-            $"Mode: {mode}\n" +
+            $"Mode: {mode}{unpackTexturesString}\n" +
             $"Input Dirs:\n{string.Join("\n", inputDirectories)}\n" +
             $"Output: {outputPath}\n");
 
@@ -140,7 +151,71 @@ static class Program
 
                         foreach(var entry in pack.Files)
                         {
-                            Console.WriteLine($"\t{entry.path} ({entry.guid}, {entry.size})");
+                            var descriptionString = "";
+
+                            try
+                            {
+                                switch(entry.typeName)
+                                {
+                                    case string s when s == typeof(TextAsset).FullName:
+
+                                        descriptionString = $" (Text Asset)";
+
+                                        break;
+
+                                    case string s when s == typeof(Material).FullName:
+
+                                        descriptionString = $" (Material)";
+
+                                        break;
+
+                                    case string s when s == typeof(AudioClip).FullName:
+
+                                        descriptionString = $" (Audio Clip)";
+
+                                        break;
+
+                                    case string s when s == typeof(Mesh).FullName:
+
+                                        descriptionString = $" (Mesh)";
+
+                                        break;
+
+                                    case string s when s == typeof(Texture).FullName:
+
+                                        {
+                                            var textureData = PackerUtils.LoadTexture(pack, entry);
+
+                                            if(textureData == null)
+                                            {
+                                                descriptionString = $" (Broken texture)";
+                                            }
+                                            else
+                                            {
+                                                var cpuDataString = textureData.cpuData?.data != null ? "CPU Readable " : "";
+
+                                                descriptionString =
+                                                    $" ({cpuDataString}{textureData.width}x{textureData.height} {textureData.metadata.Format} texture)";
+                                            }
+                                        }
+
+                                        break;
+
+                                    default:
+
+                                        var type = entry.typeName.Split('.').LastOrDefault() ?? "Unknown";
+
+                                        descriptionString = $" ({type} asset)";
+
+                                        break;
+                                }
+                            }
+                            catch(Exception)
+                            {
+
+                            }
+
+                            Console.WriteLine($"\t{entry.path} ({entry.guid}, {entry.size}){descriptionString}");
                         }
 
                         Console.WriteLine($"{pack.Files.Count()} files");
@@ -401,21 +476,68 @@ static class Program
                             {
                             }
 
-                            if(resourcePak.Files.Count(x => x.guid == file.guid) > 1)
+                            var usePath = resourcePak.Files.Count(x => x.guid == file.guid) > 1;
+
+                            Stream fileStream = null;
+
+                            if (usePath)
                             {
                                 Console.WriteLine($"Warning: Duplicate guid {file.guid} found for file {file.path}");
 
-                                using var fileStream = resourcePak.Open(file.path);
-                                using var outStream = File.OpenWrite(Path.Combine(outputPath, file.path));
-
-                                fileStream.CopyTo(outStream);
+                                fileStream = resourcePak.Open(file.path);
                             }
                             else
                             {
-                                using var fileStream = resourcePak.OpenGuid(file.guid);
+                                fileStream = resourcePak.OpenGuid(file.guid);
+                            }
+
+                            {
                                 using var outStream = File.OpenWrite(Path.Combine(outputPath, file.path));
 
                                 fileStream.CopyTo(outStream);
+
+                                fileStream.Dispose();
+                                fileStream = null;
+                            }
+
+                            if (unpackTextures && file.typeName == typeof(Texture).FullName)
+                            {
+                                var textureData = PackerUtils.LoadTexture(resourcePak, file);
+
+                                if(textureData == null)
+                                {
+                                    continue;
+                                }
+
+                                var dumpPath = textureData.metadata.Format switch
+                                {
+                                    TextureFormat.RGBA8 or TextureFormat.BGRA8 => Path.Combine(outputPath, file.path),
+                                    _ => Path.Combine(outputPath,
+                                        $"{file.path}_{textureData.width}_{textureData.height}_{textureData.metadata.Format}.raw")
+                                };
+
+                                if(dumpPath.EndsWith(".raw", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    using var outStream = File.OpenWrite(dumpPath);
+
+                                    outStream.Write(textureData.data);
+                                }
+                                else
+                                {
+                                    var rawTextureData = new RawTextureData()
+                                    {
+                                        colorComponents = StandardTextureColorComponents.RGBA,
+                                        data = textureData.data,
+                                        width = textureData.width,
+                                        height = textureData.height,
+                                    };
+
+                                    var outData = rawTextureData.EncodePNG();
+
+                                    using var outStream = File.OpenWrite(dumpPath);
+
+                                    outStream.Write(outData);
+                                }
                             }
                         }
 

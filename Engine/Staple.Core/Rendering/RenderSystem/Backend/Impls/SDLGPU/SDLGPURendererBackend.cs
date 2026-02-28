@@ -2161,8 +2161,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         }
 
         AddCommand(new SDLGPURenderStaticCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
-            state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, state.shaderInstance.attributes,
-            indirectCommandPosition, commandIndex));
+            state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData,
+            state.shaderInstance.attributes, indirectCommandPosition, commandIndex));
 
         indirectCommandPosition += commandIndex;
     }

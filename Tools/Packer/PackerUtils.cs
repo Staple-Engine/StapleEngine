@@ -337,4 +337,36 @@ static class PackerUtils
             return null;
         }
     }
+
+    public static SerializableTexture LoadTexture(ResourcePak resourcePak, ResourcePak.FileInfo file)
+    {
+        var usePath = resourcePak.Files.Count(x => x.guid == file.guid) > 1;
+
+        using var stream = usePath ? resourcePak.Open(file.path) : resourcePak.OpenGuid(file.guid);
+
+        if(stream == null)
+        {
+            return null;
+        }
+
+        try
+        {
+            var header = MessagePackSerializer.Deserialize<SerializableTextureHeader>(stream);
+
+            if (header == null ||
+                !header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) ||
+                header.version != SerializableTextureHeader.ValidVersion)
+            {
+                return null;
+            }
+
+            return MessagePackSerializer.Deserialize<SerializableTexture>(stream);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Failed to unpack texture {file.path}: Exception\n{e})");
+
+            return null;
+        }
+    }
 }

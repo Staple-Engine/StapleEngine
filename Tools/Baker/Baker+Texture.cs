@@ -144,10 +144,10 @@ static partial class Program
 
                 if (metadata.overrides.TryGetValue(platform, out var overrides) && overrides.shouldOverride)
                 {
-                    format = overrides.format;
-                    quality = overrides.quality;
-                    maxSize = overrides.maxSize;
-                    premultiplyAlpha = overrides.premultiplyAlpha;
+                    format = metadata.format = overrides.format;
+                    quality = metadata.quality = overrides.quality;
+                    maxSize = metadata.maxSize = overrides.maxSize;
+                    premultiplyAlpha = metadata.premultiplyAlpha = overrides.premultiplyAlpha;
                 }
 
                 var extension = Path.GetExtension(inputFile).Substring(1);
