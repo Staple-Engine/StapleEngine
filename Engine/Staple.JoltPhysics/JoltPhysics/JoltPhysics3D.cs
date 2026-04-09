@@ -282,7 +282,8 @@ public class JoltPhysics3D : IPhysics3D
         }
     }
 
-    private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, Double3 baseOffset, in CollideShapeResult collisionResult)
+    private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, RVector3 baseOffset,
+        in CollideShapeResult collisionResult)
     {
         lock (threadLock)
         {
@@ -699,7 +700,7 @@ public class JoltPhysics3D : IPhysics3D
             {
                 fixed(float *ptr = heights)
                 {
-                    return CreateBody(entity, new HeightFieldShapeSettings(ptr, offset, scale, (int)Math.Sqrt(heights.Length)),
+                    return CreateBody(entity, new HeightFieldShapeSettings(ptr, offset, scale, (uint)Math.Sqrt(heights.Length)),
                         position, rotation, MotionType.Static, layer, false, 0, friction, restitution, true, true, true, false,
                         mass, out body);
                 }
@@ -877,7 +878,7 @@ public class JoltPhysics3D : IPhysics3D
                 fixed(float *ptr = heightMap.heights)
                 {
                     compound.AddShape(heightMap.position, heightMap.rotation.SafeNormalize(),
-                        new HeightFieldShapeSettings(ptr, heightMap.offset, heightMap.scale, (int)Math.Sqrt(heightMap.heights.Length)));
+                        new HeightFieldShapeSettings(ptr, heightMap.offset, heightMap.scale, (uint)Math.Sqrt(heightMap.heights.Length)));
                 }
             }
         }
