@@ -13,7 +13,7 @@ public struct TextParameters
     public float rotation;
     public int fontSize = 12;
 
-    internal string font;
+    public string font;
 
     public TextParameters()
     {

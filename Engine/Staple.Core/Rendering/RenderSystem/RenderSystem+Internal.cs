@@ -219,7 +219,6 @@ public sealed partial class RenderSystem
         RegisterSystem(new SkinnedMeshRenderSystem());
         RegisterSystem(new MeshRenderSystem());
         RegisterSystem(new TextRenderSystem());
-        RegisterSystem(new UICanvasSystem());
 
         LightSystem.Enabled = AppSettings.Current?.enableLighting ?? true;
 

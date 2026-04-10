@@ -1,0 +1,11 @@
+{
+	"name": "com.staple.ui",
+	"version": "1.0.0",
+	"description": "Staple UI support package",
+	"displayName": "UI",
+	"minStapleVersion": "0.2",
+	"author": "Staple Engine",
+	"dependencies": [],
+	"keywords": "ui",
+	"license": "MIT"
+}

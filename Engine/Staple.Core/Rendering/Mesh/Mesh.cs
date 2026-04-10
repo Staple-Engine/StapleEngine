@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using Staple.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,102 @@ public sealed partial class Mesh : IGuidAsset
         .Add(VertexAttribute.Bitangent, VertexAttributeType.Float3)
         .Add(VertexAttribute.Color0, VertexAttributeType.Float4)
         .Build());
+
+    /// <summary>
+    /// Gets the quad default mesh, and generates it if it's not built yet.
+    /// </summary>
+    public static Mesh Quad
+    {
+        get
+        {
+            if (_quad != null)
+            {
+                return _quad;
+            }
+
+            var builder = new CubicMeshBuilder();
+
+            builder.QuadVertices(Vector3.Zero, 1);
+            builder.CubeTexture(new(0, 1, 0, 1));
+            builder.CubeFaces();
+
+            _quad = builder.BuildMesh(true);
+
+            _quad.colors = Enumerable.Repeat(Color.White, _quad.vertices.Length).ToArray();
+
+            GenerateTangents(_quad.vertices.AsSpan(), _quad.uv.AsSpan(), _quad.normals.AsSpan(), _quad.indices.AsSpan(),
+                out _quad.tangents, out _quad.bitangents);
+
+            _quad.Guid.Guid = "Internal/Quad";
+
+            _quad.UpdateBounds();
+
+            return _quad;
+        }
+    }
+
+    /// <summary>
+    /// Gets the cube default mesh, and generates it if it's not built yet.
+    /// </summary>
+    public static Mesh Cube
+    {
+        get
+        {
+            if (_cube != null)
+            {
+                return _cube;
+            }
+
+            var builder = new CubicMeshBuilder();
+
+            foreach (var direction in Enum.GetValues<CubicMeshBuilder.Direction>())
+            {
+                builder.CubeVertices(Vector3.Zero, 1, direction);
+                builder.CubeTexture(new RectFloat(0, 1, 0, 1));
+                builder.CubeFaces();
+            }
+
+            _cube = builder.BuildMesh(true);
+
+            _cube.colors = Enumerable.Repeat(Color.White, _cube.vertices.Length).ToArray();
+
+            GenerateTangents(_cube.vertices.AsSpan(), _cube.uv.AsSpan(), _cube.normals.AsSpan(), _cube.indices.AsSpan(),
+                out _cube.tangents, out _cube.bitangents);
+
+            _cube.Guid.Guid = "Internal/Cube";
+
+            _cube.UpdateBounds();
+
+            return _cube;
+        }
+    }
+
+    /// <summary>
+    /// Gets the sphere default mesh, and generates it if it's not built yet.
+    /// </summary>
+    public static Mesh Sphere
+    {
+        get
+        {
+            if (_sphere != null)
+            {
+                return _sphere;
+            }
+
+            _sphere = GenerateSphere(36, 18, 0.5f, false);
+
+            _sphere.colors = Enumerable.Repeat(Color.White, _sphere.vertices.Length).ToArray();
+
+            GenerateTangents(_sphere.vertices.AsSpan(), _sphere.uv.AsSpan(), _sphere.normals.AsSpan(), _sphere.indices.AsSpan(),
+                out _sphere.tangents, out _sphere.bitangents);
+
+            _sphere.Guid.Guid = "Internal/Sphere";
+
+            _sphere.UpdateBounds();
+
+            return _sphere;
+        }
+    }
 
     /// <summary>
     /// Whether this mesh is readable by the CPU

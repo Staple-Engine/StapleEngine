@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Staple.Internal;
 
-internal static class PerformanceProfilerSystem
+public static class PerformanceProfilerSystem
 {
     private static readonly Dictionary<PerformanceProfilerType, int> counters = [];
 
@@ -17,6 +17,8 @@ internal static class PerformanceProfilerSystem
     private static readonly Lock lockObject = new();
 
     private static DateTime lastAverageTime = DateTime.UtcNow;
+
+    public static AppProfilingMode ProfilingMode => AppSettings.Current?.profilingMode ?? AppProfilingMode.None;
 
     public static Dictionary<PerformanceProfilerType, int> FrameCounters
     {

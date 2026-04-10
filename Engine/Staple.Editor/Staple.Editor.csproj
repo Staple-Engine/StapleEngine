@@ -101,7 +101,6 @@
     <Compile Include="Templates\PointLightTemplate.cs" />
     <Compile Include="Templates\QuadTemplate.cs" />
     <Compile Include="Templates\SphereTemplate.cs" />
-    <Compile Include="Templates\UICanvasTemplate.cs" />
     <Compile Include="UndoStack.cs" />
     <Compile Include="Windows\EditorSettingsWindow.cs" />
     <Compile Include="Windows\PackageManagerWindow.cs" />

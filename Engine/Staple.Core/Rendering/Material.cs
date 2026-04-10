@@ -63,7 +63,7 @@ public sealed class Material : IGuidAsset
 
     internal static Texture whiteTexture;
 
-    internal static Texture WhiteTexture
+    public static Texture WhiteTexture
     {
         get
         {

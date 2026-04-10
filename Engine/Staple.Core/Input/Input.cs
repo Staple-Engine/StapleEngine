@@ -1187,7 +1187,7 @@ public static class Input
     /// </summary>
     /// <param name="observer">The input observer</param>
     /// <returns>An ID to unregister the observer later</returns>
-    internal static int RegisterInputObserver(IInputObserver observer)
+    public static int RegisterInputObserver(IInputObserver observer)
     {
         if(observer == null)
         {
@@ -1210,7 +1210,7 @@ public static class Input
     /// Unregisters an input observer to no longer receive input events
     /// </summary>
     /// <param name="ID">The observer ID</param>
-    internal static void UnregisterInputObserver(int ID)
+    public static void UnregisterInputObserver(int ID)
     {
         lock(lockObject)
         {
