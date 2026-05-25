@@ -544,6 +544,21 @@ public static class QuaternionExtensions
 
         public float Dot(Quaternion other) => Quaternion.Dot(q, other);
 
+        private static float MatchAngleBounds(float x)
+        {
+            while (x <= -360)
+            {
+                x += 360;
+            }
+
+            while (x >= 360)
+            {
+                x -= 360;
+            }
+
+            return x;
+        }
+
         /// <summary>
         /// Returns a copy of this quaternion as euler angles
         /// </summary>
@@ -559,26 +574,11 @@ public static class QuaternionExtensions
             float unit = squareX + squareY + squareZ + squareW;
             float test = q.X * q.W - q.Y * q.Z;
 
-            static float MatchBounds(float x)
-            {
-                while (x < -360)
-                {
-                    x += 360;
-                }
-
-                while (x > 360)
-                {
-                    x -= 360;
-                }
-
-                return x;
-            }
-
             Vector3 Normalize()
             {
-                outValue.X = MatchBounds(Math.Rad2Deg * outValue.X);
-                outValue.Y = MatchBounds(Math.Rad2Deg * outValue.Y);
-                outValue.Z = MatchBounds(Math.Rad2Deg * outValue.Z);
+                outValue.X = MatchAngleBounds(Math.Rad2Deg * outValue.X);
+                outValue.Y = MatchAngleBounds(Math.Rad2Deg * outValue.Y);
+                outValue.Z = MatchAngleBounds(Math.Rad2Deg * outValue.Z);
 
                 return outValue;
             }
@@ -616,7 +616,11 @@ public static class QuaternionExtensions
         /// <returns>The new quaternion</returns>
         public static Quaternion Euler(Vector3 angles)
         {
-            return Quaternion.CreateFromYawPitchRoll(Math.Deg2Rad * angles.Y, Math.Deg2Rad * angles.X, Math.Deg2Rad * angles.Z);
+            angles.X = MatchAngleBounds(angles.X) * Math.Deg2Rad;
+            angles.Y = MatchAngleBounds(angles.Y) * Math.Deg2Rad;
+            angles.Z = MatchAngleBounds(angles.Z) * Math.Deg2Rad;
+
+            return Quaternion.CreateFromYawPitchRoll(angles.Y, angles.X, angles.Z);
         }
 
         /// <summary>
@@ -628,7 +632,11 @@ public static class QuaternionExtensions
         /// <returns>The new quaternion</returns>
         public static Quaternion Euler(float x, float y, float z)
         {
-            return Quaternion.CreateFromYawPitchRoll(Math.Deg2Rad * y, Math.Deg2Rad * x, Math.Deg2Rad * z);
+            x = MatchAngleBounds(x) * Math.Deg2Rad;
+            y = MatchAngleBounds(y) * Math.Deg2Rad;
+            z = MatchAngleBounds(z) * Math.Deg2Rad;
+
+            return Quaternion.CreateFromYawPitchRoll(y, x, z);
         }
 
         /// <summary>
