@@ -250,6 +250,7 @@
 		<Compile Include="Rendering\Windowing\Impls\SDL3RenderWindow.cs" />
 		<Compile Include="Rendering\Windowing\NativeWindowType.cs" />
 		<Compile Include="Rendering\Windowing\RenderModeFlags.cs" />
+		<Compile Include="Resources\RefCountedResourceHandle.cs" />
 		<Compile Include="Resources\ResourceHandle.cs" />
 		<Compile Include="Scene\ISceneQuery.cs" />
 		<Compile Include="Scene\SceneQuery.cs" />

@@ -27,17 +27,17 @@ internal class ResourceManager
     /// </summary>
     public List<string> resourcePaths = [];
 
-    internal readonly Dictionary<string, Texture> cachedTextures = [];
-    internal readonly Dictionary<string, Material> cachedMaterials = [];
-    internal readonly Dictionary<string, Shader> cachedShaders = [];
-    internal readonly Dictionary<string, ComputeShader> cachedComputeShaders = [];
-    internal readonly Dictionary<string, Mesh> cachedMeshes = [];
-    internal readonly Dictionary<string, AudioClip> cachedAudioClips = [];
-    internal readonly Dictionary<string, MeshAsset> cachedMeshAssets = [];
-    internal readonly Dictionary<string, FontAsset> cachedFonts = [];
-    internal readonly Dictionary<string, IStapleAsset> cachedAssets = [];
-    internal readonly Dictionary<string, Prefab> cachedPrefabs = [];
-    internal readonly Dictionary<string, ResourcePak> resourcePaks = [];
+    internal readonly Dictionary<StringID, Texture> cachedTextures = [];
+    internal readonly Dictionary<StringID, Material> cachedMaterials = [];
+    internal readonly Dictionary<StringID, Shader> cachedShaders = [];
+    internal readonly Dictionary<StringID, ComputeShader> cachedComputeShaders = [];
+    internal readonly Dictionary<StringID, Mesh> cachedMeshes = [];
+    internal readonly Dictionary<StringID, AudioClip> cachedAudioClips = [];
+    internal readonly Dictionary<StringID, MeshAsset> cachedMeshAssets = [];
+    internal readonly Dictionary<StringID, FontAsset> cachedFonts = [];
+    internal readonly Dictionary<StringID, IStapleAsset> cachedAssets = [];
+    internal readonly Dictionary<StringID, Prefab> cachedPrefabs = [];
+    internal readonly Dictionary<StringID, ResourcePak> resourcePaks = [];
     internal readonly List<WeakReference<Texture>> userCreatedTextures = [];
     internal readonly List<WeakReference<VertexBuffer>> userCreatedVertexBuffers = [];
     internal readonly List<WeakReference<IndexBuffer>> userCreatedIndexBuffers = [];
@@ -103,7 +103,7 @@ internal class ResourceManager
     {
         Destroy(DestroyMode.UserOnly);
 
-        var destroyed = new HashSet<string>();
+        var destroyed = new HashSet<StringID>();
 
         foreach (var pair in cachedTextures)
         {
