@@ -6,15 +6,20 @@ namespace Staple.Internal;
 
 public class RefCountedResourceHandle : IDisposable
 {
+    private class RefContainer
+    {
+        public readonly List<RefCountedResourceHandle> refs = [];
+    }
+
     public delegate void FreeCallback(StringID key, object content);
 
-    private static readonly Dictionary<StringID, int> refs = [];
+    private static readonly Dictionary<StringID, RefContainer> refs = [];
     private static readonly Lock refLock = new();
     private bool disposed;
     private readonly StringID key;
     private readonly FreeCallback freeCallback;
 
-    public readonly object content;
+    public object content;
 
     public bool IsValid => !disposed && content is not null;
 
@@ -24,7 +29,23 @@ public class RefCountedResourceHandle : IDisposable
         {
             lock(refLock)
             {
-                return refs.TryGetValue(key, out var r) ? r : 0;
+                return refs.TryGetValue(key, out var r) ? r.refs.Count : 0;
+            }
+        }
+    }
+
+    internal static void Replace(StringID key, object content)
+    {
+        lock (refLock)
+        {
+            if (!refs.TryGetValue(key, out var r) || r.refs.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var handle in r.refs)
+            {
+                handle.content = content;
             }
         }
     }
@@ -37,11 +58,14 @@ public class RefCountedResourceHandle : IDisposable
 
         lock(refLock)
         {
-            var r = refs.GetValueOrDefault(key, 0);
+            if(!refs.TryGetValue(key, out var r))
+            {
+                r = new();
 
-            r++;
+                refs.Add(key, r);
+            }
 
-            refs[key] = r;
+            r.refs.Add(this);
         }
     }
 
@@ -49,28 +73,27 @@ public class RefCountedResourceHandle : IDisposable
     {
         if (!disposed)
         {
-            lock(refLock)
+            disposed = true;
+
+            lock (refLock)
             {
-                var r = refs.GetValueOrDefault(key, 0);
-
-                if(r > 0)
+                if(!refs.TryGetValue(key, out var r))
                 {
-                    r--;
+                    return;
+                }
 
-                    if (r <= 0)
+                if(r.refs.Count > 0)
+                {
+                    r.refs.Remove(this);
+
+                    if (r.refs.Count == 0)
                     {
                         freeCallback?.Invoke(key, content);
 
                         refs.Remove(key);
                     }
-                    else
-                    {
-                        refs[key] = r;
-                    }
                 }
             }
-
-            disposed = true;
         }
     }
 
