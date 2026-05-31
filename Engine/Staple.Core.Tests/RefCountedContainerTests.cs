@@ -2,14 +2,14 @@
 
 namespace CoreTests;
 
-internal class RefCountedResourceHandleTests
+internal class RefCountedContainerTests
 {
     [Test]
     public void TestCreateFree()
     {
         var disposed = false;
 
-        var handle = new RefCountedResourceHandle("test", 1, (key, content) =>
+        var handle = new RefCountedContainer<string, int>("test", 1, (key, content) =>
         {
             Assert.That(disposed, Is.False);
 
@@ -31,11 +31,11 @@ internal class RefCountedResourceHandleTests
     public void TestMultipleRefs()
     {
         var disposed = false;
-        var handles = new List<RefCountedResourceHandle>();
+        var handles = new List<RefCountedContainer<string, int>>();
 
         for(var i = 0; i < 10; i++)
         {
-            var handle = new RefCountedResourceHandle("test", 1, (key, content) =>
+            var handle = new RefCountedContainer<string, int>("test", 1, (key, content) =>
             {
                 Assert.That(disposed, Is.False);
 
@@ -81,11 +81,11 @@ internal class RefCountedResourceHandleTests
     public void TestReplace()
     {
         var disposed = false;
-        var handles = new List<RefCountedResourceHandle>();
+        var handles = new List<RefCountedContainer<string, int>>();
 
         for (var i = 0; i < 10; i++)
         {
-            var handle = new RefCountedResourceHandle("test", 1, (key, content) =>
+            var handle = new RefCountedContainer<string, int>("test", 1, (key, content) =>
             {
                 Assert.That(disposed, Is.False);
 
@@ -105,7 +105,7 @@ internal class RefCountedResourceHandleTests
         {
             Assert.That(disposed, Is.False);
 
-            RefCountedResourceHandle.Replace("test", i + 2);
+            RefCountedContainer<string, int>.Replace("test", i + 2);
 
             for(var j = i; j < handles.Count; j++)
             {

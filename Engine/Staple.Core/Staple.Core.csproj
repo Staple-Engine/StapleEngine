@@ -250,7 +250,6 @@
 		<Compile Include="Rendering\Windowing\Impls\SDL3RenderWindow.cs" />
 		<Compile Include="Rendering\Windowing\NativeWindowType.cs" />
 		<Compile Include="Rendering\Windowing\RenderModeFlags.cs" />
-		<Compile Include="Resources\RefCountedResourceHandle.cs" />
 		<Compile Include="Resources\ResourceHandle.cs" />
 		<Compile Include="Scene\ISceneQuery.cs" />
 		<Compile Include="Scene\SceneQuery.cs" />
@@ -390,6 +389,7 @@
 		<Compile Include="Utilities\ExpandableContainer.cs" />
 		<Compile Include="Utilities\MemoryAllocator.cs" />
 		<Compile Include="Utilities\NativePointerWrapper.cs" />
+		<Compile Include="Utilities\RefCountedContainer.cs" />
 		<Compile Include="Utilities\UnmanagedFreeformAllocator.cs" />
 		<Compile Include="Utilities\GlobalAllocator.cs" />
 		<Compile Include="Utilities\GuidGenerator.cs" />

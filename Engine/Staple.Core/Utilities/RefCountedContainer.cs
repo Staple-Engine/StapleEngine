@@ -4,37 +4,56 @@ using System.Threading;
 
 namespace Staple.Internal;
 
-public class RefCountedResourceHandle : IDisposable
+public class RefCountedContainer<K, V> : IDisposable
 {
     private class RefContainer
     {
-        public readonly List<RefCountedResourceHandle> refs = [];
+        public readonly List<RefCountedContainer<K, V>> refs = [];
     }
 
-    public delegate void FreeCallback(StringID key, object content);
+    public delegate void FreeCallback(K key, object content);
 
-    private static readonly Dictionary<StringID, RefContainer> refs = [];
+    private static readonly Dictionary<K, RefContainer> refs = [];
     private static readonly Lock refLock = new();
     private bool disposed;
-    private readonly StringID key;
+    private readonly K key;
     private readonly FreeCallback freeCallback;
 
     public object content;
 
     public bool IsValid => !disposed && content is not null;
 
-    internal int RefCount
+    public int RefCount
     {
         get
         {
-            lock(refLock)
+            lock (refLock)
             {
                 return refs.TryGetValue(key, out var r) ? r.refs.Count : 0;
             }
         }
     }
 
-    internal static void Replace(StringID key, object content)
+    public RefCountedContainer(K key, object content, FreeCallback freeCallback)
+    {
+        this.key = key;
+        this.content = content;
+        this.freeCallback = freeCallback;
+
+        lock (refLock)
+        {
+            if (!refs.TryGetValue(key, out var r))
+            {
+                r = new();
+
+                refs.Add(key, r);
+            }
+
+            r.refs.Add(this);
+        }
+    }
+
+    public static void Replace(K key, object content)
     {
         lock (refLock)
         {
@@ -50,25 +69,6 @@ public class RefCountedResourceHandle : IDisposable
         }
     }
 
-    public RefCountedResourceHandle(StringID key, object content, FreeCallback freeCallback)
-    {
-        this.key = key;
-        this.content = content;
-        this.freeCallback = freeCallback;
-
-        lock(refLock)
-        {
-            if(!refs.TryGetValue(key, out var r))
-            {
-                r = new();
-
-                refs.Add(key, r);
-            }
-
-            r.refs.Add(this);
-        }
-    }
-
     protected virtual void Dispose(bool disposing)
     {
         if (!disposed)
@@ -77,12 +77,12 @@ public class RefCountedResourceHandle : IDisposable
 
             lock (refLock)
             {
-                if(!refs.TryGetValue(key, out var r))
+                if (!refs.TryGetValue(key, out var r))
                 {
                     return;
                 }
 
-                if(r.refs.Count > 0)
+                if (r.refs.Count > 0)
                 {
                     r.refs.Remove(this);
 
