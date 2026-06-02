@@ -8,7 +8,7 @@ internal partial class ComputeShaderResource
 {
     internal readonly ShaderMetadata metadata;
 
-    internal ShaderResource.UniformInfo[] uniforms = [];
+    internal ShaderUniformInfo[] uniforms = [];
     internal readonly IntLookupCache<int> uniformIndices = new();
 
     internal readonly byte[] shaderSource = [];
@@ -158,7 +158,7 @@ internal partial class ComputeShaderResource
             return;
         }
 
-        var u = new ShaderResource.UniformInfo()
+        var u = new ShaderUniformInfo()
         {
             uniform = new()
             {

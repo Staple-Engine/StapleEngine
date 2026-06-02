@@ -589,12 +589,13 @@ internal class ImGuiProxy
                         {
                             var drawCmd = cmdList.CmdBuffer.Data[j];
 
-                            if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != null)
+                            if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != null ||
+                                (this.program?.Disposed ?? true))
                             {
                                 continue;
                             }
 
-                            var program = this.program.instances.FirstOrDefault().Value.program;
+                            var program = this.program.shaderResource.instances.FirstOrDefault().Value.program;
 
                             Texture[] textures;
 
@@ -644,7 +645,7 @@ internal class ImGuiProxy
                                     startIndex = currentIndex + (int)drawCmd.IdxOffset,
                                     indexCount = (int)drawCmd.ElemCount,
                                     shader = this.program,
-                                    shaderInstance = this.program.instances[""],
+                                    shaderInstance = this.program.shaderResource.instances[""],
                                     fragmentTextures = textures,
                                     world = Matrix4x4.Identity,
                                 };

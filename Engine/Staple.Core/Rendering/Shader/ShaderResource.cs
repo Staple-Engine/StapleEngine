@@ -32,19 +32,6 @@ internal partial class ShaderResource
         }
     }
 
-    public class UniformInfo
-    {
-        internal ShaderUniform uniform;
-        internal int count = 1;
-        internal bool isAlias = false;
-        internal StringID handle;
-
-        public override string ToString()
-        {
-            return uniform.name;
-        }
-    }
-
     internal class ShaderUniformData
     {
         public int offset;
@@ -77,7 +64,7 @@ internal partial class ShaderResource
         public Dictionary<StringID, ShaderUniformData> fragmentUniformContainers = [];
         public Dictionary<StringID, int> vertexTextureBindings = [];
         public Dictionary<StringID, int> fragmentTextureBindings = [];
-        public readonly Dictionary<StringID, UniformInfo> uniforms = [];
+        public readonly Dictionary<StringID, ShaderUniformInfo> uniforms = [];
         public int entityTransformsBufferBinding = -1;
         public int entityTransformIDsBufferBinding = -1;
     }
@@ -324,7 +311,7 @@ internal partial class ShaderResource
             return;
         }
 
-        var u = new UniformInfo()
+        var u = new ShaderUniformInfo()
         {
             uniform = new()
             {
@@ -361,7 +348,7 @@ internal partial class ShaderResource
         }
     }
 
-    internal UniformInfo GetUniform(StringID name, ShaderInstance instance)
+    internal ShaderUniformInfo GetUniform(StringID name, ShaderInstance instance)
     {
         if (instance.uniforms.TryGetValue(name, out var u))
         {
@@ -439,7 +426,7 @@ internal partial class ShaderResource
         return null;
     }
 
-    internal UniformInfo GetUniform(StringID name, StringID variantKey)
+    internal ShaderUniformInfo GetUniform(StringID name, StringID variantKey)
     {
         if (!instances.TryGetValue(variantKey, out var instance))
         {
@@ -449,7 +436,7 @@ internal partial class ShaderResource
         return GetUniform(name, instance);
     }
 
-    internal bool TryGetUniformData(Shader owner, StringID variantKey, ShaderHandle handle, out UniformInfo uniform,
+    internal bool TryGetUniformData(Shader owner, StringID variantKey, ShaderHandle handle, out ShaderUniformInfo uniform,
         out (int, byte[])? vertexData, out (int, byte[])? fragmentData)
     {
         uniform = default;

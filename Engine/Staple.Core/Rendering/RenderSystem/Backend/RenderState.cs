@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 
 namespace Staple.Internal;
@@ -16,7 +15,7 @@ internal struct RenderState
     public BlendMode destinationBlend;
 
     public Shader shader;
-    public Shader.ShaderInstance shaderInstance;
+    public ShaderResource.ShaderInstance shaderInstance;
     public VertexBuffer vertexBuffer;
     public IndexBuffer indexBuffer;
     public BufferAttributeContainer.Entries staticMeshEntries;

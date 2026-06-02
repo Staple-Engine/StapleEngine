@@ -36,7 +36,7 @@ public partial class ComputeShader : IGuidAsset
         Destroy();
     }
 
-    internal ShaderResource.UniformInfo GetUniform(int hash)
+    internal ShaderUniformInfo GetUniform(int hash)
     {
         if (Disposed)
         {

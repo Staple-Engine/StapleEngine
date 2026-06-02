@@ -53,11 +53,11 @@ internal class MaterialEditor : AssetEditor
             }
         }
 
-        if(activeShader != null && needsShaderUpdate)
+        if(!(activeShader?.Disposed ?? true) && needsShaderUpdate)
         {
             needsShaderUpdate = false;
 
-            foreach(var uniform in activeShader.metadata.uniforms)
+            foreach(var uniform in activeShader.shaderResource.metadata.uniforms)
             {
                 var isValidType = uniform.type switch
                 {
@@ -260,9 +260,9 @@ internal class MaterialEditor : AssetEditor
 
                     if (newValue != shader)
                     {
-                        if (newValue is Shader s)
+                        if (newValue is Shader s && !(s?.Disposed ?? true))
                         {
-                            cachedShaders.AddOrSetKey(s.metadata.guid, s);
+                            cachedShaders.AddOrSetKey(s.shaderResource.metadata.guid, s);
 
                             material.shader = s.Guid.Guid;
 
@@ -287,11 +287,12 @@ internal class MaterialEditor : AssetEditor
                                 };
                             }
 
-                            foreach(var parameter in s.metadata.uniforms)
+                            foreach(var parameter in s.shaderResource.metadata.uniforms)
                             {
                                 if(parameter.type == ShaderUniformType.Float &&
-                                    parameter.name.EndsWith("Set") && s.metadata.uniforms.Any(x => x.type == ShaderUniformType.Texture &&
-                                    x.name == parameter.name[..^"Set".Length]))
+                                    parameter.name.EndsWith("Set") && s.shaderResource.metadata.uniforms
+                                        .Any(x => x.type == ShaderUniformType.Texture &&
+                                            x.name == parameter.name[..^"Set".Length]))
                                 {
                                     continue;
                                 }
@@ -312,11 +313,12 @@ internal class MaterialEditor : AssetEditor
                                 material.parameters.Add(parameter.name, p);
                             }
 
-                            foreach (var parameter in s.metadata.instanceParameters)
+                            foreach (var parameter in s.shaderResource.metadata.instanceParameters)
                             {
                                 if (parameter.type == ShaderUniformType.Float &&
-                                    parameter.name.EndsWith("Set") && s.metadata.uniforms.Any(x => x.type == ShaderUniformType.Texture &&
-                                    x.name == parameter.name[..^"Set".Length]))
+                                    parameter.name.EndsWith("Set") && s.shaderResource.metadata.uniforms
+                                        .Any(x => x.type == ShaderUniformType.Texture &&
+                                            x.name == parameter.name[..^"Set".Length]))
                                 {
                                     continue;
                                 }
@@ -352,7 +354,7 @@ internal class MaterialEditor : AssetEditor
 
             case nameof(MaterialMetadata.enabledShaderVariants):
 
-                if(activeShader != null && activeShader.metadata.variants.Count > 0)
+                if(!(activeShader?.Disposed ?? true) && activeShader.shaderResource.metadata.variants.Count > 0)
                 {
                     EditorGUI.Label("Enabled Variants");
 
@@ -367,12 +369,13 @@ internal class MaterialEditor : AssetEditor
 
                     for(var i = 0; i < material.enabledShaderVariants.Count; i++)
                     {
-                        var currentIndex = activeShader.metadata.variants.IndexOf(material.enabledShaderVariants[i]);
-                        var index = EditorGUI.Dropdown("", $"MaterialVariant{i}", activeShader.metadata.variants.ToArray(), currentIndex);
+                        var currentIndex = activeShader.shaderResource.metadata.variants.IndexOf(material.enabledShaderVariants[i]);
+                        var index = EditorGUI.Dropdown("", $"MaterialVariant{i}", activeShader.shaderResource.metadata.variants.ToArray(),
+                            currentIndex);
 
                         if(currentIndex != index && index >= 0)
                         {
-                            material.enabledShaderVariants[i] = activeShader.metadata.variants[index];
+                            material.enabledShaderVariants[i] = activeShader.shaderResource.metadata.variants[index];
                         }
 
                         EditorGUI.SameLine();

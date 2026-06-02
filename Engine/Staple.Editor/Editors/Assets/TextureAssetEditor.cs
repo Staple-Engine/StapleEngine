@@ -224,6 +224,11 @@ internal class TextureAssetEditor : AssetEditor
         {
             void DrawTexture(Texture texture, long diskSize, uint VRAMSize, List<TextureSpriteInfo> sprites, bool isOriginal)
             {
+                if(texture?.Disposed ?? true)
+                {
+                    return;
+                }
+
                 var width = EditorGUI.RemainingHorizontalSpace();
 
                 var aspect = texture.Width / (float)texture.Height;
@@ -311,7 +316,7 @@ internal class TextureAssetEditor : AssetEditor
 
                 if (metadata.type == TextureType.Sprite)
                 {
-                    EditorGUI.Label($"{texture.metadata.sprites.Count} sprites");
+                    EditorGUI.Label($"{texture.textureResource.metadata.sprites.Count} sprites");
                 }
             }
 
@@ -324,23 +329,23 @@ internal class TextureAssetEditor : AssetEditor
                     {
                         case 0:
 
-                            DrawTexture(originalTexture, originalDiskSize, originalVRAMSize, previewTexture.metadata.sprites, true);
+                            DrawTexture(originalTexture, originalDiskSize, originalVRAMSize, previewTexture.textureResource.metadata.sprites, true);
 
                             break;
 
                         case 1:
 
-                            DrawTexture(previewTexture, diskSize, VRAMSize, previewTexture.metadata.sprites, false);
+                            DrawTexture(previewTexture, diskSize, VRAMSize, previewTexture.textureResource.metadata.sprites, false);
 
                             break;
                     }
                 }, null);
             }
-            else if (previewTexture != null)
+            else if (!(previewTexture?.Disposed ?? true))
             {
                 EditorGUI.Label("Preview:");
 
-                DrawTexture(previewTexture, diskSize, VRAMSize, previewTexture.metadata.sprites, false);
+                DrawTexture(previewTexture, diskSize, VRAMSize, previewTexture.textureResource.metadata.sprites, false);
             }
         }
     }
