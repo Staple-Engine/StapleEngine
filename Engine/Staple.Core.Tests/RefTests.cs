@@ -2,7 +2,7 @@
 
 namespace CoreTests;
 
-internal class RefCountedContainerTests
+internal class RefTests
 {
     [Test]
     public void TestCreateFree()

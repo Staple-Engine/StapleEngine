@@ -13,7 +13,7 @@ public class Texture : IGuidAsset
 {
     internal TextureResource textureResource;
 
-    public GuidHasher Guid { get; } = new();
+    public GuidHasher Guid => textureResource?.Guid ?? new();
 
     public bool Disposed => textureResource?.impl?.Disposed ?? true;
 

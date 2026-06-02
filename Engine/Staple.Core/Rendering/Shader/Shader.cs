@@ -24,7 +24,7 @@ public partial class Shader : IGuidAsset
     /// <summary>
     /// Whether this shader has been disposed
     /// </summary>
-    public bool Disposed => shaderResource is not null;
+    public bool Disposed => shaderResource is null;
 
     internal ShaderResource shaderResource;
 

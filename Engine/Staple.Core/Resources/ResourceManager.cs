@@ -2548,6 +2548,11 @@ internal class ResourceManager
     /// <param name="guid">The asset guid</param>
     public void LockAsset(string guid)
     {
+        if(guid == null)
+        {
+            return;
+        }
+
         var localGuid = AssetDatabase.GetAssetGuid(guid);
 
         if(localGuid != null)
