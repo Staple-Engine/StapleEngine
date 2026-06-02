@@ -35,19 +35,3 @@ cd ../dotnet
 
 dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net10.0
 dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net10.0
-
-cd ../../GENie
-
-make
-
-cd ../bgfx
-
-../GENie/bin/linux/genie --with-tools --with-shared-lib --gcc=linux-clang gmake
-
-make -R -C .build/projects/gmake-linux-clang config=release64
-
-mkdir -p ../../Tools/bin
-
-cp .build/linux64_clang/bin/*cRelease ../../Tools/bin
-
-cd ../../
