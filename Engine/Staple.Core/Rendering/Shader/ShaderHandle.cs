@@ -7,12 +7,12 @@ namespace Staple.Internal;
 /// Direct access to a shader uniform, used for caching.
 /// </summary>
 /// <param name="uniform">The uniform to store</param>
-public readonly struct ShaderHandle(IGuidAsset owner, Shader.UniformInfo uniform)
+public readonly struct ShaderHandle(IGuidAsset owner, ShaderResource.UniformInfo uniform)
 {
-    internal readonly Shader.UniformInfo uniform = uniform;
+    internal readonly ShaderResource.UniformInfo uniform = uniform;
     internal readonly WeakReference<object> owner = new(owner);
 
-    internal bool TryGetUniform(IGuidAsset owner, out Shader.UniformInfo uniform)
+    internal bool TryGetUniform(IGuidAsset owner, out ShaderResource.UniformInfo uniform)
     {
         if(IsValid &&
             this.owner.TryGetTarget(out var actualOwner) &&

@@ -311,7 +311,7 @@ internal class ResourceManager
 
         try
         {
-            if(Material.WhiteTexture?.Create() ?? false)
+            if(Material.WhiteTexture?.textureResource?.Create() ?? false)
             {
                 Log.Debug("Recreated default white texture");
             }
@@ -325,7 +325,7 @@ internal class ResourceManager
         {
             try
             {
-                if(pair.Value?.Create() ?? false)
+                if(pair.Value?.textureResource?.Create() ?? false)
                 {
                     Log.Debug($"Recreated texture {pair.Key}");
                 }
@@ -342,7 +342,7 @@ internal class ResourceManager
         {
             if (reference.TryGetTarget(out var texture))
             {
-                if (!texture.Create())
+                if (!(texture.textureResource?.Create() ?? false))
                 {
                     Log.Debug($"Failed to recreate a user texture");
                 }
@@ -351,9 +351,14 @@ internal class ResourceManager
 
         foreach (var pair in cachedShaders)
         {
+            if(pair.Value?.shaderResource == null)
+            {
+                continue;
+            }
+
             try
             {
-                if (pair.Value?.Create() ?? false)
+                if (pair.Value?.shaderResource?.Create() ?? false)
                 {
                     Log.Debug($"Recreated shader {pair.Key}");
                 }
@@ -368,7 +373,7 @@ internal class ResourceManager
         {
             try
             {
-                if (pair.Value?.Create() ?? false)
+                if (pair.Value?.shaderResource?.Create() ?? false)
                 {
                     Log.Debug($"Recreated compute shader {pair.Key}");
                 }
@@ -1146,19 +1151,25 @@ internal class ResourceManager
                 }
             }
 
-            shader = Shader.Create(shaderData, entries.data);
+            var resource = Shader.Create(shaderData, entries.data);
 
-            if (shader != null)
+            if(resource != null)
             {
-                shader.Guid.Guid = guid;
+                resource.Guid.Guid = guid;
 
-                if(!ignoreCache)
+                shader = new(resource);
+
+                if (!ignoreCache)
                 {
                     cachedShaders.AddOrSetKey(path, shader);
                 }
+
+                return shader;
             }
 
-            return shader;
+            Log.Error($"[ResourceManager] Failed to load shader at path {path}: Failed to initialize shader");
+
+            return null;
         }
         catch (Exception e)
         {
@@ -1360,7 +1371,7 @@ internal class ResourceManager
 
             foreach(var variant in materialData.metadata.enabledShaderVariants)
             {
-                if(shader.metadata.variants.Contains(variant))
+                if(shader.shaderResource.metadata.variants.Contains(variant))
                 {
                     material.EnableShaderKeyword(variant);
                 }
@@ -1524,7 +1535,7 @@ internal class ResourceManager
 
             if(textureData.cpuData != null)
             {
-                texture.readbackData = new()
+                texture.textureResource.readbackData = new()
                 {
                     colorComponents = textureData.cpuData.colorComponents,
                     data = textureData.cpuData.data,

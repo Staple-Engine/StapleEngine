@@ -6,7 +6,7 @@ internal class TextureAssetCreateMethod(string path, SerializableTexture asset, 
     public SerializableTexture asset = asset;
     public TextureFlags flags = flags;
 
-    public bool Create(Texture texture)
+    public bool Create(TextureResource texture)
     {
         unsafe
         {

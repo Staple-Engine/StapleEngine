@@ -2,5 +2,5 @@
 
 internal interface ITextureCreateMethod
 {
-    bool Create(Texture texture);
+    bool Create(TextureResource texture);
 }

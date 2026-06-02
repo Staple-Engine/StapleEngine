@@ -11,27 +11,21 @@ namespace Staple;
 /// </summary>
 public class Texture : IGuidAsset
 {
-    internal TextureMetadata metadata;
-    internal bool renderTarget = false;
-    internal ITexture impl;
-
-    internal RawTextureData readbackData;
-
-    private readonly ITextureCreateMethod createMethod;
+    internal TextureResource textureResource;
 
     public GuidHasher Guid { get; } = new();
 
-    public bool Disposed => impl?.Disposed ?? true;
+    public bool Disposed => textureResource?.impl?.Disposed ?? true;
 
     /// <summary>
     /// The texture's width
     /// </summary>
-    public int Width => impl?.Width ?? 0;
+    public int Width => textureResource?.impl?.Width ?? 0;
 
     /// <summary>
     /// The texture's height
     /// </summary>
-    public int Height => impl?.Height ?? 0;
+    public int Height => textureResource?.impl?.Height ?? 0;
 
     /// <summary>
     /// The size of the texture as a Vector2Int
@@ -41,21 +35,21 @@ public class Texture : IGuidAsset
     /// <summary>
     /// The format of this texture
     /// </summary>
-    public TextureFormat Format => impl?.Format ?? TextureFormat.RGBA8;
+    public TextureFormat Format => textureResource?.impl?.Format ?? TextureFormat.RGBA8;
 
     /// <summary>
     /// The texture's sprite scale
     /// </summary>
-    public float SpriteScale => 1.0f / metadata.spritePixelsPerUnit;
+    public float SpriteScale => 1.0f / (textureResource?.metadata.spritePixelsPerUnit ?? 1);
 
     /// <summary>
     /// The contained sprites of this texture
     /// </summary>
-    public Sprite[] Sprites { get; internal set; } = [];
+    public Sprite[] Sprites => textureResource?.Sprites ?? [];
 
-    internal Texture(ITextureCreateMethod createMethod)
+    internal Texture(TextureResource resource)
     {
-        this.createMethod = createMethod;
+        textureResource = resource;
     }
 
     ~Texture()
@@ -63,41 +57,12 @@ public class Texture : IGuidAsset
         Destroy();
     }
 
-    internal bool Create()
+    internal void ApplyTextureToSprites()
     {
-        if(renderTarget && Disposed)
+        foreach(var sprite in Sprites)
         {
-            return false;
+            sprite.texture = this;
         }
-
-        var ok = false;
-
-        if(renderTarget || createMethod.Create(this))
-        {
-            ok = true;
-        }
-
-        if((metadata?.sprites?.Count ?? 0) > 0)
-        {
-            var sprites = Sprites;
-
-            if ((Sprites?.Length ?? 0) != metadata.sprites.Count)
-            {
-                sprites = new Sprite[metadata.sprites.Count];
-            }
-
-            for (var i = 0; i < metadata.sprites.Count; i++)
-            {
-                sprites[i] ??= new();
-
-                sprites[i].texture = this;
-                sprites[i].spriteIndex = i;
-            }
-
-            Sprites = sprites;
-        }
-
-        return ok;
     }
 
     /// <summary>
@@ -110,9 +75,11 @@ public class Texture : IGuidAsset
             return;
         }
 
-        impl?.Destroy();
+        textureResource?.impl?.Destroy();
 
-        impl = null;
+        textureResource?.impl = null;
+
+        textureResource = null;
     }
 
     /// <summary>
@@ -132,10 +99,14 @@ public class Texture : IGuidAsset
     /// <returns>The texture or null</returns>
     public static Texture CreateEmpty(int width, int height, TextureFormat format, TextureFlags flags = TextureFlags.None)
     {
-        var texture = new Texture(new EmptyTextureCreateMethod(width, height, format, flags));
+        var resource = new TextureResource(new EmptyTextureCreateMethod(width, height, format, flags));
 
-        if (texture.Create())
+        if (resource.Create())
         {
+            var texture = new Texture(resource);
+
+            texture.ApplyTextureToSprites();
+
             ResourceManager.instance.userCreatedTextures.Add(new WeakReference<Texture>(texture));
 
             return texture;
@@ -291,10 +262,14 @@ public class Texture : IGuidAsset
     public static Texture CreatePixels(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata,
         TextureFormat format, TextureFlags flags = TextureFlags.None)
     {
-        var texture = new Texture(new PixelTextureCreateMethod(path, data, width, height, metadata, format, flags));
+        var resource = new TextureResource(new PixelTextureCreateMethod(path, data, width, height, metadata, format, flags));
 
-        if(texture.Create())
+        if(resource.Create())
         {
+            var texture = new Texture(resource);
+
+            texture.ApplyTextureToSprites();
+
             ResourceManager.instance.userCreatedTextures.Add(new WeakReference<Texture>(texture));
 
             return texture;
@@ -312,9 +287,18 @@ public class Texture : IGuidAsset
     /// <returns>The texture or null</returns>
     internal static Texture Create(string path, SerializableTexture asset, TextureFlags flags = TextureFlags.None)
     {
-        var texture = new Texture(new TextureAssetCreateMethod(path, asset, flags));
+        var resource = new TextureResource(new TextureAssetCreateMethod(path, asset, flags));
 
-        return texture.Create() ? texture : null;
+        if(resource.Create())
+        {
+            var texture = new Texture(resource);
+
+            texture.ApplyTextureToSprites();
+
+            return texture;
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -514,7 +498,7 @@ public class Texture : IGuidAsset
             return;
         }
 
-        RenderSystem.Backend.ReadTexture(impl, (result) => completion?.Invoke(this, result));
+        RenderSystem.Backend.ReadTexture(textureResource?.impl, (result) => completion?.Invoke(this, result));
     }
 
     /// <summary>
@@ -523,7 +507,7 @@ public class Texture : IGuidAsset
     /// <returns>The pixels</returns>
     public Color[] GetPixels()
     {
-        var c = readbackData?.ToColorArray() ?? [];
+        var c = textureResource?.readbackData?.ToColorArray() ?? [];
 
         var outValue = new Color[c.Length];
 
@@ -541,7 +525,7 @@ public class Texture : IGuidAsset
     /// <returns>The pixels</returns>
     public Color32[] GetPixels32()
     {
-        return readbackData?.ToColorArray() ?? [];
+        return textureResource?.readbackData?.ToColorArray() ?? [];
     }
 
     /// <summary>
@@ -551,7 +535,7 @@ public class Texture : IGuidAsset
     /// <returns>The raw texture data, or null</returns>
     public RawTextureData GetRawTextureData()
     {
-        if(readbackData == null)
+        if(textureResource?.readbackData == null)
         {
             Log.Error($"Texture {Guid.Guid} isn't readable (missing readback flag)");
 
@@ -560,10 +544,10 @@ public class Texture : IGuidAsset
 
         return new()
         {
-            colorComponents = readbackData.colorComponents,
-            data = readbackData.data,
-            height = readbackData.height,
-            width = readbackData.width,
+            colorComponents = textureResource.readbackData.colorComponents,
+            data = textureResource.readbackData.data,
+            height = textureResource.readbackData.height,
+            width = textureResource.readbackData.width,
         };
     }
 }

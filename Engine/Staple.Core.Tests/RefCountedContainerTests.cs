@@ -9,7 +9,7 @@ internal class RefCountedContainerTests
     {
         var disposed = false;
 
-        var handle = new RefCountedContainer<string, int>("test", 1, (key, content) =>
+        var handle = new Ref<string, int>("test", 1, (key, content) =>
         {
             Assert.That(disposed, Is.False);
 
@@ -31,11 +31,11 @@ internal class RefCountedContainerTests
     public void TestMultipleRefs()
     {
         var disposed = false;
-        var handles = new List<RefCountedContainer<string, int>>();
+        var handles = new List<Ref<string, int>>();
 
         for(var i = 0; i < 10; i++)
         {
-            var handle = new RefCountedContainer<string, int>("test", 1, (key, content) =>
+            var handle = new Ref<string, int>("test", 1, (key, content) =>
             {
                 Assert.That(disposed, Is.False);
 
@@ -81,11 +81,11 @@ internal class RefCountedContainerTests
     public void TestReplace()
     {
         var disposed = false;
-        var handles = new List<RefCountedContainer<string, int>>();
+        var handles = new List<Ref<string, int>>();
 
         for (var i = 0; i < 10; i++)
         {
-            var handle = new RefCountedContainer<string, int>("test", 1, (key, content) =>
+            var handle = new Ref<string, int>("test", 1, (key, content) =>
             {
                 Assert.That(disposed, Is.False);
 
@@ -105,7 +105,7 @@ internal class RefCountedContainerTests
         {
             Assert.That(disposed, Is.False);
 
-            RefCountedContainer<string, int>.Replace("test", i + 2);
+            Ref<string, int>.Replace("test", i + 2);
 
             for(var j = i; j < handles.Count; j++)
             {
