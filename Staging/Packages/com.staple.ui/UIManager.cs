@@ -175,7 +175,7 @@ public sealed class UIManager
 
     public void LoadSkin(string guid)
     {
-        var skinData = ResourceManager.instance.LoadTextAsset(guid);
+        var skinData = Resources.Load<TextAsset>(guid);
 
         if(string.IsNullOrEmpty(skinData?.text))
         {

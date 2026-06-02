@@ -247,6 +247,8 @@ public class AppSettings
     [IgnoreMember]
     internal static AppSettings Current;
 
+    internal static AppSettings Active => Current ?? Default;
+
     internal AppSettings Clone()
     {
         var newRenderers = new Dictionary<AppPlatform, List<RendererType>>();

@@ -107,7 +107,25 @@ public static class Math
     public static float Cos(float x) => (float)System.Math.Cos(x);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector2 Cos(Vector2 x) => new(Cos(x.X), Cos(x.Y));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector3 Cos(Vector3 x) => new(Cos(x.X), Cos(x.Y), Cos(x.Z));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector4 Cos(Vector4 x) => new(Cos(x.X), Cos(x.Y), Cos(x.Z), Cos(x.W));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Sin(float x) => (float)System.Math.Sin(x);
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector2 Sin(Vector2 x) => new(Sin(x.X), Sin(x.Y));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector3 Sin(Vector3 x) => new(Sin(x.X), Sin(x.Y), Sin(x.Z));
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector4 Sin(Vector4 x) => new(Sin(x.X), Sin(x.Y), Sin(x.Z), Sin(x.W));
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Exp(float x) => (float)System.Math.Exp(x);

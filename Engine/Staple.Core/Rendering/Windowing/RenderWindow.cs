@@ -55,7 +55,7 @@ internal class RenderWindow
     private CursorLockMode lastCursorLockMode;
     private uint frameCounter = 0;
 
-    public bool Paused => !hasFocus && !AppSettings.Current.runInBackground;
+    public bool Paused => !hasFocus && !AppSettings.Active.runInBackground;
 
     public static RendererType CurrentRenderer { get; internal set; }
 
@@ -66,7 +66,7 @@ internal class RenderWindow
     {
         ThreadHelper.Initialize();
 
-        if (AppSettings.Current.multiThreadedRenderer)
+        if (AppSettings.Active.multiThreadedRenderer)
         {
             MultiThreadedLoop();
         }
@@ -132,7 +132,7 @@ internal class RenderWindow
 
             lock (renderLock)
             {
-                shouldRender = !window.Unavailable && (AppSettings.Current.runInBackground || window.IsFocused);
+                shouldRender = !window.Unavailable && (AppSettings.Active.runInBackground || window.IsFocused);
             }
 
             if (window.Unavailable)
@@ -206,7 +206,7 @@ internal class RenderWindow
                 //Prevent hard stuck
                 var currentFixedTime = 0.0f;
 
-                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < AppSettings.Current.maximumFixedTimestepTime)
+                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < AppSettings.Active.maximumFixedTimestepTime)
                 {
                     fixedTimer -= Time.fixedDeltaTime;
 
@@ -217,7 +217,7 @@ internal class RenderWindow
                     currentFixedTime += Time.fixedDeltaTime;
                 }
 
-                if(currentFixedTime >= AppSettings.Current.maximumFixedTimestepTime)
+                if(currentFixedTime >= AppSettings.Active.maximumFixedTimestepTime)
                 {
                     fixedTimer = 0;
                 }
@@ -317,7 +317,7 @@ internal class RenderWindow
 
             lock (renderLock)
             {
-                shouldRender = !window.Unavailable && (AppSettings.Current.runInBackground || window.IsFocused);
+                shouldRender = !window.Unavailable && (AppSettings.Active.runInBackground || window.IsFocused);
             }
 
             if (window.Unavailable)
@@ -374,7 +374,7 @@ internal class RenderWindow
                 //Prevent hard stuck
                 var currentFixedTime = 0.0f;
 
-                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < AppSettings.Current.maximumFixedTimestepTime)
+                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < AppSettings.Active.maximumFixedTimestepTime)
                 {
                     fixedTimer -= Time.fixedDeltaTime;
 
@@ -385,7 +385,7 @@ internal class RenderWindow
                     currentFixedTime += Time.fixedDeltaTime;
                 }
 
-                if (currentFixedTime >= AppSettings.Current.maximumFixedTimestepTime)
+                if (currentFixedTime >= AppSettings.Active.maximumFixedTimestepTime)
                 {
                     fixedTimer = 0;
                 }
@@ -490,7 +490,7 @@ internal class RenderWindow
 
         currentPlatform = platform.Value;
 
-        if (!AppSettings.Current.renderers.TryGetValue(currentPlatform, out renderers))
+        if (!AppSettings.Active.renderers.TryGetValue(currentPlatform, out renderers))
         {
             Log.Error($"[RenderWindow] No Renderers found for platform {platform}, terminating...");
 
@@ -797,7 +797,7 @@ internal class RenderWindow
         var maximizedString = maximized ? "Maximized" : "Normal";
         var positionString = position.HasValue ? position.Value.ToString() : "(default)";
 
-        Log.Info($"[RenderWindow] Creating {windowMode} window {AppSettings.Current.appName} with size {width}x{height} at {positionString} " +
+        Log.Info($"[RenderWindow] Creating {windowMode} window {AppSettings.Active.appName} with size {width}x{height} at {positionString} " +
             $"({resizableString}, {maximizedString}) for monitor {monitorIndex}");
 
         if (windowReferences > 0)
@@ -830,10 +830,10 @@ internal class RenderWindow
         var originalWidth = width;
         var originalHeight = height;
 
-        if (!renderWindow.window.Create(ref width, ref height, AppSettings.Current.appName, resizable, windowMode, position, maximized,
+        if (!renderWindow.window.Create(ref width, ref height, AppSettings.Active.appName, resizable, windowMode, position, maximized,
             monitorIndex))
         {
-            Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{AppSettings.Current.appName}\" with size {originalWidth}x{originalHeight}");
+            Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{AppSettings.Active.appName}\" with size {originalWidth}x{originalHeight}");
 
             windowReferences--;
 
@@ -852,7 +852,7 @@ internal class RenderWindow
 #if !ANDROID
         rendererReferences++;
 
-        if (!AppSettings.Current.multiThreadedRenderer)
+        if (!AppSettings.Active.multiThreadedRenderer)
         {
             renderWindow.InitializeRenderer();
         }

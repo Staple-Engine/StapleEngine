@@ -18,13 +18,13 @@ public static class PerformanceProfilerSystem
 
     private static DateTime lastAverageTime = DateTime.UtcNow;
 
-    public static AppProfilingMode ProfilingMode => AppSettings.Current?.profilingMode ?? AppProfilingMode.None;
+    public static AppProfilingMode ProfilingMode => AppSettings.Active.profilingMode;
 
     public static Dictionary<PerformanceProfilerType, int> FrameCounters
     {
         get
         {
-            if (AppSettings.Current?.profilingMode != AppProfilingMode.Profiler)
+            if (AppSettings.Active.profilingMode != AppProfilingMode.Profiler)
             {
                 return [];
             }
@@ -40,7 +40,7 @@ public static class PerformanceProfilerSystem
     {
         get
         {
-            if (AppSettings.Current?.profilingMode != AppProfilingMode.Profiler)
+            if (AppSettings.Active.profilingMode != AppProfilingMode.Profiler)
             {
                 return [];
             }
@@ -54,7 +54,7 @@ public static class PerformanceProfilerSystem
 
     public static void StartFrame()
     {
-        if (AppSettings.Current?.profilingMode != AppProfilingMode.Profiler)
+        if (AppSettings.Active.profilingMode != AppProfilingMode.Profiler)
         {
             return;
         }
@@ -67,7 +67,7 @@ public static class PerformanceProfilerSystem
 
     public static void FinishFrame()
     {
-        if (AppSettings.Current?.profilingMode != AppProfilingMode.Profiler)
+        if (AppSettings.Active.profilingMode != AppProfilingMode.Profiler)
         {
             return;
         }
@@ -112,7 +112,7 @@ public static class PerformanceProfilerSystem
 
     public static void AddCounter(PerformanceProfilerType type, int ms)
     {
-        if (AppSettings.Current?.profilingMode != AppProfilingMode.Profiler)
+        if (AppSettings.Active.profilingMode != AppProfilingMode.Profiler)
         {
             return;
         }

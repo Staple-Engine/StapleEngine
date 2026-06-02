@@ -14,7 +14,7 @@ public class UIPerformanceDisplayer(UIManager manager, string ID) : UIText(manag
 
         builder.Clear();
 
-        switch(AppSettings.Current?.profilingMode ?? AppProfilingMode.None)
+        switch(PerformanceProfilerSystem.ProfilingMode)
         {
             case AppProfilingMode.RenderStats:
 

@@ -220,7 +220,7 @@ public sealed partial class RenderSystem
         RegisterSystem(new MeshRenderSystem());
         RegisterSystem(new TextRenderSystem());
 
-        LightSystem.Enabled = AppSettings.Current?.enableLighting ?? true;
+        LightSystem.Enabled = AppSettings.Active.enableLighting;
 
         Time.onAccumulatorFinished += () =>
         {

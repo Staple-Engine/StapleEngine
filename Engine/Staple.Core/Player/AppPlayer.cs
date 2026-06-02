@@ -27,7 +27,7 @@ internal class AppPlayer
         this.skipFlow = skipFlow;
 #endif
 
-        Storage.Update(AppSettings.Current.appName, AppSettings.Current.companyName);
+        Storage.Update(AppSettings.Active.appName, AppSettings.Active.companyName);
 
         var path = Path.Combine(Storage.PersistentDataPath, "Player.log");
 
@@ -56,12 +56,12 @@ internal class AppPlayer
 
     public void Create()
     {
-        playerSettings = PlayerSettings.Load(AppSettings.Current);
+        playerSettings = PlayerSettings.Load(AppSettings.Active);
 
         if(playerSettings.screenWidth <= 0 || playerSettings.screenHeight <= 0 || playerSettings.windowPosition.X < -1000 || playerSettings.windowPosition.Y < -1000)
         {
-            playerSettings.screenWidth = AppSettings.Current.defaultWindowWidth;
-            playerSettings.screenHeight = AppSettings.Current.defaultWindowHeight;
+            playerSettings.screenWidth = AppSettings.Active.defaultWindowWidth;
+            playerSettings.screenHeight = AppSettings.Active.defaultWindowHeight;
 
             playerSettings.windowPosition = Vector2Int.Zero;
         }
@@ -105,7 +105,7 @@ internal class AppPlayer
                 {
                 }
 
-                Time.fixedDeltaTime = 1 / (float)AppSettings.Current.fixedTimeFrameRate;
+                Time.fixedDeltaTime = 1 / (float)AppSettings.Active.fixedTimeFrameRate;
 
                 if(!skipFlow)
                 {
@@ -240,9 +240,10 @@ internal class AppPlayer
                 return;
             }
 
-            if ((AppSettings.Current?.allowFullscreenSwitch ?? true) && Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.Enter))
+            if (AppSettings.Active.allowFullscreenSwitch && Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.Enter))
             {
-                Screen.SetResolution(Screen.Width, Screen.Height, Screen.WindowMode == WindowMode.Windowed ? WindowMode.BorderlessFullscreen : WindowMode.Windowed);
+                Screen.SetResolution(Screen.Width, Screen.Height, Screen.WindowMode == WindowMode.Windowed ? WindowMode.BorderlessFullscreen :
+                    WindowMode.Windowed);
             }
 
             SubsystemManager.instance.Update(SubsystemType.Update);

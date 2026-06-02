@@ -30,7 +30,7 @@ public class UISprite(UIManager manager, string ID) : UIPanel(manager, ID)
 
                 var guid = AssetDatabase.GetAssetGuid(pieces[0]) ?? pieces[0];
 
-                var texture = ResourceManager.instance.LoadTexture(guid);
+                var texture = Resources.Load<Texture>(guid);
 
                 if(texture != null && spriteIndex < texture.Sprites.Length)
                 {

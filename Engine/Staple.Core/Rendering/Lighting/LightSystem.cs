@@ -49,7 +49,7 @@ public sealed class LightSystem
 
     public Type RelatedComponent => null;
 
-    public Color AmbientColor => OverrideAmbientColor ?? AppSettings.Current.ambientLight;
+    public Color AmbientColor => OverrideAmbientColor ?? AppSettings.Active.ambientLight;
 
     public (Entity, Transform, Light)[] Lights => OverrideLights ?? lightQuery.Contents;
 

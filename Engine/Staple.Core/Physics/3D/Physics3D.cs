@@ -625,8 +625,8 @@ public sealed class Physics3D : ISubsystem
     #region Internal
     internal void UpdateConfiguration()
     {
-        PhysicsDeltaTime = 1 / (float)AppSettings.Current.physicsFrameRate;
-        InterpolatePhysics = AppSettings.Current.usePhysicsInterpolation;
+        PhysicsDeltaTime = 1 / (float)AppSettings.Active.physicsFrameRate;
+        InterpolatePhysics = AppSettings.Active.usePhysicsInterpolation;
     }
 
     public void Startup()

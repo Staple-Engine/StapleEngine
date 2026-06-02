@@ -253,11 +253,14 @@ public class SpriteRenderSystem : IRenderSystem
         sprites.Clear();
     }
 
-    public void Preprocess(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (_, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            var r = relatedComponent as SpriteRenderer;
+            if(entry.component is not SpriteRenderer r)
+            {
+                continue;
+            }
 
             var hasValidAnimation = r.animation != null &&
                 r.animation.texture != null &&
@@ -323,7 +326,7 @@ public class SpriteRenderSystem : IRenderSystem
 
             var spriteSize = r.renderMode switch
             {
-                SpriteRenderMode.Sliced => transform.LocalScale.ToVector2(),
+                SpriteRenderMode.Sliced => entry.transform.LocalScale.ToVector2(),
                 _ => (Vector2)sprite.Rect.Size,
             };
 
@@ -331,17 +334,16 @@ public class SpriteRenderSystem : IRenderSystem
 
             r.localBounds = new AABB(Vector3.Zero, size);
 
-            r.bounds = new AABB(transform.Position, size);
+            r.bounds = new AABB(entry.transform.Position, size);
         }
     }
 
-    public void Process(Span<(Entity, Transform, IComponent)> entities, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var (_, transform, relatedComponent) in entities)
+        foreach (var entry in renderQueue)
         {
-            var r = relatedComponent as SpriteRenderer;
-
-            if(r.isVisible == false)
+            if (entry.component is not SpriteRenderer r ||
+                r.isVisible == false)
             {
                 continue;
             }
@@ -404,7 +406,7 @@ public class SpriteRenderSystem : IRenderSystem
 
             var localScale = r.renderMode switch
             {
-                SpriteRenderMode.Sliced => transform.LocalScale,
+                SpriteRenderMode.Sliced => entry.transform.LocalScale,
                 _ => scale,
             };
 
@@ -449,7 +451,7 @@ public class SpriteRenderSystem : IRenderSystem
                 material = mutableMaterial,
                 texture = sprite.texture,
                 textureRect = sprite.Rect,
-                transform = transform,
+                transform = entry.transform,
                 scale = scale,
                 sortingOrder = r.sortingOrder,
                 layer = r.sortingLayer,

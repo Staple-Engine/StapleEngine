@@ -28,7 +28,7 @@ public class UISkin
         if(TryGetProperty(className, key, out var p) &&
             p is JsonElement t && t.ValueKind == JsonValueKind.String)
         {
-            return ResourceManager.instance.LoadTexture(t.GetString());
+            return Resources.Load<Texture>(t.GetString());
         }
 
         return null;

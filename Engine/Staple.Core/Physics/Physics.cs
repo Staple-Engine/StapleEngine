@@ -24,9 +24,9 @@ public static class Physics
     /// </summary>
     public static bool InterpolatePhysics
     {
-        get => AppSettings.Current?.usePhysicsInterpolation ?? false;
+        get => AppSettings.Active.usePhysicsInterpolation;
 
-        set => AppSettings.Current?.usePhysicsInterpolation = value;
+        set => AppSettings.Active.usePhysicsInterpolation = value;
     }
 
     /// <summary>
@@ -34,15 +34,15 @@ public static class Physics
     /// </summary>
     public static int PhysicsFrameRate
     {
-        get => AppSettings.Current?.physicsFrameRate ?? 0;
+        get => AppSettings.Active.physicsFrameRate;
 
         set
         {
-            AppSettings.Current?.physicsFrameRate = value;
+            AppSettings.Active.physicsFrameRate = value;
 
-            if(AppSettings.Current?.physicsFrameRate <= 0)
+            if(AppSettings.Active.physicsFrameRate <= 0)
             {
-                AppSettings.Current?.physicsFrameRate = 1;
+                AppSettings.Active.physicsFrameRate = 1;
             }
 
             Physics3D.Instance?.UpdateConfiguration();
