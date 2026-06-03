@@ -4,7 +4,7 @@ STAPLE_REQUIRED_JDK_VERSION="21"
 STAPLE_JDK_CHECK_PASSED=""
 
 check_jvm() {
-	if [ -d "$1" ] && [ -f "$1/bin/java" ] && ("$1/bin/java" --version |& grep "build $STAPLE_REQUIRED_JDK_VERSION." &> /dev/null); then
+	if [ -d "$1" ] && [ -f "$1/bin/java" ] && ("$1/bin/java" --version 2>&1 | grep "build $STAPLE_REQUIRED_JDK_VERSION." &> /dev/null); then
 		STAPLE_JDK_CHECK_PASSED="yes"
 		export JAVA_HOME="$1"
 	fi
