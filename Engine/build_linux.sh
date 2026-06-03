@@ -1,5 +1,25 @@
 #!/bin/sh
 
+STAPLE_REQUIRED_JDK_VERSION="21"
+STAPLE_JDK_CHECK_PASSED=""
+
+check_jvm() {
+	if [ -d "$1" ] && [ -f "$1/bin/java" ] && ("$1/bin/java" --version |& grep "build $STAPLE_REQUIRED_JDK_VERSION." &> /dev/null); then
+		STAPLE_JDK_CHECK_PASSED="yes"
+		export JAVA_HOME="$1"
+	fi
+}
+
+if [ -n "$JAVA_HOME" ]; then
+	check_jvm "$JAVA_HOME"
+fi
+for candidate in /usr/lib/jvm/*; do
+	if [ -n "$STAPLE_JDK_CHECK_PASSED" ]; then
+		break
+	fi
+	check_jvm "$candidate"
+done
+
 dotnet build Engine.sln -c Debug
 dotnet build Engine.sln -c Release
 
