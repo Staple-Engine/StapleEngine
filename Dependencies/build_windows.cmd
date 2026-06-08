@@ -1,5 +1,31 @@
 @echo off
 
+set CUTTLEFISH_FILENAME=cuttlefish-win64-tool.zip
+set CUTTLEFISH_RELEASE=v2.10.2
+set CUTTLEFISH_URL=https://github.com/akb825/Cuttlefish/releases/download/%CUTTLEFISH_RELEASE%/%CUTTLEFISH_FILENAME%
+
+curl -L -O "%CUTTLEFISH_URL%"
+
+tar -xf %CUTTLEFISH_FILENAME%
+
+del /S /Q %CUTTLEFISH_FILENAME%
+
+set SLANG_FILENAME=slang-2026.10.2-windows-x86_64.tar.gz
+set SLANG_RELEASE=v2026.10.2
+set SLANG_URL=https://github.com/shader-slang/slang/releases/download/%SLANG_RELEASE%/%SLANG_FILENAME%
+
+mkdir slang
+
+cd slang
+
+curl -L -O "%SLANG_URL%"
+
+tar -zxf %SLANG_FILENAME%
+
+del /S /Q %SLANG_FILENAME%
+
+cd ..
+
 call premake5 vs2022
 call premake5 --file=NativeFileDialog/build/premake5.lua vs2022
 

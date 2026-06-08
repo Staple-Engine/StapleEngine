@@ -19,3 +19,5 @@ dist
 TestProject/*.csproj
 TestProject/*.sln
 .idea
+Dependencies/cuttlefish
+Dependencies/slang

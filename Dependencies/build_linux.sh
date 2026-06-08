@@ -2,6 +2,32 @@
 
 set -e
 
+set CUTTLEFISH_FILENAME=cuttlefish-linux.tar.gz 
+set CUTTLEFISH_RELEASE=v2.10.2
+set CUTTLEFISH_URL=https://github.com/akb825/Cuttlefish/releases/download/$CUTTLEFISH_RELEASE/$CUTTLEFISH_FILENAME
+
+curl -L -O $CUTTLEFISH_URL
+
+tar -zxf $CUTTLEFISH_FILENAME
+
+rm -f $CUTTLEFISH_FILENAME
+
+set SLANG_RELEASE=2026.10.2
+set SLANG_FILENAME=slang-$SLANG_RELEASE-linux-x86_64.tar.gz
+set SLANG_URL=https://github.com/shader-slang/slang/releases/download/v$SLANG_RELEASE/$SLANG_FILENAME
+
+mkdir slang
+
+cd slang
+
+curl -L -O $SLANG_URL
+
+tar -zxf $SLANG_FILENAME
+
+rm -f $SLANG_FILENAME
+
+cd ..
+
 ./premake.sh --os=linux gmake
 ./premake.sh --os=linux --file=NativeFileDialog/build/premake5.lua gmake
 
