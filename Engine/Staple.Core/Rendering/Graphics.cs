@@ -1,0 +1,163 @@
+﻿using Staple.Internal;
+using System;
+using System.Numerics;
+
+namespace Staple
+{
+    /// <summary>
+    /// Low level graphics class
+    /// </summary>
+    public static class Graphics
+    {
+        /// <summary>
+        /// Renders Geometry using a vertex buffer, index buffer, and material
+        /// </summary>
+        /// <param name="vertex">The vertex buffer</param>
+        /// <param name="index">The index buffer</param>
+        /// <param name="startVertex">The starting vertex</param>
+        /// <param name="startIndex">The start index</param>
+        /// <param name="indexCount">The amount of indices to draw</param>
+        /// <param name="material">The material to use</param>
+        /// <param name="transform">The transform for the model</param>
+        /// <param name="topology">The geometry topology</param>
+        /// <param name="lighting">What kind of lighting to apply</param>
+        /// <param name="materialSetupCallback">A callback to setup the material. If it's not set, the default behaviour will be used</param>
+        public static void RenderGeometry(VertexBuffer vertex, IndexBuffer index,
+            int startVertex, int startIndex, int indexCount, Material material,
+            Vector3 position, Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting,
+            Action materialSetupCallback = null)
+        {
+            if(vertex == null ||
+                vertex.Disposed ||
+                index == null ||
+                index.Disposed ||
+                startVertex < 0 || 
+                startIndex < 0 ||
+                indexCount <= 0 ||
+                material == null ||
+                !material.IsValid)
+            {
+                throw new Exception("Invalid arguments passed");
+            }
+
+            var renderState = RenderState.Default;
+
+            renderState.cull = material.CullingMode;
+            renderState.primitiveType = topology;
+            renderState.indexBuffer = index;
+            renderState.vertexBuffer = vertex;
+            renderState.startVertex = startVertex;
+            renderState.startIndex = startIndex;
+            renderState.indexCount = indexCount;
+            renderState.world = transform;
+
+            if(materialSetupCallback != null)
+            {
+                materialSetupCallback();
+            }
+            else
+            {
+                material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+                material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                material.ApplyProperties(ref renderState);
+            }
+
+            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
+
+            if (material.ShaderProgram == null)
+            {
+                return;
+            }
+
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+
+            RenderSystem.Submit(renderState, Mesh.TriangleCount(topology, indexCount), 1);
+        }
+
+        public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, Material material, Vector3 position,
+            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, Action materialSetupCallback = null)
+            where T: unmanaged
+        {
+            if (vertices.Length == 0||
+                indices.Length == 0 ||
+                material == null ||
+                !material.IsValid)
+            {
+                throw new Exception("Invalid arguments passed");
+            }
+
+            var renderState = RenderState.Default;
+
+            renderState.primitiveType = topology;
+            renderState.world = transform;
+
+            if (materialSetupCallback != null)
+            {
+                materialSetupCallback();
+            }
+            else
+            {
+                material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+                material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                material.ApplyProperties(ref renderState);
+            }
+
+            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
+
+            if (material.ShaderProgram == null)
+            {
+                return;
+            }
+
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+
+            RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
+        }
+
+        public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, Material material, Vector3 position,
+            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, Action materialSetupCallback = null)
+            where T : unmanaged
+        {
+            if (vertices.Length == 0 ||
+                indices.Length == 0 ||
+                material == null ||
+                !material.IsValid)
+            {
+                throw new Exception("Invalid arguments passed");
+            }
+
+            var renderState = RenderState.Default;
+
+            renderState.primitiveType = topology;
+            renderState.world = transform;
+
+            if (materialSetupCallback != null)
+            {
+                materialSetupCallback();
+            }
+            else
+            {
+                material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+                material.DisableShaderKeyword(Shader.InstancingKeyword);
+
+                material.ApplyProperties(ref renderState);
+            }
+
+            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
+
+            if (material.ShaderProgram == null)
+            {
+                return;
+            }
+
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+
+            RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
+        }
+    }
+}

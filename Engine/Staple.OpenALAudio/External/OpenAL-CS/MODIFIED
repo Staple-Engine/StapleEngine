@@ -1,0 +1,5 @@
+This version of OpenAL-CS was modified to work with Staple
+
+Changes
+=======
+- Changed DLL name depending on platform

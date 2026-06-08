@@ -1,0 +1,11 @@
+{
+	"name": "com.staple.firstpersoncamera",
+	"version": "1.0.0",
+	"description": "First Person Camera",
+	"displayName": "First Person Camera",
+	"minStapleVersion": "0.2",
+	"author": "Staple Engine",
+	"dependencies": [],
+	"keywords": "camera",
+	"license": "MIT"
+}

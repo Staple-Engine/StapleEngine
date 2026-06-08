@@ -1,0 +1,70 @@
+﻿using Staple.Jobs;
+
+namespace Staple.Editor;
+
+internal partial class StapleEditor
+{
+    /// <summary>
+    /// Executes a background task
+    /// </summary>
+    /// <param name="handle">The job handle</param>
+    public void StartBackgroundTask(JobHandle handle)
+    {
+        if (editorMode != EditorMode.Normal)
+        {
+            handle.Complete();
+
+            return;
+        }
+
+        lock (backgroundLock)
+        {
+            backgroundHandles.Add(handle);
+
+            showingProgress = true;
+            progressFraction = 0;
+        }
+    }
+
+    /// <summary>
+    /// Shows the background progress bar
+    /// </summary>
+    public void ShowBackgroundProcess()
+    {
+        lock (backgroundLock)
+        {
+            showingProgress = true;
+            progressFraction = 0;
+        }
+    }
+
+    /// <summary>
+    /// Hides the background progress bar
+    /// </summary>
+    public void HideBackgroundProcess()
+    {
+        lock (backgroundLock)
+        {
+            showingProgress = false;
+        }
+    }
+
+    /// <summary>
+    /// Sets the current background progress and message
+    /// </summary>
+    /// <param name="progress">The progress percentage (0-1)</param>
+    /// <param name="message">The message</param>
+    public void SetBackgroundProgress(float progress, string message)
+    {
+        if(editorMode != EditorMode.Normal)
+        {
+            return;
+        }
+
+        ThreadHelper.Dispatch(() =>
+        {
+            progressFraction = progress;
+            progressMessage = message;
+        });
+    }
+}

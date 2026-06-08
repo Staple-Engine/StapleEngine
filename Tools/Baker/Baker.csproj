@@ -1,0 +1,126 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<AppDesignerFolder>Properties</AppDesignerFolder>
+		<TargetFramework>net10.0</TargetFramework>
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<DebugType>pdbonly</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>false</Optimize>
+		<DefineConstants>_DEBUG;STBSHARP_INTERNAL</DefineConstants>
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>4</WarningLevel>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+		<DebugType>portable</DebugType>
+		<DebugSymbols>true</DebugSymbols>
+		<Optimize>true</Optimize>
+		<DefineConstants>NDEBUG;STBSHARP_INTERNAL</DefineConstants>
+		<ErrorReport>prompt</ErrorReport>
+		<WarningLevel>4</WarningLevel>
+	</PropertyGroup>
+	<ItemGroup>
+		<Reference Include="MessagePack">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\MessagePack.dll</HintPath>
+		</Reference>
+		<Reference Include="Newtonsoft.Json">
+			<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+		</Reference>
+		<Reference Include="Staple.Core">
+			<HintPath>..\..\Engine\Staple.Core\bin\Release\net10.0\Staple.Core.dll</HintPath>
+		</Reference>
+		<Reference Include="Staple.Player.Windows">
+			<HintPath>..\..\Engine\Staple.Player.Windows\bin\Release\net10.0\Staple.Player.Windows.dll</HintPath>
+		</Reference>
+		<Reference Include="Staple.Player.Linux">
+			<HintPath>..\..\Engine\Staple.Player.Linux\bin\Release\net10.0\Staple.Player.Linux.dll</HintPath>
+		</Reference>
+		<Reference Include="Staple.Player.MacOSX">
+			<HintPath>..\..\Engine\Staple.Player.MacOSX\bin\Release\net10.0\Staple.Player.MacOSX.dll</HintPath>
+		</Reference>
+		<Reference Include="Staple.Tooling">
+			<HintPath>..\..\Engine\Staple.Tooling\bin\Release\net10.0\Staple.Tooling.dll</HintPath>
+		</Reference>
+		<Reference Include="NVorbis">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\NVorbis.dll</HintPath>
+		</Reference>
+		<Reference Include="NAudio">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\NAudio.dll</HintPath>
+		</Reference>
+		<Reference Include="OggVorbisEncoder">
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\OggVorbisEncoder.dll</HintPath>
+		</Reference>
+		<ProjectReference Include="..\..\Engine\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+	</ItemGroup>
+	<ItemGroup>
+		<Compile Include="Audio\AudioUtils.cs" />
+		<Compile Include="Baker+AppSettings.cs" />
+		<Compile Include="Baker+Assets.cs" />
+		<Compile Include="Baker+Audio.cs" />
+		<Compile Include="Baker+Cleanup.cs" />
+		<Compile Include="Baker+Folders.cs" />
+		<Compile Include="Baker+Font.cs" />
+		<Compile Include="Baker+Material.cs" />
+		<Compile Include="Baker+TextAssets.cs" />
+		<Compile Include="Baker+Meshes.cs" />
+		<Compile Include="Baker+Prefabs.cs" />
+		<Compile Include="Baker+Scene.cs" />
+		<Compile Include="Baker+Shaders.cs" />
+		<Compile Include="Baker+Texture.cs" />
+		<Compile Include="Baker.cs" />
+		<Compile Include="Renderer.cs" />
+		<Compile Include="Shaders\ShaderCompilerType.cs" />
+		<Compile Include="Shaders\ShaderInstancingParameter.cs" />
+		<Compile Include="Shaders\ShaderParameter.cs" />
+		<Compile Include="Shaders\ShaderParameterSemantic.cs" />
+		<Compile Include="Shaders\ShaderPiece.cs" />
+		<Compile Include="Shaders\UnprocessedShader.cs" />
+		<Compile Include="WorkScheduler.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="Alimer.Bindings.MeshOptimizer" Version="1.1.1" />
+	  <PackageReference Include="Evergine.Bindings.KTX" Version="2025.10.14.32" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\Staple.OBJ\Staple.OBJ.csproj" />
+	  <ProjectReference Include="..\Staple.SharpGLTF\Staple.SharpGLTF.csproj" />
+	  <ProjectReference Include="..\Staple.UFBX\Staple.UFBX.csproj" />
+	</ItemGroup>
+	<PropertyGroup>
+		<PostBuildEvent>
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/JsonNet/*.dll $(SolutionDir)bin\
+		</PostBuildEvent>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+		<PostBuildEvent>
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/StapleToolingSupport.[DLL] $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/SDL_shadercross/Windows/bin $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/slang/Windows/* $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/cuttlefish/Windows/* $(SolutionDir)bin\
+		</PostBuildEvent>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+		<PostBuildEvent>
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/SDL_shadercross/Linux/* $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/slang/Linux/* $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/cuttlefish/Linux/* $(SolutionDir)bin\
+		</PostBuildEvent>
+	</PropertyGroup>
+	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('macOS'))">
+		<PostBuildEvent>
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/SDL_shadercross/MacOSX/* $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/slang/MacOSX/* $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/cuttlefish/MacOSX/* $(SolutionDir)bin\
+		</PostBuildEvent>
+	</PropertyGroup>
+	<PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
+		<PostBuildEvent>
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net10.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/libStapleToolingSupport.[DLL] $(SolutionDir)bin\
+		</PostBuildEvent>
+	</PropertyGroup>
+</Project>

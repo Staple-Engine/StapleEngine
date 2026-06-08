@@ -1,0 +1,392 @@
+[
+  {
+    "kind": "Entity",
+    "name": "Camera",
+    "ID": 1,
+    "parent": 0,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.Camera",
+        "data": {
+          "viewMode": "Default",
+          "clearMode": "SolidColor",
+          "cameraType": "Orthographic",
+          "orthographicSize": 5.0,
+          "fov": 90.0,
+          "nearPlane": -1.0,
+          "farPlane": 1.0,
+          "viewport": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "depth": 0,
+          "clearColor": "#82A1FFFF",
+          "cullingLayers": 4294967295
+        }
+      },
+      {
+        "type": "Staple.AudioListener",
+        "data": {
+          "spatial": false
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": false,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  },
+  {
+    "kind": "Entity",
+    "name": "Opossum",
+    "ID": 2,
+    "parent": 0,
+    "transform": {
+      "position": {
+        "x": -1.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.SpriteRenderer",
+        "data": {
+          "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
+          "color": "#FFFFFFFF",
+          "flipX": false,
+          "flipY": false,
+          "animation": "2cb79246-de34-4a18-9bdb-87b3f1f0ef67",
+          "renderMode": "Normal",
+          "enabled": true,
+          "forceRenderingOff": false,
+          "receiveShadows": true,
+          "sortingLayer": 0,
+          "sortingOrder": 0,
+          "overrideLighting": false,
+          "lighting": "Unlit"
+        }
+      },
+      {
+        "type": "TestGame.HighlightableComponent",
+        "data": {}
+      },
+      {
+        "type": "Staple.BoxCollider3D",
+        "data": {
+          "size": {
+            "x": 2.25,
+            "y": 1.75,
+            "z": 1.0
+          },
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 0.0
+          }
+        }
+      },
+      {
+        "type": "Staple.AudioSource",
+        "data": {
+          "audioClip": "ecbb5503-f4eb-492a-82eb-8fd187d6b648",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false,
+          "spatial": false,
+          "autoplay": false
+        }
+      },
+      {
+        "type": "Staple.RigidBody3D",
+        "data": {
+          "motionType": "Dynamic",
+          "freezeRotationX": false,
+          "freezeRotationY": false,
+          "freezeRotationZ": true,
+          "is2DPlane": true,
+          "gravityFactor": 0.0,
+          "isTrigger": false,
+          "friction": 0.0,
+          "restitution": 0.0,
+          "mass": 1.0
+        }
+      },
+      {
+        "type": "TestGame.PlayerControlComponent",
+        "data": {
+          "speed": 5.0,
+          "is3D": false
+        }
+      },
+      {
+        "type": "Staple.EntityInput",
+        "data": {
+          "actions": "c610ff76-ab69-4723-95ac-66fcf8284ea4"
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  },
+  {
+    "kind": "Entity",
+    "name": "Cherry",
+    "ID": 3,
+    "parent": 0,
+    "transform": {
+      "position": {
+        "x": 1.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.SpriteRenderer",
+        "data": {
+          "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
+          "color": "#FFFFFFFF",
+          "flipX": false,
+          "flipY": false,
+          "animation": "a2b3fb16-c445-4e44-b3bc-e7db88ccc9c6",
+          "renderMode": "Normal",
+          "enabled": true,
+          "forceRenderingOff": false,
+          "receiveShadows": true,
+          "sortingLayer": 0,
+          "sortingOrder": 0,
+          "overrideLighting": false,
+          "lighting": "Unlit"
+        }
+      },
+      {
+        "type": "Staple.AudioSource",
+        "data": {
+          "audioClip": "ecbb5503-f4eb-492a-82eb-8fd187d6b648",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": false,
+          "spatial": false,
+          "autoplay": false
+        }
+      },
+      {
+        "type": "TestGame.HighlightableComponent",
+        "data": {}
+      },
+      {
+        "type": "Staple.BoxCollider3D",
+        "data": {
+          "size": {
+            "x": 1.3125,
+            "y": 1.3125,
+            "z": 1.0
+          },
+          "position": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "rotation": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0,
+            "w": 0.0
+          }
+        }
+      },
+      {
+        "type": "Staple.RigidBody3D",
+        "data": {
+          "motionType": "Static",
+          "freezeRotationX": false,
+          "freezeRotationY": false,
+          "freezeRotationZ": true,
+          "is2DPlane": true,
+          "gravityFactor": 0.0,
+          "isTrigger": false,
+          "friction": 0.0,
+          "restitution": 0.0,
+          "mass": 1.0
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  },
+  {
+    "kind": "Entity",
+    "name": "Camera",
+    "ID": 4,
+    "parent": 2,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.Camera",
+        "data": {
+          "viewMode": "Default",
+          "clearMode": "SolidColor",
+          "cameraType": "Orthographic",
+          "orthographicSize": 5.0,
+          "fov": 90.0,
+          "nearPlane": -1.0,
+          "farPlane": 1.0,
+          "viewport": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 1.0,
+            "w": 1.0
+          },
+          "depth": 0,
+          "clearColor": "#82A1FFFF",
+          "cullingLayers": 4294967295
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  },
+  {
+    "kind": "Entity",
+    "name": "Music",
+    "ID": 5,
+    "parent": 0,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.AudioSource",
+        "data": {
+          "audioClip": "8c5b5b75-b435-4352-be92-2d3c82f76239",
+          "volume": 1.0,
+          "pitch": 1.0,
+          "loop": true,
+          "spatial": false,
+          "autoplay": true
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  },
+  {
+    "kind": "Entity",
+    "name": "UI Canvas",
+    "ID": 6,
+    "parent": 0,
+    "transform": {
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "rotation": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      },
+      "scale": {
+        "x": 1.0,
+        "y": 1.0,
+        "z": 1.0
+      }
+    },
+    "components": [
+      {
+        "type": "Staple.UI.UICanvas",
+        "data": {
+          "layout": "2c39c7ad-d2d6-44fd-bcdd-d4a4a5517392"
+        }
+      }
+    ],
+    "layer": "Default",
+    "enabled": true,
+    "prefabGuid": null,
+    "prefabLocalID": 0
+  }
+]

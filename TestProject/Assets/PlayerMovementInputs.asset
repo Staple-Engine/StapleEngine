@@ -1,0 +1,318 @@
+{
+  "guid": "c610ff76-ab69-4723-95ac-66fcf8284ea4",
+  "typeName": "Staple.InputActions",
+  "parameters": {
+    "actions": {
+      "typeName": "System.Collections.Generic.List`1[Staple.InputAction]",
+      "value": [
+        {
+          "fields": {
+            "name": {
+              "typeName": "System.String",
+              "value": "Movement"
+            },
+            "type": {
+              "typeName": "Staple.InputActionType",
+              "value": "DualAxis"
+            },
+            "devices": {
+              "typeName": "System.Collections.Generic.List`1[Staple.InputAction+Device]",
+              "value": [
+                {
+                  "fields": {
+                    "device": {
+                      "typeName": "Staple.InputDevice",
+                      "value": "Keyboard"
+                    },
+                    "deviceIndex": {
+                      "typeName": "System.Int32",
+                      "value": 0
+                    },
+                    "keys": {
+                      "typeName": "Staple.InputAction+Keys",
+                      "value": {
+                        "fields": {
+                          "firstPositive": {
+                            "typeName": "Staple.KeyCode",
+                            "value": "D"
+                          },
+                          "firstNegative": {
+                            "typeName": "Staple.KeyCode",
+                            "value": "A"
+                          },
+                          "secondPositive": {
+                            "typeName": "Staple.KeyCode",
+                            "value": "W"
+                          },
+                          "secondNegative": {
+                            "typeName": "Staple.KeyCode",
+                            "value": "S"
+                          }
+                        },
+                        "typeName": "Staple.InputAction+Keys"
+                      }
+                    }
+                  },
+                  "typeName": "Staple.InputAction+Device"
+                },
+                {
+                  "fields": {
+                    "device": {
+                      "typeName": "Staple.InputDevice",
+                      "value": "Gamepad"
+                    },
+                    "deviceIndex": {
+                      "typeName": "System.Int32",
+                      "value": 0
+                    },
+                    "gamepad": {
+                      "typeName": "Staple.InputAction+Gamepad",
+                      "value": {
+                        "fields": {
+                          "button": {
+                            "typeName": "Staple.GamepadButton",
+                            "value": "A"
+                          },
+                          "firstAxis": {
+                            "typeName": "Staple.GamepadAxis",
+                            "value": "LeftX"
+                          },
+                          "secondAxis": {
+                            "typeName": "Staple.GamepadAxis",
+                            "value": "LeftY"
+                          }
+                        },
+                        "typeName": "Staple.InputAction+Gamepad"
+                      }
+                    }
+                  },
+                  "typeName": "Staple.InputAction+Device"
+                },
+                {
+                  "fields": {
+                    "device": {
+                      "typeName": "Staple.InputDevice",
+                      "value": "Touch"
+                    },
+                    "deviceIndex": {
+                      "typeName": "System.Int32",
+                      "value": 0
+                    },
+                    "touch": {
+                      "typeName": "Staple.InputAction+Touch",
+                      "value": {
+                        "fields": {
+                          "affectedArea": {
+                            "typeName": "Staple.RectFloat",
+                            "value": {
+                              "x": 0.0,
+                              "y": 0.0,
+                              "z": 1.0,
+                              "w": 1.0
+                            }
+                          },
+                          "horizontal": {
+                            "typeName": "System.Boolean",
+                            "value": true
+                          },
+                          "vertical": {
+                            "typeName": "System.Boolean",
+                            "value": true
+                          }
+                        },
+                        "typeName": "Staple.InputAction+Touch"
+                      }
+                    }
+                  },
+                  "typeName": "Staple.InputAction+Device"
+                }
+              ]
+            }
+          },
+          "typeName": "Staple.InputAction"
+        },
+        {
+          "fields": {
+            "name": {
+              "typeName": "System.String",
+              "value": "Press"
+            },
+            "type": {
+              "typeName": "Staple.InputActionType",
+              "value": "Press"
+            },
+            "devices": {
+              "typeName": "System.Collections.Generic.List`1[Staple.InputAction+Device]",
+              "value": [
+                {
+                  "fields": {
+                    "device": {
+                      "typeName": "Staple.InputDevice",
+                      "value": "Mouse"
+                    },
+                    "deviceIndex": {
+                      "typeName": "System.Int32",
+                      "value": 0
+                    },
+                    "mouse": {
+                      "typeName": "Staple.InputAction+Mouse",
+                      "value": {
+                        "fields": {
+                          "button": {
+                            "typeName": "Staple.MouseButton",
+                            "value": "Button1"
+                          },
+                          "scroll": {
+                            "typeName": "System.Boolean",
+                            "value": false
+                          },
+                          "horizontal": {
+                            "typeName": "System.Boolean",
+                            "value": false
+                          },
+                          "vertical": {
+                            "typeName": "System.Boolean",
+                            "value": false
+                          }
+                        },
+                        "typeName": "Staple.InputAction+Mouse"
+                      }
+                    }
+                  },
+                  "typeName": "Staple.InputAction+Device"
+                },
+                {
+                  "fields": {
+                    "device": {
+                      "typeName": "Staple.InputDevice",
+                      "value": "Touch"
+                    },
+                    "deviceIndex": {
+                      "typeName": "System.Int32",
+                      "value": 0
+                    },
+                    "touch": {
+                      "typeName": "Staple.InputAction+Touch",
+                      "value": {
+                        "fields": {
+                          "affectedArea": {
+                            "typeName": "Staple.RectFloat",
+                            "value": {
+                              "x": 0.0,
+                              "y": 0.0,
+                              "z": 0.0,
+                              "w": 0.0
+                            }
+                          },
+                          "horizontal": {
+                            "typeName": "System.Boolean",
+                            "value": false
+                          },
+                          "vertical": {
+                            "typeName": "System.Boolean",
+                            "value": false
+                          }
+                        },
+                        "typeName": "Staple.InputAction+Touch"
+                      }
+                    }
+                  },
+                  "typeName": "Staple.InputAction+Device"
+                }
+              ]
+            }
+          },
+          "typeName": "Staple.InputAction"
+        },
+        {
+          "fields": {
+            "name": {
+              "typeName": "System.String",
+              "value": "Rotation"
+            },
+            "type": {
+              "typeName": "Staple.InputActionType",
+              "value": "DualAxis"
+            },
+            "devices": {
+              "typeName": "System.Collections.Generic.List`1[Staple.InputAction+Device]",
+              "value": [
+                {
+                  "fields": {
+                    "device": {
+                      "typeName": "Staple.InputDevice",
+                      "value": "Mouse"
+                    },
+                    "deviceIndex": {
+                      "typeName": "System.Int32",
+                      "value": 0
+                    },
+                    "mouse": {
+                      "typeName": "Staple.InputAction+Mouse",
+                      "value": {
+                        "fields": {
+                          "button": {
+                            "typeName": "Staple.MouseButton",
+                            "value": "Button1"
+                          },
+                          "scroll": {
+                            "typeName": "System.Boolean",
+                            "value": false
+                          },
+                          "horizontal": {
+                            "typeName": "System.Boolean",
+                            "value": true
+                          },
+                          "vertical": {
+                            "typeName": "System.Boolean",
+                            "value": true
+                          }
+                        },
+                        "typeName": "Staple.InputAction+Mouse"
+                      }
+                    }
+                  },
+                  "typeName": "Staple.InputAction+Device"
+                },
+                {
+                  "fields": {
+                    "device": {
+                      "typeName": "Staple.InputDevice",
+                      "value": "Gamepad"
+                    },
+                    "deviceIndex": {
+                      "typeName": "System.Int32",
+                      "value": 0
+                    },
+                    "gamepad": {
+                      "typeName": "Staple.InputAction+Gamepad",
+                      "value": {
+                        "fields": {
+                          "button": {
+                            "typeName": "Staple.GamepadButton",
+                            "value": "A"
+                          },
+                          "firstAxis": {
+                            "typeName": "Staple.GamepadAxis",
+                            "value": "RightX"
+                          },
+                          "secondAxis": {
+                            "typeName": "Staple.GamepadAxis",
+                            "value": "RightY"
+                          }
+                        },
+                        "typeName": "Staple.InputAction+Gamepad"
+                      }
+                    }
+                  },
+                  "typeName": "Staple.InputAction+Device"
+                }
+              ]
+            }
+          },
+          "typeName": "Staple.InputAction"
+        }
+      ]
+    }
+  }
+}

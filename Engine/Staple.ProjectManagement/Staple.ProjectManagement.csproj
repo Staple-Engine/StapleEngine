@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<Reference Include="Newtonsoft.Json">
+		<HintPath>..\..\Dependencies\JsonNet\Newtonsoft.Json.dll</HintPath>
+	</Reference>
+	<PackageReference Include="Microsoft.Build" Version="17.14.28" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Staple.Core\Staple.Core.csproj" />
+    <ProjectReference Include="..\Staple.PackageManagement\Staple.PackageManagement.csproj" />
+  </ItemGroup>
+
+</Project>

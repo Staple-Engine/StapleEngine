@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set -e
+
+premake5 --os=macosx xcode4
+premake5 --os=macosx --file=NativeFileDialog/build/premake5.lua xcode4
+
+cmake -B build/native/freetype/Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=true -S freetype -G "Xcode"
+
+cmake -B build/native/freetype/Release -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=true -S freetype -G "Xcode"
+
+mkdir -p build/native/bin/Debug
+
+mkdir -p build/native/bin/Release
+
+cd build/native/freetype/Debug
+
+xcodebuild -scheme freetype -configuration Release build -project freetype.xcodeproj
+
+cp Release/*.dylib ../../bin/Debug
+
+cd ../Release
+
+xcodebuild -scheme freetype -configuration Release build -project freetype.xcodeproj
+
+cp Release/*.dylib ../../bin/Release
+
+cd ../../
+
+xcodebuild -scheme StapleSupport -configuration Debug build -workspace Dependencies.xcworkspace
+xcodebuild -scheme StapleSupport -configuration Release build -workspace Dependencies.xcworkspace
+
+xcodebuild -scheme StapleToolingSupport -configuration Debug build -workspace Dependencies.xcworkspace
+xcodebuild -scheme StapleToolingSupport -configuration Release build -workspace Dependencies.xcworkspace
+
+cd ../dotnet
+
+dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net10.0
+dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net10.0

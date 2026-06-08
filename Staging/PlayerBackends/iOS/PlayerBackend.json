@@ -1,0 +1,13 @@
+{
+	"name": "iOS",
+	"platform": "iOS",
+	"redistOutput": ".",
+	"dataDir": ".",
+	"platformRuntime": "ios-arm64",
+	"framework": "net10.0-ios",
+	"publish": false,
+	"dataDirIsOutput": false,
+	"renderers": [
+		"Metal"
+	]
+}

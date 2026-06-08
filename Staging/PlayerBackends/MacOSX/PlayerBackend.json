@@ -1,0 +1,13 @@
+{
+	"name": "MacOSX",
+	"platform": "MacOSX",
+	"redistOutput": ".",
+	"dataDir": "Data",
+	"platformRuntime": "osx-arm64",
+	"framework": "net10.0",
+	"publish": true,
+	"dataDirIsOutput": true,
+	"renderers": [
+		"Metal"
+	]
+}

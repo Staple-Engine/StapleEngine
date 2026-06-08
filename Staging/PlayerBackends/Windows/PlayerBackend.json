@@ -1,0 +1,15 @@
+{
+	"name": "Windows",
+	"platform": "Windows",
+	"redistOutput": ".",
+	"dataDir": "Data",
+	"platformRuntime": "win-x64",
+	"framework": "net10.0",
+	"publish": true,
+	"dataDirIsOutput": true,
+	"appIconExtension": "ico",
+	"renderers": [
+		"Direct3D12",
+		"Vulkan"
+	]
+}

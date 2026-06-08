@@ -1,0 +1,28 @@
+{
+  "guid": "a2b3fb16-c445-4e44-b3bc-e7db88ccc9c6",
+  "typeName": "Staple.SpriteAnimation",
+  "parameters": {
+    "texture": {
+      "typeName": "Staple.Texture",
+      "value": "9b7be2ee-9523-4aee-8008-274c86673226"
+    },
+    "frameRate": {
+      "typeName": "System.Int32",
+      "value": 4
+    },
+    "frameRateIsMilliseconds": {
+      "typeName": "System.Boolean",
+      "value": false
+    },
+    "frames": {
+      "typeName": "System.Collections.Generic.List`1[System.Int32]",
+      "value": [
+        0,
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  }
+}

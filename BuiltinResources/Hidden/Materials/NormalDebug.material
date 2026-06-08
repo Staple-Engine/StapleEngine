@@ -1,0 +1,21 @@
+{
+  "shader": "f03985dc-9b6d-48c5-a696-4ea0446b0bba",
+  "parameters": {
+    "mainColor": {
+      "type": "Color",
+      "colorValue": {
+        "r": 255,
+        "g": 255,
+        "b": 255,
+        "a": 255,
+        "HexValue": "FFFFFFFF"
+      }
+    },
+    "mainTexture": {
+      "type": "Texture",
+      "textureValue": "fe19196d-0c54-413a-a0fd-6ef91124007a"
+    }
+  },
+  "enabledShaderVariants": [],
+  "cullingMode": "Back"
+}

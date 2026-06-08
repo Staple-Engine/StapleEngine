@@ -1,0 +1,31 @@
+{
+	"data": {
+		"Main": {
+			"FPS": {
+				"control": "UIFPSCounter",
+				"wide": "200",
+				"tall": "40",
+				"properties": {
+					"textColor": "#FFFFFF",
+					"secondaryTextColor": "#FFFFFF",
+					"fontSize": 30,
+					"borderSize": 2,
+					"borderColor": "#000000"
+				}
+			},
+			"Stats": {
+				"control": "UIRenderStats",
+				"wide": "600",
+				"tall": "100",
+				"y": "50",
+				"properties": {
+					"textColor": "#FFFFFF",
+					"secondaryTextColor": "#FFFFFF",
+					"fontSize": 20,
+					"borderSize": 2,
+					"borderColor": "#000000"
+				}
+			}
+		}
+	}
+}

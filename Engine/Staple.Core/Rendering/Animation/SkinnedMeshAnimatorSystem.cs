@@ -1,0 +1,114 @@
+﻿using System;
+
+namespace Staple.Internal;
+
+/// <summary>
+/// Skinned mesh animator system.
+/// Animates skinned meshes.
+/// </summary>
+public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
+{
+    public bool UsesOwnRenderProcess => false;
+
+    public Type RelatedComponent => typeof(SkinnedMeshAnimator);
+
+    #region Lifecycle
+    public void Startup()
+    {
+    }
+
+    public void Shutdown()
+    {
+    }
+
+    public void Prepare()
+    {
+    }
+
+    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    {
+    }
+
+    public void Submit()
+    {
+    }
+    #endregion
+
+    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    {
+        foreach (var entry in renderQueue)
+        {
+            var animator = entry.component as SkinnedMeshAnimator;
+
+            if (animator.mesh == null ||
+                animator.mesh.meshAsset == null ||
+                animator.mesh.meshAssetIndex < 0 ||
+                animator.mesh.meshAssetIndex >= animator.mesh.meshAsset.animations.Count ||
+                (animator.animation?.Length ?? 0) == 0 ||
+                !animator.mesh.meshAsset.animations.ContainsKey(animator.animation))
+            {
+                return;
+            }
+
+            if (animator.nodeCache.Length == 0 && animator.transformCache.Length == 0)
+            {
+                animator.transformCache = new Transform[animator.mesh.meshAsset.nodes.Length];
+
+                SkinnedMeshRenderSystem.GatherNodeTransforms(entry.transform, animator.transformCache, animator.mesh.meshAsset.nodes);
+            }
+
+            if (Platform.IsPlaying)
+            {
+                if (animator.stateMachine != null && animator.animationController == null)
+                {
+                    animator.animationController = new(animator);
+                }
+            }
+
+            if (Platform.IsPlaying || animator.playInEditMode)
+            {
+                if ((animator.evaluator == null ||
+                    animator.evaluator.animation.name != animator.animation) &&
+                    animator.animation != null)
+                {
+                    if(animator.mesh.meshAsset.animations.TryGetValue(animator.animation, out var animation))
+                    {
+                        animator.evaluator = new(animator.mesh.meshAsset, animation,
+                            animator.mesh.meshAsset.CloneNodes(),
+                            animator);
+
+                        animator.nodeCache = animator.evaluator.nodes;
+
+                        animator.playTime = 0;
+                    }
+                }
+
+                if(animator.evaluator?.Evaluate() ?? false)
+                {
+                    animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
+
+                    foreach(var (t, modifier) in animator.modifiers.Contents)
+                    {
+                        modifier.Apply(t, true);
+                    }
+                }
+            }
+            else if (!animator.playInEditMode)
+            {
+                if (animator.evaluator != null)
+                {
+                    SkinnedMeshRenderSystem.ApplyNodeTransform(animator.nodeCache, animator.transformCache, true);
+
+                    animator.evaluator = null;
+
+                    animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
+
+                    foreach (var (t, modifier) in animator.modifiers.Contents)
+                    {
+                        modifier.Apply(t, true);
+                    }
+                }
+            }
+        }
+    }
+}

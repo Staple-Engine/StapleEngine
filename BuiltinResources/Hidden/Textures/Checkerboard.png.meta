@@ -1,0 +1,27 @@
+{
+	"guid": "733c9e77-360a-4c9d-939d-04a567aad831",
+	"typeName": "Staple.Texture",
+	"type": "Texture",
+	"useMipmaps": true,
+	"quality": "Default",
+	"isLinear": true,
+	"premultiplyAlpha": false,
+	"maxSize": 2048,
+	"format": "BC1",
+	"wrapU": "Clamp",
+	"wrapV": "Clamp",
+	"filter": "Linear",
+	"padding": 0,
+	"shouldPack": false,
+	"spriteTextureMethod": "Single",
+	"overrides": {
+		"iOS": {
+			"shouldOverride": true,
+			"format": "ASTC4x4"
+		},
+		"Android": {
+			"shouldOverride": true,
+			"format": "ASTC4x4"
+		}
+	}
+}

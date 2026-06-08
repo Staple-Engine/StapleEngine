@@ -1,0 +1,65 @@
+{
+  "guid": "49778601-b1dc-4d85-8bd4-5275e5d12a07",
+  "type": "Sprite",
+  "format": "RGBA8",
+  "quality": "Default",
+  "filter": "Point",
+  "wrapU": "Clamp",
+  "wrapV": "Clamp",
+  "wrapW": "Clamp",
+  "premultiplyAlpha": true,
+  "maxSize": 2048,
+  "useMipmaps": false,
+  "isLinear": false,
+  "spritePixelsPerUnit": 100,
+  "readBack": false,
+  "spriteTextureMethod": "Single",
+  "spriteTextureGridSize": {
+    "X": 0,
+    "Y": 0
+  },
+  "sprites": [
+    {
+      "rect": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      },
+      "rotation": "None",
+      "originalRect": {
+        "left": 0,
+        "right": 0,
+        "top": 0,
+        "bottom": 0
+      }
+    }
+  ],
+  "shouldPack": false,
+  "padding": 0,
+  "trimDuplicates": false,
+  "overrides": {
+    "iOS": {
+      "shouldOverride": true,
+      "format": "ASTC4x4",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": false
+    },
+    "Android": {
+      "shouldOverride": true,
+      "format": "ASTC4x4",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": false
+    },
+    "Windows": {
+      "shouldOverride": false,
+      "format": "RGBA8",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": false
+    }
+  },
+  "typeName": "Staple.Texture"
+}
