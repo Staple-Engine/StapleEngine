@@ -21,3 +21,4 @@ TestProject/*.sln
 .idea
 Dependencies/cuttlefish
 Dependencies/slang
+Dependencies/SDL_shadercross

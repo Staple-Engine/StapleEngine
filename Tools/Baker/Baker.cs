@@ -32,10 +32,10 @@ static partial class Program
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return "slangc.exe";
+                return "slang/bin/slangc.exe";
             }
 
-            return "slangc";
+            return "slang/bin/slangc";
         }
     }
 
