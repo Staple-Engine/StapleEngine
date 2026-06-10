@@ -1,0 +1,323 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Release;Debug</Configurations>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <IntermediateOutputPath>obj\Release\MessagePack\</IntermediateOutputPath>
+    <DefineConstants>NDEBUG;ENABLE_IL2CPP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <IntermediateOutputPath>obj\Debug\MessagePack\</IntermediateOutputPath>
+    <DefineConstants>_DEBUG;ENABLE_IL2CPP</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\MessagePack\Annotations\Attributes.cs">
+      <Link>MessagePack\Annotations\Attributes.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Annotations\IMessagePackSerializationCallbackReceiver.cs">
+      <Link>MessagePack\Annotations\IMessagePackSerializationCallbackReceiver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\BitOperations.cs">
+      <Link>MessagePack\BitOperations.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\BufferWriter.cs">
+      <Link>MessagePack\BufferWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\ExtensionHeader.cs">
+      <Link>MessagePack\ExtensionHeader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\ExtensionResult.cs">
+      <Link>MessagePack\ExtensionResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\CollectionFormatter.cs">
+      <Link>MessagePack\Formatters\CollectionFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\CollectionHelpers`2.cs">
+      <Link>MessagePack\Formatters\CollectionHelpers`2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\DateTimeFormatters.cs">
+      <Link>MessagePack\Formatters\DateTimeFormatters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\DictionaryFormatter.cs">
+      <Link>MessagePack\Formatters\DictionaryFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\DynamicObjectTypeFallbackFormatter.cs">
+      <Link>MessagePack\Formatters\DynamicObjectTypeFallbackFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\EnumAsStringFormatter`1.cs">
+      <Link>MessagePack\Formatters\EnumAsStringFormatter`1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\ExpandoObjectFormatter.cs">
+      <Link>MessagePack\Formatters\ExpandoObjectFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\GenericEnumFormatter`1.cs">
+      <Link>MessagePack\Formatters\GenericEnumFormatter`1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\IMessagePackFormatter`1.cs">
+      <Link>MessagePack\Formatters\IMessagePackFormatter`1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\IgnoreFormatter`1.cs">
+      <Link>MessagePack\Formatters\IgnoreFormatter`1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\MultiDimensionalArrayFormatter.cs">
+      <Link>MessagePack\Formatters\MultiDimensionalArrayFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\NilFormatter.cs">
+      <Link>MessagePack\Formatters\NilFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\NullableFormatter.cs">
+      <Link>MessagePack\Formatters\NullableFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\PrimitiveObjectFormatter.cs">
+      <Link>MessagePack\Formatters\PrimitiveObjectFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\StandardClassLibraryFormatter.cs">
+      <Link>MessagePack\Formatters\StandardClassLibraryFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\TypelessFormatter.cs">
+      <Link>MessagePack\Formatters\TypelessFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Formatters\UnsafeBinaryFormatters.cs">
+      <Link>MessagePack\Formatters\UnsafeBinaryFormatters.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\HashCode.cs">
+      <Link>MessagePack\HashCode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\IFormatterResolver.cs">
+      <Link>MessagePack\IFormatterResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\AsymmetricKeyHashTable.cs">
+      <Link>MessagePack\Internal\AsymmetricKeyHashTable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\AutomataDictionary.cs">
+      <Link>MessagePack\Internal\AutomataDictionary.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\ByteArrayStringHashTable.cs">
+      <Link>MessagePack\Internal\ByteArrayStringHashTable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\CodeGenHelpers.cs">
+      <Link>MessagePack\Internal\CodeGenHelpers.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\DateTimeConstants.cs">
+      <Link>MessagePack\Internal\DateTimeConstants.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\DynamicAssembly.cs">
+      <Link>MessagePack\Internal\DynamicAssembly.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\ExpressionUtility.cs">
+      <Link>MessagePack\Internal\ExpressionUtility.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\FarmHash.cs">
+      <Link>MessagePack\Internal\FarmHash.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\GuidBits.cs">
+      <Link>MessagePack\Internal\GuidBits.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\ILGeneratorExtensions.cs">
+      <Link>MessagePack\Internal\ILGeneratorExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\ReflectionExtensions.cs">
+      <Link>MessagePack\Internal\ReflectionExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\RuntimeTypeHandleEqualityComparer.cs">
+      <Link>MessagePack\Internal\RuntimeTypeHandleEqualityComparer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\Sequence`1.cs">
+      <Link>MessagePack\Internal\Sequence`1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\ThreadsafeTypeKeyHashTable.cs">
+      <Link>MessagePack\Internal\ThreadsafeTypeKeyHashTable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\TinyJsonReader.cs">
+      <Link>MessagePack\Internal\TinyJsonReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Internal\UnsafeMemory.Low.cs">
+      <Link>MessagePack\Internal\UnsafeMemory.Low.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\LZ4\LZ4Codec.Helper.cs">
+      <Link>MessagePack\LZ4\LZ4Codec.Helper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\LZ4\LZ4Codec.Safe.cs">
+      <Link>MessagePack\LZ4\LZ4Codec.Safe.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\LZ4\LZ4Codec.Safe32.Dirty.cs">
+      <Link>MessagePack\LZ4\LZ4Codec.Safe32.Dirty.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\LZ4\LZ4Codec.Safe64.Dirty.cs">
+      <Link>MessagePack\LZ4\LZ4Codec.Safe64.Dirty.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\LZ4\LZ4Codec.Unsafe.cs">
+      <Link>MessagePack\LZ4\LZ4Codec.Unsafe.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\LZ4\LZ4Codec.Unsafe32.Dirty.cs">
+      <Link>MessagePack\LZ4\LZ4Codec.Unsafe32.Dirty.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\LZ4\LZ4Codec.Unsafe64.Dirty.cs">
+      <Link>MessagePack\LZ4\LZ4Codec.Unsafe64.Dirty.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\LZ4\LZ4Codec.cs">
+      <Link>MessagePack\LZ4\LZ4Codec.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackCode.cs">
+      <Link>MessagePack\MessagePackCode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackCompression.cs">
+      <Link>MessagePack\MessagePackCompression.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackReader.cs">
+      <Link>MessagePack\MessagePackReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackSecurity.cs">
+      <Link>MessagePack\MessagePackSecurity.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackSerializationException.cs">
+      <Link>MessagePack\MessagePackSerializationException.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackSerializer.Json.cs">
+      <Link>MessagePack\MessagePackSerializer.Json.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackSerializer.NonGeneric.cs">
+      <Link>MessagePack\MessagePackSerializer.NonGeneric.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackSerializer.cs">
+      <Link>MessagePack\MessagePackSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackSerializerOptions.cs">
+      <Link>MessagePack\MessagePackSerializerOptions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackStreamReader.cs">
+      <Link>MessagePack\MessagePackStreamReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MessagePackWriter.cs">
+      <Link>MessagePack\MessagePackWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\MonoProtection.cs">
+      <Link>MessagePack\MonoProtection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Nil.cs">
+      <Link>MessagePack\Nil.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\AttributeFormatterResolver.cs">
+      <Link>MessagePack\Resolvers\AttributeFormatterResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\BuiltinResolver.cs">
+      <Link>MessagePack\Resolvers\BuiltinResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\CachingFormatterResolver.cs">
+      <Link>MessagePack\Resolvers\CachingFormatterResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\CompositeResolver.cs">
+      <Link>MessagePack\Resolvers\CompositeResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\ContractlessReflectionObjectResolver.cs">
+      <Link>MessagePack\Resolvers\ContractlessReflectionObjectResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\DynamicEnumAsStringResolver.cs">
+      <Link>MessagePack\Resolvers\DynamicEnumAsStringResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\DynamicEnumResolver.cs">
+      <Link>MessagePack\Resolvers\DynamicEnumResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\DynamicGenericResolver.cs">
+      <Link>MessagePack\Resolvers\DynamicGenericResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\DynamicObjectResolver.cs">
+      <Link>MessagePack\Resolvers\DynamicObjectResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\DynamicUnionResolver.cs">
+      <Link>MessagePack\Resolvers\DynamicUnionResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\ExpandoObjectResolver.cs">
+      <Link>MessagePack\Resolvers\ExpandoObjectResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\NativeDateTimeResolver.cs">
+      <Link>MessagePack\Resolvers\NativeDateTimeResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\NativeDecimalResolver.cs">
+      <Link>MessagePack\Resolvers\NativeDecimalResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\NativeGuidResolver.cs">
+      <Link>MessagePack\Resolvers\NativeGuidResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\PrimitiveObjectResolver.cs">
+      <Link>MessagePack\Resolvers\PrimitiveObjectResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\StandardResolver.cs">
+      <Link>MessagePack\Resolvers\StandardResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\StaticCompositeResolver.cs">
+      <Link>MessagePack\Resolvers\StaticCompositeResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\TypelessContractlessStandardResolver.cs">
+      <Link>MessagePack\Resolvers\TypelessContractlessStandardResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Resolvers\TypelessObjectResolver.cs">
+      <Link>MessagePack\Resolvers\TypelessObjectResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\SafeBitConverter.cs">
+      <Link>MessagePack\SafeBitConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\SequencePool.cs">
+      <Link>MessagePack\SequencePool.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\SequenceReader.cs">
+      <Link>MessagePack\SequenceReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\SequenceReaderExtensions.cs">
+      <Link>MessagePack\SequenceReaderExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\StreamPolyfillExtensions.cs">
+      <Link>MessagePack\StreamPolyfillExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\StringEncoding.cs">
+      <Link>MessagePack\StringEncoding.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\T4\ForceSizePrimitiveFormatter.cs">
+      <Link>MessagePack\T4\ForceSizePrimitiveFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\T4\MessagePackReader.Integers.cs">
+      <Link>MessagePack\T4\MessagePackReader.Integers.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\T4\PrimitiveFormatter.cs">
+      <Link>MessagePack\T4\PrimitiveFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\T4\TupleFormatter.cs">
+      <Link>MessagePack\T4\TupleFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\T4\UnsafeMemory.cs">
+      <Link>MessagePack\T4\UnsafeMemory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\T4\ValueTupleFormatter.cs">
+      <Link>MessagePack\T4\ValueTupleFormatter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\ThisLibraryExtensionTypeCodes.cs">
+      <Link>MessagePack\ThisLibraryExtensionTypeCodes.cs</Link>
+    </Compile>
+    <Compile Include="..\..\MessagePack\Utilities.cs">
+      <Link>MessagePack\Utilities.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

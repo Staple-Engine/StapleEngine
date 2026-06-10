@@ -1,0 +1,2093 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Release;Debug</Configurations>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <IntermediateOutputPath>obj\Release\OggVorbisEncoder\</IntermediateOutputPath>
+    <DefineConstants>NDEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <IntermediateOutputPath>obj\Debug\OggVorbisEncoder\</IntermediateOutputPath>
+    <DefineConstants>_DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\ArrayExtensions.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\ArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Block.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Block.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\CodecSetup.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\CodecSetup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Comments.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Comments.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\EncodeBuffer.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\EncodeBuffer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\EncodeSetup.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\EncodeSetup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Encoding.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Encoding.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\FloatExtensions.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\FloatExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\HeaderPacketBuilder.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\HeaderPacketBuilder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\LookupCollection.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\LookupCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\Delta.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\Delta.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\DrftLookup.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\DrftLookup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\EnvelopeBand.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\EnvelopeBand.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\EnvelopeFilterState.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\EnvelopeFilterState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\EnvelopeLookup.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\EnvelopeLookup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\FloorLookup.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\FloorLookup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\MdctLookup.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\MdctLookup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\PsyGlobalLookup.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\PsyGlobalLookup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\PsyLookup.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\PsyLookup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\ResidueLookup.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Lookups\ResidueLookup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\MathExtensions.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\MathExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\OffsetMemory.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\OffsetMemory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\OggPacket.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\OggPacket.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\OggPage.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\OggPage.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\OggStream.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\OggStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\ProcessingState.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\ProcessingState.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\AdjBlock.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\AdjBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\AdjStereo.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\AdjStereo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Att3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Att3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\CodeBook.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\CodeBook.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\CodeBookMapType.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\CodeBookMapType.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\CompandBlock.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\CompandBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Floor.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Floor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\IMappingTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\IMappingTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\IResidueTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\IResidueTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\ISetupTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\ISetupTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\IStaticBookBlock.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\IStaticBookBlock.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\IStaticCodeBook.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\IStaticCodeBook.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Mapping.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Mapping.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\MappingTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\MappingTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Mode.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Mode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Noise3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Noise3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\NoiseGuard.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\NoiseGuard.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\PsyGlobal.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\PsyGlobal.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\PsyInfo.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\PsyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Residue.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Residue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\ResidueLimitType.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\ResidueLimitType.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\ResidueTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\ResidueTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\ResidueType.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\ResidueType.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Blocks.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Blocks.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Chapter0Single.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Chapter0Single.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter0\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Chapter1Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Chapter1Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Chapter1Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Chapter1Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter1\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Chapter2Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Chapter2Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Chapter2Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Chapter2Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page5_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page5_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Coupled\Chapter2\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Blocks.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Blocks.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Chapter0Single.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Chapter0Single.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page7_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter0\Page7_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Chapter1Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Chapter1Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Chapter1Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Chapter1Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter1\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Chapter2Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Chapter2Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Chapter2Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Chapter2Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page5_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page5_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo16\Uncoupled\Chapter2\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Blocks.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Blocks.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Chapter0Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Chapter0Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Chapter0Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Chapter0Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page8_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter0\Page8_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Chapter1Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Chapter1Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Chapter1Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Chapter1Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page8_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter1\Page8_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Chapter2Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Chapter2Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Chapter2Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Chapter2Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter2\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Chapter3Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Chapter3Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Chapter3Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Chapter3Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter3\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Chapter4Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Chapter4Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Chapter4Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Chapter4Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter4\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Chapter5Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Chapter5Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Chapter5Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Chapter5Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter5\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Chapter6Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Chapter6Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Chapter6Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Chapter6Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page5_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page5_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter6\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Chapter7Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Chapter7Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Chapter7Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Chapter7Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page5_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page5_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter7\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Chapter8Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Chapter8Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Chapter8Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Chapter8Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page5_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page5_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter8\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Chapter9Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Chapter9Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Chapter9Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Chapter9Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page5_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page5_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\Chapter9\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\ChapterNeg1Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\ChapterNeg1Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\ChapterNeg1Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\ChapterNeg1Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page8_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ChapterNeg1\Page8_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\ManagedChapter0Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\ManagedChapter0Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\ManagedChapter0Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\ManagedChapter0Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page8_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter0\Page8_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\ManagedChapter1Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\ManagedChapter1Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\ManagedChapter1Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\ManagedChapter1Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page8_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapter1\Page8_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\ManagedChapterNeg1Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\ManagedChapterNeg1Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\ManagedChapterNeg1Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\ManagedChapterNeg1Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page8_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Coupled\ManagedChapterNeg1\Page8_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Blocks.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Blocks.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Chapter0Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Chapter0Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Chapter0Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Chapter0Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page7_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter0\Page7_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Chapter1Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Chapter1Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Chapter1Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Chapter1Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page7_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter1\Page7_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Chapter2Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Chapter2Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Chapter2Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Chapter2Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page7_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter2\Page7_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Chapter3Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Chapter3Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Chapter3Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Chapter3Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page7_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter3\Page7_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Chapter4Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Chapter4Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Chapter4Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Chapter4Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page7_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter4\Page7_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Chapter5Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Chapter5Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Chapter5Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Chapter5Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter5\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Chapter6Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Chapter6Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Chapter6Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Chapter6Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter6\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Chapter7Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Chapter7Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Chapter7Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Chapter7Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter7\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Chapter8Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Chapter8Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Chapter8Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Chapter8Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page5_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page5_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter8\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Chapter9Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Chapter9Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Chapter9Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Chapter9Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page5_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page5_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\Chapter9\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\ChapterNeg1Long.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\ChapterNeg1Long.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\ChapterNeg1Short.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\ChapterNeg1Short.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page7_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo44\Uncoupled\ChapterNeg1\Page7_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Blocks.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Blocks.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Chapter0Single.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Chapter0Single.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter0\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Chapter1Single.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Chapter1Single.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Coupled\Chapter1\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Blocks.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Blocks.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Chapter0Single.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Chapter0Single.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page6_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page6_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page7_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter0\Page7_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Chapter1Single.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Chapter1Single.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page1_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page1_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page2_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page2_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page3_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page3_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page4_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page4_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page5_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page5_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page6_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page6_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page7_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page7_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page7_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page7_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page8_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page8_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page8_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page8_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page9_0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page9_0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page9_1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page9_1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page9_2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\BookBlocks\Stereo8\Uncoupled\Chapter1\Page9_2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27Class1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27Class1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27Class2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27Class2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27Class3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27Class3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27Class4.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27Class4.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_0Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_0Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_1Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_1Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_1Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_1Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_2Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_2Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_2Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_2Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_3Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_3Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_3Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_3Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_3Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_3Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_4Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_4Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_4Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_4Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_4Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line1024X27_4Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11Class1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11Class1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11Class2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11Class2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11Class3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11Class3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_0Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_0Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_1Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_1Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_1Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_1Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_2Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_2Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_2Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_2Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_2Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_2Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_3Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_3Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_3Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_3Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_3Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X11_3Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17Class1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17Class1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17Class2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17Class2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17Class3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17Class3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_0Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_0Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_1Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_1Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_1Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_1Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_2Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_2Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_2Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_2Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_2Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_2Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_3Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_3Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_3Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_3Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_3Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X17_3Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X4Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X4Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X4Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X4Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X4Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X4Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X4Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X4Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7Class0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7Class0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7Class1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7Class1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_0Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_0Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_0Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_0Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_0Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_0Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_1Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_1Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_1Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_1Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_1Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128X7_1Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128x4Class0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line128x4Class0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27Class1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27Class1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27Class2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27Class2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27Class3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27Class3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27Class4.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27Class4.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_0Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_0Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_1Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_1Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_1Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_1Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_2Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_2Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_2Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_2Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_3Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_3Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_3Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_3Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_3Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_3Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_4Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_4Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_4Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_4Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_4Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line2048X27_4Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4Class0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4Class0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4LowClass0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4LowClass0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4LowSub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4LowSub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4LowSub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4LowSub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4LowSub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4LowSub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4LowSub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4LowSub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X4Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7Class0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7Class0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7Class1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7Class1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_0Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_0Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_0Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_0Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_0Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_0Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_1Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_1Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_1Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_1Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_1Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line256X7_1Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17Class1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17Class1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17Class2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17Class2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17Class3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17Class3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_0Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_0Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_1Sub0.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_1Sub0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_1Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_1Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_2Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_2Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_2Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_2Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_2Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_2Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_3Sub1.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_3Sub1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_3Sub2.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_3Sub2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_3Sub3.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\FloorBooks\Line512X17_3Sub3.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psy.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psy.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy11.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy11.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy16.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy16.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy22.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy22.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy32.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy32.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy44.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy44.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy8.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\Psy8.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\PsyX.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Psyche\PsyX.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Residue\Residue16.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Residue\Residue16.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Residue\Residue44_Coupled.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Residue\Residue44_Coupled.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Residue\Residue44_Uncoupled.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Residue\Residue44_Uncoupled.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Residue\Residue8.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Residue\Residue8.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Residue\Shared.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Residue\Shared.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\SharedFloors.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\SharedFloors.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo11SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo11SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo16SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo16SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo22SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo22SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo32SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo32SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo44SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo44SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo8SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Stereo8SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\StereoXSetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\StereoXSetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\StereoXXSetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\StereoXXSetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled11SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled11SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled16SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled16SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled22SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled22SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled32SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled32SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled44SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled44SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled8SetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\Uncoupled8SetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\UncoupledXSetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\UncoupledXSetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\UncoupledXXSetupDataTemplate.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\Setup\Templates\UncoupledXXSetupDataTemplate.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\StaticCodeBookExtensions.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\StaticCodeBookExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\VorbisInfo.cs">
+      <Link>.NET-Ogg-Vorbis-Encoder\OggVorbisEncoder\VorbisInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

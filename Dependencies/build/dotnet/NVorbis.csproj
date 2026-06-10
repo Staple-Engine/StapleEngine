@@ -1,0 +1,206 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFramework>net10.0</TargetFramework>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Release;Debug</Configurations>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <IntermediateOutputPath>obj\Release\NVorbis\</IntermediateOutputPath>
+    <DefineConstants>NDEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <IntermediateOutputPath>obj\Debug\NVorbis\</IntermediateOutputPath>
+    <DefineConstants>_DEBUG</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\NVorbis\NVorbis\Codebook.cs">
+      <Link>NVorbis\NVorbis\Codebook.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\HuffmanListNode.cs">
+      <Link>NVorbis\NVorbis\Contracts\HuffmanListNode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\ICodebook.cs">
+      <Link>NVorbis\NVorbis\Contracts\ICodebook.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IContainerReader.cs">
+      <Link>NVorbis\NVorbis\Contracts\IContainerReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IFactory.cs">
+      <Link>NVorbis\NVorbis\Contracts\IFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IFloor.cs">
+      <Link>NVorbis\NVorbis\Contracts\IFloor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IFloorData.cs">
+      <Link>NVorbis\NVorbis\Contracts\IFloorData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IHuffman.cs">
+      <Link>NVorbis\NVorbis\Contracts\IHuffman.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IMapping.cs">
+      <Link>NVorbis\NVorbis\Contracts\IMapping.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IMdct.cs">
+      <Link>NVorbis\NVorbis\Contracts\IMdct.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IMode.cs">
+      <Link>NVorbis\NVorbis\Contracts\IMode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IPacket.cs">
+      <Link>NVorbis\NVorbis\Contracts\IPacket.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IPacketProvider.cs">
+      <Link>NVorbis\NVorbis\Contracts\IPacketProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IResidue.cs">
+      <Link>NVorbis\NVorbis\Contracts\IResidue.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IStreamDecoder.cs">
+      <Link>NVorbis\NVorbis\Contracts\IStreamDecoder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IStreamStats.cs">
+      <Link>NVorbis\NVorbis\Contracts\IStreamStats.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\ITagData.cs">
+      <Link>NVorbis\NVorbis\Contracts\ITagData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\IVorbisReader.cs">
+      <Link>NVorbis\NVorbis\Contracts\IVorbisReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\Ogg\ICrc.cs">
+      <Link>NVorbis\NVorbis\Contracts\Ogg\ICrc.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\Ogg\IForwardOnlyPacketProvider.cs">
+      <Link>NVorbis\NVorbis\Contracts\Ogg\IForwardOnlyPacketProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\Ogg\IPacketReader.cs">
+      <Link>NVorbis\NVorbis\Contracts\Ogg\IPacketReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\Ogg\IPageData.cs">
+      <Link>NVorbis\NVorbis\Contracts\Ogg\IPageData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\Ogg\IPageReader.cs">
+      <Link>NVorbis\NVorbis\Contracts\Ogg\IPageReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\Ogg\IStreamPageReader.cs">
+      <Link>NVorbis\NVorbis\Contracts\Ogg\IStreamPageReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\Ogg\PageFlags.cs">
+      <Link>NVorbis\NVorbis\Contracts\Ogg\PageFlags.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Contracts\ParameterChangeEventArgs.cs">
+      <Link>NVorbis\NVorbis\Contracts\ParameterChangeEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\DataPacket.cs">
+      <Link>NVorbis\NVorbis\DataPacket.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Extensions.cs">
+      <Link>NVorbis\NVorbis\Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Factory.cs">
+      <Link>NVorbis\NVorbis\Factory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Floor0.cs">
+      <Link>NVorbis\NVorbis\Floor0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Floor1.cs">
+      <Link>NVorbis\NVorbis\Floor1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Huffman.cs">
+      <Link>NVorbis\NVorbis\Huffman.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\IContainerReader.cs">
+      <Link>NVorbis\NVorbis\IContainerReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\IPacketProvider.cs">
+      <Link>NVorbis\NVorbis\IPacketProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\IVorbisStreamStatus.cs">
+      <Link>NVorbis\NVorbis\IVorbisStreamStatus.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Mapping.cs">
+      <Link>NVorbis\NVorbis\Mapping.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Mdct.cs">
+      <Link>NVorbis\NVorbis\Mdct.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Mode.cs">
+      <Link>NVorbis\NVorbis\Mode.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\NewStreamEventArgs.cs">
+      <Link>NVorbis\NVorbis\NewStreamEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Ogg\ContainerReader.cs">
+      <Link>NVorbis\NVorbis\Ogg\ContainerReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Ogg\Crc.cs">
+      <Link>NVorbis\NVorbis\Ogg\Crc.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Ogg\ForwardOnlyPacketProvider.cs">
+      <Link>NVorbis\NVorbis\Ogg\ForwardOnlyPacketProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Ogg\ForwardOnlyPageReader.cs">
+      <Link>NVorbis\NVorbis\Ogg\ForwardOnlyPageReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Ogg\Packet.cs">
+      <Link>NVorbis\NVorbis\Ogg\Packet.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Ogg\PacketProvider.cs">
+      <Link>NVorbis\NVorbis\Ogg\PacketProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Ogg\PageReader.cs">
+      <Link>NVorbis\NVorbis\Ogg\PageReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Ogg\PageReaderBase.cs">
+      <Link>NVorbis\NVorbis\Ogg\PageReaderBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Ogg\StreamPageReader.cs">
+      <Link>NVorbis\NVorbis\Ogg\StreamPageReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Residue0.cs">
+      <Link>NVorbis\NVorbis\Residue0.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Residue1.cs">
+      <Link>NVorbis\NVorbis\Residue1.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Residue2.cs">
+      <Link>NVorbis\NVorbis\Residue2.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\StreamDecoder.cs">
+      <Link>NVorbis\NVorbis\StreamDecoder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\StreamStats.cs">
+      <Link>NVorbis\NVorbis\StreamStats.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\TagData.cs">
+      <Link>NVorbis\NVorbis\TagData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\Utils.cs">
+      <Link>NVorbis\NVorbis\Utils.cs</Link>
+    </Compile>
+    <Compile Include="..\..\NVorbis\NVorbis\VorbisReader.cs">
+      <Link>NVorbis\NVorbis\VorbisReader.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>
