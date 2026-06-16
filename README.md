@@ -38,6 +38,8 @@ Please note that binaries aren't as updated as the main branch, so you'll likely
 
 You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
 
+Additionally, you need to download SDL Shadercross from the latest main branch at https://github.com/libsdl-org/SDL_shadercross/actions and store it at `Dependencies/SDL_shadercross`. Please note there's no easy way to auto get these as github considers these artifacts private and require authentication.
+
 <details>
 
 <summary>Windows</summary>
@@ -64,7 +66,7 @@ To compile dependencies, go to `Dependencies` and run `build_macos.sh`.
 
 After that, you will need to compile the engine, so go to `Engine` and run `build_macos.sh` and then run `build_backends.sh`.
 
-After that, you will need to compile the tools, so go to `Tools` and run `build_linux.sh` (yes, that's the right file).
+After that, you will need to compile the tools, so go to `Tools` and run `build_macos.sh`.
 
 After building the tools, go to the main folder of the repo and run `builddefaultresources.sh` to prepare the default assets. Do notice that we can't build windows direct3D shaders in macOS, so you'll be limited to Metal and Vulkan there.
 
