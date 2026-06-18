@@ -1476,7 +1476,7 @@ internal partial class SDLGPURendererBackend
         return false;
     }
 
-    internal bool TryGetTextureSamplers(Texture[] vertexTextures, Texture[] fragmentTextures, Shader.ShaderInstance instance,
+    internal bool TryGetTextureSamplers(Texture[] vertexTextures, Texture[] fragmentTextures, ShaderResource.ShaderInstance instance,
         out Span<SDL_GPUTextureSamplerBinding> vertexSamplers, out Span<SDL_GPUTextureSamplerBinding> fragmentSamplers)
     {
         var vertexSamplerCount = instance.vertexTextureBindings.Count;
@@ -1496,7 +1496,7 @@ internal partial class SDLGPURendererBackend
 
             for (var i = 0; i < vertexSamplers.Length; i++)
             {
-                if (vertexTextures[i]?.impl is not SDLGPUTexture texture ||
+                if (vertexTextures[i]?.textureResource?.impl is not SDLGPUTexture texture ||
                     texture.Disposed ||
                     !TryGetTexture(texture.handle, out var resource))
                 {
@@ -1527,7 +1527,7 @@ internal partial class SDLGPURendererBackend
 
         for (var i = 0; i < fragmentSamplers.Length; i++)
         {
-            if (fragmentTextures[i]?.impl is not SDLGPUTexture texture ||
+            if (fragmentTextures[i]?.textureResource?.impl is not SDLGPUTexture texture ||
                 texture.Disposed ||
                 !TryGetTexture(texture.handle, out var resource))
             {

@@ -1114,7 +1114,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         else
         {
             if (viewData.renderTarget.ColorTextureCount > 0 &&
-                viewData.renderTarget.colorTextures[0].impl is SDLGPUTexture t &&
+                viewData.renderTarget.colorTextures[0]?.textureResource?.impl is SDLGPUTexture t &&
                 TryGetTexture(t.handle, out var textureResource))
             {
                 texture = textureResource.texture;
@@ -1123,7 +1123,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             width = viewData.renderTarget.width;
             height = viewData.renderTarget.height;
 
-            depthTexture = viewData.renderTarget.DepthTexture?.impl as SDLGPUTexture;
+            depthTexture = viewData.renderTarget.DepthTexture?.textureResource?.impl as SDLGPUTexture;
         }
 
         if (texture == null ||
@@ -1515,7 +1515,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                         foreach(var texture in state.renderTarget.colorTextures)
                         {
                             if(texture.Disposed ||
-                                !TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget,
+                                !TryGetTextureFormat(texture.textureResource.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget,
                                 out var textureFormat))
                             {
                                 continue;
@@ -1540,7 +1540,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                         }
 
                         if(state.renderTarget.DepthTexture is { Disposed: false } &&
-                            TryGetTextureFormat(state.renderTarget.DepthTexture.impl.Format, state.renderTarget.flags | TextureFlags.DepthStencilTarget,
+                            TryGetTextureFormat(state.renderTarget.DepthTexture.textureResource.impl.Format,
+                                state.renderTarget.flags | TextureFlags.DepthStencilTarget,
                                 out var depthFormat))
                         {
                             sdlDepthFormat = depthFormat;
@@ -1776,7 +1777,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                         foreach (var texture in state.renderTarget.colorTextures)
                         {
                             if (texture.Disposed ||
-                                !TryGetTextureFormat(texture.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget,
+                                !TryGetTextureFormat(texture.textureResource.impl.Format, state.renderTarget.flags | TextureFlags.ColorTarget,
                                 out var textureFormat))
                             {
                                 continue;
@@ -1801,7 +1802,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                         }
 
                         if (state.renderTarget.DepthTexture is { Disposed: false } &&
-                            TryGetTextureFormat(state.renderTarget.DepthTexture.impl.Format, state.renderTarget.flags | TextureFlags.DepthStencilTarget,
+                            TryGetTextureFormat(state.renderTarget.DepthTexture.textureResource.impl.Format,
+                                state.renderTarget.flags | TextureFlags.DepthStencilTarget,
                                 out var depthFormat))
                         {
                             sdlDepthFormat = depthFormat;

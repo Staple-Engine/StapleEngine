@@ -39,10 +39,10 @@ internal class ColorTests
 
         a = (Color)b;
 
-        Assert.That(498, Is.EqualTo((int)(a.r * 1000)));
-        Assert.That(247, Is.EqualTo((int)(a.g * 1000)));
-        Assert.That(1, Is.EqualTo(a.b));
-        Assert.That(0, Is.EqualTo(a.a));
+        Assert.That((int)(a.r * 1000), Is.EqualTo(498));
+        Assert.That((int)(a.g * 1000), Is.EqualTo(247));
+        Assert.That(a.b, Is.EqualTo(1));
+        Assert.That(a.a, Is.Zero);
     }
 
     [Test]

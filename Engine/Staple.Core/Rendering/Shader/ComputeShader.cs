@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text.RegularExpressions;
 
 namespace Staple.Internal;
 
@@ -11,64 +9,26 @@ namespace Staple.Internal;
 /// </summary>
 public partial class ComputeShader : IGuidAsset
 {
-    internal readonly ShaderMetadata metadata;
+    internal static readonly List<ShaderResource.DefaultUniform> DefaultUniforms = [];
 
-    internal static readonly List<Shader.DefaultUniform> DefaultUniforms = [];
+    internal ComputeShaderResource shaderResource;
 
-    private Shader.UniformInfo[] uniforms = [];
-    private readonly IntLookupCache<int> uniformIndices = new();
-
-    private readonly byte[] shaderSource = [];
-
-    private readonly ComputeShaderMetrics metrics;
-
-    private readonly ShaderUniformContainer uniformContainer;
-
-    private readonly Dictionary<string, ShaderUniformField> fields = [];
-
-    private IShaderProgram program;
-
-    [GeneratedRegex("\\[([0-9]+)\\]")]
-    private static partial Regex UniformCountRegex();
-
-    private static readonly Regex uniformCountRegex = UniformCountRegex();
-
-    public GuidHasher Guid { get; } = new();
+    public GuidHasher Guid { get; private set; }
 
     /// <summary>
     /// Whether this shader has been disposed
     /// </summary>
-    public bool Disposed { get; internal set; } = false;
+    public bool Disposed => shaderResource is null;
 
     public static object Create(string path)
     {
         return ResourceManager.instance.LoadComputeShader(path);
     }
 
-    internal ComputeShader(SerializableShader shader, Dictionary<string, SerializableShaderData> entries)
+    internal ComputeShader(ComputeShaderResource resource)
     {
-        metadata = shader.metadata;
-
-        var entry = entries.FirstOrDefault().Value;
-
-        shaderSource = entry.computeShader ?? [];
-        metrics = entry.computeMetrics ?? new();
-        uniformContainer = entry.computeUniforms;
-
-        foreach (var uniform in entry.computeUniforms.uniforms)
-        {
-            if((uniform.fields?.Count ?? 0) == 0)
-            {
-                //TODO: Actual uniforms
-            }
-            else
-            {
-                foreach (var field in uniform.fields)
-                {
-                    fields.AddOrSetKey(field.name, field);
-                }
-            }
-        }
+        shaderResource = resource;
+        Guid = resource.Guid;
     }
 
     ~ComputeShader()
@@ -76,159 +36,14 @@ public partial class ComputeShader : IGuidAsset
         Destroy();
     }
 
-    private static string NormalizeUniformName(string name, ShaderUniformType type)
-    {
-        if (uniformCountRegex.IsMatch(name))
-        {
-            name = name.Replace(uniformCountRegex.Match(name).Value, string.Empty);
-        }
-
-        return type switch
-        {
-            ShaderUniformType.Int or ShaderUniformType.Float or ShaderUniformType.Vector2 or ShaderUniformType.Vector3 => $"{name}_uniform",
-            _ => name
-        };
-    }
-
-    private static int NormalizeUniformCount(string name)
-    {
-        if (!uniformCountRegex.IsMatch(name))
-        {
-            return 1;
-        }
-
-        var match = uniformCountRegex.Match(name);
-
-        if (match.Groups.Count == 2)
-        {
-            return int.TryParse(match.Groups[1].Value, out var value) ? value : 1;
-        }
-
-        return 1;
-    }
-
-    internal unsafe bool Create()
-    {
-        if((shaderSource?.Length ?? 0) == 0)
-        {
-            return false;
-        }
-
-        program = RenderSystem.Backend.CreateShaderCompute(shaderSource, metrics);
-
-        if (program == null)
-        {
-            return false;
-        }
-
-        /*
-        if (uniforms.Length > 0)
-        {
-            foreach (var uniform in uniforms)
-            {
-                uniform.Create();
-            }
-        }
-        else
-        {
-            foreach (var uniform in metadata.uniforms)
-            {
-                AddUniform(Shader.DefaultUniform.FromShaderUniform(uniform));
-            }
-
-            void EnsureUniform(Shader.DefaultUniform u)
-            {
-                var uniform = GetUniform(u.name.GetHashCode());
-
-                if (uniform == null)
-                {
-                    AddUniform(u);
-                }
-            }
-
-            foreach (var uniform in DefaultUniforms)
-            {
-                EnsureUniform(uniform);
-            }
-        }
-
-        Disposed = false;
-
-        return true;
-        */
-
-        return false;
-    }
-
-    internal void AddUniform(Shader.DefaultUniform uniform)
-    {
-        var normalizedName = NormalizeUniformName(uniform.name, uniform.type);
-        var nameHash = uniform.name.GetHashCode();
-        var normalizedHash = normalizedName.GetHashCode();
-
-        var uniformIndex = uniformIndices.IndexOf(nameHash);
-
-        if (uniformIndex >= 0)
-        {
-            return;
-        }
-
-        uniformIndex = uniformIndices.IndexOf(normalizedHash);
-
-        if (uniformIndex >= 0)
-        {
-            return;
-        }
-
-        var u = new Shader.UniformInfo()
-        {
-            uniform = new()
-            {
-                name = normalizedName,
-                type = uniform.type,
-                attribute = uniform.attribute,
-                variant = uniform.variant,
-                defaultValue = uniform.defaultValue,
-            },
-            handle = new(normalizedName),
-            count = NormalizeUniformCount(uniform.name),
-        };
-
-        var i = uniforms.Length;
-
-        uniformIndices.Add(normalizedHash, i);
-        uniforms = uniforms.Concat([u]).ToArray();
-
-        if (uniformIndices.IndexOf(nameHash) < 0)
-        {
-            uniformIndices.Add(nameHash, i);
-
-            uniforms = uniforms.Concat([new()
-            {
-                count = u.count,
-                isAlias = true,
-                uniform = new()
-                {
-                    name = u.uniform.name,
-                    type = uniform.type,
-                    attribute = uniform.attribute,
-                    variant = uniform.variant,
-                    defaultValue = uniform.defaultValue,
-                    slot = uniform.slot,
-                },
-                handle = new(normalizedName),
-            }]).ToArray();
-        }
-    }
-
-    internal Shader.UniformInfo GetUniform(int hash)
+    internal ShaderUniformInfo GetUniform(int hash)
     {
         if (Disposed)
         {
             return null;
         }
 
-        return uniformIndices.TryGetValue(hash, out var index) ? uniforms[index] : null;
+        return shaderResource.uniformIndices.TryGetValue(hash, out var index) ? shaderResource.uniforms[index] : null;
     }
 
     internal ShaderHandle GetUniformHandle(int hash)
@@ -569,38 +384,11 @@ public partial class ComputeShader : IGuidAsset
             return;
         }
 
-        Disposed = true;
+        shaderResource.Destroy();
 
-        /*
-        if(programHandle.Valid)
-        {
-            bgfx.destroy_program(programHandle);
+        shaderResource = null;
 
-            programHandle = new()
-            {
-                idx = ushort.MaxValue,
-            };
-        }
-        */
-
-        /*
-        foreach (var uniform in uniforms)
-        {
-            if (uniform.isAlias)
-            {
-                uniform.handle.idx = ushort.MaxValue;
-
-                continue;
-            }
-
-            if (uniform.handle.Valid)
-            {
-                bgfx.destroy_uniform(uniform.handle);
-
-                uniform.handle.idx = ushort.MaxValue;
-            }
-        }
-        */
+        Guid = new();
     }
 
     /// <summary>
@@ -611,11 +399,11 @@ public partial class ComputeShader : IGuidAsset
     /// <returns>The shader if valid</returns>
     internal static ComputeShader Create(SerializableShader data, Dictionary<string, SerializableShaderData> entries)
     {
-        var shader = new ComputeShader(data, entries);
+        var resource = new ComputeShaderResource(data, entries);
 
-        if (shader.Create())
+        if (resource.Create())
         {
-            return shader;
+            return new(resource);
         }
 
         return null;

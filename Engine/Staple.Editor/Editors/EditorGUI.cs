@@ -1711,11 +1711,12 @@ public static class EditorGUI
 
             SameLine();
 
-            if (value.spriteIndex >= 0 && value.spriteIndex < value.texture.metadata.sprites.Count)
+            if (!(texture?.Disposed ?? true) && value.spriteIndex >= 0 &&
+                value.spriteIndex < value.texture.Sprites.Length)
             {
-                var sprite = value.texture.metadata.sprites[value.spriteIndex];
+                var sprite = value.texture.Sprites[value.spriteIndex];
 
-                TextureRect(value.texture, sprite.rect, new Vector2(32, 32), sprite.rotation);
+                TextureRect(value.texture, sprite.Rect, new Vector2(32, 32), sprite.Rotation);
             }
             else
             {
@@ -1735,7 +1736,7 @@ public static class EditorGUI
                 }
 
                 editor.ShowSpritePicker(ThumbnailCache.GetTexture(assetPath) ?? value.texture,
-                    value.texture.metadata.sprites,
+                    value.texture.textureResource.metadata.sprites,
                     (index) => value.spriteIndex = index);
             });
         }
@@ -1752,7 +1753,7 @@ public static class EditorGUI
     {
         var editor = StapleEditor.instance;
 
-        editor.ShowSpritePicker(texture, texture.metadata.sprites, selected);
+        editor.ShowSpritePicker(texture, texture.textureResource.metadata.sprites, selected);
     }
 
     /// <summary>

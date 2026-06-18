@@ -253,7 +253,7 @@ public sealed class Material : IGuidAsset
     /// <summary>
     /// Valid shader keywords
     /// </summary>
-    public IEnumerable<string> Keywords => shader.metadata?.variants ?? Enumerable.Empty<string>();
+    public IEnumerable<string> Keywords => shader?.shaderResource?.metadata?.variants ?? Enumerable.Empty<string>();
 
     private IShaderProgram shaderProgram;
 
@@ -330,7 +330,7 @@ public sealed class Material : IGuidAsset
 
     private void UpdateTextureBindingData()
     {
-        if (!shader.instances.TryGetValue(ShaderVariantKey, out var instance))
+        if (!shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var instance))
         {
             vertexSamplers = null;
             fragmentSamplers = null;
@@ -394,14 +394,14 @@ public sealed class Material : IGuidAsset
         ShaderVariantKey = "";
 
         if ((shader?.Disposed ?? true) ||
-            shader.metadata.type != ShaderType.VertexFragment)
+            shader.shaderResource.metadata.type != ShaderType.VertexFragment)
         {
             return;
         }
 
         var c = shaderKeywords.Count;
 
-        foreach(var pair in shader.instances)
+        foreach(var pair in shader.shaderResource.instances)
         {
             if(pair.Value.keyPieces.Length != c)
             {
@@ -427,7 +427,7 @@ public sealed class Material : IGuidAsset
 
             ShaderVariantKey = pair.Key;
 
-            shaderProgram = shader.instances.TryGetValue(ShaderVariantKey, out var instance) ?
+            shaderProgram = shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var instance) ?
                 instance.program : null;
 
             UpdateTextureBindingData();
@@ -449,7 +449,7 @@ public sealed class Material : IGuidAsset
     {
         if(shader == null ||
             shader.Disposed ||
-            (!shader.metadata.variants.Contains(name) &&
+            (!shader.shaderResource.metadata.variants.Contains(name) &&
             !Shader.DefaultVariants.Contains(name)))
         {
             return;
@@ -1028,7 +1028,7 @@ public sealed class Material : IGuidAsset
     internal void ApplyProperties(ref RenderState state)
     {
         if(shader == null ||
-            !shader.instances.TryGetValue(ShaderVariantKey, out var shaderInstance))
+            !shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var shaderInstance))
         {
             state.shader = null;
             state.shaderInstance = null;
@@ -1038,8 +1038,8 @@ public sealed class Material : IGuidAsset
 
         state.shader = shader;
         state.shaderInstance = shaderInstance;
-        state.sourceBlend = shader.sourceBlend;
-        state.destinationBlend = shader.destinationBlend;
+        state.sourceBlend = shader.shaderResource.sourceBlend;
+        state.destinationBlend = shader.shaderResource.destinationBlend;
         state.cull = CullingMode;
 
         foreach (var parameter in parameters.Values)

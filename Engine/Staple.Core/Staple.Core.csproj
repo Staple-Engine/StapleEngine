@@ -235,12 +235,16 @@
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />
 		<Compile Include="Rendering\RenderSystem\StapleShaderUniform.cs" />
 		<Compile Include="Rendering\Shader\ComputeShader.cs" />
+		<Compile Include="Rendering\Shader\ComputeShaderResource.cs" />
 		<Compile Include="Rendering\Shader\IShaderProgram.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
+		<Compile Include="Rendering\Shader\ShaderResource.cs" />
+		<Compile Include="Rendering\Shader\ShaderUniformInfo.cs" />
 		<Compile Include="Rendering\Sprites\Sprite.cs" />
 		<Compile Include="Rendering\Sprites\SpriteUtils.cs" />
 		<Compile Include="Rendering\Texture\ITexture.cs" />
 		<Compile Include="Rendering\Texture\TextureFormat.cs" />
+		<Compile Include="Rendering\Texture\TextureResource.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />
 		<Compile Include="Rendering\Text\Impls\FreeTypeFontSource.cs" />
 		<Compile Include="Rendering\Text\Impls\StbTrueTypeFontSource.cs" />
@@ -389,7 +393,7 @@
 		<Compile Include="Utilities\ExpandableContainer.cs" />
 		<Compile Include="Utilities\MemoryAllocator.cs" />
 		<Compile Include="Utilities\NativePointerWrapper.cs" />
-		<Compile Include="Utilities\RefCountedContainer.cs" />
+		<Compile Include="Utilities\Ref.cs" />
 		<Compile Include="Utilities\UnmanagedFreeformAllocator.cs" />
 		<Compile Include="Utilities\GlobalAllocator.cs" />
 		<Compile Include="Utilities\GuidGenerator.cs" />

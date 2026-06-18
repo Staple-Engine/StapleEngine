@@ -7,7 +7,7 @@ internal class EmptyTextureCreateMethod(int width, int height, TextureFormat for
     public TextureFormat format = format;
     public TextureFlags flags = flags;
 
-    public bool Create(Texture texture)
+    public bool Create(TextureResource texture)
     {
         unsafe
         {

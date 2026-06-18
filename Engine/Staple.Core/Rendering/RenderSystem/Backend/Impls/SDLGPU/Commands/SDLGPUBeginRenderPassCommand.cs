@@ -49,7 +49,7 @@ internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend
         else
         {
             if (target.ColorTextureCount > 0 &&
-                target.colorTextures[0].impl is SDLGPUTexture t &&
+                target.colorTextures[0]?.textureResource?.impl is SDLGPUTexture t &&
                 backend.TryGetTexture(t.handle, out var textureResource))
             {
                 texture = textureResource.texture;
@@ -58,7 +58,7 @@ internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend
             width = target.width;
             height = target.height;
 
-            depthTexture = target.DepthTexture?.impl as SDLGPUTexture;
+            depthTexture = target.DepthTexture?.textureResource?.impl as SDLGPUTexture;
         }
 
         if (texture == null ||
