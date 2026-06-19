@@ -419,7 +419,7 @@ public class AudioSystem : ISubsystem
 
             void Finish()
             {
-                if(token.IsCancellationRequested)
+                if(token.IsCancellationRequested || clip.audioResource == null)
                 {
                     onFinish?.Invoke(default, 0, 0, 0);
 
@@ -428,13 +428,13 @@ public class AudioSystem : ISubsystem
 
                 var samples = stream.ReadAll();
 
-                clip.sizeInBytes = samples.Length * sizeof(short);
-                clip.samples = samples;
+                clip.audioResource.sizeInBytes = samples.Length * sizeof(short);
+                clip.audioResource.samples = samples;
 
-                clip.duration = (float)stream.TotalTime.TotalSeconds;
-                clip.channels = stream.Channels;
-                clip.bitsPerSample = stream.BitsPerSample;
-                clip.sampleRate = stream.SampleRate;
+                clip.audioResource.duration = (float)stream.TotalTime.TotalSeconds;
+                clip.audioResource.channels = stream.Channels;
+                clip.audioResource.bitsPerSample = stream.BitsPerSample;
+                clip.audioResource.sampleRate = stream.SampleRate;
 
                 onFinish?.Invoke(samples, stream.Channels, stream.BitsPerSample, stream.SampleRate);
             }

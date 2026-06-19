@@ -1622,14 +1622,19 @@ internal class ResourceManager
                 return null;
             }
 
-            audioClip = new AudioClip()
+            var resource = new AudioClipResource()
             {
                 metadata = audioData.metadata,
                 fileData = audioData.fileData,
                 format = audioData.format,
             };
 
-            audioClip.Guid.Guid = path;
+            resource.Guid.Guid = path;
+
+            audioClip = new AudioClip()
+            {
+                audioResource = resource,
+            };
 
             if(!ignoreCache)
             {

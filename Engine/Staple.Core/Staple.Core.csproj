@@ -113,6 +113,7 @@
 		<Compile Include="Attributes\SerializeInEditorAttribute.cs" />
 		<Compile Include="Attributes\TooltipAttribute.cs" />
 		<Compile Include="Audio\AudioClip.cs" />
+		<Compile Include="Audio\AudioClipResource.cs" />
 		<Compile Include="Audio\AudioListener.cs" />
 		<Compile Include="Audio\AudioSource.cs" />
 		<Compile Include="Audio\IAudioStream.cs" />
