@@ -395,9 +395,9 @@ public class AudioSystem : ISubsystem
     {
         var cts = new CancellationTokenSource();
 
-        if (clip.samples != default)
+        if (clip.Samples != default)
         {
-            onFinish?.Invoke(clip.samples, clip.channels, clip.bitsPerSample, clip.sampleRate);
+            onFinish?.Invoke(clip.Samples, clip.Channels, clip.BitsPerSample, clip.SampleRate);
 
             return cts;
         }
@@ -439,7 +439,7 @@ public class AudioSystem : ISubsystem
                 onFinish?.Invoke(samples, stream.Channels, stream.BitsPerSample, stream.SampleRate);
             }
 
-            if(clip.metadata.loadInBackground)
+            if(clip.Metadata.loadInBackground)
             {
                 backgroundActions.Enqueue(Finish);
 

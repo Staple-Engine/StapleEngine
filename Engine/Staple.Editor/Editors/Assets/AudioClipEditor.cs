@@ -130,7 +130,7 @@ internal class AudioClipEditor : AssetEditor
 
             var hours = 0;
             var minutes = 0;
-            var seconds = clip.duration;
+            var seconds = clip.Duration;
 
             while (seconds > 60)
             {
@@ -151,7 +151,7 @@ internal class AudioClipEditor : AssetEditor
                 EditorGUI.Label("Recompression not allowed for compressed files");
             }
 
-            EditorGUI.Label($"Channels: {clip.channels} ({clip.bitsPerSample} bits, {clip.sampleRate}Hz)");
+            EditorGUI.Label($"Channels: {clip.Channels} ({clip.BitsPerSample} bits, {clip.SampleRate}Hz)");
             EditorGUI.Label($"Duration: {hours}:{minutes}:{seconds.ToString("0.00")}");
             EditorGUI.Label($"Disk Size: {EditorUtils.ByteSizeString(sizeInDisk)} ({EditorUtils.ByteSizeString(sizeUncompressed)} uncompressed, " +
                 $"{sizeInDisk / (float)sizeUncompressed * 100:0.00}%% ratio)");

@@ -99,6 +99,7 @@
 		<Compile Include="Assets\IAssetDatabaseObserver.cs" />
 		<Compile Include="Assets\NoiseGeneratorSettings.cs" />
 		<Compile Include="Assets\TextAsset.cs" />
+		<Compile Include="Assets\TextAssetResource.cs" />
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
 		<Compile Include="Attributes\AutoAssignEntityAttribute.cs" />
 		<Compile Include="Attributes\ButtonAttribute.cs" />

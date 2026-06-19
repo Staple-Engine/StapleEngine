@@ -177,14 +177,14 @@ public sealed class UIManager
     {
         var skinData = Resources.Load<TextAsset>(guid);
 
-        if(string.IsNullOrEmpty(skinData?.text))
+        if(string.IsNullOrEmpty(skinData?.Text))
         {
             return;
         }
 
         try
         {
-            skin = JsonSerializer.Deserialize(skinData.text, UISkinSerializationContext.Default.UISkin);
+            skin = JsonSerializer.Deserialize(skinData.Text, UISkinSerializationContext.Default.UISkin);
         }
         catch(Exception e)
         {

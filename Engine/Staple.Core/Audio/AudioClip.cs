@@ -10,52 +10,52 @@ namespace Staple;
 /// </summary>
 public sealed class AudioClip : IGuidAsset
 {
+    internal AudioClipResource audioResource;
+
     /// <summary>
     /// Audio metadata
     /// </summary>
-    internal AudioClipMetadata metadata => audioResource?.metadata;
+    internal AudioClipMetadata Metadata => audioResource?.metadata;
 
     /// <summary>
     /// Size in bytes of the contained file
     /// </summary>
-    internal int sizeInBytes => audioResource?.sizeInBytes ?? 0;
+    internal int SizeInBytes => audioResource?.sizeInBytes ?? 0;
 
     /// <summary>
     /// Duration in seconds
     /// </summary>
-    internal float duration => audioResource?.duration ?? 0;
+    internal float Duration => audioResource?.duration ?? 0;
 
     /// <summary>
     /// Audio channels
     /// </summary>
-    internal int channels => audioResource?.channels ?? 0;
+    internal int Channels => audioResource?.channels ?? 0;
 
     /// <summary>
     /// Bits per sample
     /// </summary>
-    internal int bitsPerSample => audioResource?.bitsPerSample ?? 0;
+    internal int BitsPerSample => audioResource?.bitsPerSample ?? 0;
 
     /// <summary>
     /// Sample rate
     /// </summary>
-    internal int sampleRate => audioResource?.sampleRate ?? 0;
+    internal int SampleRate => audioResource?.sampleRate ?? 0;
 
     /// <summary>
     /// 16-bit samples
     /// </summary>
-    internal short[] samples => audioResource?.samples;
+    internal short[] Samples => audioResource?.samples;
 
     /// <summary>
     /// What kind of audio format we have
     /// </summary>
-    internal AudioClipFormat format => audioResource?.format ?? AudioClipFormat.WAV;
+    internal AudioClipFormat Format => audioResource?.format ?? AudioClipFormat.WAV;
 
     /// <summary>
     /// The file's contents
     /// </summary>
-    internal byte[] fileData => audioResource?.fileData;
-
-    internal AudioClipResource audioResource;
+    internal byte[] FileData => audioResource?.fileData;
 
     public GuidHasher Guid => audioResource?.Guid ?? new();
 
@@ -70,13 +70,13 @@ public sealed class AudioClip : IGuidAsset
             return null;
         }
 
-        switch(format)
+        switch(Format)
         {
             case AudioClipFormat.MP3:
 
                 try
                 {
-                    var stream = new MemoryStream(fileData);
+                    var stream = new MemoryStream(FileData);
 
                     try
                     {
@@ -99,7 +99,7 @@ public sealed class AudioClip : IGuidAsset
 
                 try
                 {
-                    var stream = new MemoryStream(fileData);
+                    var stream = new MemoryStream(FileData);
 
                     try
                     {
@@ -122,7 +122,7 @@ public sealed class AudioClip : IGuidAsset
 
                 try
                 {
-                    var stream = new MemoryStream(fileData);
+                    var stream = new MemoryStream(FileData);
 
                     try
                     {

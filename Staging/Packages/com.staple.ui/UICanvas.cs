@@ -38,9 +38,9 @@ public class UICanvas : CallbackComponent, IComponentDisposable
 
             lastLayout = layout;
 
-            if (!string.IsNullOrEmpty(layout?.text))
+            if (!string.IsNullOrEmpty(layout?.Text))
             {
-                manager.LoadLayouts(layout.text);
+                manager.LoadLayouts(layout.Text);
             }
         }
     }

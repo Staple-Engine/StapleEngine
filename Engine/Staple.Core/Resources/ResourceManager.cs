@@ -2520,12 +2520,17 @@ internal class ResourceManager
                 return default;
             }
 
-            var outAsset = new TextAsset()
+            var resource = new TextAssetResource()
             {
                 bytes = textData.data,
             };
 
-            outAsset.Guid.Guid = textData.metadata.guid;
+            resource.Guid.Guid = textData.metadata.guid;
+
+            var outAsset = new TextAsset()
+            {
+                textResource = resource,
+            };
 
             var assetPath = AssetDatabase.GetAssetPath(path);
 
@@ -2536,7 +2541,7 @@ internal class ResourceManager
             {
                 try
                 {
-                    outAsset.text = Encoding.UTF8.GetString(outAsset.bytes);
+                    resource.text = Encoding.UTF8.GetString(resource.bytes);
                 }
                 catch (Exception)
                 {

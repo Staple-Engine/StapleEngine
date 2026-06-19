@@ -4,11 +4,13 @@ namespace Staple;
 
 public class TextAsset : IGuidAsset
 {
-    public string text;
+    internal TextAssetResource textResource;
 
-    public byte[] bytes;
+    public string Text => textResource?.text;
 
-    public GuidHasher Guid { get; } = new();
+    public byte[] Bytes => textResource?.bytes;
+
+    public GuidHasher Guid => textResource?.Guid ?? new();
 
     public static object Create(string guid) => ResourceManager.instance.LoadTextAsset(guid);
 }
