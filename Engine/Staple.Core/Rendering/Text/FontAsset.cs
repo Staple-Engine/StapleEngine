@@ -5,24 +5,22 @@ namespace Staple;
 
 public class FontAsset : IGuidAsset
 {
-    public GuidHasher Guid { get; } = new();
+    internal FontAssetResource fontResource;
 
-    internal FontMetadata metadata;
-
-    internal TextFont font;
+    public GuidHasher Guid => fontResource?.Guid ?? new();
 
     public int FontSize
     {
-        get => font?.FontSize ?? 0;
+        get => fontResource?.font?.FontSize ?? 0;
 
         set
         {
-            if(value <= 0 || font == null)
+            if(value <= 0 || fontResource?.font == null)
             {
                 return;
             }
 
-            font.FontSize = value;
+            fontResource?.font.FontSize = value;
         }
     }
 
@@ -38,17 +36,18 @@ public class FontAsset : IGuidAsset
         {
             var asset = ResourceManager.instance.LoadFont(path, true);
 
-            if(asset == null)
+            if(asset == null ||
+                asset.fontResource == null)
             {
                 return false;
             }
 
-            asset.font.includedRanges = metadata.includedCharacterSets;
-            asset.font.textureSize = metadata.textureSize;
+            asset.fontResource.font.includedRanges = metadata.includedCharacterSets;
+            asset.fontResource.font.textureSize = metadata.textureSize;
 
             foreach(var size in metadata.expectedSizes)
             {
-                if(!asset.font.MakePixelData(size, metadata.textureSize, out _, out _, out _))
+                if(!asset.fontResource.font.MakePixelData(size, metadata.textureSize, out _, out _, out _))
                 {
                     return false;
                 }

@@ -2448,14 +2448,19 @@ internal class ResourceManager
                 return default;
             }
 
-            font = new()
+            var resource = new FontAssetResource()
             {
                 metadata = fontData.metadata,
             };
 
-            font.Guid.Guid = path;
+            resource.Guid.Guid = path;
 
-            font.font = TextFont.FromData(fontData.fontData, font.Guid.Guid, fontData.metadata.useAntiAliasing,
+            font = new()
+            {
+                fontResource = resource,
+            };
+
+            font.fontResource.font = TextFont.FromData(fontData.fontData, font.Guid.Guid, fontData.metadata.useAntiAliasing,
                 fontData.metadata.textureSize, fontData.metadata.includedCharacterSets);
 
             if (!ignoreCache)

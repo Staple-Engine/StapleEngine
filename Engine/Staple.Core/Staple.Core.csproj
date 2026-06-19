@@ -250,6 +250,7 @@
 		<Compile Include="Rendering\Texture\TextureFormat.cs" />
 		<Compile Include="Rendering\Texture\TextureResource.cs" />
 		<Compile Include="Rendering\Text\FontAsset.cs" />
+		<Compile Include="Rendering\Text\FontAssetResource.cs" />
 		<Compile Include="Rendering\Text\Impls\FreeTypeFontSource.cs" />
 		<Compile Include="Rendering\Text\Impls\StbTrueTypeFontSource.cs" />
 		<Compile Include="Rendering\Text\ITextFontSource.cs" />

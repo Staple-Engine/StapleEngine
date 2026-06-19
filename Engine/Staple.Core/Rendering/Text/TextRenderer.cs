@@ -39,7 +39,7 @@ public class TextRenderer
 
     public Texture FontTexture(TextParameters parameters)
     {
-        var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
+        var font = ResourceManager.instance.LoadFont(parameters.font)?.fontResource?.font ?? DefaultFont;
 
         if (font == null)
         {
@@ -79,7 +79,7 @@ public class TextRenderer
             return default;
         }
 
-        var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
+        var font = ResourceManager.instance.LoadFont(parameters.font)?.fontResource?.font ?? DefaultFont;
 
         if (font == null)
         {
@@ -449,7 +449,7 @@ public class TextRenderer
 
         ArgumentNullException.ThrowIfNull(material);
 
-        var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
+        var font = ResourceManager.instance.LoadFont(parameters.font)?.fontResource?.font ?? DefaultFont;
 
         if (font == null)
         {
@@ -476,7 +476,7 @@ public class TextRenderer
     {
         ArgumentNullException.ThrowIfNull(text);
 
-        var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
+        var font = ResourceManager.instance.LoadFont(parameters.font)?.fontResource?.font ?? DefaultFont;
 
         if (font == null)
         {
@@ -624,7 +624,7 @@ public class TextRenderer
         vertexCount = 0;
         indexCount = 0;
 
-        var font = ResourceManager.instance.LoadFont(parameters.font)?.font ?? DefaultFont;
+        var font = ResourceManager.instance.LoadFont(parameters.font)?.fontResource?.font ?? DefaultFont;
 
         if (font == null)
         {
