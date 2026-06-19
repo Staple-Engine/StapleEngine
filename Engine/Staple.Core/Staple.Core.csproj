@@ -199,7 +199,9 @@
 		<Compile Include="Rendering\Lighting\Light.cs" />
 		<Compile Include="Rendering\Lighting\LightSystem.cs" />
 		<Compile Include="Rendering\Lighting\LightType.cs" />
-		<Compile Include="Rendering\MaterialLighting.cs" />
+		<Compile Include="Rendering\Materials\MaterialLighting.cs" />
+		<Compile Include="Rendering\Materials\MaterialResourceParameter.cs" />
+		<Compile Include="Rendering\Materials\MaterialResource.cs" />
 		<Compile Include="Rendering\Mesh\MeshCombine.cs" />
 		<Compile Include="Rendering\Mesh\MeshCombineSystem.cs" />
 		<Compile Include="Rendering\Mesh\MeshInstanceOptions.cs" />
@@ -392,6 +394,7 @@
 		<Compile Include="Utilities\DictionaryExtensions.cs" />
 		<Compile Include="Utilities\ExpandableContainer.cs" />
 		<Compile Include="Utilities\MemoryAllocator.cs" />
+		<Compile Include="Utilities\MemoryUtils.cs" />
 		<Compile Include="Utilities\NativePointerWrapper.cs" />
 		<Compile Include="Utilities\Ref.cs" />
 		<Compile Include="Utilities\UnmanagedFreeformAllocator.cs" />
@@ -437,7 +440,7 @@
 		<Compile Include="Rendering\RenderSystem\IRenderSystem.cs" />
 		<Compile Include="Rendering\Vertex\IndexBuffer.cs" />
 		<Compile Include="Rendering\LayerMask.cs" />
-		<Compile Include="Rendering\Material.cs" />
+		<Compile Include="Rendering\Materials\Material.cs" />
 		<Compile Include="Rendering\RenderBufferFlags.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem.cs" />
 		<Compile Include="Rendering\RenderTarget\RenderTarget.cs" />

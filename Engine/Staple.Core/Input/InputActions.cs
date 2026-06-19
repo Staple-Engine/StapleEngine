@@ -15,10 +15,7 @@ public sealed class InputActions : IStapleAsset, IGuidAsset
 
     public GuidHasher Guid { get; } = new();
 
-    public static object Create(string guid)
-    {
-        return ResourceManager.instance.LoadAsset<InputActions>(guid);
-    }
+    public static object Create(string guid) => ResourceManager.instance.LoadAsset<InputActions>(guid);
 
     /// <summary>
     /// Registers all actions in this asset for a specific observer

@@ -138,8 +138,5 @@ public sealed class AudioClip : IGuidAsset
         return null;
     }
 
-    public static object Create(string path)
-    {
-        return ResourceManager.instance.LoadAudioClip(path);
-    }
+    public static object Create(string path) => ResourceManager.instance.LoadAudioClip(path);
 }

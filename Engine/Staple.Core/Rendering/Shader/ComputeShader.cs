@@ -20,10 +20,7 @@ public partial class ComputeShader : IGuidAsset
     /// </summary>
     public bool Disposed => shaderResource is null;
 
-    public static object Create(string path)
-    {
-        return ResourceManager.instance.LoadComputeShader(path);
-    }
+    public static object Create(string path) =>ResourceManager.instance.LoadComputeShader(path);
 
     internal ComputeShader(ComputeShaderResource resource)
     {

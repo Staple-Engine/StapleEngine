@@ -181,8 +181,5 @@ public sealed class SkinnedAnimationStateMachine : IStapleAsset, IGuidAsset
 
     public GuidHasher Guid { get; } = new();
 
-    public static object Create(string guid)
-    {
-        return ResourceManager.instance.LoadAsset<SkinnedAnimationStateMachine>(guid);
-    }
+    public static object Create(string guid) => ResourceManager.instance.LoadAsset<SkinnedAnimationStateMachine>(guid);
 }

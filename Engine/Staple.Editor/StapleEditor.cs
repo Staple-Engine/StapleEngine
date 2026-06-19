@@ -768,7 +768,7 @@ internal partial class StapleEditor
 
                 wireframeMaterial = Resources.Load<Material>("Hidden/Materials/SolidColor.material");
 
-                ResourceManager.instance.LockAsset(wireframeMaterial.shader.Guid.Guid);
+                ResourceManager.instance.LockAsset(wireframeMaterial.materialResource.shader.Guid.Guid);
 
                 ResourceManager.instance.LockAsset(wireframeMaterial.Guid.Guid);
 

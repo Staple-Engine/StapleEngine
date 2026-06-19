@@ -37,7 +37,7 @@ public static class SpriteUtils
                 ResourceManager.instance.LockAsset(t.Guid.Guid);
             }
 
-            if (material.shader is Shader s)
+            if (material.materialResource?.shader is Shader s)
             {
                 ResourceManager.instance.LockAsset(s.Guid.Guid);
             }

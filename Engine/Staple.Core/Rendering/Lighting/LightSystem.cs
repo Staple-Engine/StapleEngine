@@ -138,7 +138,7 @@ public sealed class LightSystem
             cachedLightDiffuse[i] = light.color;
         }
 
-        var key = HashCode.Combine(material.shader.Guid.GuidHash, material.ShaderVariantKey);
+        var key = HashCode.Combine(material.materialResource.shader.Guid.GuidHash, material.ShaderVariantKey);
 
         static bool HandlesValid(Span<ShaderHandle> handles)
         {
@@ -176,10 +176,10 @@ public sealed class LightSystem
         var lightTypePositionHandle = handles[2];
         var lightDiffuseHandle = handles[3];
 
-        material.shader.SetVector4(material.ShaderVariantKey, viewPosHandle, new Vector4(lightCount, cameraPosition.X, cameraPosition.Y, cameraPosition.Z));
-        material.shader.SetColor(material.ShaderVariantKey, lightAmbientHandle, lightAmbient);
-        material.shader.SetVector4(material.ShaderVariantKey, lightTypePositionHandle, cachedLightTypePositions);
-        material.shader.SetColor(material.ShaderVariantKey, lightDiffuseHandle, cachedLightDiffuse);
+        material.materialResource.shader.SetVector4(material.ShaderVariantKey, viewPosHandle, new Vector4(lightCount, cameraPosition.X, cameraPosition.Y, cameraPosition.Z));
+        material.materialResource.shader.SetColor(material.ShaderVariantKey, lightAmbientHandle, lightAmbient);
+        material.materialResource.shader.SetVector4(material.ShaderVariantKey, lightTypePositionHandle, cachedLightTypePositions);
+        material.materialResource.shader.SetColor(material.ShaderVariantKey, lightDiffuseHandle, cachedLightDiffuse);
 
         return true;
     }

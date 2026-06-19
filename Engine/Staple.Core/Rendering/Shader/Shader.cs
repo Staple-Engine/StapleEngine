@@ -28,10 +28,7 @@ public partial class Shader : IGuidAsset
 
     internal ShaderResource shaderResource;
 
-    public static object Create(string path)
-    {
-        return ResourceManager.instance.LoadShader(path);
-    }
+    public static object Create(string path) => ResourceManager.instance.LoadShader(path);
 
     internal Shader(ShaderResource resource)
     {

@@ -82,11 +82,6 @@ public class Texture : IGuidAsset
         textureResource = null;
     }
 
-    /// <summary>
-    /// IPathAsset implementation. Loads a texture from path.
-    /// </summary>
-    /// <param name="path">The path to load from</param>
-    /// <returns>The texture, or null</returns>
     public static object Create(string path) => ResourceManager.instance.LoadTexture(path);
 
     /// <summary>

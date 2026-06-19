@@ -30,12 +30,7 @@ internal unsafe class SDLGPUUpdateTextureCommand(SDLGPURendererBackend backend, 
 
         var mapData = SDL3.SDL_MapGPUTransferBuffer(backend.device, resource.transferBuffer, true);
 
-        unsafe
-        {
-            var to = new Span<byte>((void*)mapData, data.Length);
-
-            data.CopyTo(to);
-        }
+        data.CopyTo(new Span<byte>((void*)mapData, data.Length));
 
         SDL3.SDL_UnmapGPUTransferBuffer(backend.device, resource.transferBuffer);
 

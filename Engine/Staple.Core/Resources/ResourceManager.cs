@@ -391,7 +391,8 @@ internal class ResourceManager
                 continue;
             }
 
-            pair.Value.Disposed = false;
+            //TODO
+            //pair.Value.Disposed = false;
         }
 
         foreach (var pair in cachedMeshes)
@@ -1360,14 +1361,19 @@ internal class ResourceManager
 
             var guid = AssetDatabase.GetAssetGuid(path);
 
-            material = new Material
+            var materialResource = new MaterialResource()
             {
                 metadata = materialData.metadata,
                 shader = shader,
-                CullingMode = materialData.metadata.cullingMode,
             };
 
-            material.Guid.Guid = guid ?? path;
+            materialResource.Guid.Guid = guid ?? path;
+
+            material = new Material
+            {
+                materialResource = materialResource,
+                CullingMode = materialData.metadata.cullingMode,
+            };
 
             foreach(var variant in materialData.metadata.enabledShaderVariants)
             {
@@ -1383,7 +1389,7 @@ internal class ResourceManager
                 {
                     case MaterialParameterType.TextureWrap:
 
-                        material.parameters.Add(parameter.Key, new()
+                        material.materialResource.parameters.Add(parameter.Key, new()
                         {
                             name = parameter.Key,
                             type = MaterialParameterType.TextureWrap,

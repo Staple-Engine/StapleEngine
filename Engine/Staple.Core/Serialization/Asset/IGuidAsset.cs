@@ -10,5 +10,10 @@ public interface IGuidAsset
     /// </summary>
     GuidHasher Guid { get; }
 
+    /// <summary>
+    /// Attempts to create an instance of this asset from a guid or path
+    /// </summary>
+    /// <param name="guid">The guid or path</param>
+    /// <returns>The instance or null</returns>
     static abstract object Create(string guid);
 }

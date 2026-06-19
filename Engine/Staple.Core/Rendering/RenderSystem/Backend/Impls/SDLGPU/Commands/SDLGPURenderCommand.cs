@@ -7,8 +7,8 @@ internal unsafe class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderS
     (int, int) fragmentUniformData, VertexAttribute[] vertexAttributes) : IRenderCommand
 {
     private readonly RenderState state = state.Clone();
-    private readonly Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
-    private readonly Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
+    private readonly Texture[] vertexTextures = MemoryUtils.SafeCloneArray(vertexTextures);
+    private readonly Texture[] fragmentTextures = MemoryUtils.SafeCloneArray(fragmentTextures);
     private readonly SDLGPUVertexBuffer vertex = (SDLGPUVertexBuffer)state.vertexBuffer;
     private readonly SDLGPUIndexBuffer index = (SDLGPUIndexBuffer)state.indexBuffer;
     private readonly BufferAttributeContainer.Entries staticMeshEntries = state.staticMeshEntries;
@@ -92,7 +92,7 @@ internal unsafe class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderS
             {
                 SDLGPURendererBackend.lastVertexBuffer = vertexBuffer.buffer;
 
-                fixed (SDL_GPUBufferBinding* b = SDLGPURenderCommand.vertexBinding)
+                fixed (SDL_GPUBufferBinding* b = vertexBinding)
                 {
                     SDL3.SDL_BindGPUVertexBuffers(renderPass, 0, b, 1);
                 }

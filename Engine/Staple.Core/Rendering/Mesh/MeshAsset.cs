@@ -676,13 +676,5 @@ public sealed class MeshAsset : IGuidAsset
         return outValue;
     }
 
-    /// <summary>
-    /// Loads a Mesh Asset by guid
-    /// </summary>
-    /// <param name="guid">The guid to load</param>
-    /// <returns>The mesh asset, or null</returns>
-    public static object Create(string guid)
-    {
-        return ResourceManager.instance.LoadMeshAsset(guid);
-    }
+    public static object Create(string guid) => ResourceManager.instance.LoadMeshAsset(guid);
 }

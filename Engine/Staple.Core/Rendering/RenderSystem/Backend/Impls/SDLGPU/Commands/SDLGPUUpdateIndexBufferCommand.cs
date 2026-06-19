@@ -74,16 +74,7 @@ internal unsafe class SDLGPUUpdateIndexBufferCommand(SDLGPURendererBackend backe
 
         var mapData = SDL3.SDL_MapGPUTransferBuffer(backend.device, buffer.transferBuffer, true);
 
-        unsafe
-        {
-            fixed (byte* ptr = data)
-            {
-                var from = new Span<byte>(ptr, data.Length);
-                var to = new Span<byte>((void*)mapData, data.Length);
-
-                from.CopyTo(to);
-            }
-        }
+        data.AsSpan().CopyTo(new Span<byte>((void*)mapData, data.Length));
 
         SDL3.SDL_UnmapGPUTransferBuffer(backend.device, buffer.transferBuffer);
 

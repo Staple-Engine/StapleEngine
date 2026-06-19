@@ -49,19 +49,6 @@ internal struct RenderState
 
     public readonly RenderState Clone()
     {
-        var vertexTextures = this.vertexTextures != null ? new Texture[this.vertexTextures.Length] : null;
-        var fragmentTextures = this.fragmentTextures != null ? new Texture[this.fragmentTextures.Length] : null;
-
-        if(vertexTextures != null)
-        {
-            Array.Copy(this.vertexTextures, vertexTextures, vertexTextures.Length);
-        }
-
-        if(fragmentTextures != null)
-        {
-            Array.Copy(this.fragmentTextures, fragmentTextures, fragmentTextures.Length);
-        }
-
         return new()
         {
             cull = cull,
@@ -69,7 +56,7 @@ internal struct RenderState
             destinationBlend = destinationBlend,
             enableDepth = enableDepth,
             fragmentStorageBuffers = fragmentStorageBuffers != null ? new(fragmentStorageBuffers) : null,
-            fragmentTextures = fragmentTextures,
+            fragmentTextures = MemoryUtils.SafeCloneArray(fragmentTextures),
             indexBuffer = indexBuffer,
             indexCount = indexCount,
             primitiveType = primitiveType,
@@ -83,7 +70,7 @@ internal struct RenderState
             startIndex = startIndex,
             startVertex = startVertex,
             vertexBuffer = vertexBuffer,
-            vertexTextures = vertexTextures,
+            vertexTextures = MemoryUtils.SafeCloneArray(vertexTextures),
             wireframe = wireframe,
             world = world,
             instanceOffset = instanceOffset,

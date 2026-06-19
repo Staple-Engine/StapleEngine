@@ -62,8 +62,5 @@ public class FontAsset : IGuidAsset
         }
     }
 
-    public static object Create(string guid)
-    {
-        return ResourceManager.instance.LoadFont(guid);
-    }
+    public static object Create(string guid) => ResourceManager.instance.LoadFont(guid);
 }

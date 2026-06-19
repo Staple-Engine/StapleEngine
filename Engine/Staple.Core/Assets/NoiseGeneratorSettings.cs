@@ -25,10 +25,7 @@ public class NoiseGeneratorSettings : IStapleAsset, IGuidAsset
 
     public GuidHasher Guid { get; } = new();
 
-    public static object Create(string guid)
-    {
-        return ResourceManager.instance.LoadAsset<NoiseGeneratorSettings>(guid);
-    }
+    public static object Create(string guid) => ResourceManager.instance.LoadAsset<NoiseGeneratorSettings>(guid);
 
     /// <summary>
     /// Creates a noise generator instance

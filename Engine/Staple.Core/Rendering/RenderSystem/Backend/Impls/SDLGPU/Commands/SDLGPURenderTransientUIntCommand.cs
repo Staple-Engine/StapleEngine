@@ -8,8 +8,8 @@ internal unsafe class SDLGPURenderTransientUIntCommand(SDLGPURendererBackend bac
     SDLGPURendererBackend.TransientEntry entry) : IRenderCommand
 {
     private readonly RenderState state = state.Clone();
-    private readonly Texture[] vertexTextures = (Texture[])vertexTextures?.Clone();
-    private readonly Texture[] fragmentTextures = (Texture[])fragmentTextures?.Clone();
+    private readonly Texture[] vertexTextures = MemoryUtils.SafeCloneArray(vertexTextures);
+    private readonly Texture[] fragmentTextures = MemoryUtils.SafeCloneArray(fragmentTextures);
 
     public void Update()
     {

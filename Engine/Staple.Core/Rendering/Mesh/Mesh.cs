@@ -1105,15 +1105,7 @@ public sealed partial class Mesh : IGuidAsset
 
     public GuidHasher Guid { get; } = new();
 
-    /// <summary>
-    /// Loads a mesh from a guid
-    /// </summary>
-    /// <param name="guid">The asset's guid</param>
-    /// <returns>The mesh, or null</returns>
-    public static object Create(string guid)
-    {
-        return ResourceManager.instance.LoadMesh(guid);
-    }
+    public static object Create(string guid) => ResourceManager.instance.LoadMesh(guid);
 
     public Mesh()
     {

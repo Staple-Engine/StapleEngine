@@ -11,49 +11,7 @@ namespace Staple;
 /// </summary>
 public sealed class Material : IGuidAsset
 {
-    internal class ParameterInfo
-    {
-        public string name;
-        public MaterialParameterType type;
-        public ShaderHandle shaderHandle;
-        public int intValue;
-        public float floatValue;
-        public Vector2 vector2Value;
-        public Vector3 vector3Value;
-        public Vector4 vector4Value;
-        public Color colorValue;
-        public Texture textureValue;
-        public Matrix3x3 matrix3x3Value = Matrix3x3.Identity;
-        public Matrix4x4 matrix4x4Value = Matrix4x4.Identity;
-        public TextureWrap textureWrapValue;
-        public bool hasTexture;
-
-        public ParameterInfo Clone()
-        {
-            return new()
-            {
-                name = name,
-                type = type,
-                shaderHandle = shaderHandle,
-                intValue = intValue,
-                floatValue = floatValue,
-                vector2Value = vector2Value,
-                vector3Value = vector3Value,
-                vector4Value = vector4Value,
-                colorValue = colorValue,
-                textureValue = textureValue,
-                matrix3x3Value = matrix3x3Value,
-                matrix4x4Value = matrix4x4Value,
-                textureWrapValue = textureWrapValue,
-                hasTexture = hasTexture,
-            };
-        }
-
-        public override string ToString()
-        {
-            return $"{name} ({type})";
-        }
-    }
+    internal MaterialResource materialResource;
 
     internal const string MainColorProperty = "mainColor";
     internal const string MainTextureProperty = "mainTexture";
@@ -86,20 +44,6 @@ public sealed class Material : IGuidAsset
         }
     }
 
-    internal Shader shader;
-    internal MaterialMetadata metadata;
-
-    internal readonly Dictionary<ParameterInfo, int> vertexTextureBindings = [];
-    internal readonly Dictionary<ParameterInfo, int> fragmentTextureBindings = [];
-
-    internal Texture[] vertexSamplers;
-
-    internal Texture[] fragmentSamplers;
-
-    internal Dictionary<StringID, ParameterInfo> parameters = [];
-
-    internal Dictionary<StringID, ParameterInfo> instanceParameters = [];
-
     internal Dictionary<StringID, ShaderHandle> shaderHandles = [];
 
     internal HashSet<int> shaderKeywords = [];
@@ -112,7 +56,7 @@ public sealed class Material : IGuidAsset
     /// </summary>
     public Color MainColor
     {
-        get => parameters.TryGetValue(MainColorPropertyHash, out var p) ? p.colorValue : Color.White;
+        get => materialResource != null && materialResource.parameters.TryGetValue(MainColorPropertyHash, out var p) ? p.colorValue : Color.White;
 
         set => SetColor(MainColorProperty, value);
     }
@@ -122,7 +66,8 @@ public sealed class Material : IGuidAsset
     /// </summary>
     public Texture MainTexture
     {
-        get => parameters.TryGetValue(MainTexturePropertyHash, out var p) && !(p.textureValue?.Disposed ?? true) ?
+        get => materialResource != null && materialResource.parameters.TryGetValue(MainTexturePropertyHash, out var p) &&
+            !(p.textureValue?.Disposed ?? true) ?
             p.textureValue : WhiteTexture;
 
         set => SetTexture(MainTextureProperty, value);
@@ -159,7 +104,7 @@ public sealed class Material : IGuidAsset
 
         hashCode.Add(Guid.GuidHash);
 
-        void HandleParameter(StringID key, ParameterInfo parameter)
+        void HandleParameter(StringID key, MaterialResourceParameter parameter)
         {
             hashCode.Add(key);
             hashCode.Add(parameter.type);
@@ -228,12 +173,12 @@ public sealed class Material : IGuidAsset
             }
         }
 
-        foreach (var pair in parameters)
+        foreach (var pair in materialResource.parameters)
         {
             HandleParameter(pair.Key, pair.Value);
         }
 
-        foreach (var pair in instanceParameters)
+        foreach (var pair in materialResource.instanceParameters)
         {
             HandleParameter(pair.Key, pair.Value);
         }
@@ -241,19 +186,19 @@ public sealed class Material : IGuidAsset
         stateHash = hashCode.ToHashCode();
     }
 
-    public GuidHasher Guid { get; } = new();
+    public GuidHasher Guid => materialResource?.Guid ?? new();
 
     /// <summary>
     /// Whether this material has been disposed and is now invalid.
     /// </summary>
-    public bool Disposed { get; internal set; } = false;
+    public bool Disposed => materialResource == null;
 
-    public bool IsValid => !Disposed && shader != null && !shader.Disposed;
+    public bool IsValid => !Disposed && materialResource?.shader != null && !materialResource.shader.Disposed;
 
     /// <summary>
     /// Valid shader keywords
     /// </summary>
-    public IEnumerable<string> Keywords => shader?.shaderResource?.metadata?.variants ?? Enumerable.Empty<string>();
+    public IEnumerable<string> Keywords => materialResource?.shader?.shaderResource?.metadata?.variants ?? Enumerable.Empty<string>();
 
     private IShaderProgram shaderProgram;
 
@@ -264,6 +209,11 @@ public sealed class Material : IGuidAsset
     {
         get
         {
+            if(Disposed)
+            {
+                return null;
+            }
+
             if (!needsVariantKeyUpdate)
             {
                 return shaderProgram;
@@ -283,19 +233,12 @@ public sealed class Material : IGuidAsset
 
     public Material(Material sourceMaterial)
     {
-        if(sourceMaterial == null)
+        if(sourceMaterial == null || sourceMaterial.Disposed)
         {
             return;
         }
 
-        foreach (var parameter in sourceMaterial.parameters)
-        {
-            parameters.AddOrSetKey(parameter.Key, parameter.Value.Clone());
-        }
-
-        metadata = sourceMaterial.metadata;
-        Guid = sourceMaterial.Guid;
-        shader = sourceMaterial.shader;
+        materialResource = sourceMaterial.materialResource?.Clone();
         shaderHandles = new(sourceMaterial.shaderHandles);
         CullingMode = sourceMaterial.CullingMode;
 
@@ -318,28 +261,28 @@ public sealed class Material : IGuidAsset
             return;
         }
 
-        Disposed = true;
+        materialResource = null;
     }
 
-    /// <summary>
-    /// IPathAsset implementation. Loads a material from path.
-    /// </summary>
-    /// <param name="path">The path to load from</param>
-    /// <returns>The material, or null</returns>
     public static object Create(string path) => ResourceManager.instance.LoadMaterial(path);
 
     private void UpdateTextureBindingData()
     {
-        if (!shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var instance))
+        if (materialResource == null ||
+            !materialResource.shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var instance))
         {
-            vertexSamplers = null;
-            fragmentSamplers = null;
+            materialResource.vertexSamplers = null;
+            materialResource.fragmentSamplers = null;
 
             return;
         }
 
         var vertexTextureCount = instance.vertexTextureBindings.Count;
         var fragmentTextureCount = instance.fragmentTextureBindings.Count;
+
+        var (vertexSamplers, fragmentSamplers, vertexTextureBindings, fragmentTextureBindings, parameters) =
+            (materialResource.vertexSamplers, materialResource.fragmentSamplers, materialResource.vertexTextureBindings,
+            materialResource.fragmentTextureBindings, materialResource.parameters);
 
         if (vertexSamplers == null || vertexSamplers.Length != vertexTextureCount)
         {
@@ -370,7 +313,7 @@ public sealed class Material : IGuidAsset
             {
                 continue;
             }
-            
+
             vertexTextureBindings.Add(p, pair.Value);
 
             vertexSamplers[pair.Value] = p.textureValue;
@@ -382,26 +325,29 @@ public sealed class Material : IGuidAsset
             {
                 continue;
             }
-            
+
             fragmentTextureBindings.Add(p, pair.Value);
 
             fragmentSamplers[pair.Value] = p.textureValue;
         }
+
+        (materialResource.vertexSamplers, materialResource.fragmentSamplers, materialResource.parameters) =
+            (vertexSamplers, fragmentSamplers, parameters);
     }
 
     private void UpdateVariantKey()
     {
         ShaderVariantKey = "";
 
-        if ((shader?.Disposed ?? true) ||
-            shader.shaderResource.metadata.type != ShaderType.VertexFragment)
+        if ((materialResource?.shader?.Disposed ?? true) ||
+            materialResource.shader.shaderResource.metadata.type != ShaderType.VertexFragment)
         {
             return;
         }
 
         var c = shaderKeywords.Count;
 
-        foreach(var pair in shader.shaderResource.instances)
+        foreach(var pair in materialResource.shader.shaderResource.instances)
         {
             if(pair.Value.keyPieces.Length != c)
             {
@@ -427,14 +373,14 @@ public sealed class Material : IGuidAsset
 
             ShaderVariantKey = pair.Key;
 
-            shaderProgram = shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var instance) ?
+            shaderProgram = materialResource.shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var instance) ?
                 instance.program : null;
 
             UpdateTextureBindingData();
 
-            foreach(var parameter in parameters)
+            foreach(var parameter in materialResource.parameters)
             {
-                parameter.Value.shaderHandle = shader.GetUniformHandle(parameter.Key, ShaderVariantKey);
+                parameter.Value.shaderHandle = materialResource.shader.GetUniformHandle(parameter.Key, ShaderVariantKey);
             }
 
             break;
@@ -447,9 +393,9 @@ public sealed class Material : IGuidAsset
     /// <param name="name">The keyword</param>
     public void EnableShaderKeyword(string name)
     {
-        if(shader == null ||
-            shader.Disposed ||
-            (!shader.shaderResource.metadata.variants.Contains(name) &&
+        if(materialResource?.shader == null ||
+            materialResource.shader.Disposed ||
+            (!materialResource.shader.shaderResource.metadata.variants.Contains(name) &&
             !Shader.DefaultVariants.Contains(name)))
         {
             return;
@@ -498,6 +444,14 @@ public sealed class Material : IGuidAsset
     /// <param name="value">The color value</param>
     public void SetColor(string name, Color value, MaterialParameterSource source = MaterialParameterSource.Uniform)
     {
+        if(Disposed)
+        {
+            return;
+        }
+
+        var parameters = materialResource.parameters;
+        var instanceParameters = materialResource.instanceParameters;
+
         needsHashUpdate = true;
 
         if (source == MaterialParameterSource.Uniform)
@@ -511,7 +465,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                parameters.AddOrSetKey(name, new ParameterInfo()
+                parameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Color,
@@ -530,7 +484,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                instanceParameters.AddOrSetKey(name, new ParameterInfo()
+                instanceParameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Color,
@@ -547,6 +501,14 @@ public sealed class Material : IGuidAsset
     /// <param name="value">The int value</param>
     public void SetInt(string name, int value, MaterialParameterSource source = MaterialParameterSource.Uniform)
     {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var parameters = materialResource.parameters;
+        var instanceParameters = materialResource.instanceParameters;
+
         needsHashUpdate = true;
 
         if (source == MaterialParameterSource.Uniform)
@@ -576,7 +538,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                parameter = new ParameterInfo()
+                parameter = new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Int,
@@ -611,7 +573,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                instanceParameters.AddOrSetKey(name, new ParameterInfo()
+                instanceParameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Int,
@@ -628,6 +590,14 @@ public sealed class Material : IGuidAsset
     /// <param name="value">The float value</param>
     public void SetFloat(string name, float value, MaterialParameterSource source = MaterialParameterSource.Uniform)
     {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var parameters = materialResource.parameters;
+        var instanceParameters = materialResource.instanceParameters;
+
         needsHashUpdate = true;
 
         if (source == MaterialParameterSource.Uniform)
@@ -657,7 +627,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                parameter = new ParameterInfo()
+                parameter = new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Float,
@@ -692,7 +662,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                instanceParameters.AddOrSetKey(name, new ParameterInfo()
+                instanceParameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Float,
@@ -709,6 +679,14 @@ public sealed class Material : IGuidAsset
     /// <param name="value">The Vector2 value</param>
     public void SetVector2(string name, Vector2 value, MaterialParameterSource source = MaterialParameterSource.Uniform)
     {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var parameters = materialResource.parameters;
+        var instanceParameters = materialResource.instanceParameters;
+
         needsHashUpdate = true;
 
         if (source == MaterialParameterSource.Uniform)
@@ -722,7 +700,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                parameters.AddOrSetKey(name, new ParameterInfo()
+                parameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Vector2,
@@ -741,7 +719,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                instanceParameters.AddOrSetKey(name, new ParameterInfo()
+                instanceParameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Vector2,
@@ -758,6 +736,14 @@ public sealed class Material : IGuidAsset
     /// <param name="value">The Vector3 value</param>
     public void SetVector3(string name, Vector3 value, MaterialParameterSource source = MaterialParameterSource.Uniform)
     {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var parameters = materialResource.parameters;
+        var instanceParameters = materialResource.instanceParameters;
+
         needsHashUpdate = true;
 
         if (source == MaterialParameterSource.Uniform)
@@ -771,7 +757,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                parameters.AddOrSetKey(name, new ParameterInfo()
+                parameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Vector3,
@@ -790,7 +776,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                instanceParameters.AddOrSetKey(name, new ParameterInfo()
+                instanceParameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Vector3,
@@ -807,6 +793,14 @@ public sealed class Material : IGuidAsset
     /// <param name="value">The Vector4 value</param>
     public void SetVector4(string name, Vector4 value, MaterialParameterSource source = MaterialParameterSource.Uniform)
     {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var parameters = materialResource.parameters;
+        var instanceParameters = materialResource.instanceParameters;
+
         needsHashUpdate = true;
 
         if (source == MaterialParameterSource.Uniform)
@@ -820,7 +814,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                parameters.AddOrSetKey(name, new ParameterInfo()
+                parameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Vector4,
@@ -839,7 +833,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                instanceParameters.AddOrSetKey(name, new ParameterInfo()
+                instanceParameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Vector4,
@@ -856,6 +850,14 @@ public sealed class Material : IGuidAsset
     /// <param name="value">The Texture value</param>
     public void SetTexture(string name, Texture value)
     {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var parameters = materialResource.parameters;
+        var instanceParameters = materialResource.instanceParameters;
+
         needsHashUpdate = true;
 
         if (parameters.TryGetValue(name, out var parameter))
@@ -891,7 +893,7 @@ public sealed class Material : IGuidAsset
         {
             value ??= WhiteTexture;
 
-            parameters.AddOrSetKey(name, new ParameterInfo()
+            parameters.AddOrSetKey(name, new MaterialResourceParameter()
             {
                 name = name,
                 type = MaterialParameterType.Texture,
@@ -908,6 +910,14 @@ public sealed class Material : IGuidAsset
     /// <param name="value">The Matrix3x3 value</param>
     public void SetMatrix3x3(string name, Matrix3x3 value, MaterialParameterSource source = MaterialParameterSource.Uniform)
     {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var parameters = materialResource.parameters;
+        var instanceParameters = materialResource.instanceParameters;
+
         needsHashUpdate = true;
 
         if (source == MaterialParameterSource.Uniform)
@@ -921,7 +931,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                parameters.AddOrSetKey(name, new ParameterInfo()
+                parameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Matrix3x3,
@@ -940,7 +950,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                instanceParameters.AddOrSetKey(name, new ParameterInfo()
+                instanceParameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Matrix3x3,
@@ -957,6 +967,14 @@ public sealed class Material : IGuidAsset
     /// <param name="value">The Matrix4x4 value</param>
     public void SetMatrix4x4(string name, Matrix4x4 value, MaterialParameterSource source = MaterialParameterSource.Uniform)
     {
+        if (Disposed)
+        {
+            return;
+        }
+
+        var parameters = materialResource.parameters;
+        var instanceParameters = materialResource.instanceParameters;
+
         needsHashUpdate = true;
 
         if (source == MaterialParameterSource.Uniform)
@@ -970,7 +988,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                parameters.AddOrSetKey(name, new ParameterInfo()
+                parameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Matrix4x4,
@@ -989,7 +1007,7 @@ public sealed class Material : IGuidAsset
             }
             else
             {
-                instanceParameters.AddOrSetKey(name, new ParameterInfo()
+                instanceParameters.AddOrSetKey(name, new MaterialResourceParameter()
                 {
                     name = name,
                     type = MaterialParameterType.Matrix4x4,
@@ -1006,12 +1024,17 @@ public sealed class Material : IGuidAsset
     /// <returns>The shader handle, or null</returns>
     internal ShaderHandle GetShaderHandle(StringID name)
     {
+        if(Disposed)
+        {
+            return default;
+        }
+
         if(shaderHandles.TryGetValue(name, out var shaderHandle))
         {
             return shaderHandle;
         }
 
-        shaderHandle = shader.GetUniformHandle(name, ShaderVariantKey);
+        shaderHandle = materialResource.shader.GetUniformHandle(name, ShaderVariantKey);
 
         if(shaderHandle.IsValid)
         {
@@ -1027,8 +1050,8 @@ public sealed class Material : IGuidAsset
     /// <param name="state">The render state to apply to</param>
     internal void ApplyProperties(ref RenderState state)
     {
-        if(shader == null ||
-            !shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var shaderInstance))
+        if(materialResource?.shader == null ||
+            !materialResource.shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var shaderInstance))
         {
             state.shader = null;
             state.shaderInstance = null;
@@ -1036,10 +1059,16 @@ public sealed class Material : IGuidAsset
             return;
         }
 
+        var (shader, parameters, sourceBlend, destinationBlend, vertexTextureBindings, fragmentTextureBindings,
+            vertexSamplers, fragmentSamplers) =
+            (materialResource.shader, materialResource.parameters, materialResource.shader.shaderResource.sourceBlend,
+            materialResource.shader.shaderResource.destinationBlend, materialResource.vertexTextureBindings,
+            materialResource.fragmentTextureBindings, materialResource.vertexSamplers, materialResource.fragmentSamplers);
+
         state.shader = shader;
         state.shaderInstance = shaderInstance;
-        state.sourceBlend = shader.shaderResource.sourceBlend;
-        state.destinationBlend = shader.shaderResource.destinationBlend;
+        state.sourceBlend = sourceBlend;
+        state.destinationBlend = destinationBlend;
         state.cull = CullingMode;
 
         foreach (var parameter in parameters.Values)
@@ -1122,5 +1151,7 @@ public sealed class Material : IGuidAsset
 
         state.vertexTextures = vertexSamplers;
         state.fragmentTextures = fragmentSamplers;
+
+        (materialResource.vertexSamplers, materialResource.fragmentSamplers) = (vertexSamplers, fragmentSamplers);
     }
 }

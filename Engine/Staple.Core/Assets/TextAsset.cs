@@ -10,8 +10,5 @@ public class TextAsset : IGuidAsset
 
     public GuidHasher Guid { get; } = new();
 
-    public static object Create(string guid)
-    {
-        return ResourceManager.instance.LoadTextAsset(guid);
-    }
+    public static object Create(string guid) => ResourceManager.instance.LoadTextAsset(guid);
 }
