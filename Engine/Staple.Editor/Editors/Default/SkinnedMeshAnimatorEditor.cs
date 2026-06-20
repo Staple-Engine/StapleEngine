@@ -18,7 +18,7 @@ internal class SkinnedMeshAnimatorEditor : Editor
         {
             if(renderer.mesh?.meshAsset != null)
             {
-                var animations = renderer.mesh.meshAsset.animations;
+                var animations = renderer.mesh.meshAsset.Animations;
 
                 var animationNames = animations.Select(x => x.Key).ToList();
 
@@ -63,8 +63,8 @@ internal class SkinnedMeshAnimatorEditor : Editor
             animator.mesh != null &&
             animator.mesh.meshAsset != null &&
             animator.mesh.meshAssetIndex >= 0 &&
-            animator.mesh.meshAssetIndex < animator.mesh.meshAsset.meshes.Count &&
-            animator.mesh.meshAsset.animations.TryGetValue(animator.animation, out var animation))
+            animator.mesh.meshAssetIndex < animator.mesh.meshAsset.Meshes.Count &&
+            animator.mesh.meshAsset.Animations.TryGetValue(animator.animation, out var animation))
         {
             var newPlaytime = EditorGUI.FloatField("Play Time (seconds)", "SkinnedMeshAnimatorPlayTime", animator.playTime);
 

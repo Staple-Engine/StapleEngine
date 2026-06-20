@@ -1702,24 +1702,24 @@ internal class ResourceManager
 
         var meshIndex = 0;
 
-        if (asset.meshes.Count > 0)
+        if (asset.Meshes.Count > 0)
         {
             if(!string.IsNullOrEmpty(indexString))
             {
                 if(!int.TryParse(indexString, out meshIndex))
                 {
-                    meshIndex = asset.meshes.FindIndex(x => x.name == indexString);
+                    meshIndex = asset.Meshes.FindIndex(x => x.name == indexString);
                 }
             }
 
-            if(meshIndex < 0 || meshIndex >= asset.meshes.Count)
+            if(meshIndex < 0 || meshIndex >= asset.Meshes.Count)
             {
                 Log.Error($"[ResourceManager] Failed to load mesh {original}: Invalid mesh index {meshIndex}");
 
                 return null;
             }
 
-            var m = asset.meshes[meshIndex];
+            var m = asset.Meshes[meshIndex];
 
             mesh = new Mesh(true, false)
             {
@@ -1857,16 +1857,21 @@ internal class ResourceManager
                 return null;
             }
 
-            var asset = new MeshAsset()
+            var resource = new MeshAssetResource()
             {
                 lighting = meshAssetData.metadata.lighting,
                 frameRate = meshAssetData.metadata.frameRate,
                 syncAnimationToRefreshRate = meshAssetData.metadata.syncAnimationToRefreshRate,
             };
 
-            asset.Guid.Guid = guid ?? path;
+            resource.Guid.Guid = guid ?? path;
 
-            asset.nodes = new MeshAsset.Node[meshAssetData.nodes.Length];
+            var asset = new MeshAsset()
+            {
+                meshResource = resource,
+            };
+
+            resource.nodes = new MeshAsset.Node[meshAssetData.nodes.Length];
 
             for (var i = 0; i < meshAssetData.nodes.Length; i++)
             {
@@ -1874,7 +1879,7 @@ internal class ResourceManager
 
                 var transform = Matrix4x4.TRS(node.position.ToVector3(), node.scale.ToVector3(), node.rotation.ToQuaternion());
 
-                asset.nodes[i] = new MeshAsset.Node()
+                resource.nodes[i] = new MeshAsset.Node()
                 {
                     name = node.name,
                     index = i,
@@ -1889,7 +1894,7 @@ internal class ResourceManager
             {
                 var node = meshAssetData.nodes[i];
 
-                asset.nodes[i].parent = asset.nodes.FirstOrDefault(x => x.children.Contains(i));
+                resource.nodes[i].parent = resource.nodes.FirstOrDefault(x => x.children.Contains(i));
             }
 
             var startBoneIndex = 0;
@@ -1900,7 +1905,7 @@ internal class ResourceManager
                 {
                     name = m.name,
                     topology = m.topology,
-                    lighting = asset.lighting,
+                    lighting = resource.lighting,
                     type = m.type,
                     components = m.Components,
 
@@ -2048,9 +2053,9 @@ internal class ResourceManager
 
                 if(newMesh.type == MeshAssetType.Skinned)
                 {
-                    foreach (var node in asset.nodes)
+                    foreach (var node in resource.nodes)
                     {
-                        if (node.meshIndices.Contains(asset.meshes.Count))
+                        if (node.meshIndices.Contains(resource.meshes.Count))
                         {
                             Matrix4x4.Decompose(node.OriginalGlobalTransform, out var scale, out var rotation, out var position);
 
@@ -2065,21 +2070,21 @@ internal class ResourceManager
                     }
                 }
 
-                asset.meshes.Add(newMesh);
+                resource.meshes.Add(newMesh);
             }
 
-            asset.BoneCount = startBoneIndex;
+            resource.BoneCount = startBoneIndex;
 
-            if(asset.meshes.Count == 1)
+            if(resource.meshes.Count == 1)
             {
-                asset.Bounds = asset.meshes[0].transformedBounds;
+                resource.Bounds = resource.meshes[0].transformedBounds;
             }
-            else if(asset.meshes.Count > 0)
+            else if(resource.meshes.Count > 0)
             {
                 var min = Vector3.One * 999999;
                 var max = Vector3.One * -999999;
 
-                foreach(var m in asset.meshes)
+                foreach(var m in resource.meshes)
                 {
                     if(min.X > m.transformedBounds.center.X)
                     {
@@ -2112,7 +2117,7 @@ internal class ResourceManager
                     }
                 }
 
-                asset.Bounds = AABB.CreateFromMinMax(min, max);
+                resource.Bounds = AABB.CreateFromMinMax(min, max);
             }
 
             foreach(var a in meshAssetData.animations)
@@ -2150,7 +2155,7 @@ internal class ResourceManager
                     animation.channels.Add(channel);
                 }
 
-                asset.animations.AddOrSetKey(animation.name, animation);
+                resource.animations.AddOrSetKey(animation.name, animation);
             }
 
             if(!ignoreCache)

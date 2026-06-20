@@ -122,7 +122,7 @@ internal class ThumbnailCache
 
                     var mesh = ResourceManager.instance.LoadMeshAsset(cachePath, true);
 
-                    if (mesh == null || mesh.meshes.Count == 0)
+                    if (mesh == null || mesh.Meshes.Count == 0)
                     {
                         Cleanup();
 

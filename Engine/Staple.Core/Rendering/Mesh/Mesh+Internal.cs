@@ -220,12 +220,12 @@ public sealed partial class Mesh
     {
         get
         {
-            if(meshAsset == null || meshAssetIndex < 0 || meshAssetIndex >= meshAsset.meshes.Count)
+            if(meshAsset == null || meshAssetIndex < 0 || meshAssetIndex >= meshAsset.Meshes.Count)
             {
                 return null;
             }
 
-            return meshAsset.meshes[meshAssetIndex];
+            return meshAsset.Meshes[meshAssetIndex];
         }
     }
 

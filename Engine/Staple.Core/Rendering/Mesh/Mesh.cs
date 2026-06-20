@@ -1797,7 +1797,7 @@ public sealed partial class Mesh : IGuidAsset
 
         meshTransform.SetParent(parent);
 
-        var outMaterials = mesh.meshAsset != null ? mesh.meshAsset.meshes[mesh.meshAssetIndex].submeshMaterialGuids
+        var outMaterials = mesh.meshAsset != null ? mesh.meshAsset.Meshes[mesh.meshAssetIndex].submeshMaterialGuids
             .Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList() :
             [ResourceManager.instance.LoadMaterial(AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath))];
 
@@ -1809,7 +1809,7 @@ public sealed partial class Mesh : IGuidAsset
 
             skinnedRenderer.mesh = mesh;
             skinnedRenderer.materials = outMaterials;
-            skinnedRenderer.lighting = mesh.meshAsset?.lighting ?? MaterialLighting.Lit;
+            skinnedRenderer.lighting = mesh.meshAsset?.Lighting ?? MaterialLighting.Lit;
         }
         else
         {
@@ -1817,7 +1817,7 @@ public sealed partial class Mesh : IGuidAsset
 
             meshRenderer.mesh = mesh;
             meshRenderer.materials = outMaterials;
-            meshRenderer.lighting = mesh.meshAsset?.lighting ?? MaterialLighting.Lit;
+            meshRenderer.lighting = mesh.meshAsset?.Lighting ?? MaterialLighting.Lit;
         }
 
         return meshEntity;
@@ -1857,13 +1857,13 @@ public sealed partial class Mesh : IGuidAsset
 
         Transform stapleRootNodeTransform = null;
 
-        if ((asset.nodes?.Length ?? 0) > 0)
+        if ((asset.Nodes?.Length ?? 0) > 0)
         {
-            var parents = new Transform[asset.nodes.Length];
+            var parents = new Transform[asset.Nodes.Length];
 
-            for (var i = 0; i < asset.nodes.Length; i++)
+            for (var i = 0; i < asset.Nodes.Length; i++)
             {
-                var node = asset.nodes[i];
+                var node = asset.Nodes[i];
 
                 var nodeParent = Entity.Create(node.name, typeof(Transform));
 
@@ -1888,12 +1888,12 @@ public sealed partial class Mesh : IGuidAsset
 
                 foreach (var index in node.meshIndices)
                 {
-                    if (index < 0 || index >= asset.meshes.Count)
+                    if (index < 0 || index >= asset.Meshes.Count)
                     {
                         continue;
                     }
 
-                    var mesh = asset.meshes[index];
+                    var mesh = asset.Meshes[index];
 
                     var meshEntity = Entity.Create(mesh.name, typeof(Transform));
 
@@ -1930,11 +1930,11 @@ public sealed partial class Mesh : IGuidAsset
                 }
             }
         }
-        else if ((asset.meshes?.Count ?? 0) > 0)
+        else if ((asset.Meshes?.Count ?? 0) > 0)
         {
-            for (var i = 0; i < asset.meshes.Count; i++)
+            for (var i = 0; i < asset.Meshes.Count; i++)
             {
-                var mesh = asset.meshes[i];
+                var mesh = asset.Meshes[i];
 
                 var meshEntity = Entity.Create(mesh.name, typeof(Transform));
 

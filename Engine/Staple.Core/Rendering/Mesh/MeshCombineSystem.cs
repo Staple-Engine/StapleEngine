@@ -87,7 +87,7 @@ public sealed class MeshCombineSystem : IRenderSystem
                     }
 
                     var lighting = renderer.overrideLighting ? renderer.lighting :
-                        renderer.mesh.meshAsset?.lighting ?? renderer.lighting;
+                        renderer.mesh.meshAsset?.Lighting ?? renderer.lighting;
 
                     var key = (components, renderer.mesh.MeshTopology, lighting, renderer.materials[0].Guid.GuidHash);
 

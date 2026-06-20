@@ -204,6 +204,7 @@
 		<Compile Include="Rendering\Materials\MaterialLighting.cs" />
 		<Compile Include="Rendering\Materials\MaterialResourceParameter.cs" />
 		<Compile Include="Rendering\Materials\MaterialResource.cs" />
+		<Compile Include="Rendering\Mesh\MeshAssetResource.cs" />
 		<Compile Include="Rendering\Mesh\MeshCombine.cs" />
 		<Compile Include="Rendering\Mesh\MeshCombineSystem.cs" />
 		<Compile Include="Rendering\Mesh\MeshInstanceOptions.cs" />

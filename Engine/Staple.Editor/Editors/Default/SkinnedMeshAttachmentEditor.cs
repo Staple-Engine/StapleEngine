@@ -21,7 +21,7 @@ internal class SkinnedMeshAttachmentEditor : Editor
                 return true;
             }
 
-            var boneNames = attachment.mesh.meshAsset.nodes.Select(x => x.name).ToArray();
+            var boneNames = attachment.mesh.meshAsset.Nodes.Select(x => x.name).ToArray();
 
             var index = Array.IndexOf(boneNames, attachment.boneName);
 

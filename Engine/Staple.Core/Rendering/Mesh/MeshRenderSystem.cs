@@ -197,7 +197,7 @@ public sealed class MeshRenderSystem : IRenderSystem
                 continue;
             }
 
-            var lighting = (renderer.overrideLighting ? renderer.lighting : renderer.mesh.meshAsset?.lighting) ?? renderer.lighting;
+            var lighting = (renderer.overrideLighting ? renderer.lighting : renderer.mesh.meshAsset?.Lighting) ?? renderer.lighting;
 
             void AddStatic(Material material, int submeshIndex)
             {

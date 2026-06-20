@@ -53,7 +53,7 @@ internal class SkinnedAnimationStateMachineWindow : EditorWindow, INodeUIObserve
 
                 state.repeat = EditorGUI.Toggle("Repeat", $"SkinnedAnimationStateMachineWindow.State{index}.Repeat", state.repeat);
 
-                var animations = asset.mesh?.meshAsset?.animations;
+                var animations = asset.mesh?.meshAsset?.Animations;
 
                 if (animations != null)
                 {

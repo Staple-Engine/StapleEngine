@@ -46,11 +46,11 @@ internal class MeshAssetEditor : AssetEditor
                 var boneSet = new HashSet<string>();
 
                 boneCount = meshAsset.BoneCount;
-                meshCount = meshAsset.meshes.Count;
+                meshCount = meshAsset.Meshes.Count;
                 hasExcessiveBones = false;
                 triangleCount = 0;
 
-                foreach (var mesh in meshAsset.meshes)
+                foreach (var mesh in meshAsset.Meshes)
                 {
                     triangleCount += mesh.indices.Length;
                 }
@@ -168,7 +168,7 @@ internal class MeshAssetEditor : AssetEditor
 
         if (meshAsset != null)
         {
-            EditorGUI.Label($"Stats:\n{meshCount} meshes\n{triangleCount} triangles\n{boneCount} bones\n{meshAsset.animations.Count} animations\n\n");
+            EditorGUI.Label($"Stats:\n{meshCount} meshes\n{triangleCount} triangles\n{boneCount} bones\n{meshAsset.Animations.Count} animations\n\n");
 
             if(hasExcessiveBones)
             {
@@ -184,7 +184,7 @@ internal class MeshAssetEditor : AssetEditor
 
                 EditorGUI.Label("Used Components:");
 
-                var mesh = meshAsset.meshes[0];
+                var mesh = meshAsset.Meshes[0];
 
                 EditorGUI.Label("Position");
 

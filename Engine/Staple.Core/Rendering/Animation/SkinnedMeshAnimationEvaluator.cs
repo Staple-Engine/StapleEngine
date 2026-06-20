@@ -78,7 +78,7 @@ internal class SkinnedMeshAnimationEvaluator
         this.nodes = nodes;
         this.animator = animator;
 
-        var frameRate = asset != null ? asset.syncAnimationToRefreshRate ? Screen.RefreshRate : asset.frameRate : 1;
+        var frameRate = asset != null ? asset.SyncAnimationToRefreshRate ? Screen.RefreshRate : asset.FrameRate : 1;
 
         timeBetweenFrames = 1 / (float)frameRate;
     }

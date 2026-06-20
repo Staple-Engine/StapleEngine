@@ -45,7 +45,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             if (renderer.mesh == null ||
                 renderer.mesh.meshAsset == null ||
                 renderer.mesh.meshAssetIndex < 0 ||
-                renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.meshes.Count ||
+                renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.Meshes.Count ||
                 renderer.materials == null ||
                 renderer.materials.Count == 0)
             {
@@ -124,7 +124,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             if (renderer.instance == null)
             {
-                var rootTransform = FindRootTransform(entry.transform, renderer.mesh.meshAsset.nodes.FirstOrDefault());
+                var rootTransform = FindRootTransform(entry.transform, renderer.mesh.meshAsset.Nodes.FirstOrDefault());
 
                 if (rootTransform != null)
                 {
@@ -194,8 +194,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             {
                 instance.boneMatrices = boneMatrices = new Matrix4x4[instance.mesh.meshAsset.BoneCount];
 
-                instance.nodeCache = instance.mesh.meshAsset.nodes;
-                instance.transformCache = new Transform[instance.mesh.meshAsset.nodes.Length];
+                instance.nodeCache = instance.mesh.meshAsset.Nodes;
+                instance.transformCache = new Transform[instance.mesh.meshAsset.Nodes.Length];
 
                 GatherNodeTransforms(transform, instance.transformCache, instance.nodeCache);
 
@@ -218,7 +218,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             instance.transformUpdateTimer += Time.deltaTime;
 
-            var limit = instance.mesh.meshAsset.syncAnimationToRefreshRate ? 1.0f / Screen.RefreshRate : 1.0f / instance.mesh.meshAsset.frameRate;
+            var limit = instance.mesh.meshAsset.SyncAnimationToRefreshRate ? 1.0f / Screen.RefreshRate : 1.0f / instance.mesh.meshAsset.FrameRate;
 
             if (instance.transformUpdateTimer >= limit)
             {
@@ -271,7 +271,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
-            var lighting = renderer.overrideLighting ? renderer.lighting : meshAsset.lighting;
+            var lighting = renderer.overrideLighting ? renderer.lighting : meshAsset.Lighting;
 
             for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
             {
@@ -404,9 +404,9 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             Matrix4x4.Invert(parent.Matrix, out reverseParentTransform);
         }
 
-        for (var i = 0; i < meshAsset.meshes.Count; i++)
+        for (var i = 0; i < meshAsset.Meshes.Count; i++)
         {
-            var m = meshAsset.meshes[i];
+            var m = meshAsset.Meshes[i];
             var c = m.bones.Count;
 
             for (var j = 0; j < c; j++)
@@ -443,7 +443,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     /// <returns>The nodes</returns>
     public static MeshAsset.Node[] GetNodes(MeshAsset meshAsset, SkinnedMeshAnimator animator)
     {
-        return animator?.evaluator?.nodes ?? meshAsset.nodes;
+        return animator?.evaluator?.nodes ?? meshAsset.Nodes;
     }
 
     /// <summary>

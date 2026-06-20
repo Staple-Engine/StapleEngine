@@ -43,18 +43,18 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
             if (animator.mesh == null ||
                 animator.mesh.meshAsset == null ||
                 animator.mesh.meshAssetIndex < 0 ||
-                animator.mesh.meshAssetIndex >= animator.mesh.meshAsset.animations.Count ||
+                animator.mesh.meshAssetIndex >= animator.mesh.meshAsset.Meshes.Count ||
                 (animator.animation?.Length ?? 0) == 0 ||
-                !animator.mesh.meshAsset.animations.ContainsKey(animator.animation))
+                !animator.mesh.meshAsset.Animations.ContainsKey(animator.animation))
             {
                 return;
             }
 
             if (animator.nodeCache.Length == 0 && animator.transformCache.Length == 0)
             {
-                animator.transformCache = new Transform[animator.mesh.meshAsset.nodes.Length];
+                animator.transformCache = new Transform[animator.mesh.meshAsset.Nodes.Length];
 
-                SkinnedMeshRenderSystem.GatherNodeTransforms(entry.transform, animator.transformCache, animator.mesh.meshAsset.nodes);
+                SkinnedMeshRenderSystem.GatherNodeTransforms(entry.transform, animator.transformCache, animator.mesh.meshAsset.Nodes);
             }
 
             if (Platform.IsPlaying)
@@ -71,7 +71,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
                     animator.evaluator.animation.name != animator.animation) &&
                     animator.animation != null)
                 {
-                    if(animator.mesh.meshAsset.animations.TryGetValue(animator.animation, out var animation))
+                    if(animator.mesh.meshAsset.Animations.TryGetValue(animator.animation, out var animation))
                     {
                         animator.evaluator = new(animator.mesh.meshAsset, animation,
                             animator.mesh.meshAsset.CloneNodes(),

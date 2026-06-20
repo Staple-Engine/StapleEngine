@@ -308,7 +308,7 @@ public sealed class MeshAsset : IGuidAsset
         /// </summary>
         private void UpdateTransforms()
         {
-            if(needsOriginalCalculation)
+            if (needsOriginalCalculation)
             {
                 needsOriginalCalculation = false;
 
@@ -340,7 +340,7 @@ public sealed class MeshAsset : IGuidAsset
                 }
             }
 
-            if(transformChanged)
+            if (transformChanged)
             {
                 transformChanged = false;
 
@@ -606,54 +606,56 @@ public sealed class MeshAsset : IGuidAsset
         public float DurationRealtime => duration;
     }
 
+    internal MeshAssetResource meshResource;
+
     /// <summary>
     /// List of each mesh in the asset
     /// </summary>
-    public List<MeshInfo> meshes = [];
+    public List<MeshInfo> Meshes => meshResource?.meshes ?? [];
 
     /// <summary>
     /// The nodes of the transform tree
     /// </summary>
-    public Node[] nodes;
+    public Node[] Nodes => meshResource?.nodes ?? [];
 
     /// <summary>
     /// List of all animations
     /// </summary>
-    public readonly Dictionary<string, Animation> animations = [];
+    public Dictionary<string, Animation> Animations => meshResource?.animations ?? [];
 
     /// <summary>
     /// The lighting type for this mesh
     /// </summary>
-    public MaterialLighting lighting;
+    public MaterialLighting Lighting => meshResource?.lighting ?? MaterialLighting.Unlit;
 
     /// <summary>
     /// The frame rate of the animations in this mesh
     /// </summary>
-    public int frameRate = 30;
+    public int FrameRate => meshResource?.frameRate ?? 30;
 
     /// <summary>
     /// Whether to sync the animation to the screen refresh rate
     /// </summary>
-    public bool syncAnimationToRefreshRate = false;
+    public bool SyncAnimationToRefreshRate => meshResource?.syncAnimationToRefreshRate ?? false;
 
     /// <summary>
     /// 3D bounds of the mesh
     /// </summary>
-    public AABB Bounds { get; internal set; }
+    public AABB Bounds => meshResource?.Bounds ?? default;
 
     /// <summary>
     /// The amount of bones in the meshes within this MeshAsset
     /// </summary>
-    public int BoneCount { get; internal set; }
+    public int BoneCount => meshResource?.BoneCount ?? 0;
 
-    public GuidHasher Guid { get; } = new();
+    public GuidHasher Guid => meshResource?.Guid ?? new();
 
     /// <summary>
     /// Attempts to get an animation by name
     /// </summary>
     /// <param name="name">The name of the animation</param>
     /// <returns>The animation, if found</returns>
-    public Animation GetAnimation(string name) => name != null && animations.TryGetValue(name, out var animation) ? animation : null;
+    public Animation GetAnimation(string name) => name != null && Animations.TryGetValue(name, out var animation) ? animation : null;
 
     /// <summary>
     /// Clones the nodes this asset contains
@@ -661,14 +663,14 @@ public sealed class MeshAsset : IGuidAsset
     /// <returns>The cloned nodes</returns>
     public Node[] CloneNodes()
     {
-        var outValue = new Node[nodes.Length];
+        var outValue = new Node[Nodes.Length];
 
-        for (var i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < Nodes.Length; i++)
         {
-            outValue[i] = nodes[i].Clone();
+            outValue[i] = Nodes[i].Clone();
         }
 
-        for (var i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < Nodes.Length; i++)
         {
             outValue[i].parent = outValue.FirstOrDefault(x => x.children.Contains(i));
         }
