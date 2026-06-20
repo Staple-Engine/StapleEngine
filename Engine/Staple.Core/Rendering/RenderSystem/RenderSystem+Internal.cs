@@ -247,7 +247,7 @@ public sealed partial class RenderSystem
 
         ClearCullingStates();
 
-        if(Platform.IsEditor == false)
+        if(Platform.IsEditor == false || Platform.IsPlaying)
         {
             UpdateEntityTransforms();
         }
@@ -668,6 +668,13 @@ public sealed partial class RenderSystem
 
         RenderStats.drawCalls++;
         RenderStats.triangleCount += triangles;
+
+        foreach(var entry in entries)
+        {
+            RenderStats.savedDrawCalls += entry.transforms.Count;
+        }
+
+        RenderStats.savedDrawCalls--;
     }
     #endregion
 }
