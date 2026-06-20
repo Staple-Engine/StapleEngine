@@ -533,6 +533,15 @@ public class JoltPhysics3D : IPhysics3D
     {
         lock(threadLock)
         {
+            if (entityCharacters.TryGetValue(entity, out var entityBody))
+            {
+                Log.Warning($"[Physics3D] Attempting to create a character for {entity} failed: There's already a body for it! Returning existing body...");
+
+                body = entityBody;
+
+                return true;
+            }
+
             var settings = new CharacterSettings()
             {
                 MaxSlopeAngle = Math.Deg2Rad * maxSlopeAngle,
@@ -587,6 +596,15 @@ public class JoltPhysics3D : IPhysics3D
     {
         lock (threadLock)
         {
+            if(entityBodies.TryGetValue(entity, out var entityBody))
+            {
+                Log.Warning($"[Physics3D] Attempting to create a body for {entity} failed: There's already a body for it! Returning existing body...");
+
+                body = entityBody;
+
+                return true;
+            }
+
             var creationSettings = new BodyCreationSettings(settings, position, rotation.SafeNormalize(), motionType, new ObjectLayer(layer));
 
             var dofs = new List<AllowedDOFs>

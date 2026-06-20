@@ -851,7 +851,7 @@ internal partial class StapleEditor
 
                         ResetScenePhysics(true);
 
-                        RecreateRigidBodies();
+                        Physics3D.Instance?.DestroyAllBodies();
 
                         Platform.IsPlaying = true;
 
