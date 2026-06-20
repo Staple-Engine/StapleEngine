@@ -43,12 +43,10 @@ public partial class World
                     }
                 }
 
-                if(tComponent == null)
+                if(tComponent == null || tComponent is not T t)
                 {
                     continue;
                 }
-
-                var t = (T)tComponent;
 
                 try
                 {
@@ -116,13 +114,12 @@ public partial class World
                 }
 
                 if (tComponent == null ||
-                    t2Component == null)
+                    t2Component == null ||
+                    tComponent is not T t ||
+                    t2Component is not T2 t2)
                 {
                     continue;
                 }
-
-                var t = (T)tComponent;
-                var t2 = (T2)t2Component;
 
                 try
                 {
@@ -204,14 +201,13 @@ public partial class World
 
                 if (tComponent == null ||
                     t2Component == null ||
-                    t3Component == null)
+                    t3Component == null ||
+                    tComponent is not T t ||
+                    t2Component is not T2 t2 ||
+                    t3Component is not T3 t3)
                 {
                     continue;
                 }
-
-                var t = (T)tComponent;
-                var t2 = (T2)t2Component;
-                var t3 = (T3)t3Component;
 
                 try
                 {
@@ -307,15 +303,14 @@ public partial class World
                 if (tComponent == null ||
                     t2Component == null ||
                     t3Component == null ||
-                    t4Component == null)
+                    t4Component == null ||
+                    tComponent is not T t ||
+                    t2Component is not T2 t2 ||
+                    t3Component is not T3 t3 ||
+                    t4Component is not T4 t4)
                 {
                     continue;
                 }
-
-                var t = (T)tComponent;
-                var t2 = (T2)t2Component;
-                var t3 = (T3)t3Component;
-                var t4 = (T4)t4Component;
 
                 try
                 {
@@ -425,16 +420,15 @@ public partial class World
                     t2Component == null ||
                     t3Component == null ||
                     t4Component == null ||
-                    t5Component == null)
+                    t5Component == null ||
+                    tComponent is not T t ||
+                    t2Component is not T2 t2 ||
+                    t3Component is not T3 t3 ||
+                    t4Component is not T4 t4 ||
+                    t5Component is not T5 t5)
                 {
                     continue;
                 }
-
-                var t = (T)tComponent;
-                var t2 = (T2)t2Component;
-                var t3 = (T3)t3Component;
-                var t4 = (T4)t4Component;
-                var t5 = (T5)t5Component;
 
                 try
                 {

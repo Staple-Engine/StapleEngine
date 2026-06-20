@@ -1798,7 +1798,7 @@ public sealed partial class Mesh : IGuidAsset
         meshTransform.SetParent(parent);
 
         var outMaterials = mesh.meshAsset != null ? mesh.meshAsset.Meshes[mesh.meshAssetIndex].submeshMaterialGuids
-            .Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList() :
+            .Select(x => ResourceManager.instance.LoadMaterial(x)).ToList() :
             [ResourceManager.instance.LoadMaterial(AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath))];
 
         if (mesh.HasBoneIndices && mesh.meshAsset != null && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
@@ -1903,8 +1903,8 @@ public sealed partial class Mesh : IGuidAsset
 
                     meshTransform.SetParent(isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned) ? baseTransform : nodeTransform);
 
-                    var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{index}", Platform.IsEditor);
-                    var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, Platform.IsEditor)).ToList();
+                    var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{index}");
+                    var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x)).ToList();
 
                     if (outMesh == null)
                     {
@@ -1944,8 +1944,8 @@ public sealed partial class Mesh : IGuidAsset
 
                 meshTransform.SetParent(baseTransform);
 
-                var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{i}", true);
-                var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x, true)).ToList();
+                var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{i}");
+                var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x)).ToList();
 
                 if (outMesh == null)
                 {

@@ -1065,18 +1065,18 @@ public class JoltPhysics3D : IPhysics3D
         {
             lock (threadLock)
             {
+                var id = pair.body.ID;
+
                 if (locked)
                 {
-                    physicsSystem.BodyInterfaceNoLock.RemoveBody(pair.body.ID);
-                    physicsSystem.BodyInterfaceNoLock.DestroyBody(pair.body.ID);
+                    physicsSystem.BodyInterfaceNoLock.RemoveAndDestroyBody(id);
                 }
                 else
                 {
-                    physicsSystem.BodyInterface.RemoveBody(pair.body.ID);
-                    physicsSystem.BodyInterface.DestroyBody(pair.body.ID);
+                    physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
                 }
 
-                bodies.Remove(pair.body.ID);
+                bodies.Remove(id);
                 entityBodies.Remove(pair.entity);
             }
         }
@@ -1086,18 +1086,18 @@ public class JoltPhysics3D : IPhysics3D
             {
                 characterPair.enabled = false;
 
+                var id = characterPair.character.BodyID;
+
                 if (locked)
                 {
-                    physicsSystem.BodyInterfaceNoLock.RemoveBody(characterPair.character.BodyID);
-                    physicsSystem.BodyInterfaceNoLock.DestroyBody(characterPair.character.BodyID);
+                    physicsSystem.BodyInterfaceNoLock.RemoveAndDestroyBody(id);
                 }
                 else
                 {
-                    physicsSystem.BodyInterface.RemoveBody(characterPair.character.BodyID);
-                    physicsSystem.BodyInterface.DestroyBody(characterPair.character.BodyID);
+                    physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
                 }
 
-                characters.Remove(characterPair.character.BodyID);
+                characters.Remove(id);
                 entityCharacters.Remove(characterPair.entity);
             }
         }
@@ -1407,12 +1407,32 @@ public class JoltPhysics3D : IPhysics3D
         {
             foreach (var pair in bodies)
             {
-                DestroyBody(pair.Value);
+                var id = pair.Value.body.ID;
+
+                if (locked)
+                {
+                    physicsSystem.BodyInterfaceNoLock.RemoveAndDestroyBody(id);
+                }
+                else
+                {
+                    physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
+                }
             }
 
             foreach (var pair in characters)
             {
-                DestroyBody(pair.Value);
+                pair.Value.enabled = false;
+
+                var id = pair.Value.character.BodyID;
+
+                if (locked)
+                {
+                    physicsSystem.BodyInterfaceNoLock.RemoveAndDestroyBody(id);
+                }
+                else
+                {
+                    physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
+                }
             }
 
             bodies.Clear();
