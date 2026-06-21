@@ -11,6 +11,8 @@ public class MemoryAllocator
 
     private nint pinAddress;
 
+    private bool needsRepin;
+
     internal int position;
 
     public Span<byte> Allocate(int size)
@@ -30,7 +32,7 @@ public class MemoryAllocator
 
             Array.Resize(ref buffer, newSize);
 
-            Repin();
+            needsRepin = true;
         }
 
         var outValue = buffer.AsSpan(position, size);
@@ -53,6 +55,15 @@ public class MemoryAllocator
 
     public void EnsurePin()
     {
+        if(needsRepin)
+        {
+            needsRepin = false;
+
+            Repin();
+
+            return;
+        }
+
         if (pinHandle.IsAllocated)
         {
             return;
@@ -90,6 +101,8 @@ public class MemoryAllocator<T> where T: unmanaged
 
     private readonly int elementSize = Marshal.SizeOf<T>();
 
+    private bool needsRepin;
+
     internal int position;
 
     public Span<T> Allocate(int size)
@@ -109,10 +122,8 @@ public class MemoryAllocator<T> where T: unmanaged
 
             Array.Resize(ref buffer, newSize);
 
-            Repin();
+            needsRepin = true;
         }
-
-        EnsurePin();
 
         var outValue = buffer.AsSpan(position, size);
 
@@ -134,6 +145,15 @@ public class MemoryAllocator<T> where T: unmanaged
 
     public void EnsurePin()
     {
+        if(needsRepin)
+        {
+            needsRepin = false;
+
+            Repin();
+
+            return;
+        }
+
         if (pinHandle.IsAllocated)
         {
             return;
