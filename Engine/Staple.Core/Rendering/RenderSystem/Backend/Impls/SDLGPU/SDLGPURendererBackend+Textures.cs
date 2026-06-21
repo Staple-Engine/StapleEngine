@@ -1,5 +1,6 @@
 ﻿using SDL;
 using System;
+using System.Collections.Generic;
 
 namespace Staple.Internal;
 
@@ -83,11 +84,11 @@ internal partial class SDLGPURendererBackend
         return true;
     }
 
-    internal unsafe SDL_GPUSampler *GetSampler(TextureFlags flags)
+    internal unsafe Utilities.NativePointerWrapper<SDL_GPUSampler> GetSamplerForTexture(TextureFlags flags)
     {
         if (textureSamplers.TryGetValue(flags, out var sampler))
         {
-            return sampler.ptr;
+            return sampler;
         }
 
         var anisotropy = flags.HasFlag(TextureFlags.AnisotropicFilter);
@@ -133,12 +134,12 @@ internal partial class SDLGPURendererBackend
 
         sampler = new(SDL3.SDL_CreateGPUSampler(device, &info));
 
-        if (sampler.ptr != null)
+        if (sampler != null)
         {
             textureSamplers.Add(flags, sampler);
         }
 
-        return sampler.ptr;
+        return sampler;
     }
 
     internal void DestroyTexture(ResourceHandle<Texture> handle)
@@ -184,7 +185,7 @@ internal partial class SDLGPURendererBackend
                 return null;
             }
 
-            var outValue = new SDLGPUTexture(handle, asset.width, asset.height, format, flags, this);
+            var outValue = new SDLGPUTexture(handle, asset.width, asset.height, format, flags, this, GetSamplerForTexture(flags));
 
             outValue.Update(asset.data);
 
@@ -228,7 +229,7 @@ internal partial class SDLGPURendererBackend
                 return null;
             }
 
-            var outValue = new SDLGPUTexture(handle, width, height, format, flags, this);
+            var outValue = new SDLGPUTexture(handle, width, height, format, flags, this, GetSamplerForTexture(flags));
 
             outValue.Update(data);
 
@@ -325,7 +326,7 @@ internal partial class SDLGPURendererBackend
                 _ => 0,
             };
 
-            return new SDLGPUTexture(handle, width, height, format, flags, this);
+            return new SDLGPUTexture(handle, width, height, format, flags, this, GetSamplerForTexture(flags));
         }
     }
 
@@ -1498,6 +1499,7 @@ internal partial class SDLGPURendererBackend
             {
                 if (vertexTextures[i]?.textureResource?.impl is not SDLGPUTexture texture ||
                     texture.Disposed ||
+                    !texture.sampler.Valid ||
                     !TryGetTexture(texture.handle, out var resource))
                 {
                     vertexSamplers = fragmentSamplers = null;
@@ -1508,7 +1510,7 @@ internal partial class SDLGPURendererBackend
                 unsafe
                 {
                     vertexSamplers[i].texture = resource.texture;
-                    vertexSamplers[i].sampler = GetSampler(texture.flags);
+                    vertexSamplers[i].sampler = texture.sampler.ptr;
                 }
             }
         }
@@ -1529,6 +1531,7 @@ internal partial class SDLGPURendererBackend
         {
             if (fragmentTextures[i]?.textureResource?.impl is not SDLGPUTexture texture ||
                 texture.Disposed ||
+                !texture.sampler.Valid ||
                 !TryGetTexture(texture.handle, out var resource))
             {
                 vertexSamplers = fragmentSamplers = null;
@@ -1539,7 +1542,7 @@ internal partial class SDLGPURendererBackend
             unsafe
             {
                 fragmentSamplers[i].texture = resource.texture;
-                fragmentSamplers[i].sampler = GetSampler(texture.flags);
+                fragmentSamplers[i].sampler = texture.sampler.ptr;
             }
         }
 

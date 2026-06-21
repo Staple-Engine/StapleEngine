@@ -105,8 +105,8 @@ internal unsafe class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderS
                 fixed (SDL_GPUBufferBinding* b = &indexBinding)
                 {
                     SDL3.SDL_BindGPUIndexBuffer(renderPass, b, index.Is32Bit ?
-                    SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_32BIT :
-                    SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_16BIT);
+                        SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_32BIT :
+                        SDL_GPUIndexElementSize.SDL_GPU_INDEXELEMENTSIZE_16BIT);
                 }
             }
         }

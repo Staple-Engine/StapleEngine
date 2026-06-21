@@ -315,8 +315,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     material.ApplyProperties(ref renderState);
                 }
 
-                SetupMaterial();
-
                 if (material.ShaderProgram == null)
                 {
                     continue;

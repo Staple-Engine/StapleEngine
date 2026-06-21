@@ -757,6 +757,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         foreach(var pair in textureSamplers)
         {
             SDL3.SDL_ReleaseGPUSampler(device, pair.Value.ptr);
+
+            pair.Value.Clear();
         }
 
         textureSamplers.Clear();

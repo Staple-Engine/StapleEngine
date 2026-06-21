@@ -1788,43 +1788,44 @@ internal partial class StapleEditor
             ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - 300) / 2, (io.DisplaySize.Y - 200) / 2));
             ImGui.SetNextWindowSize(new Vector2(300, 200));
 
-            ImGui.BeginPopupModal("ShowingMessageBox", ref showingMessageBox,
+            if(ImGui.BeginPopupModal("ShowingMessageBox", ref showingMessageBox,
                 ImGuiWindowFlags.NoTitleBar |
                 ImGuiWindowFlags.NoDocking |
                 ImGuiWindowFlags.NoResize |
-                ImGuiWindowFlags.NoMove);
-
-            ImGui.TextWrapped(messageBoxMessage);
-
-            if(messageBoxYesTitle != null && messageBoxNoTitle != null)
+                ImGuiWindowFlags.NoMove))
             {
-                if (ImGui.Button($"{messageBoxYesTitle ?? ""}##MESSAGE_BOX_YES"))
-                {
-                    showingMessageBox = false;
+                ImGui.TextWrapped(messageBoxMessage);
 
-                    EditorGUI.ExecuteHandler(messageBoxYesAction, "Message Box Yes");
+                if (messageBoxYesTitle != null && messageBoxNoTitle != null)
+                {
+                    if (ImGui.Button($"{messageBoxYesTitle ?? ""}##MESSAGE_BOX_YES"))
+                    {
+                        showingMessageBox = false;
+
+                        EditorGUI.ExecuteHandler(messageBoxYesAction, "Message Box Yes");
+                    }
+
+                    ImGui.SameLine();
+
+                    if (ImGui.Button($"{messageBoxNoTitle ?? ""}##MESSAGE_BOX_NO"))
+                    {
+                        showingMessageBox = false;
+
+                        EditorGUI.ExecuteHandler(messageBoxNoAction, "Message Box Yes");
+                    }
+                }
+                else
+                {
+                    if (ImGui.Button($"{messageBoxYesTitle ?? ""}##MESSAGE_BOX_YES"))
+                    {
+                        showingMessageBox = false;
+
+                        EditorGUI.ExecuteHandler(messageBoxYesAction, "Message Box Yes");
+                    }
                 }
 
-                ImGui.SameLine();
-
-                if (ImGui.Button($"{messageBoxNoTitle ?? ""}##MESSAGE_BOX_NO"))
-                {
-                    showingMessageBox = false;
-
-                    EditorGUI.ExecuteHandler(messageBoxNoAction, "Message Box Yes");
-                }
+                ImGui.EndPopup();
             }
-            else
-            {
-                if(ImGui.Button($"{messageBoxYesTitle ?? ""}##MESSAGE_BOX_YES"))
-                {
-                    showingMessageBox = false;
-
-                    EditorGUI.ExecuteHandler(messageBoxYesAction, "Message Box Yes");
-                }
-            }
-
-            ImGui.EndPopup();
         }
 
         wasShowingMessageBox = showingMessageBox;

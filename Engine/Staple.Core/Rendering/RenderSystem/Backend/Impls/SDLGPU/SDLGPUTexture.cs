@@ -3,13 +3,15 @@
 namespace Staple.Internal;
 
 internal class SDLGPUTexture(ResourceHandle<Texture> handle, int width, int height, TextureFormat format, TextureFlags flags,
-    SDLGPURendererBackend backend) : ITexture
+    SDLGPURendererBackend backend, Utilities.NativePointerWrapper<SDL.SDL_GPUSampler> sampler) : ITexture
 {
     public ResourceHandle<Texture> handle = handle;
 
     public TextureFormat Format { get; } = format;
 
     public readonly TextureFlags flags = flags;
+
+    public Utilities.NativePointerWrapper<SDL.SDL_GPUSampler> sampler = sampler;
 
     public int Width { get; } = width;
 
