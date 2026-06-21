@@ -6,14 +6,15 @@ namespace Staple.Internal;
 
 internal partial class SDLGPURendererBackend
 {
-    internal void ReleaseTextureResource(TextureResource resource)
+    internal void ReleaseTextureResource(List<ResourceHandle<Texture>> handles, ResourceHandle<Texture> handle)
     {
-        if (!(resource?.used ?? false))
+        if(!handle.IsValid ||
+            handle.context is not TextureResource resource)
         {
             return;
         }
 
-        for(var i = readTextureQueue.Count - 1; i >= 0; i--)
+        for (var i = readTextureQueue.Count - 1; i >= 0; i--)
         {
             if (!TryGetTexture(readTextureQueue[i].Item1?.handle ?? default, out var r) ||
                 r != resource)
@@ -25,6 +26,8 @@ internal partial class SDLGPURendererBackend
 
             readTextureQueue.RemoveAt(i);
         }
+
+        handles.Remove(handle);
 
         unsafe
         {
@@ -38,50 +41,41 @@ internal partial class SDLGPURendererBackend
             }
         }
 
-        resource.used = false;
+        handle.Clear();
     }
 
-    internal static unsafe ResourceHandle<Texture> ReserveTextureResource(TextureResource[] resources, SDL_GPUTexture *texture,
+    internal static unsafe ResourceHandle<Texture> ReserveTextureResource(List<ResourceHandle<Texture>> handles, SDL_GPUTexture *texture,
         int width, int height, TextureFormat format, TextureFlags flags)
     {
-        for (var i = 0; i < resources.Length; i++)
+        var handle = new ResourceHandle<Texture>()
         {
-            if (resources[i]?.used ?? false)
+            context = new TextureResource()
             {
-                continue;
-            }
+                flags = flags,
+                texture = texture,
+                width = width,
+                height = height,
+                format = format,
+            },
+        };
 
-            resources[i] ??= new();
+        handles.Add(handle);
 
-            var resource = resources[i];
-
-            resource.used = true;
-            resource.texture = texture;
-            resource.width = width;
-            resource.height = height;
-            resource.format = format;
-            resource.flags = flags;
-            resource.length = 0;
-
-            return new ResourceHandle<Texture>((ushort)i);
-        }
-
-        return ResourceHandle<Texture>.Invalid;
+        return handle;
     }
 
     internal bool TryGetTexture(ResourceHandle<Texture> handle, out TextureResource resource)
     {
-        if (!handle.IsValid ||
-            !(textures[handle.handle]?.used ?? false))
+        if (!handle.IsValid)
         {
             resource = null;
 
             return false;
         }
 
-        resource = textures[handle.handle];
+        resource = handle.context as TextureResource;
 
-        return true;
+        return resource != null;
     }
 
     internal unsafe Utilities.NativePointerWrapper<SDL_GPUSampler> GetSamplerForTexture(TextureFlags flags)

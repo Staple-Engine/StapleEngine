@@ -1,5 +1,6 @@
 ﻿using SDL;
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -33,12 +34,15 @@ internal partial class SDLGPURendererBackend
         return buffer.ptr;
     }
 
-    internal unsafe void ReleaseBufferResource(BufferResource resource)
+    internal unsafe void ReleaseBufferResource<T>(List<ResourceHandle<T>> handles, ResourceHandle<T> handle)
     {
-        if (!(resource?.used ?? false))
+        if(!handle.IsValid ||
+            handle.context is not BufferResource resource)
         {
             return;
         }
+
+        handles.Remove(handle);
 
         resource.transferBuffer = null;
 
@@ -49,57 +53,50 @@ internal partial class SDLGPURendererBackend
             resource.buffer = null;
         }
 
-        resource.used = false;
+        handle.Clear();
     }
 
-    internal static ResourceHandle<T> ReserveResourceBuffer<T>(BufferResource[] resources, RenderBufferFlags flags)
+    internal static ResourceHandle<T> ReserveResourceBuffer<T>(List<ResourceHandle<T>> handles, RenderBufferFlags flags)
     {
-        for (var i = 0; i < resources.Length; i++)
+        var resource = new ResourceHandle<T>()
         {
-            if (resources[i]?.used ?? false)
+            context = new BufferResource()
             {
-                continue;
+                flags = flags,
             }
+        };
 
-            resources[i] ??= new();
+        handles.Add(resource);
 
-            resources[i].used = true;
-            resources[i].flags = flags;
-
-            return new ResourceHandle<T>((ushort)i);
-        }
-
-        return ResourceHandle<T>.Invalid;
+        return resource;
     }
 
     internal bool TryGetVertexBuffer(ResourceHandle<VertexBuffer> handle, out BufferResource resource)
     {
-        if (!handle.IsValid ||
-            !(vertexBuffers[handle.handle]?.used ?? false))
+        if (!handle.IsValid)
         {
             resource = null;
 
             return false;
         }
 
-        resource = vertexBuffers[handle.handle];
+        resource = handle.context as BufferResource;
 
-        return true;
+        return resource != null;
     }
 
     internal bool TryGetIndexBuffer(ResourceHandle<IndexBuffer> handle, out BufferResource resource)
     {
-        if (!handle.IsValid ||
-            !(indexBuffers[handle.handle]?.used ?? false))
+        if (!handle.IsValid)
         {
             resource = null;
 
             return false;
         }
 
-        resource = indexBuffers[handle.handle];
+        resource = handle.context as BufferResource;
 
-        return true;
+        return resource != null;
     }
 
     public VertexBuffer CreateVertexBuffer(Span<byte> data, VertexLayout layout, RenderBufferFlags flags)

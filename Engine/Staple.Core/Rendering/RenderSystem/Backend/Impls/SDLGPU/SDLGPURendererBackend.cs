@@ -46,7 +46,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         public float time;
     }
 
-    internal unsafe class BufferResource
+    internal class BufferResource
     {
         public SDL_GPUBuffer *buffer;
         public SDL_GPUTransferBuffer *transferBuffer;
@@ -54,11 +54,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         public RenderBufferFlags flags;
 
         public int length;
-
-        public bool used = false;
     }
 
-    internal unsafe class TextureResource
+    internal class TextureResource
     {
         public SDL_GPUTexture *texture;
         public SDL_GPUTransferBuffer *transferBuffer;
@@ -68,8 +66,6 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         public int height;
 
         public int length;
-
-        public bool used = false;
     }
 
     internal class ViewData
@@ -404,10 +400,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     private readonly List<IRenderCommand> commands = [];
     private readonly List<(SDLGPUTexture, Action<byte[]>)> readTextureQueue = [];
 
-    private readonly BufferResource[] vertexBuffers = new BufferResource[ushort.MaxValue - 1];
-    private readonly BufferResource[] indexBuffers = new BufferResource[ushort.MaxValue - 1];
     private readonly Dictionary<VertexLayout, TransientEntry> transientBuffers = [];
-    private readonly TextureResource[] textures = new TextureResource[ushort.MaxValue - 1];
     private readonly List<SDLGPUShaderProgram> shaders = [];
     private readonly Dictionary<TransferBufferCacheKey, NativePointerWrapper<SDL_GPUTransferBuffer>> cachedtransferBuffers = [];
     private readonly ulong[] lastVertexShaderUniformHashes = new ulong[20];
@@ -431,6 +424,10 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     internal static int entityTransformsBufferLength;
     internal static SDL_GPUBuffer *entityTransformIndexBuffer = null;
     internal static int entityTransformIndexBufferLength;
+
+    internal readonly List<ResourceHandle<VertexBuffer>> vertexBuffers = [];
+    internal readonly List<ResourceHandle<IndexBuffer>> indexBuffers = [];
+    internal readonly List<ResourceHandle<Texture>> textures = [];
 
     private bool iteratingCommands;
     private int commandIndex;
@@ -763,19 +760,19 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         textureSamplers.Clear();
 
-        foreach(var resource in vertexBuffers)
+        foreach(var handle in vertexBuffers)
         {
-            ReleaseBufferResource(resource);
+            ReleaseBufferResource(vertexBuffers, handle);
         }
 
-        foreach (var resource in indexBuffers)
+        foreach (var handle in indexBuffers)
         {
-            ReleaseBufferResource(resource);
+            ReleaseBufferResource(indexBuffers, handle);
         }
 
-        foreach(var resource in textures)
+        foreach(var handle in textures)
         {
-            ReleaseTextureResource(resource);
+            ReleaseTextureResource(textures, handle);
         }
 
         for(var i = 0; i < staticMeshVertexBuffers.Length; i++)
@@ -810,6 +807,10 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         SDL3.SDL_DestroyGPUDevice(device);
 
         device = null;
+
+        vertexBuffers.Clear();
+        indexBuffers.Clear();
+        textures.Clear();
     }
 
     public void WorldChanged()
@@ -941,7 +942,6 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             if (item.Item1 == null ||
                 item.Item1.Disposed ||
                 !TryGetTexture(item.Item1.handle, out var resource) ||
-                !resource.used ||
                 resource.transferBuffer == null)
             {
                 continue;
@@ -1049,10 +1049,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         needsDepthTextureUpdate = false;
 
-        if(depthTexture is SDLGPUTexture texture &&
-            TryGetTexture(texture.handle, out var resource))
+        if(depthTexture is SDLGPUTexture texture)
         {
-            ReleaseTextureResource(resource);
+            ReleaseTextureResource(textures, texture.handle);
 
             texture.handle = ResourceHandle<Texture>.Invalid;
         }

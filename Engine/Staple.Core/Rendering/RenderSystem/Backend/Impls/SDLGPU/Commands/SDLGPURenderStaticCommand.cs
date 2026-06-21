@@ -127,7 +127,6 @@ internal unsafe class SDLGPURenderStaticCommand(SDLGPURendererBackend backend, R
                 if (buffer.Disposed ||
                     buffer is not SDLGPUVertexBuffer v ||
                     !backend.TryGetVertexBuffer(v.handle, out var resource) ||
-                    !resource.used ||
                     resource.buffer == null)
                 {
                     return;
@@ -158,7 +157,6 @@ internal unsafe class SDLGPURenderStaticCommand(SDLGPURendererBackend backend, R
                 if (buffer.Disposed ||
                     buffer is not SDLGPUVertexBuffer v ||
                     !backend.TryGetVertexBuffer(v.handle, out var resource) ||
-                    !resource.used ||
                     resource.buffer == null)
                 {
                     return;

@@ -4,11 +4,6 @@ internal class SDLGPUDestroyVertexBufferCommand(SDLGPURendererBackend backend, R
 {
     public void Update()
     {
-        if(!handle.IsValid || !backend.TryGetVertexBuffer(handle, out var resource))
-        {
-            return;
-        }
-
-        backend.ReleaseBufferResource(resource);
+        backend.ReleaseBufferResource(backend.vertexBuffers, handle);
     }
 }

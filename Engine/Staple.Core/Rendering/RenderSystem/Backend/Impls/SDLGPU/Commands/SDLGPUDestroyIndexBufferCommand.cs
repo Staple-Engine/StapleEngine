@@ -4,11 +4,6 @@ internal class SDLGPUDestroyIndexBufferCommand(SDLGPURendererBackend backend, Re
 {
     public void Update()
     {
-        if (!handle.IsValid || !backend.TryGetIndexBuffer(handle, out var resource))
-        {
-            return;
-        }
-
-        backend.ReleaseBufferResource(resource);
+        backend.ReleaseBufferResource(backend.indexBuffers, handle);
     }
 }

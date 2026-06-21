@@ -24,7 +24,7 @@ internal class SDLGPUIndexBuffer : IndexBuffer
 
         backend.DestroyIndexBuffer(handle);
 
-        handle = ResourceHandle<IndexBuffer>.Invalid;
+        handle.Clear();
     }
 
     public override void Update(Span<ushort> data)

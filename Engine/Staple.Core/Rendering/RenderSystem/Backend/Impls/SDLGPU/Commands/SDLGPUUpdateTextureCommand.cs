@@ -8,7 +8,7 @@ internal unsafe class SDLGPUUpdateTextureCommand(SDLGPURendererBackend backend, 
 {
     public void Update()
     {
-        if (!backend.TryGetTexture(handle, out var resource) || !resource.used)
+        if (!backend.TryGetTexture(handle, out var resource))
         {
             return;
         }

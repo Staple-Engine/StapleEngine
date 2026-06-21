@@ -10,7 +10,6 @@ internal unsafe class SDLGPUReadTextureCommand(SDLGPURendererBackend backend, SD
     {
         if ((texture?.Disposed ?? true) ||
             !backend.TryGetTexture(texture.handle, out var resource) ||
-            !resource.used ||
             resource.length == 0)
         {
             return;

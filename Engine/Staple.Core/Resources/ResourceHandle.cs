@@ -1,14 +1,15 @@
-﻿using System;
+﻿namespace Staple.Internal;
 
-namespace Staple.Internal;
-
-public readonly struct ResourceHandle<T>(ushort handle)
+public class ResourceHandle<T>(object context = null)
 {
-    public static readonly ResourceHandle<T> Invalid = new(ushort.MaxValue);
+    public static readonly ResourceHandle<T> Invalid = new();
 
-    public readonly ushort handle = handle;
+    internal object context = context;
 
-    public readonly bool IsValid => handle != ushort.MaxValue;
+    public bool IsValid => context != null;
 
-    public override int GetHashCode() => HashCode.Combine(handle);
+    public void Clear()
+    {
+        context = null;
+    }
 }
