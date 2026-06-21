@@ -67,9 +67,11 @@ internal partial class ShaderResource
         public readonly Dictionary<StringID, ShaderUniformInfo> uniforms = [];
         public int entityTransformsBufferBinding = -1;
         public int entityTransformIDsBufferBinding = -1;
+        public ShaderUniformData renderDataEntry;
+        public ShaderUniformData fragmentDataEntry;
     }
 
-    internal static readonly List<ShaderResource.DefaultUniform> DefaultUniforms = [];
+    internal static readonly List<DefaultUniform> DefaultUniforms = [];
 
     internal readonly Dictionary<StringID, ShaderInstance> instances = [];
 
@@ -137,12 +139,14 @@ internal partial class ShaderResource
                     buffer = buffer,
                 });
 
-                vertexUniformContainers.Add(uniform.name, new()
+                var uniformData = new ShaderUniformData()
                 {
                     binding = uniform.binding,
                     length = uniform.size,
                     buffer = buffer,
-                });
+                };
+
+                vertexUniformContainers.Add(uniform.name, uniformData);
 
                 foreach (var field in uniform.fields)
                 {

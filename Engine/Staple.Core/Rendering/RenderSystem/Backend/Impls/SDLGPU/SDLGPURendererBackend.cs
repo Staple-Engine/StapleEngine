@@ -1903,36 +1903,90 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         fragmentUniformData = (position, fragmentUniformSpan.Length);
 
+        if (state.shaderInstance.renderDataEntry == null)
+        {
+            foreach (var entry in state.shaderInstance.vertexUniformContainers)
+            {
+                if (entry.Key == StapleRenderDataUniformName)
+                {
+                    state.shaderInstance.renderDataEntry = entry.Value;
+
+                    break;
+                }
+            }
+        }
+
+        if (state.shaderInstance.fragmentDataEntry == null)
+        {
+            foreach (var entry in state.shaderInstance.fragmentUniformContainers)
+            {
+                if (entry.Key == StapleFragmentDataUniformName)
+                {
+                    state.shaderInstance.fragmentDataEntry = entry.Value;
+
+                    break;
+                }
+            }
+        }
+
+        if(state.shaderInstance.renderDataEntry != null)
+        {
+            var length = state.shaderInstance.renderDataEntry.length;
+
+            if (length != RenderDataByteSize)
+            {
+                Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {length}: "
+                    + $"Should be {RenderDataByteSize}!");
+
+                return;
+            }
+
+            viewData.renderData.world = state.world;
+            viewData.renderData.useWorldMatrix = useWorldMatrix;
+
+            unsafe
+            {
+                fixed (void* ptr = &viewData.renderData)
+                {
+                    var source = new Span<byte>(ptr, RenderDataByteSize);
+                    var target = new Span<byte>(state.shaderInstance.renderDataEntry.buffer);
+
+                    source.CopyTo(target);
+                }
+            }
+        }
+
+        if(state.shaderInstance.fragmentDataEntry != null)
+        {
+            var length = state.shaderInstance.fragmentDataEntry.length;
+
+            if (length != FragmentRenderDataByteSize)
+            {
+                Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {length}: "
+                    + $"Should be {FragmentRenderDataByteSize}!");
+
+                return;
+            }
+
+            unsafe
+            {
+                viewData.fragmentData.time = Time.time;
+
+                fixed (void* ptr = &viewData.fragmentData)
+                {
+                    var source = new Span<byte>(ptr, FragmentRenderDataByteSize);
+                    var target = new Span<byte>(state.shaderInstance.fragmentDataEntry.buffer);
+
+                    source.CopyTo(target);
+                }
+            }
+        }
+
         var counter = 0;
 
         foreach (var entry in state.shaderInstance.vertexUniformContainers)
         {
             var length = entry.Value.buffer.Length;
-
-            if (entry.Key == StapleRenderDataUniformName)
-            {
-                if (length != RenderDataByteSize)
-                {
-                    Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {length}: "
-                        + $"Should be {RenderDataByteSize}!");
-
-                    continue;
-                }
-
-                viewData.renderData.world = state.world;
-                viewData.renderData.useWorldMatrix = useWorldMatrix;
-
-                unsafe
-                {
-                    fixed (void* ptr = &viewData.renderData)
-                    {
-                        var source = new Span<byte>(ptr, RenderDataByteSize);
-                        var target = new Span<byte>(entry.Value.buffer);
-
-                        source.CopyTo(target);
-                    }
-                }
-            }
 
             ref var uniformEntry = ref vertexUniformSpan[counter++];
 
@@ -1947,19 +2001,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             {
                 position = frameAllocator.position;
 
-                frameAllocator.Allocate(length);
+                var target = frameAllocator.Allocate(length);
 
-                fixed (void* source = entry.Value.buffer)
-                {
-                    fixed (void* target = frameAllocator.buffer)
-                    {
-                        var p = (byte*)target;
-
-                        p += position;
-
-                        Buffer.MemoryCopy(source, p, length, length);
-                    }
-                }
+                entry.Value.buffer.AsSpan().CopyTo(target);
 
                 uniformEntry.binding = (byte)entry.Value.binding;
                 uniformEntry.position = position;
@@ -1974,30 +2018,6 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         {
             var length = entry.Value.buffer.Length;
 
-            if (entry.Key == StapleFragmentDataUniformName)
-            {
-                if (length != FragmentRenderDataByteSize)
-                {
-                    Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {length}: "
-                        + $"Should be {FragmentRenderDataByteSize}!");
-
-                    continue;
-                }
-
-                unsafe
-                {
-                    viewData.fragmentData.time = Time.time;
-
-                    fixed (void* ptr = &viewData.fragmentData)
-                    {
-                        var source = new Span<byte>(ptr, FragmentRenderDataByteSize);
-                        var target = new Span<byte>(entry.Value.buffer);
-
-                        source.CopyTo(target);
-                    }
-                }
-            }
-
             ref var uniformEntry = ref fragmentUniformSpan[counter++];
 
             if (!ShouldPushFragmentUniform(entry.Value.binding, entry.Value.buffer))
@@ -2011,19 +2031,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             {
                 position = frameAllocator.position;
 
-                frameAllocator.Allocate(entry.Value.buffer.Length);
+                var target = frameAllocator.Allocate(length);
 
-                fixed (void* source = entry.Value.buffer)
-                {
-                    fixed (void* target = frameAllocator.buffer)
-                    {
-                        var p = (byte*)target;
-
-                        p += position;
-
-                        Buffer.MemoryCopy(source, p, length, length);
-                    }
-                }
+                entry.Value.buffer.AsSpan().CopyTo(target);
 
                 uniformEntry.binding = (byte)entry.Value.binding;
                 uniformEntry.position = position;
