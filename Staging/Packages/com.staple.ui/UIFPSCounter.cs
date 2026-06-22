@@ -6,7 +6,7 @@ namespace Staple.UI;
 
 public class UIFPSCounter(UIManager manager, string ID) : UIText(manager, ID)
 {
-    public string format = "FPS: {0}";
+    public string format = "FPS: {0} ({1:F2}ms)";
 
     public override void ApplyLayoutProperties(Dictionary<string, object> properties)
     {
@@ -24,7 +24,7 @@ public class UIFPSCounter(UIManager manager, string ID) : UIText(manager, ID)
 
         try
         {
-            Text = string.Format(format, Time.FPS);
+            Text = string.Format(format, Time.FPS, Time.FPSMs);
         }
         catch(Exception)
         {

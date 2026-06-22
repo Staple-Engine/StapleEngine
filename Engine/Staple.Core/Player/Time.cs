@@ -49,6 +49,11 @@ public static class Time
     public static int FPS { get; internal set; }
 
     /// <summary>
+    /// The current frame rate as milliseconds
+    /// </summary>
+    public static float FPSMs { get; internal set; }
+
+    /// <summary>
     /// Frame Delta Time
     /// </summary>
     public static (float min, float max, float average) frameDeltaTime { get; internal set; }
@@ -126,6 +131,7 @@ public static class Time
         if(frameTimer >= 1.0f)
         {
             FPS = frames;
+            FPSMs = 1000.0f / frames;
 
             frameTimer = 0;
             frames = 0;
