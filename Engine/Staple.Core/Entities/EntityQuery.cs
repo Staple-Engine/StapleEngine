@@ -103,7 +103,7 @@ public sealed class EntityQuery<T> : ISceneQuery
         ContentEntities = [];
     }
 
-    public void WorldChanged()
+    public void WorldChanged(World world)
     {
         Content = default;
         ContentEntity = default;
@@ -164,7 +164,7 @@ public sealed class EntityQuery<T> : ISceneQuery
 
         for(var i = 0; i < items.Length; i++)
         {
-            ContentEntities[i] = (World.Current.GetComponentEntity(Contents[i]), Contents[i]);
+            ContentEntities[i] = (world.GetComponentEntity(Contents[i]), Contents[i]);
         }
 
         if(count == 1 && Contents[0] != null)
@@ -248,7 +248,7 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
         ContentEntities = [];
     }
 
-    public void WorldChanged()
+    public void WorldChanged(World world)
     {
         Content = default;
         ContentEntity = default;
@@ -423,7 +423,7 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
         {
             var item = items[i];
 
-            ContentEntities[i] = (World.Current.GetComponentEntity(item.Item1), item.Item1, item.Item2);
+            ContentEntities[i] = (world.GetComponentEntity(item.Item1), item.Item1, item.Item2);
         }
 
         if (items.Count == 1)

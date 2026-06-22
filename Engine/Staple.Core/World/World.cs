@@ -126,7 +126,7 @@ public partial class World
                 return;
             }
 
-            receiver.WorldChanged();
+            receiver.WorldChanged(Current);
         }
     }
 
@@ -139,7 +139,7 @@ public partial class World
                 return;
             }
 
-            query.WorldChanged();
+            query.WorldChanged(Current);
         }
     }
 
@@ -206,7 +206,7 @@ public partial class World
         {
             sceneQueries.AddObserver(receiver);
 
-            receiver.WorldChanged();
+            receiver.WorldChanged(Current);
         }
     }
 
@@ -234,7 +234,7 @@ public partial class World
         {
             worldChangeReceivers.AddObserver(receiver);
 
-            receiver.WorldChanged();
+            receiver.WorldChanged(Current);
         }
     }
 

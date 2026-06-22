@@ -432,6 +432,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     private bool iteratingCommands;
     private int commandIndex;
     private SDL_GPUFence *fence;
+    private float time;
     #endregion
 
     #region Command Support Fields
@@ -813,7 +814,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         textures.Clear();
     }
 
-    public void WorldChanged()
+    public void WorldChanged(World world)
     {
         needsIndirectBufferUpdate = true;
     }
@@ -841,6 +842,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         frameAllocator.Clear();
         shaderUniformFrameAllocator.Clear();
         textureSampleBindingFrameAllocator.Clear();
+
+        time = Time.time;
     }
 
     public void EndFrame()
@@ -1970,7 +1973,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
             unsafe
             {
-                viewData.fragmentData.time = Time.time;
+                viewData.fragmentData.time = time;
 
                 fixed (void* ptr = &viewData.fragmentData)
                 {

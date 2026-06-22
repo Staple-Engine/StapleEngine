@@ -187,7 +187,7 @@ internal partial class StapleEditor
         public readonly List<Entity> disabledEntities = [];
         private readonly Dictionary<IRenderSystem, bool> componentIsRenderable = [];
 
-        public void WorldChanged()
+        public void WorldChanged(World world)
         {
             renderQueue.Clear();
             disabledEntities.Clear();

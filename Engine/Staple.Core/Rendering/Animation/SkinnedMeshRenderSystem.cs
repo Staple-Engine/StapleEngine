@@ -158,7 +158,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
         if(needsInstanceUpdate)
         {
-            instances.WorldChanged();
+            instances.WorldChanged(World.Current);
         }
 
         foreach (var (entity, instance, transform) in instances.Contents)

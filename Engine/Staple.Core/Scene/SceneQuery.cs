@@ -21,7 +21,7 @@ public class SceneQuery<T>: ISceneQuery
 
     public (Entity, T) this[int index] => Contents[index];
 
-    public void WorldChanged()
+    public void WorldChanged(World world)
     {
         Contents = Scene.Query<T>(includeDisabled);
     }
@@ -46,7 +46,7 @@ public class SceneQuery<T, T2>: ISceneQuery
 
     public (Entity, T, T2) this[int index] => Contents[index];
 
-    public void WorldChanged()
+    public void WorldChanged(World world)
     {
         Contents = Scene.Query<T, T2>(includeDisabled);
     }
@@ -72,7 +72,7 @@ public class SceneQuery<T, T2, T3> : ISceneQuery
 
     public (Entity, T, T2, T3) this[int index] => Contents[index];
 
-    public void WorldChanged()
+    public void WorldChanged(World world)
     {
         Contents = Scene.Query<T, T2, T3>(includeDisabled);
     }
@@ -99,7 +99,7 @@ public class SceneQuery<T, T2, T3, T4> : ISceneQuery
 
     public (Entity, T, T2, T3, T4) this[int index] => Contents[index];
 
-    public void WorldChanged()
+    public void WorldChanged(World world)
     {
         Contents = Scene.Query<T, T2, T3, T4>(includeDisabled);
     }
@@ -127,7 +127,7 @@ public class SceneQuery<T, T2, T3, T4, T5> : ISceneQuery
 
     public (Entity, T, T2, T3, T4, T5) this[int index] => Contents[index];
 
-    public void WorldChanged()
+    public void WorldChanged(World world)
     {
         Contents = Scene.Query<T, T2, T3, T4, T5>(includeDisabled);
     }

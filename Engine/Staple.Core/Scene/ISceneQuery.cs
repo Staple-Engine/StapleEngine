@@ -2,5 +2,5 @@
 
 public interface ISceneQuery
 {
-    void WorldChanged();
+    void WorldChanged(World world);
 }

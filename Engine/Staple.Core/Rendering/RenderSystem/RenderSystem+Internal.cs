@@ -89,9 +89,9 @@ public sealed partial class RenderSystem
     private readonly ComponentVersionTracker<Transform> entityTransformTracker = new();
 
     /// <summary>
-    /// Tracks all changed entity transforms in ranges (key is start index, value is length)
+    /// Whether transforms were changed this frame
     /// </summary>
-    internal readonly Dictionary<int, int> changedEntityTransformRanges = [];
+    internal bool hasTransformChanges;
 
     /// <summary>
     /// All renderables
@@ -332,21 +332,18 @@ public sealed partial class RenderSystem
 
     internal void UpdateEntityTransforms()
     {
-        if(World.Current == null)
+        hasTransformChanges = false;
+
+        if (World.Current is not World world)
         {
             return;
         }
 
-        var startIndex = -1;
-        var length = 0;
-
-        changedEntityTransformRanges.Clear();
-
-        if (World.Current.entities.Length > entityTransforms.Length)
+        if (world.entities.Length > entityTransforms.Length)
         {
             var newSize = entityTransforms.Length * 2;
 
-            while (newSize < World.Current.entities.Length)
+            while (newSize < world.entities.Length)
             {
                 newSize *= 2;
             }
@@ -354,58 +351,24 @@ public sealed partial class RenderSystem
             Array.Resize(ref entityTransforms, newSize);
         }
 
-        for (var i = 0; i < World.Current.entities.Length; i++)
+        for (var i = 0; i < world.entities.Length; i++)
         {
-            ref var entity = ref World.Current.entities[i];
+            ref var entity = ref world.entities[i];
 
-            if(entity.alive == false || entity.transform == null)
+            if(entity.alive == false ||
+                entity.transform == null ||
+                !entityTransformTracker.ShouldUpdateComponent(entity.ToEntity(), in entity.transform))
             {
-                if (startIndex < 0)
-                {
-                    continue;
-                }
-
-                changedEntityTransformRanges.Add(startIndex, length);
-
-                startIndex = -1;
-
-                continue;
-            }
-
-            if (!entityTransformTracker.ShouldUpdateComponent(entity.ToEntity(), in entity.transform))
-            {
-                if (startIndex < 0)
-                {
-                    continue;
-                }
-
-                changedEntityTransformRanges.Add(startIndex, length);
-
-                startIndex = -1;
-
                 continue;
             }
 
             entityTransforms[i] = entity.transform.Matrix;
 
-            if (startIndex < 0)
-            {
-                startIndex = i;
-                length = 1;
-            }
-            else
-            {
-                length++;
-            }
-        }
-
-        if (startIndex >= 0)
-        {
-            changedEntityTransformRanges.Add(startIndex, length);
+            hasTransformChanges = true;
         }
     }
 
-    public void WorldChanged()
+    public void WorldChanged(World world)
     {
         lock (lockObject)
         {
@@ -438,7 +401,7 @@ public sealed partial class RenderSystem
                 }
             }
 
-            var cameras = World.Current.SortedCameras;
+            var cameras = world.SortedCameras;
 
             if (cameras.Length <= 0)
             {

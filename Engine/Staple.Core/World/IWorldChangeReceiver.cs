@@ -2,5 +2,5 @@
 
 public interface IWorldChangeReceiver
 {
-    void WorldChanged();
+    void WorldChanged(World world);
 }
