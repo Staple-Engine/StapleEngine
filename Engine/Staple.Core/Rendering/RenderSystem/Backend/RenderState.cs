@@ -21,8 +21,8 @@ internal struct RenderState
     public VertexBuffer vertexBuffer;
     public IndexBuffer indexBuffer;
     public BufferAttributeContainer.Entries staticMeshEntries;
-    public HashSet<StorageBufferPair> vertexStorageBuffers;
-    public HashSet<StorageBufferPair> fragmentStorageBuffers;
+    public List<StorageBufferPair> vertexStorageBuffers;
+    public List<StorageBufferPair> fragmentStorageBuffers;
     public int startVertex;
     public int startIndex;
     public int indexCount;
@@ -115,7 +115,7 @@ internal struct RenderState
 
         var binding = -1;
 
-        void Apply(ref HashSet<StorageBufferPair> storageBuffers)
+        void Apply(ref List<StorageBufferPair> storageBuffers)
         {
             storageBuffers ??= [];
 
