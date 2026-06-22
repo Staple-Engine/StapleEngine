@@ -45,6 +45,13 @@ public sealed class LightSystem
 
     private readonly Dictionary<int, ShaderHandle[]> cachedInstancedMaterialInfo = [];
 
+    private Material previousMaterial;
+    private Shader previousShader;
+    private Vector4 previousLightCount;
+    private Color previousLightAmbient;
+    private readonly Vector4[] previousLightTypePositions = new Vector4[MaxLights];
+    private readonly Color[] previousLightDiffuse = new Color[MaxLights];
+
     public bool UsesOwnRenderProcess => false;
 
     public Type RelatedComponent => null;
@@ -54,6 +61,15 @@ public sealed class LightSystem
     public (Entity, Transform, Light)[] Lights => OverrideLights ?? lightQuery.Contents;
 
     public static readonly LightSystem Instance = new();
+
+    /// <summary>
+    /// Called at the start of a frame
+    /// </summary>
+    internal void StartFrame()
+    {
+        previousShader = null;
+        previousMaterial = null;
+    }
 
     /// <summary>
     /// Applies the material-specific lighting state
@@ -101,7 +117,6 @@ public sealed class LightSystem
     /// <param name="material">The material to use</param>
     /// <param name="cameraPosition">The position of the camera</param>
     /// <param name="lighting">What lighting to use</param>
-    /// <param name="state">The current rendering state</param>
     internal bool ApplyLightProperties(Material material, Vector3 cameraPosition,
         MaterialLighting lighting)
     {
@@ -176,10 +191,73 @@ public sealed class LightSystem
         var lightTypePositionHandle = handles[2];
         var lightDiffuseHandle = handles[3];
 
-        material.materialResource.shader.SetVector4(material.ShaderVariantKey, viewPosHandle, new Vector4(lightCount, cameraPosition.X, cameraPosition.Y, cameraPosition.Z));
-        material.materialResource.shader.SetColor(material.ShaderVariantKey, lightAmbientHandle, lightAmbient);
-        material.materialResource.shader.SetVector4(material.ShaderVariantKey, lightTypePositionHandle, cachedLightTypePositions);
-        material.materialResource.shader.SetColor(material.ShaderVariantKey, lightDiffuseHandle, cachedLightDiffuse);
+        var needsReplaceCount = false;
+        var needsReplaceAmbient = false;
+        var needsReplaceTypePositions = false;
+        var needsReplaceDiffuse = false;
+
+        var newLightCount = new Vector4(lightCount, cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
+
+        if (previousShader != material.materialResource.shader ||
+            previousMaterial != material)
+        {
+            previousShader = material.materialResource.shader;
+            previousMaterial = material;
+
+            needsReplaceCount = needsReplaceAmbient = needsReplaceTypePositions = needsReplaceDiffuse = true;
+        }
+        else
+        {
+            needsReplaceCount = previousLightCount != newLightCount;
+
+            needsReplaceAmbient = previousLightAmbient != lightAmbient;
+
+            for(var i = 0; i < MaxLights; i++)
+            {
+                if(!needsReplaceTypePositions && cachedLightTypePositions[i] != previousLightTypePositions[i])
+                {
+                    needsReplaceTypePositions = true;
+                }
+
+                if(!needsReplaceDiffuse && cachedLightDiffuse[i] != previousLightDiffuse[i])
+                {
+                    needsReplaceDiffuse = true;
+                }
+
+                if(needsReplaceDiffuse && needsReplaceTypePositions)
+                {
+                    break;
+                }
+            }
+        }
+
+        if(needsReplaceCount)
+        {
+            previousLightCount = newLightCount;
+
+            material.materialResource.shader.SetVector4(material.ShaderVariantKey, viewPosHandle, newLightCount);
+        }
+
+        if(needsReplaceAmbient)
+        {
+            previousLightAmbient = lightAmbient;
+
+            material.materialResource.shader.SetColor(material.ShaderVariantKey, lightAmbientHandle, lightAmbient);
+        }
+
+        if(needsReplaceTypePositions)
+        {
+            cachedLightTypePositions.AsSpan().CopyTo(previousLightTypePositions);
+
+            material.materialResource.shader.SetVector4(material.ShaderVariantKey, lightTypePositionHandle, cachedLightTypePositions);
+        }
+
+        if(needsReplaceDiffuse)
+        {
+            cachedLightDiffuse.AsSpan().CopyTo(previousLightDiffuse);
+
+            material.materialResource.shader.SetColor(material.ShaderVariantKey, lightDiffuseHandle, cachedLightDiffuse);
+        }
 
         return true;
     }

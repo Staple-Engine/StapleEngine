@@ -673,6 +673,8 @@ internal class RenderWindow
 
         World.Current?.StartFrame();
 
+        RenderSystem.Instance.OnStartFrame();
+
         StapleHooks.ExecuteHooks(StapleHookEvent.FrameBegin, null);
 
         try
@@ -688,7 +690,7 @@ internal class RenderWindow
 
         frameCounter++;
 
-        RenderSystem.Instance.OnFrame(frameCounter);
+        RenderSystem.Instance.OnEndFrame(frameCounter);
 
         RenderSystem.Backend.EndFrame();
 

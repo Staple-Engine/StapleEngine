@@ -108,6 +108,7 @@ internal unsafe class SDLGPURenderTransientUIntCommand(SDLGPURendererBackend bac
 
         var buffers = backend.bufferStaging;
         var counter = 2;
+        var startBufferIndex = 2;
 
         buffers[0] = SDLGPURendererBackend.entityTransformsBuffer;
         buffers[1] = SDLGPURendererBackend.entityTransformIndexBuffer;
@@ -119,17 +120,29 @@ internal unsafe class SDLGPURenderTransientUIntCommand(SDLGPURendererBackend bac
                 return;
             }
 
-            foreach (var (binding, buffer) in state.vertexStorageBuffers)
+            var firstBinding = 9999;
+
+            foreach (var pair in state.vertexStorageBuffers)
             {
-                if (buffer.Disposed ||
-                    buffer is not SDLGPUVertexBuffer v ||
+                if (firstBinding > pair.Binding)
+                {
+                    firstBinding = pair.Binding;
+                }
+            }
+
+            foreach (var pair in state.vertexStorageBuffers)
+            {
+                if (pair.Buffer.Disposed ||
+                    pair.Buffer is not SDLGPUVertexBuffer v ||
                     !backend.TryGetVertexBuffer(v.handle, out var resource) ||
                     resource.buffer == null)
                 {
                     return;
                 }
 
-                buffers[counter++] = resource.buffer;
+                buffers[pair.Binding - firstBinding + startBufferIndex] = resource.buffer;
+
+                counter++;
             }
         }
 
@@ -142,29 +155,34 @@ internal unsafe class SDLGPURenderTransientUIntCommand(SDLGPURendererBackend bac
         {
             counter = 0;
 
-            var firstBinding = -1;
-
             if (state.fragmentStorageBuffers.Count > buffers.Length)
             {
                 return;
             }
 
-            foreach (var (binding, buffer) in state.fragmentStorageBuffers)
+            var firstBinding = 9999;
+
+            foreach (var pair in state.fragmentStorageBuffers)
             {
-                if (buffer.Disposed ||
-                    buffer is not SDLGPUVertexBuffer v ||
+                if (firstBinding > pair.Binding)
+                {
+                    firstBinding = pair.Binding;
+                }
+            }
+
+            foreach (var pair in state.fragmentStorageBuffers)
+            {
+                if (pair.Buffer.Disposed ||
+                    pair.Buffer is not SDLGPUVertexBuffer v ||
                     !backend.TryGetVertexBuffer(v.handle, out var resource) ||
                     resource.buffer == null)
                 {
                     return;
                 }
 
-                buffers[counter++] = resource.buffer;
+                buffers[pair.Binding - firstBinding] = resource.buffer;
 
-                if (firstBinding < 0)
-                {
-                    firstBinding = binding;
-                }
+                counter++;
             }
 
             fixed (SDL_GPUBuffer** ptr = buffers)

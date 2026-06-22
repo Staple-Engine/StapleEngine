@@ -6,6 +6,8 @@ namespace Staple.Internal;
 
 internal struct RenderState
 {
+    internal record StorageBufferPair(int Binding, VertexBuffer Buffer);
+
     public MeshTopology primitiveType;
     public CullingMode cull;
     public bool wireframe;
@@ -19,8 +21,8 @@ internal struct RenderState
     public VertexBuffer vertexBuffer;
     public IndexBuffer indexBuffer;
     public BufferAttributeContainer.Entries staticMeshEntries;
-    public SortedDictionary<int, VertexBuffer> vertexStorageBuffers;
-    public SortedDictionary<int, VertexBuffer> fragmentStorageBuffers;
+    public HashSet<StorageBufferPair> vertexStorageBuffers;
+    public HashSet<StorageBufferPair> fragmentStorageBuffers;
     public int startVertex;
     public int startIndex;
     public int indexCount;
@@ -113,11 +115,28 @@ internal struct RenderState
 
         var binding = -1;
 
-        void Apply(ref SortedDictionary<int, VertexBuffer> storageBuffers)
+        void Apply(ref HashSet<StorageBufferPair> storageBuffers)
         {
             storageBuffers ??= [];
 
-            storageBuffers.AddOrSetKey(binding, buffer);
+            StorageBufferPair existing = null;
+
+            foreach (var pair in storageBuffers)
+            {
+                if(pair.Binding == binding)
+                {
+                    existing = pair;
+
+                    break;
+                }
+            }
+
+            if(existing != null)
+            {
+                storageBuffers.Remove(existing);
+            }
+
+            storageBuffers.Add(new(binding, buffer));
         }
 
         var localIndex = shaderInstance.vertexUniforms.storageBuffers.FindIndex(x => x.name == name);

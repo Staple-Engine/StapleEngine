@@ -173,10 +173,18 @@ public sealed partial class RenderSystem
     }
 
     /// <summary>
+    /// Called at the start of a frame
+    /// </summary>
+    internal void OnStartFrame()
+    {
+        LightSystem.Instance.StartFrame();
+    }
+
+    /// <summary>
     /// Called at the end of each frame
     /// </summary>
     /// <param name="frame">The current frame</param>
-    internal void OnFrame(uint frame)
+    internal void OnEndFrame(uint frame)
     {
         CurrentFrame = frame;
 

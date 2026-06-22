@@ -329,6 +329,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 renderState.ApplyStorageBufferIfNeeded("StapleBoneMatrices", instance.boneBuffer);
 
                 RenderSystem.Submit(renderState, renderer.mesh.SubmeshTriangleCount(j), 1);
+
+                renderState.ClearStorageBuffers();
             }
         }
     }
