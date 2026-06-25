@@ -470,6 +470,7 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Color,
                     colorValue = value,
+                    shaderHandle = materialResource.shader.GetUniformHandle(name, ShaderVariantKey),
                 });
             }
         }
@@ -543,6 +544,7 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Int,
                     intValue = value,
+                    shaderHandle = materialResource.shader.GetUniformHandle(name, ShaderVariantKey),
                 };
 
                 parameters.AddOrSetKey(name, parameter);
@@ -632,6 +634,7 @@ public sealed class Material : IGuidAsset
                     name = name,
                     type = MaterialParameterType.Float,
                     floatValue = value,
+                    shaderHandle = materialResource.shader.GetUniformHandle(name, ShaderVariantKey),
                 };
 
                 parameters.AddOrSetKey(name, parameter);
@@ -893,13 +896,30 @@ public sealed class Material : IGuidAsset
         {
             value ??= WhiteTexture;
 
-            parameters.AddOrSetKey(name, new MaterialResourceParameter()
+            parameter = new MaterialResourceParameter()
             {
                 name = name,
                 type = MaterialParameterType.Texture,
                 textureValue = value,
                 hasTexture = value != null,
-            });
+                shaderHandle = materialResource.shader.GetUniformHandle(name, ShaderVariantKey),
+            };
+
+            parameters.AddOrSetKey(name, parameter);
+
+            if(parameter.shaderHandle.Variant == null)
+            {
+                return;
+            }
+
+            if (parameter.hasTexture)
+            {
+                EnableShaderKeyword(parameter.shaderHandle.Variant);
+            }
+            else
+            {
+                DisableShaderKeyword(parameter.shaderHandle.Variant);
+            }
         }
     }
 
