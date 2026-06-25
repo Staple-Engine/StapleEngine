@@ -441,6 +441,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     internal static SDL_GPUBuffer *lastVertexBuffer;
     internal static SDL_GPUBuffer *lastIndexBuffer;
     internal static nint[] singleBuffer = new nint[1];
+    internal static int lastVertexAttributesHash;
     #endregion
 
     public bool SupportsTripleBuffering => SDL3.SDL_WindowSupportsGPUPresentMode(device, window.window,
@@ -2323,5 +2324,26 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
             return copyPass != null;
         }
+    }
+
+    internal static bool ValidVertexAttributes(Span<VertexAttribute> attributes)
+    {
+        var hashCode = new HashCode();
+
+        foreach (var attribute in attributes)
+        {
+            hashCode.Add(attribute);
+        }
+
+        var hash = hashCode.ToHashCode();
+
+        var validVertexAttributes = hash == lastVertexAttributesHash;
+
+        if (!validVertexAttributes)
+        {
+            lastVertexAttributesHash = hash;
+        }
+
+        return validVertexAttributes;
     }
 }

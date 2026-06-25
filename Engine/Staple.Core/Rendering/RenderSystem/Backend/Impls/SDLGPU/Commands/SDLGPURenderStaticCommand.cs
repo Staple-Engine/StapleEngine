@@ -54,7 +54,8 @@ internal unsafe class SDLGPURenderStaticCommand(SDLGPURendererBackend backend, R
         SDLGPURenderCommand.indexBinding.offset = 0;
         SDLGPURenderCommand.indexBinding.buffer = SDLGPURendererBackend.staticMeshIndexBuffer;
 
-        if (SDLGPURendererBackend.lastVertexBuffer != SDLGPURenderCommand.staticMeshVertexBinding[0].buffer)
+        if (SDLGPURendererBackend.lastVertexBuffer != SDLGPURenderCommand.staticMeshVertexBinding[0].buffer ||
+            !SDLGPURendererBackend.ValidVertexAttributes(vertexAttributes))
         {
             SDLGPURendererBackend.lastVertexBuffer = SDLGPURenderCommand.staticMeshVertexBinding[0].buffer;
 
