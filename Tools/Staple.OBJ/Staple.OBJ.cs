@@ -256,6 +256,8 @@ public class OBJImporter : IMeshImporter
 
                     AddTexture("specularTexture", string.IsNullOrEmpty(material.SpecularMap?.FileName) == false, material.SpecularMap?.FileName);
 
+                    MeshImporterContext.FillMaterialParameters(materialMetadata, standardShader);
+
                     try
                     {
                         var json = JsonConvert.SerializeObject(materialMetadata, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);

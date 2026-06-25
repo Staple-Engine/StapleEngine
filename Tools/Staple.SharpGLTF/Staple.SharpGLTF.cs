@@ -413,6 +413,8 @@ public class SharpGLTFImporter : IMeshImporter
                 }
                 */
 
+                MeshImporterContext.FillMaterialParameters(materialMetadata, standardShader);
+
                 try
                 {
                     var json = JsonConvert.SerializeObject(materialMetadata, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);

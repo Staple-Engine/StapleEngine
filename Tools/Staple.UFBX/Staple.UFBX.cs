@@ -258,6 +258,8 @@ public class UFXImporter : IMeshImporter
                     AddTexture("transparentTexture", material.transparencyTexture.length > 0, material.transparencyTexture,
                         (TextureWrap)material.transparencyWrapU, (TextureWrap)material.transparencyWrapV);
 
+                    MeshImporterContext.FillMaterialParameters(materialMetadata, standardShader);
+
                     try
                     {
                         var json = JsonConvert.SerializeObject(materialMetadata, Formatting.Indented, Staple.Tooling.Utilities.JsonSettings);
