@@ -245,6 +245,16 @@ internal partial class StapleEditor
                         }
                     });
                 }
+
+                if(debugSpatialInfo)
+                {
+                    foreach(var pair in renderSystem.spatialEntities)
+                    {
+                        var aabb = RenderSystem.MakeSpatialAABB(pair.Key);
+
+                        Gizmo.WireframeBox(aabb.center, Quaternion.Identity, aabb.size, Color.White);
+                    }
+                }
             });
     }
 }

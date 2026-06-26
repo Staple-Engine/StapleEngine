@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -10,6 +11,23 @@ namespace Staple.Internal;
 public sealed partial class RenderSystem
 {
     #region Fields and Classes
+
+    /// <summary>
+    /// Size of spatial partitioning cells
+    /// </summary>
+    internal const int SpatialPartitionSize = 50;
+
+    /// <summary>
+    /// Vector with the size of spatial partitioning cells
+    /// </summary>
+    internal static readonly Vector3 SpatialPartitionSizeVector = new(SpatialPartitionSize, SpatialPartitionSize, SpatialPartitionSize);
+
+    /// <summary>
+    /// Vector with half the size of spatial partitioning cells
+    /// </summary>
+    internal static readonly Vector3 SpatialPartitionSizeHalfVector = new(SpatialPartitionSize / 2.0f, SpatialPartitionSize / 2.0f,
+        SpatialPartitionSize / 2.0f);
+
     /// <summary>
     /// Contains information on a draw call
     /// </summary>
@@ -84,6 +102,21 @@ public sealed partial class RenderSystem
     internal Matrix4x4[] entityTransforms = new Matrix4x4[1024];
 
     /// <summary>
+    /// Spatial location of each entity
+    /// </summary>
+    internal Dictionary<Vector3Int, List<Transform>> spatialEntities = [];
+
+    /// <summary>
+    /// Keeps track of where an entity was located the previous frame
+    /// </summary>
+    private Vector3Int[] lastSpatialEntities = new Vector3Int[1024];
+
+    /// <summary>
+    /// Keeps track of which entities we already processed
+    /// </summary>
+    private bool[] processedSpatialEntities = new bool[1024];
+
+    /// <summary>
     /// Tracker for each entity's transform
     /// </summary>
     private readonly ComponentVersionTracker<Transform> entityTransformTracker = new();
@@ -97,11 +130,6 @@ public sealed partial class RenderSystem
     /// All renderables
     /// </summary>
     private Renderable[] renderables = new Renderable[1024];
-
-    /// <summary>
-    /// Amount of renderables used
-    /// </summary>
-    private int renderableCount;
 
     /// <summary>
     /// The renderer backend
@@ -253,8 +281,6 @@ public sealed partial class RenderSystem
 
         RenderStats.Clear();
 
-        ClearCullingStates();
-
         if(Platform.IsEditor == false || Platform.IsPlaying)
         {
             UpdateEntityTransforms();
@@ -295,7 +321,9 @@ public sealed partial class RenderSystem
     /// </summary>
     internal void ClearCullingStates()
     {
-        for (var i = 0; i < renderableCount; i++)
+        var l = renderables.Length;
+
+        for (var i = 0; i < l; i++)
         {
             ref var renderable = ref renderables[i];
 
@@ -330,6 +358,23 @@ public sealed partial class RenderSystem
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static Vector3Int EntitySpatialLocation(Transform transform)
+    {
+        return new Vector3Int(Math.FloorToInt(transform.Position.X / SpatialPartitionSize),
+            Math.FloorToInt(transform.Position.Y / SpatialPartitionSize),
+            Math.FloorToInt(transform.Position.Z / SpatialPartitionSize));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static AABB MakeSpatialAABB(Vector3Int coordinate)
+    {
+        return new AABB((Vector3)coordinate * SpatialPartitionSize + SpatialPartitionSizeHalfVector, SpatialPartitionSizeVector);
+    }
+
+    /// <summary>
+    /// Updates all the entity transform data, should be called once per frame
+    /// </summary>
     internal void UpdateEntityTransforms()
     {
         changedEntityTransformRanges.Clear();
@@ -352,6 +397,10 @@ public sealed partial class RenderSystem
             }
 
             Array.Resize(ref entityTransforms, newSize);
+
+            Array.Resize(ref lastSpatialEntities, newSize);
+
+            Array.Resize(ref processedSpatialEntities, newSize);
         }
 
         for (var i = 0; i < world.entities.Length; i++)
@@ -397,6 +446,49 @@ public sealed partial class RenderSystem
             {
                 length++;
             }
+
+            var lastSpatial = lastSpatialEntities[i];
+
+            var newSpatial = EntitySpatialLocation(entity.transform);
+
+            var shouldAddAnyway = !processedSpatialEntities[i];
+
+            processedSpatialEntities[i] = true;
+
+            if (!spatialEntities.TryGetValue(lastSpatial, out var lastSpatialStorage))
+            {
+                lastSpatialStorage = [];
+
+                spatialEntities.Add(lastSpatial, lastSpatialStorage);
+            }
+
+            if (!spatialEntities.TryGetValue(newSpatial, out var newSpatialStorage))
+            {
+                newSpatialStorage = [];
+
+                spatialEntities.Add(newSpatial, newSpatialStorage);
+            }
+
+            if (lastSpatial != newSpatial || shouldAddAnyway)
+            {
+                lastSpatialEntities[i] = newSpatial;
+
+                var lastSpan = CollectionsMarshal.AsSpan(lastSpatialStorage);
+
+                var e = entity.ToEntity();
+
+                for(var j = 0; j < lastSpan.Length; j++)
+                {
+                    if (lastSpan[j].Entity == e)
+                    {
+                        lastSpatialStorage.RemoveAt(j);
+
+                        break;
+                    }
+                }
+
+                newSpatialStorage.Add(entity.transform);
+            }
         }
 
         if (startIndex >= 0)
@@ -411,30 +503,25 @@ public sealed partial class RenderSystem
         {
             renderQueue.Clear();
 
-            renderableCount = 0;
-
-            foreach (var systemInfo in renderSystems)
+            if(entityQuery.Contents.Length > renderables.Length)
             {
-                if(!systemInfo.isRenderable)
+                var newSize = renderables.Length * 2;
+
+                while (newSize < entityQuery.Contents.Length)
                 {
-                    continue;
+                    newSize *= 2;
                 }
 
+                Array.Resize(ref renderables, newSize);
+            }
+
+            Array.Clear(processedSpatialEntities);
+            Array.Clear(renderables);
+
+            {
                 foreach (var entityInfo in entityQuery.Contents)
                 {
-                    if (!entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
-                    {
-                        continue;
-                    }
-                    
-                    renderableCount++;
-
-                    if(renderableCount > renderables.Length)
-                    {
-                        Array.Resize(ref renderables, renderables.Length * 2);
-                    }
-
-                    renderables[renderableCount - 1] = (Renderable)component;
+                    renderables[entityInfo.Item1.Identifier.ID - 1] = entityInfo.Item1.GetComponent<Renderable>();
                 }
             }
 
@@ -604,7 +691,7 @@ public sealed partial class RenderSystem
     /// <param name="entity">The camera's entity</param>
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
-    private static void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform)
+    private void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform)
     {
         var projection = Camera.Projection(entity, camera);
         var view = cameraTransform.Matrix;
@@ -612,6 +699,8 @@ public sealed partial class RenderSystem
         Matrix4x4.Invert(view, out view);
 
         camera.UpdateFrustum(view, projection);
+
+        ClearCullingStates();
 
         Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport,
             in view, in projection);

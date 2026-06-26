@@ -165,6 +165,30 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         PrepareCamera(cameraEntity, camera, cameraTransform);
 
+        foreach(var pair in spatialEntities)
+        {
+            var aabb = MakeSpatialAABB(pair.Key);
+
+            if(!camera.IsVisible(aabb))
+            {
+                var span = CollectionsMarshal.AsSpan(pair.Value);
+
+                for(var i = 0; i < span.Length; i++)
+                {
+                    var renderable = renderables[span[i].Entity.Identifier.ID - 1];
+
+                    if(renderable == null)
+                    {
+                        continue;
+                    }
+
+                    renderable.isVisible = false;
+
+                    renderable.cullingState = CullingState.Invisible;
+                }
+            }
+        }
+
         var queueLength = queue.Count;
 
         for (var i = 0; i < queueLength; i++)

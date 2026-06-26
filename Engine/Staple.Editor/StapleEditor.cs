@@ -308,6 +308,8 @@ internal partial class StapleEditor
     private readonly ComponentVersionTracker<Transform> sceneTransformTracker = new();
 
     private readonly RenderQueue renderQueue = new();
+
+    private bool debugSpatialInfo = true;
     #endregion
 
     #region Entities
