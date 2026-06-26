@@ -894,6 +894,8 @@ public sealed class Material : IGuidAsset
         }
         else
         {
+            var original = value;
+
             value ??= WhiteTexture;
 
             parameter = new MaterialResourceParameter()
@@ -912,7 +914,8 @@ public sealed class Material : IGuidAsset
                 return;
             }
 
-            if (parameter.hasTexture)
+            //Textures are replaced with White by default - Ensure we only enable variants if it's not White
+            if (parameter.hasTexture && (original != null || value.Guid.Guid != "WHITE"))
             {
                 EnableShaderKeyword(parameter.shaderHandle.Variant);
             }
