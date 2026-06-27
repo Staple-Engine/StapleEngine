@@ -18,6 +18,11 @@ public sealed partial class RenderSystem
     internal const int SpatialPartitionSize = 50;
 
     /// <summary>
+    /// Maximum amount of frames before a node is recalculated
+    /// </summary>
+    internal const int MaxFramesBetwenRecalculation = 6;
+
+    /// <summary>
     /// Vector with the size of spatial partitioning cells
     /// </summary>
     internal static readonly Vector3 SpatialPartitionSizeVector = new(SpatialPartitionSize, SpatialPartitionSize, SpatialPartitionSize);
@@ -27,6 +32,27 @@ public sealed partial class RenderSystem
     /// </summary>
     internal static readonly Vector3 SpatialPartitionSizeHalfVector = new(SpatialPartitionSize / 2.0f, SpatialPartitionSize / 2.0f,
         SpatialPartitionSize / 2.0f);
+
+    /// <summary>
+    /// Contains information on a spatial partition entry
+    /// </summary>
+    internal class SpatialEntry
+    {
+        /// <summary>
+        /// Entity transforms
+        /// </summary>
+        public readonly List<Transform> transforms = [];
+
+        /// <summary>
+        /// Frames until we need to recalculate the culling result
+        /// </summary>
+        public int framesTillRecalculation;
+
+        /// <summary>
+        /// The last culling result since the last recalculation
+        /// </summary>
+        public CullingState lastCullResult;
+    }
 
     /// <summary>
     /// Contains information on a draw call
@@ -104,7 +130,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Spatial location of each entity
     /// </summary>
-    internal Dictionary<Vector3Int, List<Transform>> spatialEntities = [];
+    internal Dictionary<Vector3Int, SpatialEntry> spatialEntities = [];
 
     /// <summary>
     /// Keeps track of where an entity was located the previous frame
@@ -457,23 +483,27 @@ public sealed partial class RenderSystem
 
             if (!spatialEntities.TryGetValue(lastSpatial, out var lastSpatialStorage))
             {
-                lastSpatialStorage = [];
+                lastSpatialStorage = new();
 
                 spatialEntities.Add(lastSpatial, lastSpatialStorage);
+
+                lastSpatialStorage.framesTillRecalculation = spatialEntities.Count % MaxFramesBetwenRecalculation;
             }
 
             if (!spatialEntities.TryGetValue(newSpatial, out var newSpatialStorage))
             {
-                newSpatialStorage = [];
+                newSpatialStorage = new();
 
                 spatialEntities.Add(newSpatial, newSpatialStorage);
+
+                newSpatialStorage.framesTillRecalculation = spatialEntities.Count % MaxFramesBetwenRecalculation;
             }
 
             if (lastSpatial != newSpatial || shouldAddAnyway)
             {
                 lastSpatialEntities[i] = newSpatial;
 
-                var lastSpan = CollectionsMarshal.AsSpan(lastSpatialStorage);
+                var lastSpan = CollectionsMarshal.AsSpan(lastSpatialStorage.transforms);
 
                 var e = entity.ToEntity();
 
@@ -481,19 +511,102 @@ public sealed partial class RenderSystem
                 {
                     if (lastSpan[j].Entity == e)
                     {
-                        lastSpatialStorage.RemoveAt(j);
+                        lastSpatialStorage.transforms.RemoveAt(j);
 
                         break;
                     }
                 }
 
-                newSpatialStorage.Add(entity.transform);
+                newSpatialStorage.transforms.Add(entity.transform);
             }
         }
 
         if (startIndex >= 0)
         {
             changedEntityTransformRanges.Add(startIndex, length);
+        }
+    }
+
+    public void WorldReplaced(World world)
+    {
+        lock(lockObject)
+        {
+            renderQueue.Clear();
+            spatialEntities.Clear();
+
+            if (entityQuery.Contents.Length > renderables.Length)
+            {
+                var newSize = renderables.Length * 2;
+
+                while (newSize < entityQuery.Contents.Length)
+                {
+                    newSize *= 2;
+                }
+
+                Array.Resize(ref renderables, newSize);
+            }
+
+            Array.Clear(lastSpatialEntities);
+            Array.Clear(processedSpatialEntities);
+            Array.Clear(renderables);
+
+            {
+                foreach (var entityInfo in entityQuery.Contents)
+                {
+                    renderables[entityInfo.Item1.Identifier.ID - 1] = entityInfo.Item1.GetComponent<Renderable>();
+                }
+            }
+
+            var cameras = world.SortedCameras;
+
+            if (cameras.Length <= 0)
+            {
+                return;
+            }
+
+            foreach (var cameraInfo in cameras)
+            {
+                var collected = new Dictionary<RenderSystemInfo, List<RenderEntry>>();
+
+                foreach (var entityInfo in entityQuery.Contents)
+                {
+                    var layer = entityInfo.Item1.Layer;
+
+                    if (!cameraInfo.camera.cullingLayers.HasLayer(layer))
+                    {
+                        continue;
+                    }
+
+                    foreach (var systemInfo in renderSystems)
+                    {
+                        if (systemInfo.system.UsesOwnRenderProcess)
+                        {
+                            continue;
+                        }
+
+                        if (!collected.TryGetValue(systemInfo, out var content))
+                        {
+                            content = [];
+
+                            collected.Add(systemInfo, content);
+                        }
+
+                        if (entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                        {
+                            content.Add(new(entityInfo.Item1, entityInfo.Item2, component));
+                        }
+                    }
+                }
+
+                var final = new List<(RenderSystemInfo, List<RenderEntry>)>();
+
+                foreach (var pair in collected)
+                {
+                    final.Add((pair.Key, pair.Value));
+                }
+
+                renderQueue.Add(((cameraInfo.camera, cameraInfo.transform), final));
+            }
         }
     }
 
@@ -523,6 +636,11 @@ public sealed partial class RenderSystem
                 {
                     renderables[entityInfo.Item1.Identifier.ID - 1] = entityInfo.Item1.GetComponent<Renderable>();
                 }
+            }
+
+            if(world == null)
+            {
+                return;
             }
 
             var cameras = world.SortedCameras;

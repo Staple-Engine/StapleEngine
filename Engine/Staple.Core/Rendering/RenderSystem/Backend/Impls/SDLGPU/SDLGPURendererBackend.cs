@@ -815,6 +815,11 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         textures.Clear();
     }
 
+    public void WorldReplaced(World world)
+    {
+        needsIndirectBufferUpdate = true;
+    }
+
     public void WorldChanged(World world)
     {
         needsIndirectBufferUpdate = true;

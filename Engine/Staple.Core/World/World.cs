@@ -119,7 +119,7 @@ public partial class World
 
     private class WorldChangeBox : ObservableBox
     {
-        public override void EmitAction(object observer)
+        protected override void EmitAction(object observer)
         {
             if(observer is not IWorldChangeReceiver receiver)
             {
@@ -128,11 +128,24 @@ public partial class World
 
             receiver.WorldChanged(Current);
         }
+
+        public void EmitWorldReplacedEvent()
+        {
+            EmitCustom((observer) =>
+            {
+                if (observer is not IWorldChangeReceiver receiver)
+                {
+                    return;
+                }
+
+                receiver.WorldReplaced(Current);
+            });
+        }
     }
 
     private class SceneQueryBox : ObservableBox
     {
-        public override void EmitAction(object observer)
+        protected override void EmitAction(object observer)
         {
             if(observer is not ISceneQuery query)
             {
@@ -251,75 +264,97 @@ public partial class World
         }
     }
 
-    internal static void EmitWorldChangedEvent()
+    internal static void EmitWorldChangedEvent(bool isWorldReplaced)
     {
-        if(Current != null)
-        {
-            if(Current.cachedEntityList.Length != Current.entities.Length)
-            {
-                Array.Resize(ref Current.cachedEntityList, Current.entities.Length);
+        var world = Current;
 
-                for(var i = 0; i < Current.entities.Length; i++)
-                {
-                    Current.cachedEntityList[i] = Current.entities[i];
-                }
+        if(world == null)
+        {
+            sceneQueries.Emit();
+
+            if(isWorldReplaced)
+            {
+                worldChangeReceivers.EmitWorldReplacedEvent();
+            }
+            else
+            {
+                worldChangeReceivers.Emit();
             }
 
+            return;
+        }
+
+        if(world.cachedEntityList.Length != world.entities.Length)
+        {
+            Array.Resize(ref world.cachedEntityList, world.entities.Length);
+
+            for(var i = 0; i < world.entities.Length; i++)
             {
-                Current.sortedCamerasBacking.Clear();
-                var cameras = Scene.Query<Camera, Transform>(false);
+                world.cachedEntityList[i] = world.entities[i];
+            }
+        }
 
-                foreach ((Entity e, Camera c, Transform t) in cameras)
+        {
+            world.sortedCamerasBacking.Clear();
+            var cameras = Scene.Query<Camera, Transform>(false);
+
+            foreach ((Entity e, Camera c, Transform t) in cameras)
+            {
+                world.sortedCamerasBacking.Add(new()
                 {
-                    Current.sortedCamerasBacking.Add(new()
-                    {
-                        camera = c,
-                        entity = e,
-                        transform = t,
-                    });
-                }
+                    camera = c,
+                    entity = e,
+                    transform = t,
+                });
+            }
 
-                Current.sortedCamerasBacking.Sort((x, y) => x.camera.depth.CompareTo(y.camera.depth));
+            world.sortedCamerasBacking.Sort((x, y) => x.camera.depth.CompareTo(y.camera.depth));
 
-                if(Current.sortedCameras.Length != Current.sortedCamerasBacking.Count)
-                {
-                    Array.Resize(ref Current.sortedCameras, Current.sortedCamerasBacking.Count);
-                }
+            if(world.sortedCameras.Length != world.sortedCamerasBacking.Count)
+            {
+                Array.Resize(ref world.sortedCameras, world.sortedCamerasBacking.Count);
+            }
 
-                for(var i = 0; i < Current.sortedCameras.Length; i++)
-                {
-                    Current.sortedCameras[i] = Current.sortedCamerasBacking[i];
-                }
+            for(var i = 0; i < world.sortedCameras.Length; i++)
+            {
+                world.sortedCameras[i] = world.sortedCamerasBacking[i];
             }
 
             {
                 var transforms = Scene.Query<Transform>(true);
 
-                Current.rootEntitiesBacking.Clear();
+                world.rootEntitiesBacking.Clear();
 
                 foreach(var (e, t) in transforms)
                 {
                     if(t.Parent == null)
                     {
-                        Current.rootEntitiesBacking.Add((e, t));
+                        world.rootEntitiesBacking.Add((e, t));
                     }
                 }
 
-                if(Current.rootEntities.Length != Current.rootEntitiesBacking.Count)
+                if(world.rootEntities.Length != world.rootEntitiesBacking.Count)
                 {
-                    Array.Resize(ref Current.rootEntities, Current.rootEntitiesBacking.Count);
+                    Array.Resize(ref world.rootEntities, world.rootEntitiesBacking.Count);
                 }
 
-                for(var i = 0; i < Current.rootEntities.Length; i++)
+                for(var i = 0; i < world.rootEntities.Length; i++)
                 {
-                    Current.rootEntities[i] = Current.rootEntitiesBacking[i];
+                    world.rootEntities[i] = world.rootEntitiesBacking[i];
                 }
             }
         }
 
         sceneQueries.Emit();
 
-        worldChangeReceivers.Emit();
+        if (isWorldReplaced)
+        {
+            worldChangeReceivers.EmitWorldReplacedEvent();
+        }
+        else
+        {
+            worldChangeReceivers.Emit();
+        }
     }
 
     internal void RequestWorldUpdate()
@@ -405,7 +440,7 @@ public partial class World
             {
                 needsEmitWorldChange = false;
 
-                EmitWorldChangedEvent();
+                EmitWorldChangedEvent(false);
             }
         }
     }
@@ -440,7 +475,7 @@ public partial class World
             {
                 needsEmitWorldChange = false;
 
-                EmitWorldChangedEvent();
+                EmitWorldChangedEvent(false);
             }
         }
     }

@@ -61,7 +61,7 @@ internal abstract class ObservableBox : IObservableBox
         }
     }
 
-    public abstract void EmitAction(object observer);
+    protected abstract void EmitAction(object observer);
 
     public void Emit()
     {
@@ -82,6 +82,30 @@ internal abstract class ObservableBox : IObservableBox
         foreach (var observer in stagingObservers)
         {
             EmitAction(observer);
+        }
+
+        stagingObservers.Clear();
+    }
+
+    public void EmitCustom(Action<object> callback)
+    {
+        for (var i = observers.Count - 1; i >= 0; i--)
+        {
+            var item = observers[i];
+
+            if (item.observer.TryGetTarget(out var o))
+            {
+                stagingObservers.Add(o);
+            }
+            else
+            {
+                observers.RemoveAt(i);
+            }
+        }
+
+        foreach (var observer in stagingObservers)
+        {
+            callback?.Invoke(observer);
         }
 
         stagingObservers.Clear();

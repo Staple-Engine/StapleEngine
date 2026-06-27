@@ -30,7 +30,7 @@ internal partial class StapleEditor
 
         if(World.Current != null)
         {
-            World.EmitWorldChangedEvent();
+            World.EmitWorldChangedEvent(false);
 
             Scene.IterateEntities((entity) =>
             {

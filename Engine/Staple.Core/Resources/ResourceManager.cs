@@ -763,6 +763,10 @@ internal class ResourceManager
 
         if(path == null)
         {
+            World.Current = null;
+
+            World.EmitWorldChangedEvent(true);
+
             return null;
         }
 
@@ -771,6 +775,10 @@ internal class ResourceManager
         if (data == null)
         {
             Log.Error($"[ResourceManager] Failed to load scene at path {path}");
+
+            World.Current = null;
+
+            World.EmitWorldChangedEvent(true);
 
             return null;
         }
@@ -788,6 +796,10 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load scene at path {path}: Invalid header");
 
+                World.Current = null;
+
+                World.EmitWorldChangedEvent(true);
+
                 return null;
             }
 
@@ -796,6 +808,10 @@ internal class ResourceManager
             if (sceneData == null || sceneData.objects == null)
             {
                 Log.Error($"[ResourceManager] Failed to load scene at path {path}: Invalid scene data");
+
+                World.Current = null;
+
+                World.EmitWorldChangedEvent(true);
 
                 return null;
             }
@@ -935,11 +951,17 @@ internal class ResourceManager
                 });
             }
 
+            World.EmitWorldChangedEvent(true);
+
             return scene;
         }
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load scene at path {path}: {e}");
+
+            World.Current = null;
+
+            World.EmitWorldChangedEvent(true);
 
             return null;
         }
