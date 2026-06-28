@@ -1238,7 +1238,7 @@ public sealed partial class Mesh : IGuidAsset
     {
         if (!changed &&
             (IsStaticMesh || 
-            (!IsStaticMesh && ((vertexBuffer?.Disposed ?? true) == false || (indexBuffer?.Disposed ?? true) == false))))
+            ((vertexBuffer?.Disposed == false) || (indexBuffer?.Disposed == false))))
         {
             return;
         }
