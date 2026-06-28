@@ -561,53 +561,25 @@ internal partial class StapleEditor
 
                 case "-builddebug":
 
-                    if(i + 1 < args.Length)
-                    {
-                        var v = args[i + 1].ToLowerInvariant();
-
-                        buildPlayerDebug = v == "true" || v == "1";
-
-                        i++;
-                    }
+                    buildPlayerDebug = true;
 
                     break;
 
                 case "-buildnative":
 
-                    if (i + 1 < args.Length)
-                    {
-                        var v = args[i + 1].ToLowerInvariant();
-
-                        buildPlayerNativeAOT = v == "true" || v == "1";
-
-                        i++;
-                    }
+                    buildPlayerNativeAOT = true;
 
                     break;
 
                 case "-builddebugredists":
 
-                    if (i + 1 < args.Length)
-                    {
-                        var v = args[i + 1].ToLowerInvariant();
-
-                        buildPlayerDebugRedists = v == "true" || v == "1";
-
-                        i++;
-                    }
+                    buildPlayerDebugRedists = true;
 
                     break;
 
                 case "-buildsinglefile":
 
-                    if (i + 1 < args.Length)
-                    {
-                        var v = args[i + 1].ToLowerInvariant();
-
-                        buildPlayerSingleFile = v == "true" || v == "1";
-
-                        i++;
-                    }
+                    buildPlayerSingleFile = true;
 
                     break;
             }
@@ -658,6 +630,10 @@ internal partial class StapleEditor
                     return;
                 }
 
+                ThreadHelper.Initialize();
+
+                var finished = false;
+
                 LoadProjectForBuilding(projectToLoad, (result) =>
                 {
                     if (!result)
@@ -669,16 +645,43 @@ internal partial class StapleEditor
                     {
                         if (Platform.CurrentPlatform != backend.platform)
                         {
+                            Log.Warning($"Current platform doesn't match backend platform, disabling NativeAOT!");
+
                             buildPlayerNativeAOT = false;
                         }
                     }
+
+                    static string BoolString(bool value)
+                    {
+                        return value ? "Yes" : "No";
+                    }
+
+                    Log.Info($"Building {projectToLoad} for {backend.platform}" +
+                        $"\n\tOutput Directory: {buildOutputDirectory}" +
+                        $"\n\tDebug: {BoolString(buildPlayerDebug)}" +
+                        $"\n\tNativeAOT: {BoolString(buildPlayerNativeAOT)}" +
+                        $"\n\tDebug redists: {BoolString(buildPlayerDebugRedists)}" +
+                        $"\n\tSingle File: {BoolString(buildPlayerSingleFile)}");
 
                     ProjectManager.Instance.BuildPlayer(backend, projectAppSettings, buildOutputDirectory,
                         buildPlayerDebug, buildPlayerNativeAOT, buildPlayerDebugRedists, false, buildPlayerSingleFile,
                         (percent, message) => Log.Info($"[{(int)(percent * 100)}%] {message}"),
                         (message) => Log.Info(message),
-                        (platform, finish) => RefreshStaging(platform, finish));
+                        (platform, finish) => RefreshStaging(platform, finish),
+                        () =>
+                        {
+                            finished = true;
+
+                            Log.Info("Player built successfully!");
+                        });
                 });
+
+                while(!finished)
+                {
+                    ThreadHelper.Update();
+
+                    Thread.Sleep(25);
+                }
 
                 break;
         }

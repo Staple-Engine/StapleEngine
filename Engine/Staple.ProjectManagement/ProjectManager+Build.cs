@@ -22,9 +22,13 @@ public partial class ProjectManager
     /// <param name="debugRedists">Whether to use debug redistributables</param>
     /// <param name="assetsOnly">Whether to just pack and copy assets</param>
     /// <param name="publishSingleFile">Whether to build into a single file</param>
+    /// <param name="failure">Called when there's a failure when building the project</param>
+    /// <param name="progress">Called when progress changes</param>
+    /// <param name="refreshStaging">Called to refresh staging for a particular platform</param>
+    /// <param name="success">Called when successfully built the player</param>
     public void BuildPlayer(PlayerBackend backend, AppSettings projectAppSettings, string outPath, bool debug, bool nativeAOT,
         bool debugRedists, bool assetsOnly, bool publishSingleFile, Action<float, string> progress, Action<string> failure,
-        Action<AppPlatform, Action> refreshStaging)
+        Action<AppPlatform, Action> refreshStaging, Action success)
     {
         progress?.Invoke(0, "Building...");
 
@@ -402,7 +406,7 @@ public partial class ProjectManager
                 }
             }
 
-            failure?.Invoke("Player built successfully!");
+            success?.Invoke();
         });
     }
 
