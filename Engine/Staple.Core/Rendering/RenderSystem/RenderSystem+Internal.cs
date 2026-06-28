@@ -34,27 +34,6 @@ public sealed partial class RenderSystem
         SpatialPartitionSize / 2.0f);
 
     /// <summary>
-    /// Contains information on a spatial partition entry
-    /// </summary>
-    internal class SpatialEntry
-    {
-        /// <summary>
-        /// Entity transforms
-        /// </summary>
-        public readonly List<Transform> transforms = [];
-
-        /// <summary>
-        /// Frames until we need to recalculate the culling result
-        /// </summary>
-        public int framesTillRecalculation;
-
-        /// <summary>
-        /// The last culling result since the last recalculation
-        /// </summary>
-        public CullingState lastCullResult;
-    }
-
-    /// <summary>
     /// Contains information on a draw call
     /// </summary>
     internal class DrawCall
@@ -130,7 +109,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Spatial location of each entity
     /// </summary>
-    internal Dictionary<Vector3Int, SpatialEntry> spatialEntities = [];
+    internal Dictionary<Vector3Int, List<Transform>> spatialEntities = [];
 
     /// <summary>
     /// Keeps track of where an entity was located the previous frame
@@ -232,6 +211,16 @@ public sealed partial class RenderSystem
     internal void OnStartFrame()
     {
         LightSystem.Instance.StartFrame();
+
+        var world = World.Current;
+
+        if(world != null)
+        {
+            foreach(var info in world.sortedCameras)
+            {
+                info.camera.OnStartFrame();
+            }
+        }
     }
 
     /// <summary>
@@ -483,27 +472,23 @@ public sealed partial class RenderSystem
 
             if (!spatialEntities.TryGetValue(lastSpatial, out var lastSpatialStorage))
             {
-                lastSpatialStorage = new();
+                lastSpatialStorage = [];
 
                 spatialEntities.Add(lastSpatial, lastSpatialStorage);
-
-                lastSpatialStorage.framesTillRecalculation = spatialEntities.Count % MaxFramesBetwenRecalculation;
             }
 
             if (!spatialEntities.TryGetValue(newSpatial, out var newSpatialStorage))
             {
-                newSpatialStorage = new();
+                newSpatialStorage = [];
 
                 spatialEntities.Add(newSpatial, newSpatialStorage);
-
-                newSpatialStorage.framesTillRecalculation = spatialEntities.Count % MaxFramesBetwenRecalculation;
             }
 
             if (lastSpatial != newSpatial || shouldAddAnyway)
             {
                 lastSpatialEntities[i] = newSpatial;
 
-                var lastSpan = CollectionsMarshal.AsSpan(lastSpatialStorage.transforms);
+                var lastSpan = CollectionsMarshal.AsSpan(lastSpatialStorage);
 
                 var e = entity.ToEntity();
 
@@ -511,13 +496,13 @@ public sealed partial class RenderSystem
                 {
                     if (lastSpan[j].Entity == e)
                     {
-                        lastSpatialStorage.transforms.RemoveAt(j);
+                        lastSpatialStorage.RemoveAt(j);
 
                         break;
                     }
                 }
 
-                newSpatialStorage.transforms.Add(entity.transform);
+                newSpatialStorage.Add(entity.transform);
             }
         }
 

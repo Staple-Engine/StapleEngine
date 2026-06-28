@@ -167,29 +167,15 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         foreach(var pair in spatialEntities)
         {
-            ref var frames = ref pair.Value.framesTillRecalculation;
+            var result = camera.IsSpatialNodeVisible(pair.Key, false);
 
-            if(frames > 0)
+            if (result == CullingState.Invisible)
             {
-                frames--;
-            }
+                var span = CollectionsMarshal.AsSpan(pair.Value);
 
-            if(frames == 0)
-            {
-                frames = MaxFramesBetwenRecalculation;
-
-                var aabb = MakeSpatialAABB(pair.Key);
-
-                pair.Value.lastCullResult = camera.IsVisible(aabb) ? CullingState.Visible : CullingState.Invisible;
-            }
-
-            if (pair.Value.lastCullResult == CullingState.Invisible)
-            {
-                var span = CollectionsMarshal.AsSpan(pair.Value.transforms);
-
-                for(var i = 0; i < span.Length; i++)
+                foreach(var transform in span)
                 {
-                    var renderable = renderables[span[i].Entity.Identifier.ID - 1];
+                    var renderable = renderables[transform.Entity.Identifier.ID - 1];
 
                     if(renderable == null)
                     {

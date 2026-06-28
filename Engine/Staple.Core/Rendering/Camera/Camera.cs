@@ -11,6 +11,27 @@ namespace Staple;
 public sealed class Camera : IComponent
 {
     /// <summary>
+    /// Contains information on a spatial partition entry
+    /// </summary>
+    internal class SpatialNodeInfo
+    {
+        /// <summary>
+        /// Frames until we need to recalculate the culling result
+        /// </summary>
+        public int framesTillRecalculation;
+
+        /// <summary>
+        /// The last culling result since the last recalculation
+        /// </summary>
+        public CullingState lastCullResult;
+
+        /// <summary>
+        /// Whether the node needs to be updated
+        /// </summary>
+        public bool needsUpdate = true;
+    }
+
+    /// <summary>
     /// How to render elements of the camera
     /// </summary>
     public CameraViewMode viewMode = CameraViewMode.Default;
@@ -81,6 +102,11 @@ public sealed class Camera : IComponent
     /// The frustum culler for this camera
     /// </summary>
     internal readonly FrustumCuller frustumCuller = new();
+
+    /// <summary>
+    /// Contains information on spatial nodes for this particular camera
+    /// </summary>
+    internal readonly Dictionary<Vector3Int, SpatialNodeInfo> spatialNodes = [];
 
     /// <summary>
     /// Gets the camera's frustum corners
@@ -280,5 +306,63 @@ public sealed class Camera : IComponent
         var worldSpace = viewSpace.Transformed(transform.Matrix);
 
         return new Ray(transform.Position, (worldSpace.ToVector3() - transform.Position).Normalized);
+    }
+
+    /// <summary>
+    /// Checks if a spatial node is visible (for partitioning frustum culling checks on larger scenes)
+    /// </summary>
+    /// <param name="coordinate">The coordinate to check</param>
+    /// <param name="force">Whether to force the check</param>
+    /// <returns>The culling state of the node</returns>
+    internal CullingState IsSpatialNodeVisible(Vector3Int coordinate, bool force)
+    {
+        var checkAnyway = force;
+
+        if(!spatialNodes.TryGetValue(coordinate, out var node))
+        {
+            node = new()
+            {
+                framesTillRecalculation = spatialNodes.Count,
+            };
+
+            spatialNodes.Add(coordinate, node);
+        }
+
+        var shouldCheck = checkAnyway || node.needsUpdate;
+
+        if(!shouldCheck)
+        {
+            return node.lastCullResult;
+        }
+
+        var aabb = RenderSystem.MakeSpatialAABB(coordinate);
+
+        node.needsUpdate = false;
+        node.lastCullResult = IsVisible(aabb) ? CullingState.Visible : CullingState.Invisible;
+
+        return node.lastCullResult;
+    }
+
+    /// <summary>
+    /// Called when the frame starts
+    /// </summary>
+    internal void OnStartFrame()
+    {
+        foreach(var pair in spatialNodes)
+        {
+            ref var frames = ref pair.Value.framesTillRecalculation;
+
+            if (frames > 0)
+            {
+                frames--;
+            }
+
+            if (frames == 0)
+            {
+                frames = RenderSystem.MaxFramesBetwenRecalculation;
+
+                pair.Value.needsUpdate = true;
+            }
+        }
     }
 }
