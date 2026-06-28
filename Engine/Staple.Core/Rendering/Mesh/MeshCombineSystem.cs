@@ -6,12 +6,11 @@ using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
+/// <summary>
+/// Mesh Combine system that merges child mesh renderers inside it
+/// </summary>
 public sealed class MeshCombineSystem : IRenderSystem
 {
-    public bool UsesOwnRenderProcess => false;
-
-    public Type RelatedComponent => typeof(MeshCombine);
-
     /// <summary>
     /// Info for rendering
     /// </summary>
@@ -28,9 +27,15 @@ public sealed class MeshCombineSystem : IRenderSystem
         public Transform transform;
     }
 
+    public bool UsesOwnRenderProcess => false;
+
+    public Type RelatedComponent => typeof(MeshCombine);
+
     private readonly ExpandableContainer<RenderInfo> renderers = new();
 
     private readonly ComponentVersionTracker<Transform> transformVersions = new();
+
+    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<MeshCombine>();
 
     #region Lifecycle
     public void Prepare()
@@ -46,11 +51,18 @@ public sealed class MeshCombineSystem : IRenderSystem
     }
     #endregion
 
-    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<MeshCombine> queue)
         {
-            var combine = (MeshCombine)entry.component;
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var combine = entry.component;
 
             combine.renderers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, true);
 
@@ -277,14 +289,22 @@ public sealed class MeshCombineSystem : IRenderSystem
         }
     }
 
-    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
         renderers.Clear();
 
-        foreach (var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<MeshCombine> queue)
         {
-            if (entry.component is not MeshCombine combine ||
-                combine.meshes.Count == 0 ||
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var combine = entry.component;
+
+            if (combine.meshes.Count == 0 ||
                 combine.materials.Count != combine.meshes.Count)
             {
                 continue;

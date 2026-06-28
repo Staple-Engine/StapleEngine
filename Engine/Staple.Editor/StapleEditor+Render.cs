@@ -150,15 +150,13 @@ internal partial class StapleEditor
 
             foreach (var pair in renderQueue.renderQueue)
             {
-                var (components, renderables) = pair.Value;
-
                 try
                 {
-                    pair.Key.Preprocess(components.ToArray(), camera, cameraTransform);
+                    pair.Key.Preprocess(pair.Value, camera, cameraTransform);
 
-                    if(renderables.Count > 0)
+                    if(!pair.Value.Empty)
                     {
-                        foreach (var (entity, transform, renderable) in renderables)
+                        pair.Value.IterateRenderables((entity, transform, renderable) =>
                         {
                             if (renderable.enabled)
                             {
@@ -190,10 +188,10 @@ internal partial class StapleEditor
                             {
                                 ClearEntityBody(entity);
                             }
-                        }
+                        });
                     }
 
-                    pair.Key.Process(components.ToArray(), camera, cameraTransform);
+                    pair.Key.Process(pair.Value, camera, cameraTransform);
                 }
                 catch (Exception e)
                 {
@@ -209,9 +207,7 @@ internal partial class StapleEditor
 
                 foreach (var pair in renderQueue.renderQueue)
                 {
-                    var (components, renderables) = pair.Value;
-
-                    if (renderables.Count == 0)
+                    if (pair.Value.Empty)
                     {
                         continue;
                     }

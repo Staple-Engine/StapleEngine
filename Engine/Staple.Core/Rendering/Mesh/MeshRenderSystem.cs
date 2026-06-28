@@ -21,11 +21,17 @@ public sealed class MeshRenderSystem : IRenderSystem
         public Transform transform;
     }
 
+    /// <summary>
+    /// Contains a list of all instances for a specific mesh and material
+    /// </summary>
     private class InstanceData
     {
         public readonly ExpandableContainer<InstanceInfo> instanceInfos = new();
     }
 
+    /// <summary>
+    /// Contains a list of all instances for a specific mesh and material to render by multidraw and save drawcalls
+    /// </summary>
     private class StaticInstanceData
     {
         public readonly ExpandableContainer<InstanceInfo> instanceInfos = new();
@@ -55,6 +61,8 @@ public sealed class MeshRenderSystem : IRenderSystem
     public bool UsesOwnRenderProcess => false;
 
     public Type RelatedComponent => typeof(MeshRenderer);
+
+    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<MeshRenderer>();
 
     #region Lifecycle
     public void Startup()
@@ -116,11 +124,18 @@ public sealed class MeshRenderSystem : IRenderSystem
         RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
     }
 
-    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<MeshRenderer> queue)
         {
-            var renderer = (MeshRenderer)entry.component;
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var renderer = entry.component;
 
             if (renderer.mesh == null)
             {
@@ -148,7 +163,7 @@ public sealed class MeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
         foreach (var p in instanceCache)
         {
@@ -167,9 +182,16 @@ public sealed class MeshRenderSystem : IRenderSystem
             }
         }
 
-        foreach (var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<MeshRenderer> queue)
         {
-            var renderer = (MeshRenderer)entry.component;
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var renderer = entry.component;
 
             if (!renderer.isVisible ||
                 renderer.mesh == null ||

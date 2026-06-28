@@ -21,6 +21,12 @@ public interface IRenderSystem
     Type RelatedComponent { get; }
 
     /// <summary>
+    /// Creates a new instance of this render system's render queue
+    /// </summary>
+    /// <returns>A new render queue</returns>
+    IRenderQueue CreateRenderQueue();
+
+    /// <summary>
     /// Prepares the render system for rendering.
     /// Called before entities are processed.
     /// </summary>
@@ -33,7 +39,7 @@ public interface IRenderSystem
     /// <param name="renderQueue">A list of all entities, transforms, and the related component</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
-    void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform);
+    void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform);
 
     /// <summary>
     /// Processes the entity.
@@ -42,7 +48,7 @@ public interface IRenderSystem
     /// <param name="renderQueue">A list of all entities, transforms, and the related component</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
-    void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform);
+    void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform);
 
     /// <summary>
     /// Submits all rendering commands to the renderer

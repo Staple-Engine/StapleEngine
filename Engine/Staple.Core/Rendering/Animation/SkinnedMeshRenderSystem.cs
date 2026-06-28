@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -36,11 +35,20 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     public Type RelatedComponent => typeof(SkinnedMeshRenderer);
 
-    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshRenderer>();
+
+    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<SkinnedMeshRenderer> queue)
         {
-            var renderer = entry.component as SkinnedMeshRenderer;
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var renderer = entry.component;
 
             if (renderer.mesh == null ||
                 renderer.mesh.meshAsset == null ||
@@ -85,15 +93,22 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
         renderers.Clear();
 
         var needsInstanceUpdate = false;
 
-        foreach (var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<SkinnedMeshRenderer> queue)
         {
-            var renderer = entry.component as SkinnedMeshRenderer;
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var renderer = entry.component;
 
             if (!renderer.isVisible ||
                 renderer.mesh?.MeshAssetMesh == null ||

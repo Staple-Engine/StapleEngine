@@ -183,7 +183,7 @@ internal partial class StapleEditor
     class RenderQueue : IWorldChangeReceiver
     {
         public readonly SceneQuery<Transform> transforms = new(true);
-        public readonly Dictionary<IRenderSystem, (List<RenderEntry>, List<(Entity, Transform, Renderable)>)> renderQueue = [];
+        public readonly Dictionary<IRenderSystem, IRenderQueue> renderQueue = [];
         public readonly List<Entity> disabledEntities = [];
         private readonly Dictionary<IRenderSystem, bool> componentIsRenderable = [];
 
@@ -232,21 +232,14 @@ internal partial class StapleEditor
 
                     if (!renderQueue.TryGetValue(systemInfo.system, out var content))
                     {
-                        content = ([], []);
+                        content = systemInfo.system.CreateRenderQueue();
 
                         renderQueue.Add(systemInfo.system, content);
                     }
 
                     if (entity.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                     {
-                        content.Item1.Add(new(entity, transform, component));
-
-                        var isRenderable = componentIsRenderable[systemInfo.system];
-
-                        if(isRenderable)
-                        {
-                            content.Item2.Add((entity, transform, (Renderable)component));
-                        }
+                        content.Add(entity, transform, component);
                     }
                 }
             }

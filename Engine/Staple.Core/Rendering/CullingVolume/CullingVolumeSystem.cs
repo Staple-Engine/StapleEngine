@@ -2,18 +2,23 @@
 
 namespace Staple.Internal;
 
+/// <summary>
+/// Culling Volume system that culls large amounts of objects by checking if its bounds are invisible
+/// </summary>
 public sealed class CullingVolumeSystem : IRenderSystem
 {
     public bool UsesOwnRenderProcess => false;
 
     public Type RelatedComponent => typeof(CullingVolume);
 
+    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<CullingVolume>();
+
     #region Lifecycle
     public void Prepare()
     {
     }
 
-    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
@@ -30,14 +35,18 @@ public sealed class CullingVolumeSystem : IRenderSystem
     }
     #endregion
 
-    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach(var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<CullingVolume> queue)
         {
-            if(entry.component is not CullingVolume volume)
-            {
-                continue;
-            }
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var volume = entry.component;
 
             volume.renderers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
             volume.children ??= new(entry.entity, EntityQueryMode.Children, false);
@@ -45,10 +54,11 @@ public sealed class CullingVolumeSystem : IRenderSystem
             volume.needsUpdate = true;
         }
 
-        foreach (var entry in renderQueue)
+        foreach (var entry in items)
         {
-            if(entry.component is not CullingVolume volume ||
-                !volume.needsUpdate)
+            var volume = entry.component;
+
+            if(!volume.needsUpdate)
             {
                 continue;
             }

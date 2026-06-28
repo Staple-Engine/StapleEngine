@@ -235,6 +235,8 @@
 		<Compile Include="Rendering\RenderSystem\Backend\BufferAttributeSource.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\MultidrawEntry.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\RenderState.cs" />
+		<Compile Include="Rendering\RenderSystem\GenericRenderQueue.cs" />
+		<Compile Include="Rendering\RenderSystem\IRenderQueue.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderEntry.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderStats.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />

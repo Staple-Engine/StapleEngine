@@ -12,6 +12,8 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
 
     public Type RelatedComponent => typeof(SkinnedMeshAnimator);
 
+    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshAnimator>();
+
     #region Lifecycle
     public void Startup()
     {
@@ -25,7 +27,7 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
     {
     }
 
-    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
@@ -34,11 +36,18 @@ public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
     }
     #endregion
 
-    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<SkinnedMeshAnimator> queue)
         {
-            var animator = entry.component as SkinnedMeshAnimator;
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var animator = entry.component;
 
             if (animator.mesh == null ||
                 animator.mesh.meshAsset == null ||

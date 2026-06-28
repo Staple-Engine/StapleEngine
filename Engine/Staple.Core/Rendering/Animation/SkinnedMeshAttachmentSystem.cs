@@ -12,6 +12,8 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
 
     public Type RelatedComponent => typeof(SkinnedMeshAttachment);
 
+    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshAttachment>();
+
     public void Startup()
     {
     }
@@ -24,16 +26,24 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
     {
     }
 
-    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach(var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<SkinnedMeshAttachment> queue)
         {
-            if (entry.component is not SkinnedMeshAttachment attachment ||
-                attachment.mesh == null ||
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var attachment = entry.component;
+
+            if (attachment.mesh == null ||
                 attachment.mesh.meshAsset == null ||
                 (attachment.boneName?.Length ?? 0) == 0)
             {

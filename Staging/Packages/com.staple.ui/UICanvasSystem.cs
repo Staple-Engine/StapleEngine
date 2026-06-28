@@ -19,6 +19,8 @@ public class UICanvasSystem : IRenderSystem
 
     public bool IsPointerOverUI { get; private set; }
 
+    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<UICanvas>();
+
     #region Lifecycle
     public void Startup()
     {
@@ -32,11 +34,11 @@ public class UICanvasSystem : IRenderSystem
     {
     }
 
-    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
     #endregion

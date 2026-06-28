@@ -159,7 +159,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="queue">The render queue for this camera</param>
     /// <param name="cull">Whether to cull invisible elements</param>
     public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        List<(RenderSystemInfo, List<RenderEntry>)> queue, bool cull)
+        List<(RenderSystemInfo, IRenderQueue)> queue, bool cull)
     {
         CurrentCamera = (camera, cameraTransform);
 
@@ -195,23 +195,19 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
         {
             var (systemInfo, content) = queue[i];
 
-            if (content.Count == 0)
+            if (content.Empty)
             {
                 continue;
             }
 
             systemInfo.system.Prepare();
 
-            systemInfo.system.Preprocess(CollectionsMarshal.AsSpan(content), camera, cameraTransform);
+            systemInfo.system.Preprocess(content, camera, cameraTransform);
 
             if(systemInfo.isRenderable)
             {
-                var contentLength = content.Count;
-
-                for (var j = 0; j < contentLength; j++)
+                content.IterateRenderables((entity, transform, renderable) =>
                 {
-                    var renderable = (Renderable)content[j].component;
-
                     renderable.isVisible = renderable.enabled &&
                         !renderable.forceRenderingOff &&
                         renderable.cullingState != CullingState.Invisible;
@@ -230,17 +226,17 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                     {
                         RenderStats.culledDrawCalls++;
                     }
-                }
+                });
             }
 
-            systemInfo.system.Process(CollectionsMarshal.AsSpan(content), camera, cameraTransform);
+            systemInfo.system.Process(content, camera, cameraTransform);
         }
 
         for (var i = 0; i < queueLength; i++)
         {
             var (systemInfo, content) = queue[i];
 
-            if (content.Count == 0)
+            if (content.Empty)
             {
                 continue;
             }
@@ -267,6 +263,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         CurrentCamera = (camera, cameraTransform);
 
+        ClearCullingStates();
+
         var systems = new List<RenderSystemInfo>();
 
         lock (lockObject)
@@ -284,7 +282,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             systemInfo.system.Prepare();
         }
 
-        var systemQueues = new Dictionary<RenderSystemInfo, List<RenderEntry>>();
+        var systemQueues = new Dictionary<RenderSystemInfo, IRenderQueue>();
 
         void Handle(Entity e, Transform t)
         {
@@ -307,7 +305,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
                 if (!systemQueues.TryGetValue(systemInfo, out var queue))
                 {
-                    queue = [];
+                    queue = systemInfo.system.CreateRenderQueue();
 
                     systemQueues.Add(systemInfo, queue);
                 }
@@ -317,27 +315,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 {
                     continue;
                 }
-                
-                systemInfo.system.Preprocess([new(e, t, related)], camera, cameraTransform);
 
-                if (systemInfo.isRenderable)
-                {
-                    var renderable = (Renderable)related;
-
-                    renderable.isVisible = renderable.enabled && !renderable.forceRenderingOff;
-
-                    if (renderable.isVisible && cull)
-                    {
-                        renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
-
-                        if (!renderable.isVisible)
-                        {
-                            RenderStats.culledDrawCalls++;
-                        }
-                    }
-                }
-
-                queue.Add(new(e, t, related));
+                queue.Add(e, t, related);
             }
 
             foreach (var child in t.Children)
@@ -350,12 +329,32 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         foreach (var pair in systemQueues)
         {
-            if(pair.Value.Count == 0)
+            if(pair.Value.Empty)
             {
                 continue;
             }
 
-            pair.Key.system.Process(CollectionsMarshal.AsSpan(pair.Value), camera, cameraTransform);
+            pair.Key.system.Preprocess(pair.Value, camera, cameraTransform);
+
+            if (pair.Key.isRenderable)
+            {
+                pair.Value.IterateRenderables((entity, transform, renderable) =>
+                {
+                    renderable.isVisible = renderable.enabled && !renderable.forceRenderingOff;
+
+                    if (renderable.isVisible && cull)
+                    {
+                        renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
+
+                        if (!renderable.isVisible)
+                        {
+                            RenderStats.culledDrawCalls++;
+                        }
+                    }
+                });
+            }
+
+            pair.Key.system.Process(pair.Value, camera, cameraTransform);
 
             pair.Key.system.Submit();
         }
@@ -430,7 +429,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 {
                     if (call.relatedComponent.GetType() == systemInfo.system.RelatedComponent)
                     {
-                        systemInfo.system.Process([new(call.entity, stagingTransform, call.relatedComponent)],
+                        systemInfo.system.Process(SingleItemRenderQueue(systemInfo.system, call.entity, stagingTransform, call.relatedComponent),
                             camera, cameraTransform);
                     }
                 }

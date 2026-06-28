@@ -94,7 +94,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// The render queue
     /// </summary>
-    private readonly List<((Camera, Transform), List<(RenderSystemInfo, List<RenderEntry>)>)> renderQueue = [];
+    private readonly List<((Camera, Transform), List<(RenderSystemInfo, IRenderQueue)>)> renderQueue = [];
 
     /// <summary>
     /// The entity query for every entity with a transform
@@ -551,7 +551,7 @@ public sealed partial class RenderSystem
 
             foreach (var cameraInfo in cameras)
             {
-                var collected = new Dictionary<RenderSystemInfo, List<RenderEntry>>();
+                var collected = new Dictionary<RenderSystemInfo, IRenderQueue>();
 
                 foreach (var entityInfo in entityQuery.Contents)
                 {
@@ -571,19 +571,19 @@ public sealed partial class RenderSystem
 
                         if (!collected.TryGetValue(systemInfo, out var content))
                         {
-                            content = [];
+                            content = systemInfo.system.CreateRenderQueue();
 
                             collected.Add(systemInfo, content);
                         }
 
                         if (entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                         {
-                            content.Add(new(entityInfo.Item1, entityInfo.Item2, component));
+                            content.Add(entityInfo.Item1, entityInfo.Item2, component);
                         }
                     }
                 }
 
-                var final = new List<(RenderSystemInfo, List<RenderEntry>)>();
+                var final = new List<(RenderSystemInfo, IRenderQueue)>();
 
                 foreach (var pair in collected)
                 {
@@ -637,7 +637,7 @@ public sealed partial class RenderSystem
         
             foreach (var cameraInfo in cameras)
             {
-                var collected = new Dictionary<RenderSystemInfo, List<RenderEntry>>();
+                var collected = new Dictionary<RenderSystemInfo, IRenderQueue>();
 
                 foreach (var entityInfo in entityQuery.Contents)
                 {
@@ -657,19 +657,19 @@ public sealed partial class RenderSystem
 
                         if (!collected.TryGetValue(systemInfo, out var content))
                         {
-                            content = [];
+                            content = systemInfo.system.CreateRenderQueue();
 
                             collected.Add(systemInfo, content);
                         }
 
                         if (entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                         {
-                            content.Add(new(entityInfo.Item1, entityInfo.Item2, component));
+                            content.Add(entityInfo.Item1, entityInfo.Item2, component);
                         }
                     }
                 }
 
-                var final = new List<(RenderSystemInfo, List<RenderEntry>)>();
+                var final = new List<(RenderSystemInfo, IRenderQueue)>();
 
                 foreach(var pair in collected)
                 {
@@ -731,33 +731,24 @@ public sealed partial class RenderSystem
 
                 foreach (var (systemInfo, contents) in pair.Item2)
                 {
-                    if(contents.Count == 0)
+                    if(contents.Empty)
                     {
                         continue;
                     }
 
-                    systemInfo.system.Preprocess(CollectionsMarshal.AsSpan(contents), camera, cameraTransform);
+                    systemInfo.system.Preprocess(contents, camera, cameraTransform);
 
                     if (!systemInfo.isRenderable)
                     {
                         continue;
                     }
-                    
-                    var contentLength = contents.Count;
 
-                    for (var j = 0; j < contentLength; j++)
+                    contents.IterateRenderables((entity, transform, renderable) =>
                     {
-                        var renderable = (Renderable)contents[j].component;
-
                         renderable.isVisible = renderable.enabled &&
                             !renderable.forceRenderingOff &&
                             renderable.cullingState != CullingState.Invisible;
 
-                        if (!renderable.isVisible)
-                        {
-                            continue;
-                        }
-                        
                         if (renderable.cullingState == CullingState.None)
                         {
                             renderable.isVisible = camera.IsVisible(renderable.bounds);
@@ -767,13 +758,13 @@ public sealed partial class RenderSystem
 
                         if (renderable.isVisible)
                         {
-                            AddDrawCall(contents[j].entity, contents[j].transform, contents[j].component, renderable);
+                            AddDrawCall(entity, transform, renderable, renderable);
                         }
                         else
                         {
                             RenderStats.culledDrawCalls++;
                         }
-                    }
+                    });
                 }
             }
         }
@@ -849,6 +840,30 @@ public sealed partial class RenderSystem
         }
     }
 
+    /// <summary>
+    /// Create a render queue with a single item
+    /// </summary>
+    /// <param name="system">The render system to use</param>
+    /// <param name="entity">The entity to add</param>
+    /// <param name="transform">The transform to add</param>
+    /// <param name="component">The component to add</param>
+    /// <returns>The render queue</returns>
+    /// <remarks>This sort of thing is quite low performance, needs to be optimized eventually. Currently only used for accumulator rendering</remarks>
+    private static IRenderQueue SingleItemRenderQueue(IRenderSystem system, Entity entity, Transform transform, IComponent component)
+    {
+        var queue = system.CreateRenderQueue();
+
+        queue.Add(entity, transform, component);
+
+        return queue;
+    }
+
+    /// <summary>
+    /// Submits something to render
+    /// </summary>
+    /// <param name="state">The render state</param>
+    /// <param name="triangles">How many triangles are being rendered</param>
+    /// <param name="instances">How many instances are being rendered</param>
     internal static void Submit(RenderState state, int triangles, int instances)
     {
         Backend.Render(state);
@@ -862,6 +877,12 @@ public sealed partial class RenderSystem
         }
     }
 
+    /// <summary>
+    /// Submits static meshes for rendering with multidraw
+    /// </summary>
+    /// <param name="state">The render state</param>
+    /// <param name="entries">The entries for multidraw</param>
+    /// <param name="triangles">How many triangles are being rendered</param>
     internal static void SubmitStatic(RenderState state, Span<MultidrawEntry> entries, int triangles)
     {
         Backend.RenderStatic(state, entries);

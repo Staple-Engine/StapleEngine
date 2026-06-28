@@ -26,6 +26,8 @@ public class TextRenderSystem : IRenderSystem
 
     public Type RelatedComponent => typeof(Text);
 
+    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<Text>();
+
     public void Startup()
     {
     }
@@ -50,17 +52,24 @@ public class TextRenderSystem : IRenderSystem
         }
     }
 
-    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 
-    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
         texts.Clear();
 
-        foreach (var entry in renderQueue)
+        if(renderQueue is not GenericRenderQueue<Text> queue)
         {
-            var text = (Text)entry.component;
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var text = entry.component;
 
             text.text ??= "";
 
