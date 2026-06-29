@@ -6,8 +6,13 @@ namespace Staple;
 /// Renderable base component
 /// </summary>
 [AbstractComponent]
-public class Renderable : IComponent
+public class Renderable : IComponent, IComponentVersion
 {
+    /// <summary>
+    /// The version state of this renderable. Should be updated as you change properties like bounds.
+    /// </summary>
+    public ulong Version { get; protected set; }
+
     /// <summary>
     /// Whether the render is enabled for this
     /// </summary>
@@ -63,4 +68,18 @@ public class Renderable : IComponent
     /// Whether this has been culled by another system
     /// </summary>
     internal CullingState cullingState = CullingState.None;
+
+    /// <summary>
+    /// Updates the <see cref="bounds"/> of this renderable if they changed
+    /// </summary>
+    /// <param name="bounds">The new bounds</param>
+    public void UpdateBounds(AABB bounds)
+    {
+        if(bounds != this.bounds)
+        {
+            Version++;
+
+            this.bounds = bounds;
+        }
+    }
 }

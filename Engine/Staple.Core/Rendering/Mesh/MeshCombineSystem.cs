@@ -283,9 +283,9 @@ public sealed class MeshCombineSystem : IRenderSystem
                 combine.combinedMeshBounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
                 localSize * entry.transform.LocalScale);
 
-            combine.bounds = new(entry.transform.Position +
+            combine.UpdateBounds(new(entry.transform.Position +
                 combine.combinedMeshBounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
-                globalSize * entry.transform.Scale);
+                globalSize * entry.transform.Scale));
         }
     }
 

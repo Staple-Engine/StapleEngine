@@ -157,9 +157,9 @@ public sealed class MeshRenderSystem : IRenderSystem
                 renderer.mesh.bounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
                 localSize * entry.transform.LocalScale);
 
-            renderer.bounds = new(entry.transform.Position +
+            renderer.UpdateBounds(new(entry.transform.Position +
                 renderer.mesh.bounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
-                globalSize * entry.transform.Scale);
+                globalSize * entry.transform.Scale));
         }
     }
 

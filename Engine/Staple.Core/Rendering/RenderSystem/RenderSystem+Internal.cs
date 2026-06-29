@@ -127,6 +127,11 @@ public sealed partial class RenderSystem
     private readonly ComponentVersionTracker<Transform> entityTransformTracker = new();
 
     /// <summary>
+    /// Tracker for each entity's renderable
+    /// </summary>
+    private readonly ComponentVersionTracker<Renderable> entityRenderableTracker = new();
+
+    /// <summary>
     /// Tracks all changed entity transforms in ranges (key is start index, value is length)
     /// </summary>
     internal readonly Dictionary<int, int> changedEntityTransformRanges = [];
@@ -421,6 +426,57 @@ public sealed partial class RenderSystem
         return new AABB((Vector3)coordinate * SpatialPartitionSize + SpatialPartitionSizeHalfVector, SpatialPartitionSizeVector);
     }
 
+    internal void UpdateEntitySpatialData(int index, Transform transform, Renderable renderable)
+    {
+        if(renderable == null)
+        {
+            return;
+        }
+
+        if(!entityRenderableTracker.ShouldUpdateComponent(transform.Entity, in renderable))
+        {
+            return;
+        }
+
+        ref var container = ref lastSpatialEntities[index];
+
+        container ??= [];
+
+        var entitySpatialSet = container;
+
+        foreach (var lastSpatial in entitySpatialSet)
+        {
+            if (!spatialEntities.TryGetValue(lastSpatial, out var transforms))
+            {
+                continue;
+            }
+
+            transforms.Remove(transform);
+        }
+
+        entitySpatialSet.Clear();
+
+        var shouldAddAnyway = !processedSpatialEntities[index];
+
+        processedSpatialEntities[index] = true;
+
+        IterateEntitySpatialLocations(renderable.bounds, (coordinate) =>
+        {
+            entitySpatialSet.Add(coordinate);
+
+            if (!spatialEntities.TryGetValue(coordinate, out var newSpatialStorage))
+            {
+                newSpatialStorage = [];
+
+                spatialEntities.Add(coordinate, newSpatialStorage);
+            }
+
+            newSpatialStorage.Add(transform);
+
+            return false;
+        });
+    }
+
     /// <summary>
     /// Updates all the entity transform data, should be called once per frame
     /// </summary>
@@ -470,16 +526,22 @@ public sealed partial class RenderSystem
                 continue;
             }
 
+            var renderable = renderables[i];
+
             if (!entityTransformTracker.ShouldUpdateComponent(entity.ToEntity(), in entity.transform))
             {
                 if (startIndex < 0)
                 {
+                    UpdateEntitySpatialData(i, entity.transform, renderable);
+
                     continue;
                 }
 
                 changedEntityTransformRanges.Add(startIndex, length);
 
                 startIndex = -1;
+
+                UpdateEntitySpatialData(i, entity.transform, renderable);
 
                 continue;
             }
@@ -496,52 +558,7 @@ public sealed partial class RenderSystem
                 length++;
             }
 
-            var renderable = renderables[i];
-
-            if (renderable == null)
-            {
-                continue;
-            }
-
-            var transform = entity.transform;
-
-            ref var container = ref lastSpatialEntities[i];
-
-            container ??= [];
-
-            var entitySpatialSet = container;
-
-            foreach (var lastSpatial in entitySpatialSet)
-            {
-                if(!spatialEntities.TryGetValue(lastSpatial, out var transforms))
-                {
-                    continue;
-                }
-
-                transforms.Remove(transform);
-            }
-
-            entitySpatialSet.Clear();
-
-            var shouldAddAnyway = !processedSpatialEntities[i];
-
-            processedSpatialEntities[i] = true;
-
-            IterateEntitySpatialLocations(renderable.bounds, (coordinate) =>
-            {
-                entitySpatialSet.Add(coordinate);
-
-                if (!spatialEntities.TryGetValue(coordinate, out var newSpatialStorage))
-                {
-                    newSpatialStorage = [];
-
-                    spatialEntities.Add(coordinate, newSpatialStorage);
-                }
-
-                newSpatialStorage.Add(transform);
-
-                return false;
-            });
+            UpdateEntitySpatialData(i, entity.transform, renderable);
         }
 
         if (startIndex >= 0)
