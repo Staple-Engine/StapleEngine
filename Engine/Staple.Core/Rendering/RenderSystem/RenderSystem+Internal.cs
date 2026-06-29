@@ -114,7 +114,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Keeps track of where an entity was located the previous frame
     /// </summary>
-    private Vector3Int[] lastSpatialEntities = new Vector3Int[1024];
+    private HashSet<Vector3Int>[] lastSpatialEntities = new HashSet<Vector3Int>[1024];
 
     /// <summary>
     /// Keeps track of which entities we already processed
@@ -140,6 +140,12 @@ public sealed partial class RenderSystem
     /// The renderer backend
     /// </summary>
     internal static readonly IRendererBackend Backend = new SDLGPURendererBackend();
+
+    /// <summary>
+    /// Used for optimizing memory usage while doing spatial bounds coordinate calculations
+    /// </summary>
+    internal static readonly HashSet<Vector3Int> spatialStagingBoundsCollector = [];
+
     #endregion
 
     #region Helpers
@@ -374,11 +380,39 @@ public sealed partial class RenderSystem
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static Vector3Int EntitySpatialLocation(Transform transform)
+    internal static Vector3Int GetEntitySpatialLocation(Vector3 position)
     {
-        return new Vector3Int(Math.FloorToInt(transform.Position.X / SpatialPartitionSize),
-            Math.FloorToInt(transform.Position.Y / SpatialPartitionSize),
-            Math.FloorToInt(transform.Position.Z / SpatialPartitionSize));
+        return new Vector3Int(Math.FloorToInt(position.X / SpatialPartitionSize),
+            Math.FloorToInt(position.Y / SpatialPartitionSize),
+            Math.FloorToInt(position.Z / SpatialPartitionSize));
+    }
+
+    /// <summary>
+    /// Iterates all spatial locations that some bounds belong to
+    /// </summary>
+    /// <param name="bounds">The bounds</param>
+    /// <param name="callback">The callback. You should return true if you want the process to stop (such as confirming the object is visible)</param>
+    /// <remarks>Should only ever be used by a single thread. Do not use this across threads!</remarks>
+    internal static void IterateEntitySpatialLocations(AABB bounds, Func<Vector3Int, bool> callback)
+    {
+        spatialStagingBoundsCollector.Clear();
+
+        var corners = bounds.Corners;
+
+        foreach(var corner in corners)
+        {
+            var coordinate = GetEntitySpatialLocation(corner);
+
+            spatialStagingBoundsCollector.Add(coordinate);
+        }
+
+        foreach(var coordinate in spatialStagingBoundsCollector)
+        {
+            if(callback(coordinate))
+            {
+                break;
+            }
+        }
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -462,48 +496,52 @@ public sealed partial class RenderSystem
                 length++;
             }
 
-            var lastSpatial = lastSpatialEntities[i];
+            var renderable = renderables[i];
 
-            var newSpatial = EntitySpatialLocation(entity.transform);
+            if (renderable == null)
+            {
+                continue;
+            }
+
+            var transform = entity.transform;
+
+            ref var container = ref lastSpatialEntities[i];
+
+            container ??= [];
+
+            var entitySpatialSet = container;
+
+            foreach (var lastSpatial in entitySpatialSet)
+            {
+                if(!spatialEntities.TryGetValue(lastSpatial, out var transforms))
+                {
+                    continue;
+                }
+
+                transforms.Remove(transform);
+            }
+
+            entitySpatialSet.Clear();
 
             var shouldAddAnyway = !processedSpatialEntities[i];
 
             processedSpatialEntities[i] = true;
 
-            if (!spatialEntities.TryGetValue(lastSpatial, out var lastSpatialStorage))
+            IterateEntitySpatialLocations(renderable.bounds, (coordinate) =>
             {
-                lastSpatialStorage = [];
+                entitySpatialSet.Add(coordinate);
 
-                spatialEntities.Add(lastSpatial, lastSpatialStorage);
-            }
-
-            if (!spatialEntities.TryGetValue(newSpatial, out var newSpatialStorage))
-            {
-                newSpatialStorage = [];
-
-                spatialEntities.Add(newSpatial, newSpatialStorage);
-            }
-
-            if (lastSpatial != newSpatial || shouldAddAnyway)
-            {
-                lastSpatialEntities[i] = newSpatial;
-
-                var lastSpan = CollectionsMarshal.AsSpan(lastSpatialStorage);
-
-                var e = entity.ToEntity();
-
-                for(var j = 0; j < lastSpan.Length; j++)
+                if (!spatialEntities.TryGetValue(coordinate, out var newSpatialStorage))
                 {
-                    if (lastSpan[j].Entity == e)
-                    {
-                        lastSpatialStorage.RemoveAt(j);
+                    newSpatialStorage = [];
 
-                        break;
-                    }
+                    spatialEntities.Add(coordinate, newSpatialStorage);
                 }
 
-                newSpatialStorage.Add(entity.transform);
-            }
+                newSpatialStorage.Add(transform);
+
+                return false;
+            });
         }
 
         if (startIndex >= 0)

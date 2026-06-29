@@ -37,6 +37,21 @@ public readonly struct AABB
     public readonly Vector3 size;
 
     /// <summary>
+    /// The corners of the box
+    /// </summary>
+    public Vector3[] Corners =>
+        [
+            new(min.X, max.Y, max.Z),
+            new(max.X, max.Y, max.Z),
+            new(max.X, min.Y, max.Z),
+            new(min.X, min.Y, max.Z),
+            new(min.X, max.Y, min.Z),
+            new(max.X, max.Y, min.Z),
+            new(max.X, min.Y, min.Z),
+            new(min.X, min.Y, min.Z),
+        ];
+
+    /// <summary>
     /// Creates an Axis Aligned Bounding Box from a center and size
     /// </summary>
     /// <param name="center">The center of the box</param>

@@ -280,17 +280,13 @@ public class Texture : IGuidAsset
     /// <param name="asset">The texture asset</param>
     /// <param name="flags">Additional texture flags</param>
     /// <returns>The texture or null</returns>
-    internal static Texture Create(string path, SerializableTexture asset, TextureFlags flags = TextureFlags.None)
+    internal static TextureResource Create(string path, SerializableTexture asset, TextureFlags flags = TextureFlags.None)
     {
         var resource = new TextureResource(new TextureAssetCreateMethod(path, asset, flags));
 
         if(resource.Create())
         {
-            var texture = new Texture(resource);
-
-            texture.ApplyTextureToSprites();
-
-            return texture;
+            return resource;
         }
 
         return null;

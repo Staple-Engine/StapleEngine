@@ -1035,7 +1035,7 @@ internal class ResourceManager
             return null;
         }
 
-        byte[] data = LoadFile(guid);
+        var data = LoadFile(guid);
 
         if (data == null)
         {
@@ -1072,6 +1072,115 @@ internal class ResourceManager
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: {e}");
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to load a shader resource from a path
+    /// </summary>
+    /// <param name="path">The path to load</param>
+    /// <returns>The shader resource, or null</returns>
+    public ShaderResource LoadShaderResource(string path)
+    {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        var assetPath = AssetDatabase.GetAssetPath(path);
+
+        if (assetPath != null)
+        {
+            guid = path;
+            path = assetPath;
+        }
+        else
+        {
+            guid = AssetDatabase.GetAssetGuid(path) ?? guid;
+        }
+
+        if (guid == null)
+        {
+            return null;
+        }
+
+        var data = LoadFile(guid);
+
+        data ??= LoadFile(path);
+
+        if (data == null)
+        {
+            Log.Error($"[ResourceManager] Failed to load shader at path {path}");
+
+            return null;
+        }
+
+        using var stream = new MemoryStream(data);
+
+        try
+        {
+            var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
+
+            if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
+                header.version != SerializableShaderHeader.ValidVersion)
+            {
+                Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid header");
+
+                return null;
+            }
+
+            var shaderData = MessagePackSerializer.Deserialize<SerializableShader>(stream);
+
+            if (shaderData == null || shaderData.metadata == null)
+            {
+                Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid shader data");
+
+                return null;
+            }
+
+            if (shaderData.metadata.type != ShaderType.VertexFragment)
+            {
+                Log.Error($"[ResourceManager] Failed to load shader at path {path}: Not a vertex/fragment shader");
+
+                return null;
+            }
+
+            if (!shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries))
+            {
+                Log.Error($"[ResourceManager] Failed to load shader at path {path}: " +
+                    $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
+
+                return null;
+            }
+
+            foreach (var pair in entries.data)
+            {
+                if ((pair.Value.vertexShader?.Length ?? 0) == 0 || (pair.Value.fragmentShader?.Length ?? 0) == 0)
+                {
+                    return null;
+                }
+            }
+
+            var resource = Shader.Create(shaderData, entries.data);
+
+            if (resource != null)
+            {
+                resource.Guid.Guid = guid;
+
+                return resource;
+            }
+
+            Log.Error($"[ResourceManager] Failed to load shader at path {path}: Failed to initialize shader");
+
+            return null;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[ResourceManager] Failed to load shader at path {path}: {e}");
 
             return null;
         }
@@ -1117,13 +1226,52 @@ internal class ResourceManager
             return shader;
         }
 
-        byte[] data = LoadFile(guid);
+        var resource = LoadShaderResource(path);
+
+        if (resource == null)
+        {
+            return null;
+        }
+
+        shader = new(resource);
+
+        if (!ignoreCache)
+        {
+            cachedShaders.AddOrSetKey(path, shader);
+        }
+
+        return shader;
+    }
+
+    /// <summary>
+    /// Attempts to load a compute shader resource from a path
+    /// </summary>
+    /// <param name="path">The path to load</param>
+    /// <returns>The shader resource, or null</returns>
+    public ComputeShaderResource LoadComputeShaderResource(string path)
+    {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        guid = AssetDatabase.GetAssetGuid(path) ?? guid;
+
+        if (guid == null)
+        {
+            return null;
+        }
+
+
+        var data = LoadFile(guid);
 
         data ??= LoadFile(path);
 
         if (data == null)
         {
-            Log.Error($"[ResourceManager] Failed to load shader at path {path}");
+            Log.Error($"[ResourceManager] Failed to load compute shader at path {path}");
 
             return null;
         }
@@ -1137,7 +1285,7 @@ internal class ResourceManager
             if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
                 header.version != SerializableShaderHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid header");
+                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid header");
 
                 return null;
             }
@@ -1146,21 +1294,21 @@ internal class ResourceManager
 
             if (shaderData == null || shaderData.metadata == null)
             {
-                Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid shader data");
+                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid shader data");
 
                 return null;
             }
 
-            if (shaderData.metadata.type != ShaderType.VertexFragment)
+            if (shaderData.metadata.type != ShaderType.Compute)
             {
-                Log.Error($"[ResourceManager] Failed to load shader at path {path}: Not a vertex/fragment shader");
+                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Not a compute shader");
 
                 return null;
             }
 
-            if(!shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries))
+            if (!shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries))
             {
-                Log.Error($"[ResourceManager] Failed to load shader at path {path}: " +
+                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: " +
                     $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
 
                 return null;
@@ -1168,35 +1316,28 @@ internal class ResourceManager
 
             foreach (var pair in entries.data)
             {
-                if ((pair.Value.vertexShader?.Length ?? 0) == 0 || (pair.Value.fragmentShader?.Length ?? 0) == 0)
+                if ((pair.Value.computeShader?.Length ?? 0) == 0)
                 {
                     return null;
                 }
             }
 
-            var resource = Shader.Create(shaderData, entries.data);
+            var shader = ComputeShader.Create(shaderData, entries.data);
 
-            if(resource != null)
+            if (shader != null)
             {
-                resource.Guid.Guid = guid;
-
-                shader = new(resource);
-
-                if (!ignoreCache)
-                {
-                    cachedShaders.AddOrSetKey(path, shader);
-                }
+                shader.Guid.Guid = guid;
 
                 return shader;
             }
 
-            Log.Error($"[ResourceManager] Failed to load shader at path {path}: Failed to initialize shader");
+            Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Failed to initialize shader");
 
             return null;
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load shader at path {path}: {e}");
+            Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: {e}");
 
             return null;
         }
@@ -1232,104 +1373,33 @@ internal class ResourceManager
             return shader;
         }
 
-        byte[] data = LoadFile(guid);
+        var resource = LoadComputeShaderResource(path);
 
-        data ??= LoadFile(path);
-
-        if (data == null)
+        if (resource == null)
         {
-            Log.Error($"[ResourceManager] Failed to load compute shader at path {path}");
-
             return null;
         }
 
-        using var stream = new MemoryStream(data);
+        shader = new(resource);
 
-        try
+        if (!ignoreCache)
         {
-            var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
-
-            if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
-                header.version != SerializableShaderHeader.ValidVersion)
-            {
-                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid header");
-
-                return null;
-            }
-
-            var shaderData = MessagePackSerializer.Deserialize<SerializableShader>(stream);
-
-            if (shaderData == null || shaderData.metadata == null)
-            {
-                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid shader data");
-
-                return null;
-            }
-
-            if(shaderData.metadata.type != ShaderType.Compute)
-            {
-                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Not a compute shader");
-
-                return null;
-            }
-
-            if (!shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries))
-            {
-                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: " +
-                    $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
-
-                return null;
-            }
-
-            foreach (var pair in entries.data)
-            {
-                if ((pair.Value.computeShader?.Length ?? 0) == 0)
-                {
-                    return null;
-                }
-            }
-
-            shader = ComputeShader.Create(shaderData, entries.data);
-
-            if (shader != null)
-            {
-                shader.Guid.Guid = guid;
-
-                if (!ignoreCache)
-                {
-                    cachedComputeShaders.AddOrSetKey(path, shader);
-                }
-            }
-
-            return shader;
+            cachedComputeShaders.AddOrSetKey(path, shader);
         }
-        catch (Exception e)
-        {
-            Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: {e}");
 
-            return null;
-        }
+        return shader;
     }
 
     /// <summary>
-    /// Attempts to load a material from a path
+    /// Attempts to load a material resource from a path
     /// </summary>
     /// <param name="path">The path to load</param>
-    /// <param name="ignoreCache">Whether to ignore the cache</param>
-    /// <returns>The material, or null</returns>
-    public Material LoadMaterial(string path, bool ignoreCache = false)
+    /// <returns>The material resource, or null</returns>
+    public MaterialResource LoadMaterialResource(string path)
     {
         if ((path?.Length ?? 0) == 0)
         {
             return null;
-        }
-
-        if (!ignoreCache &&
-            cachedMaterials.TryGetValue(path, out var material) &&
-            material != null &&
-            !material.Disposed)
-        {
-            return material;
         }
 
         var data = LoadFile(path);
@@ -1372,7 +1442,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var shader = LoadShader(materialData.metadata.shader, ignoreCache);
+            var shader = LoadShader(materialData.metadata.shader, false);
 
             if (shader == null)
             {
@@ -1391,103 +1461,208 @@ internal class ResourceManager
 
             materialResource.Guid.Guid = guid ?? path;
 
-            material = new Material
-            {
-                materialResource = materialResource,
-                CullingMode = materialData.metadata.cullingMode,
-            };
-
-            foreach(var variant in materialData.metadata.enabledShaderVariants)
-            {
-                if(shader.shaderResource.metadata.variants.Contains(variant))
-                {
-                    material.EnableShaderKeyword(variant);
-                }
-            }
-
-            foreach(var parameter in materialData.metadata.parameters)
-            {
-                switch(parameter.Value.type)
-                {
-                    case MaterialParameterType.TextureWrap:
-
-                        material.materialResource.parameters.Add(parameter.Key, new()
-                        {
-                            name = parameter.Key,
-                            type = MaterialParameterType.TextureWrap,
-                            textureWrapValue = parameter.Value.textureWrapValue,
-                        });
-
-                        break;
-
-                    case MaterialParameterType.Texture:
-
-                        var texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
-
-                        material.SetTexture(parameter.Key, texture);
-
-                        break;
-
-                    case MaterialParameterType.Matrix3x3:
-
-                        material.SetMatrix3x3(parameter.Key, new(), parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Matrix4x4:
-
-                        material.SetMatrix4x4(parameter.Key, new(), parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Vector2:
-
-                        material.SetVector2(parameter.Key, parameter.Value.vec2Value.ToVector2(), parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Vector3:
-
-                        material.SetVector3(parameter.Key, parameter.Value.vec3Value.ToVector3(), parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Vector4:
-
-                        material.SetVector4(parameter.Key, parameter.Value.vec4Value.ToVector4(), parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Color:
-
-                        material.SetColor(parameter.Key, parameter.Value.colorValue, parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Float:
-
-                        material.SetFloat(parameter.Key, parameter.Value.floatValue, parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Int:
-
-                        material.SetInt(parameter.Key, parameter.Value.intValue, parameter.Value.source);
-
-                        break;
-                }
-            }
-
-            if(!ignoreCache)
-            {
-                cachedMaterials.AddOrSetKey(path, material);
-            }
-
-            return material;
+            return materialResource;
         }
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load material at path {path}: {e}");
+
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to load a material from a path
+    /// </summary>
+    /// <param name="path">The path to load</param>
+    /// <param name="ignoreCache">Whether to ignore the cache</param>
+    /// <returns>The material, or null</returns>
+    public Material LoadMaterial(string path, bool ignoreCache = false)
+    {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        if (!ignoreCache &&
+            cachedMaterials.TryGetValue(path, out var material) &&
+            material != null &&
+            !material.Disposed)
+        {
+            return material;
+        }
+
+        var resource = LoadMaterialResource(path);
+
+        if (resource == null)
+        {
+            return null;
+        }
+
+        material = new Material
+        {
+            materialResource = resource,
+            CullingMode = resource.metadata.cullingMode,
+        };
+
+        foreach (var variant in resource.metadata.enabledShaderVariants)
+        {
+            if (resource.shader.shaderResource.metadata.variants.Contains(variant))
+            {
+                material.EnableShaderKeyword(variant);
+            }
+        }
+
+        foreach (var parameter in resource.metadata.parameters)
+        {
+            switch (parameter.Value.type)
+            {
+                case MaterialParameterType.TextureWrap:
+
+                    material.materialResource.parameters.Add(parameter.Key, new()
+                    {
+                        name = parameter.Key,
+                        type = MaterialParameterType.TextureWrap,
+                        textureWrapValue = parameter.Value.textureWrapValue,
+                    });
+
+                    break;
+
+                case MaterialParameterType.Texture:
+
+                    var texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
+
+                    material.SetTexture(parameter.Key, texture);
+
+                    break;
+
+                case MaterialParameterType.Matrix3x3:
+
+                    material.SetMatrix3x3(parameter.Key, new(), parameter.Value.source);
+
+                    break;
+
+                case MaterialParameterType.Matrix4x4:
+
+                    material.SetMatrix4x4(parameter.Key, new(), parameter.Value.source);
+
+                    break;
+
+                case MaterialParameterType.Vector2:
+
+                    material.SetVector2(parameter.Key, parameter.Value.vec2Value.ToVector2(), parameter.Value.source);
+
+                    break;
+
+                case MaterialParameterType.Vector3:
+
+                    material.SetVector3(parameter.Key, parameter.Value.vec3Value.ToVector3(), parameter.Value.source);
+
+                    break;
+
+                case MaterialParameterType.Vector4:
+
+                    material.SetVector4(parameter.Key, parameter.Value.vec4Value.ToVector4(), parameter.Value.source);
+
+                    break;
+
+                case MaterialParameterType.Color:
+
+                    material.SetColor(parameter.Key, parameter.Value.colorValue, parameter.Value.source);
+
+                    break;
+
+                case MaterialParameterType.Float:
+
+                    material.SetFloat(parameter.Key, parameter.Value.floatValue, parameter.Value.source);
+
+                    break;
+
+                case MaterialParameterType.Int:
+
+                    material.SetInt(parameter.Key, parameter.Value.intValue, parameter.Value.source);
+
+                    break;
+            }
+        }
+
+        if (!ignoreCache)
+        {
+            cachedMaterials.AddOrSetKey(path, material);
+        }
+
+        return material;
+    }
+
+    public TextureResource LoadTextureResource(string path, TextureFlags flags = TextureFlags.None)
+    {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        path = guid ?? path;
+
+        var data = LoadFile(path);
+
+        if (data == null)
+        {
+            Log.Error($"[ResourceManager] Failed to load texture at path {path}");
+
+            return null;
+        }
+
+        using var stream = new MemoryStream(data);
+
+        try
+        {
+            var header = MessagePackSerializer.Deserialize<SerializableTextureHeader>(stream);
+
+            if (header == null ||
+                !header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) ||
+                header.version != SerializableTextureHeader.ValidVersion)
+            {
+                Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid header");
+
+                return null;
+            }
+
+            var textureData = MessagePackSerializer.Deserialize<SerializableTexture>(stream);
+
+            if (textureData == null)
+            {
+                Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid texture data");
+
+                return null;
+            }
+
+            var resource = Texture.Create(path, textureData, flags);
+
+            if (resource == null)
+            {
+                Log.Error($"[ResourceManager] Failed to load texture at path {path}: Failed to create texture");
+
+                return null;
+            }
+
+            if (textureData.cpuData != null)
+            {
+                resource.readbackData = new()
+                {
+                    colorComponents = textureData.cpuData.colorComponents,
+                    data = textureData.cpuData.data,
+                    width = textureData.cpuData.width,
+                    height = textureData.cpuData.height,
+                };
+            }
+
+            return resource;
+        }
+        catch (Exception e)
+        {
+            Log.Error($"[ResourceManager] Failed to load texture at path {path}: {e}");
 
             return null;
         }
@@ -1519,92 +1694,35 @@ internal class ResourceManager
 
         path = guid ?? path;
 
-        var data = LoadFile(path);
+        var resource = LoadTextureResource(path, flags);
 
-        if(data == null)
+        if(resource == null)
         {
-            Log.Error($"[ResourceManager] Failed to load texture at path {path}");
-
             return null;
         }
 
-        using var stream = new MemoryStream(data);
+        texture = new Texture(resource);
 
-        try
+        texture.ApplyTextureToSprites();
+
+        if (!ignoreCache)
         {
-            var header = MessagePackSerializer.Deserialize<SerializableTextureHeader>(stream);
-
-            if (header == null ||
-                !header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) ||
-                header.version != SerializableTextureHeader.ValidVersion)
-            {
-                Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid header");
-
-                return null;
-            }
-
-            var textureData = MessagePackSerializer.Deserialize<SerializableTexture>(stream);
-
-            if (textureData == null)
-            {
-                Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid texture data");
-
-                return null;
-            }
-
-            texture = Texture.Create(path, textureData, flags);
-
-            if (texture == null)
-            {
-                Log.Error($"[ResourceManager] Failed to load texture at path {path}: Failed to create texture");
-
-                return null;
-            }
-
-            if(textureData.cpuData != null)
-            {
-                texture.textureResource.readbackData = new()
-                {
-                    colorComponents = textureData.cpuData.colorComponents,
-                    data = textureData.cpuData.data,
-                    width = textureData.cpuData.width,
-                    height = textureData.cpuData.height,
-                };
-            }
-
-            if(!ignoreCache)
-            {
-                cachedTextures.AddOrSetKey(path, texture);
-            }
-
-            return texture;
+            cachedTextures.AddOrSetKey(path, texture);
         }
-        catch (Exception e)
-        {
-            Log.Error($"[ResourceManager] Failed to load texture at path {path}: {e}");
 
-            return null;
-        }
+        return texture;
     }
 
     /// <summary>
-    /// Attempts to load an audio clip from a path
+    /// Attempts to load an audio clip resource from a path
     /// </summary>
     /// <param name="path">The path to load</param>
-    /// <param name="ignoreCache">Whether to ignore the cache</param>
-    /// <returns>The audio clip, or null</returns>
-    public AudioClip LoadAudioClip(string path, bool ignoreCache = false)
+    /// <returns>The audio clip resource, or null</returns>
+    public AudioClipResource LoadAudioClipResource(string path)
     {
         if ((path?.Length ?? 0) == 0)
         {
             return null;
-        }
-
-        if (!ignoreCache &&
-            cachedAudioClips.TryGetValue(path, out var audioClip) &&
-            audioClip != null)
-        {
-            return audioClip;
         }
 
         var guid = AssetDatabase.GetAssetGuid(path);
@@ -1653,17 +1771,7 @@ internal class ResourceManager
 
             resource.Guid.Guid = path;
 
-            audioClip = new AudioClip()
-            {
-                audioResource = resource,
-            };
-
-            if(!ignoreCache)
-            {
-                cachedAudioClips.AddOrSetKey(path, audioClip);
-            }
-
-            return audioClip;
+            return resource;
         }
         catch (Exception e)
         {
@@ -1671,6 +1779,50 @@ internal class ResourceManager
 
             return null;
         }
+    }
+
+    /// <summary>
+    /// Attempts to load an audio clip from a path
+    /// </summary>
+    /// <param name="path">The path to load</param>
+    /// <param name="ignoreCache">Whether to ignore the cache</param>
+    /// <returns>The audio clip, or null</returns>
+    public AudioClip LoadAudioClip(string path, bool ignoreCache = false)
+    {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        if (!ignoreCache &&
+            cachedAudioClips.TryGetValue(path, out var audioClip) &&
+            audioClip != null)
+        {
+            return audioClip;
+        }
+
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        path = guid ?? path;
+
+        var resource = LoadAudioClipResource(path);
+
+        if (resource == null)
+        {
+            return null;
+        }
+
+        audioClip = new AudioClip()
+        {
+            audioResource = resource,
+        };
+
+        if (!ignoreCache)
+        {
+            cachedAudioClips.AddOrSetKey(path, audioClip);
+        }
+
+        return audioClip;
     }
 
     /// <summary>
@@ -1823,12 +1975,11 @@ internal class ResourceManager
     }
 
     /// <summary>
-    /// Attempts to load a mesh asset from a path
+    /// Attempts to load a mesh asset resource from a path
     /// </summary>
     /// <param name="path">The path to the mesh asset file</param>
-    /// <param name="ignoreCache">Whether to ignore the cache</param>
-    /// <returns>The mesh asset, or null</returns>
-    public MeshAsset LoadMeshAsset(string path, bool ignoreCache = false)
+    /// <returns>The mesh asset resource, or null</returns>
+    public MeshAssetResource LoadMeshAssetResource(string path)
     {
         if ((path?.Length ?? 0) == 0)
         {
@@ -1838,13 +1989,6 @@ internal class ResourceManager
         var guid = AssetDatabase.GetAssetGuid(path);
 
         path = guid ?? path;
-
-        if (!ignoreCache &&
-            cachedMeshAssets.TryGetValue(path, out var mesh) &&
-            mesh != null)
-        {
-            return mesh;
-        }
 
         var data = LoadFile(path);
 
@@ -1888,11 +2032,6 @@ internal class ResourceManager
 
             resource.Guid.Guid = guid ?? path;
 
-            var asset = new MeshAsset()
-            {
-                meshResource = resource,
-            };
-
             resource.nodes = new MeshAsset.Node[meshAssetData.nodes.Length];
 
             for (var i = 0; i < meshAssetData.nodes.Length; i++)
@@ -1921,7 +2060,7 @@ internal class ResourceManager
 
             var startBoneIndex = 0;
 
-            foreach(var m in meshAssetData.meshes)
+            foreach (var m in meshAssetData.meshes)
             {
                 var newMesh = new MeshAsset.MeshInfo()
                 {
@@ -2035,8 +2174,8 @@ internal class ResourceManager
                 for (var i = 0; i < newMesh.boneIndices.Length; i++)
                 {
                     var index = newMesh.boneIndices[i];
-                    
-                    if(index.X >= 0)
+
+                    if (index.X >= 0)
                     {
                         index.X += startBoneIndex;
                     }
@@ -2069,11 +2208,11 @@ internal class ResourceManager
                     indexCount = m.indices.Count,
                 }];
 
-                newMesh.submeshMaterialGuids = [ m.materialGuid ];
+                newMesh.submeshMaterialGuids = [m.materialGuid];
 
                 newMesh.transformedBounds = newMesh.bounds;
 
-                if(newMesh.type == MeshAssetType.Skinned)
+                if (newMesh.type == MeshAssetType.Skinned)
                 {
                     foreach (var node in resource.nodes)
                     {
@@ -2097,18 +2236,18 @@ internal class ResourceManager
 
             resource.BoneCount = startBoneIndex;
 
-            if(resource.meshes.Count == 1)
+            if (resource.meshes.Count == 1)
             {
                 resource.Bounds = resource.meshes[0].transformedBounds;
             }
-            else if(resource.meshes.Count > 0)
+            else if (resource.meshes.Count > 0)
             {
                 var min = Vector3.One * 999999;
                 var max = Vector3.One * -999999;
 
-                foreach(var m in resource.meshes)
+                foreach (var m in resource.meshes)
                 {
-                    if(min.X > m.transformedBounds.center.X)
+                    if (min.X > m.transformedBounds.center.X)
                     {
                         min.X = m.transformedBounds.center.X;
                     }
@@ -2142,7 +2281,7 @@ internal class ResourceManager
                 resource.Bounds = AABB.CreateFromMinMax(min, max);
             }
 
-            foreach(var a in meshAssetData.animations)
+            foreach (var a in meshAssetData.animations)
             {
                 var animation = new MeshAsset.Animation()
                 {
@@ -2150,7 +2289,7 @@ internal class ResourceManager
                     duration = a.duration,
                 };
 
-                foreach(var c in a.channels)
+                foreach (var c in a.channels)
                 {
                     var channel = new MeshAsset.AnimationChannel()
                     {
@@ -2180,12 +2319,7 @@ internal class ResourceManager
                 resource.animations.AddOrSetKey(animation.name, animation);
             }
 
-            if(!ignoreCache)
-            {
-                cachedMeshAssets.AddOrSetKey(path, asset);
-            }
-
-            return asset;
+            return resource;
         }
         catch (Exception e)
         {
@@ -2193,6 +2327,50 @@ internal class ResourceManager
 
             return null;
         }
+    }
+
+    /// <summary>
+    /// Attempts to load a mesh asset from a path
+    /// </summary>
+    /// <param name="path">The path to the mesh asset file</param>
+    /// <param name="ignoreCache">Whether to ignore the cache</param>
+    /// <returns>The mesh asset, or null</returns>
+    public MeshAsset LoadMeshAsset(string path, bool ignoreCache = false)
+    {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        path = guid ?? path;
+
+        if (!ignoreCache &&
+            cachedMeshAssets.TryGetValue(path, out var mesh) &&
+            mesh != null)
+        {
+            return mesh;
+        }
+
+        var resource = LoadMeshAssetResource(path);
+
+        if(resource == null)
+        {
+            return null;
+        }
+
+        var asset = new MeshAsset()
+        {
+            meshResource = resource,
+        };
+
+        if (!ignoreCache)
+        {
+            cachedMeshAssets.AddOrSetKey(path, asset);
+        }
+
+        return asset;
     }
 
     /// <summary>
@@ -2421,12 +2599,11 @@ internal class ResourceManager
     }
 
     /// <summary>
-    /// Attempts to load a font
+    /// Attempts to load a font resource
     /// </summary>
     /// <param name="path">The path to load from</param>
-    /// <param name="ignoreCache">Whether to ignore the asset cache</param>
-    /// <returns>The font, or null</returns>
-    public FontAsset LoadFont(string path, bool ignoreCache = false)
+    /// <returns>The font resource, or null</returns>
+    public FontAssetResource LoadFontResource(string path)
     {
         if ((path?.Length ?? 0) == 0)
         {
@@ -2436,13 +2613,6 @@ internal class ResourceManager
         var guid = AssetDatabase.GetAssetGuid(path);
 
         path = guid ?? path;
-
-        if (!ignoreCache &&
-            cachedFonts.TryGetValue(path, out var font) &&
-            font != null)
-        {
-            return font;
-        }
 
         var data = LoadFile(path);
 
@@ -2482,20 +2652,10 @@ internal class ResourceManager
 
             resource.Guid.Guid = path;
 
-            font = new()
-            {
-                fontResource = resource,
-            };
-
-            font.fontResource.font = TextFont.FromData(fontData.fontData, font.Guid.Guid, fontData.metadata.useAntiAliasing,
+            resource.font = TextFont.FromData(fontData.fontData, resource.Guid.Guid, fontData.metadata.useAntiAliasing,
                 fontData.metadata.textureSize, fontData.metadata.includedCharacterSets);
 
-            if (!ignoreCache)
-            {
-                cachedFonts.AddOrSetKey(path, font);
-            }
-
-            return font;
+            return resource;
         }
         catch (Exception e)
         {
@@ -2506,11 +2666,55 @@ internal class ResourceManager
     }
 
     /// <summary>
-    /// Attempts to load a text or binary file as a text asset
+    /// Attempts to load a font
     /// </summary>
     /// <param name="path">The path to load from</param>
-    /// <returns>The text asset, or null</returns>
-    public TextAsset LoadTextAsset(string path)
+    /// <param name="ignoreCache">Whether to ignore the asset cache</param>
+    /// <returns>The font, or null</returns>
+    public FontAsset LoadFont(string path, bool ignoreCache = false)
+    {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        path = guid ?? path;
+
+        if (!ignoreCache &&
+            cachedFonts.TryGetValue(path, out var font) &&
+            font != null)
+        {
+            return font;
+        }
+
+        var resource = LoadFontResource(path);
+
+        if(resource == null)
+        {
+            return null;
+        }
+
+        font = new()
+        {
+            fontResource = resource,
+        };
+
+        if (!ignoreCache)
+        {
+            cachedFonts.AddOrSetKey(path, font);
+        }
+
+        return font;
+    }
+
+    /// <summary>
+    /// Attempts to load a text or binary file as a text asset resource
+    /// </summary>
+    /// <param name="path">The path to load from</param>
+    /// <returns>The text asset resource, or null</returns>
+    public TextAssetResource LoadTextAssetResource(string path)
     {
         if ((path?.Length ?? 0) == 0)
         {
@@ -2559,16 +2763,11 @@ internal class ResourceManager
 
             resource.Guid.Guid = textData.metadata.guid;
 
-            var outAsset = new TextAsset()
-            {
-                textResource = resource,
-            };
-
             var assetPath = AssetDatabase.GetAssetPath(path);
 
             var extension = Path.GetExtension(assetPath ?? path);
 
-            if(!string.IsNullOrEmpty(extension) &&
+            if (!string.IsNullOrEmpty(extension) &&
                 Array.IndexOf(AssetSerialization.TextExtensions, extension[1..]) >= 0)
             {
                 try
@@ -2580,7 +2779,7 @@ internal class ResourceManager
                 }
             }
 
-            return outAsset;
+            return resource;
         }
         catch (Exception e)
         {
@@ -2588,6 +2787,37 @@ internal class ResourceManager
 
             return default;
         }
+    }
+
+    /// <summary>
+    /// Attempts to load a text or binary file as a text asset
+    /// </summary>
+    /// <param name="path">The path to load from</param>
+    /// <returns>The text asset, or null</returns>
+    public TextAsset LoadTextAsset(string path)
+    {
+        if ((path?.Length ?? 0) == 0)
+        {
+            return null;
+        }
+
+        var guid = AssetDatabase.GetAssetGuid(path);
+
+        path = guid ?? path;
+
+        var resource = LoadTextAssetResource(path);
+
+        if(resource == null)
+        {
+            return null;
+        }
+
+        var outAsset = new TextAsset()
+        {
+            textResource = resource,
+        };
+
+        return outAsset;
     }
 
     /// <summary>

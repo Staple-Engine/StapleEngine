@@ -389,18 +389,18 @@ public partial class ComputeShader : IGuidAsset
     }
 
     /// <summary>
-    /// Creates from shader data
+    /// Creates a compute shader resource from shader data
     /// </summary>
     /// <param name="data">The data</param>
     /// <param name="entries">The variant entries for the current renderer</param>
     /// <returns>The shader if valid</returns>
-    internal static ComputeShader Create(SerializableShader data, Dictionary<string, SerializableShaderData> entries)
+    internal static ComputeShaderResource Create(SerializableShader data, Dictionary<string, SerializableShaderData> entries)
     {
         var resource = new ComputeShaderResource(data, entries);
 
         if (resource.Create())
         {
-            return new(resource);
+            return resource;
         }
 
         return null;

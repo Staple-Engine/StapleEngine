@@ -88,7 +88,6 @@
     <Compile Include="ProjectBrowser\ProjectBrowserNodeAction.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserNodeType.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserResourceType.cs" />
-    <Compile Include="ResourceUtils.cs" />
     <Compile Include="StapleEditor+AssetDatabaseObserver.cs" />
     <Compile Include="StapleEditor+ImGuiStyle.cs" />
     <Compile Include="StapleEditor+MessageBox.cs" />
