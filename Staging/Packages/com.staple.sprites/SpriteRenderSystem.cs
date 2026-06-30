@@ -107,6 +107,8 @@ public class SpriteRenderSystem : IRenderSystem
 
     public Type RelatedComponent => typeof(SpriteRenderer);
 
+    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SpriteRenderer>();
+
     /// <summary>
     /// Calculates nine patch geometry for a part of the sprite 
     /// </summary>
@@ -253,14 +255,18 @@ public class SpriteRenderSystem : IRenderSystem
         sprites.Clear();
     }
 
-    public void Preprocess(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<SpriteRenderer> queue)
         {
-            if(entry.component is not SpriteRenderer r)
-            {
-                continue;
-            }
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var r = entry.component;
 
             var hasValidAnimation = r.animation != null &&
                 r.animation.texture != null &&
@@ -334,16 +340,24 @@ public class SpriteRenderSystem : IRenderSystem
 
             r.localBounds = new AABB(Vector3.Zero, size);
 
-            r.bounds = new AABB(entry.transform.Position, size);
+            r.UpdateBounds(new AABB(entry.transform.Position, size));
         }
     }
 
-    public void Process(Span<RenderEntry> renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
     {
-        foreach (var entry in renderQueue)
+        if (renderQueue is not GenericRenderQueue<SpriteRenderer> queue)
         {
-            if (entry.component is not SpriteRenderer r ||
-                r.isVisible == false)
+            return;
+        }
+
+        var items = queue.Items;
+
+        foreach (var entry in items)
+        {
+            var r = entry.component;
+
+            if (r.isVisible == false)
             {
                 continue;
             }
