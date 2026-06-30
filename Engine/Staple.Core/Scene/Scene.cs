@@ -44,6 +44,8 @@ public sealed class Scene
     internal static void SetActiveScene(Scene scene)
     {
         current = scene;
+
+        World.EmitWorldChangedEvent(true);
     }
 
     /// <summary>

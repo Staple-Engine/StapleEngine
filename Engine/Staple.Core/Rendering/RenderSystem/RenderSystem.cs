@@ -45,6 +45,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <summary>
     /// Whether to use a drawcall interpolator. Can allow for small ticks of updates causing smooth rendering.
     /// </summary>
+    /// <remarks>Currently not efficient at all and likely buggy. Needs to be reviewed and revamped, do not use this!</remarks>
     public static bool UseDrawcallInterpolator = false;
 
     /// <summary>
@@ -169,23 +170,47 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
         {
             var result = camera.IsSpatialNodeVisible(pair.Key, false);
 
-            if (result == CullingState.Invisible)
+            var span = CollectionsMarshal.AsSpan(pair.Value);
+
+            switch (result)
             {
-                var span = CollectionsMarshal.AsSpan(pair.Value);
+                //Since we can process nodes in any way, it's possible for an entity to be visible then invisible and vice versa.
+                //Ensure it's marked as visible if it's visible at any point.
+                case CullingState.Visible:
 
-                foreach(var transform in span)
-                {
-                    var renderable = renderables[transform.Entity.Identifier.ID - 1];
-
-                    if(renderable == null)
+                    foreach (var transform in span)
                     {
-                        continue;
+                        var renderable = renderables[transform.Entity.Identifier.ID - 1];
+
+                        if (renderable == null || renderable.cullingState != CullingState.Invisible) //No work, not invisible yet!
+                        {
+                            continue;
+                        }
+
+                        //Ensure marked as visible
+                        renderable.cullingState = CullingState.Visible;
                     }
 
-                    renderable.isVisible = false;
+                    break;
 
-                    renderable.cullingState = CullingState.Invisible;
-                }
+                case CullingState.Invisible:
+
+                    foreach (var transform in span)
+                    {
+                        var renderable = renderables[transform.Entity.Identifier.ID - 1];
+
+                        if (renderable == null || renderable.cullingState == CullingState.Visible) //Already passed a visible test!
+                        {
+                            continue;
+                        }
+
+                        renderable.isVisible = false;
+
+                        //Ensure marked as invisible
+                        renderable.cullingState = CullingState.Invisible;
+                    }
+
+                    break;
             }
         }
 
@@ -208,9 +233,15 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             {
                 content.IterateRenderables((entity, transform, renderable) =>
                 {
+                    if(renderable.cullingState == CullingState.Invisible)
+                    {
+                        RenderStats.culledDrawCalls++;
+
+                        return;
+                    }
+
                     renderable.isVisible = renderable.enabled &&
-                        !renderable.forceRenderingOff &&
-                        renderable.cullingState != CullingState.Invisible;
+                        !renderable.forceRenderingOff;
 
                     if (renderable.isVisible && cull)
                     {
@@ -344,7 +375,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
                     if (renderable.isVisible && cull)
                     {
-                        renderable.isVisible = renderable.isVisible && camera.IsVisible(renderable.bounds);
+                        renderable.isVisible = camera.IsVisible(renderable.bounds);
 
                         if (!renderable.isVisible)
                         {

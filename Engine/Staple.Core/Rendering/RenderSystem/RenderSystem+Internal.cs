@@ -572,7 +572,8 @@ public sealed partial class RenderSystem
         lock(lockObject)
         {
             renderQueue.Clear();
-            spatialEntities.Clear();
+            entityTransformTracker.Clear();
+            entityRenderableTracker.Clear();
 
             if (entityQuery.Contents.Length > renderables.Length)
             {
@@ -586,9 +587,18 @@ public sealed partial class RenderSystem
                 Array.Resize(ref renderables, newSize);
             }
 
-            Array.Clear(lastSpatialEntities);
             Array.Clear(processedSpatialEntities);
             Array.Clear(renderables);
+
+            foreach(var set in lastSpatialEntities)
+            {
+                set?.Clear();
+            }
+
+            foreach(var pair in spatialEntities)
+            {
+                pair.Value.Clear();
+            }
 
             {
                 foreach (var entityInfo in entityQuery.Contents)
@@ -800,6 +810,13 @@ public sealed partial class RenderSystem
 
                     contents.IterateRenderables((entity, transform, renderable) =>
                     {
+                        if(renderable.cullingState == CullingState.Invisible)
+                        {
+                            RenderStats.culledDrawCalls++;
+
+                            return;
+                        }
+
                         renderable.isVisible = renderable.enabled &&
                             !renderable.forceRenderingOff &&
                             renderable.cullingState != CullingState.Invisible;
