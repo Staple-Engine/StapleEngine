@@ -1102,9 +1102,11 @@ CEXPORT Scene* UFBXLoadScene(const char* fileName)
 	opts.generate_missing_normals = true;
 
 	opts.target_axes = ufbx_axes_left_handed_y_up;
+
 	opts.handedness_conversion_axis = UFBX_MIRROR_AXIS_X;
 
 	opts.target_unit_meters = 1.0f;
+
 	opts.space_conversion = UFBX_SPACE_CONVERSION_MODIFY_GEOMETRY;
 
 	ufbx_error error;
