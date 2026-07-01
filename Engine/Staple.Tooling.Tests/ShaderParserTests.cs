@@ -277,7 +277,7 @@ End Fragment
 Type VertexFragment
 
 Begin Parameters
-[Attribute] variant: ATTRIBUTE texture myTexture
+[Attribute] variant: Variant texture myTexture
 End Parameters
 
 Begin Instancing
@@ -298,7 +298,7 @@ End Fragment
 
         Assert.That(parameters[0].attribute, Is.EqualTo("Attribute"));
 
-        Assert.That(parameters[0].variant, Is.EqualTo("ATTRIBUTE"));
+        Assert.That(parameters[0].variant, Is.EqualTo("Variant"));
     }
 
     [Test]

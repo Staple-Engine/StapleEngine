@@ -42,6 +42,42 @@ public partial class Shader : IGuidAsset
         Destroy();
     }
 
+    /// <summary>
+    /// Attempts to get the attribute a uniform might have
+    /// </summary>
+    /// <param name="name">The name of the uniform</param>
+    /// <param name="attribute">The attribute, or null</param>
+    /// <returns>Whether the attribute was found</returns>
+    public bool TryGetUniformAttribute(StringID name, out string attribute)
+    {
+        if(shaderResource == null)
+        {
+            attribute = default;
+
+            return false;
+        }
+
+        return shaderResource.TryGetUniformAttribute(name, out attribute);
+    }
+
+    /// <summary>
+    /// Attempts to get a default attribute type that a uniform might have
+    /// </summary>
+    /// <param name="name">The name of the uniform</param>
+    /// <param name="attribute">The attribute, or <see cref="ShaderUniformAttributeType.None"/></param>
+    /// <returns>Whether the attribute was found</returns>
+    public bool TryGetUniformAttributeType(StringID name, out ShaderUniformAttributeType attribute)
+    {
+        if (shaderResource == null)
+        {
+            attribute = default;
+
+            return false;
+        }
+
+        return shaderResource.TryGetUniformAttributeType(name, out attribute);
+    }
+
     internal ShaderHandle GetUniformHandle(StringID name, StringID variantKey)
     {
         if(shaderResource == null)

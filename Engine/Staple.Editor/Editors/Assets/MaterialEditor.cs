@@ -14,7 +14,7 @@ internal class MaterialEditor : AssetEditor
     private Shader activeShader;
     private bool needsShaderUpdate = true;
 
-    private void InitializeMaterialParameter(MaterialParameter parameter, ShaderUniform uniform)
+    private static void InitializeMaterialParameter(MaterialParameter parameter, ShaderUniform uniform)
     {
         if (string.IsNullOrEmpty(uniform.defaultValue))
         {
@@ -276,13 +276,57 @@ internal class MaterialEditor : AssetEditor
 
                         case MaterialParameterType.Float:
 
-                            parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Key, parameter.Value.floatValue);
+                            {
+                                if (activeShader.TryGetUniformAttributeType(parameter.Key, out var attribute))
+                                {
+                                    switch (attribute)
+                                    {
+                                        case ShaderUniformAttributeType.None:
+
+                                            parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Key, parameter.Value.floatValue);
+
+                                            break;
+
+                                        case ShaderUniformAttributeType.Toggle:
+
+                                            parameter.Value.floatValue = EditorGUI.Toggle(label, parameter.Key, parameter.Value.floatValue == 1) ? 1 : 0;
+
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Key, parameter.Value.floatValue);
+                                }
+                            }
 
                             break;
 
                         case MaterialParameterType.Int:
 
-                            parameter.Value.intValue = EditorGUI.IntField(label, parameter.Key, parameter.Value.intValue);
+                            {
+                                if (activeShader.TryGetUniformAttributeType(parameter.Key, out var attribute))
+                                {
+                                    switch (attribute)
+                                    {
+                                        case ShaderUniformAttributeType.None:
+
+                                            parameter.Value.intValue = EditorGUI.IntField(label, parameter.Key, parameter.Value.intValue);
+
+                                            break;
+
+                                        case ShaderUniformAttributeType.Toggle:
+
+                                            parameter.Value.intValue = EditorGUI.Toggle(label, parameter.Key, parameter.Value.intValue == 1) ? 1 : 0;
+
+                                            break;
+                                    }
+                                }
+                                else
+                                {
+                                    parameter.Value.intValue = EditorGUI.IntField(label, parameter.Key, parameter.Value.intValue);
+                                }
+                            }
 
                             break;
 

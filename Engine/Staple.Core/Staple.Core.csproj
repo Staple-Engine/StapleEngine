@@ -246,6 +246,7 @@
 		<Compile Include="Rendering\Shader\IShaderProgram.cs" />
 		<Compile Include="Rendering\Shader\ShaderHandle.cs" />
 		<Compile Include="Rendering\Shader\ShaderResource.cs" />
+		<Compile Include="Rendering\Shader\ShaderUniformAttributeType.cs" />
 		<Compile Include="Rendering\Shader\ShaderUniformInfo.cs" />
 		<Compile Include="Rendering\Sprites\Sprite.cs" />
 		<Compile Include="Rendering\Sprites\SpriteUtils.cs" />

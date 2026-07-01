@@ -21,7 +21,7 @@ color diffuseColor = #FFFFFFFF
 color emissiveColor
 color specularColor
 float alphaThreshold = 0.25
-variant: CUTOUT float cutout
+[Toggle] variant: CUTOUT float cutout
 
 End Parameters
 

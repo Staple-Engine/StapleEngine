@@ -73,6 +73,10 @@ internal partial class ShaderResource
 
     internal static readonly List<DefaultUniform> DefaultUniforms = [];
 
+    internal readonly Dictionary<StringID, string> uniformAttributes = [];
+
+    internal readonly Dictionary<StringID, ShaderUniformAttributeType> uniformAttributeTypes = [];
+
     internal readonly Dictionary<StringID, ShaderInstance> instances = [];
 
     internal readonly ShaderMetadata metadata;
@@ -98,6 +102,21 @@ internal partial class ShaderResource
     internal ShaderResource(SerializableShader shader, Dictionary<string, SerializableShaderData> entries)
     {
         metadata = shader.metadata;
+
+        foreach(var uniform in metadata.uniforms)
+        {
+            if(string.IsNullOrEmpty(uniform.attribute))
+            {
+                continue;
+            }
+
+            if(Enum.TryParse<ShaderUniformAttributeType>(uniform.attribute, true, out var defaultAttribute))
+            {
+                uniformAttributeTypes.AddOrSetKey(uniform.name, defaultAttribute);
+            }
+
+            uniformAttributes.AddOrSetKey(uniform.name, uniform.attribute);
+        }
 
         foreach (var pair in entries)
         {
@@ -240,6 +259,28 @@ internal partial class ShaderResource
         destinationBlend = metadata.destinationBlend;
     }
 
+    /// <summary>
+    /// Attempts to get the attribute a uniform might have
+    /// </summary>
+    /// <param name="name">The name of the uniform</param>
+    /// <param name="attribute">The attribute, or null</param>
+    /// <returns>Whether the attribute was found</returns>
+    public bool TryGetUniformAttribute(StringID name, out string attribute)
+    {
+        return uniformAttributes.TryGetValue(name, out attribute);
+    }
+
+    /// <summary>
+    /// Attempts to get a default attribute type that a uniform might have
+    /// </summary>
+    /// <param name="name">The name of the uniform</param>
+    /// <param name="attribute">The attribute, or <see cref="ShaderUniformAttributeType.None"/></param>
+    /// <returns>Whether the attribute was found</returns>
+    public bool TryGetUniformAttributeType(StringID name, out ShaderUniformAttributeType attribute)
+    {
+        return uniformAttributeTypes.TryGetValue(name, out attribute);
+    }
+
     private static string NormalizeUniformName(string name, ShaderUniformType type)
     {
         if (uniformCountRegex.IsMatch(name))
@@ -267,7 +308,7 @@ internal partial class ShaderResource
         return 1;
     }
 
-    internal unsafe bool Create()
+    internal bool Create()
     {
         foreach (var pair in instances)
         {
@@ -306,7 +347,7 @@ internal partial class ShaderResource
         return true;
     }
 
-    internal void AddUniform(DefaultUniform uniform, ShaderInstance instance)
+    internal static void AddUniform(DefaultUniform uniform, ShaderInstance instance)
     {
         var normalizedName = NormalizeUniformName(uniform.name, uniform.type);
 
@@ -352,7 +393,7 @@ internal partial class ShaderResource
         }
     }
 
-    internal ShaderUniformInfo GetUniform(StringID name, ShaderInstance instance)
+    internal static ShaderUniformInfo GetUniform(StringID name, ShaderInstance instance)
     {
         if (instance.uniforms.TryGetValue(name, out var u))
         {
