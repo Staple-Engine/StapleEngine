@@ -4,8 +4,8 @@ Blend SrcAlpha OneMinusSrcAlpha
 
 Begin Parameters
 
-color mainColor
-texture mainTexture
+color mainColor = #FFFFFFFF
+texture mainTexture = WHITE
 
 End Parameters
 

@@ -40,6 +40,7 @@ public static partial class ShaderParser
     private static readonly Regex vertexInputElementRegex = VertexInputElementRegex();
     private static readonly Regex blendRegex = BlendRegex();
     private static readonly Regex variantsRegex = VariantsRegex();
+    private static readonly Regex variantDependencyRegex = VariantDependencyRegex();
     private static readonly Regex bufferRegex = BufferRegex();
     private static readonly Regex instancingRegex = InstancingRegex();
     private static readonly Regex instancingParameterRegex = InstancingParameterRegex();
@@ -83,9 +84,12 @@ public static partial class ShaderParser
     [GeneratedRegex("Variants (.*)")]
     private static partial Regex VariantsRegex();
 
+    [GeneratedRegex("VariantDependency (\\w+) (\\w+)")]
+    private static partial Regex VariantDependencyRegex();
+
     public static bool Parse(string source, ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
-        out List<string> variants, out List<InstanceParameter> instanceParameters, out Dictionary<string, List<VertexAttribute>> vertexInputs,
-        out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
+        out List<string> variants, out List<KeyValuePair<string, string>> variantDependencies, out List<InstanceParameter> instanceParameters,
+        out Dictionary<string, List<VertexAttribute>> vertexInputs, out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
     {
         vertexInputs = [];
 
@@ -96,10 +100,23 @@ public static partial class ShaderParser
             if (variantsMatch.Success && variantsMatch.Length > 0)
             {
                 variants = variantsMatch.Groups[1].Value.Split(",").Select(x => x.Trim()).ToList();
+
+                variantDependencies = [];
+
+                var variantDependencyMatches = variantDependencyRegex.Matches(source);
+
+                foreach(Match dependency in variantDependencyMatches)
+                {
+                    if(dependency.Groups.Count == 3)
+                    {
+                        variantDependencies.Add(new(dependency.Groups[1].Value.Trim(), dependency.Groups[2].Value.Trim()));
+                    }
+                }
             }
             else
             {
                 variants = [];
+                variantDependencies = [];
             }
 
             var blendMatch = blendRegex.Match(source);
@@ -118,6 +135,7 @@ public static partial class ShaderParser
         else
         {
             variants = [];
+            variantDependencies = [];
             blendMode = default;
         }
 
@@ -329,5 +347,44 @@ public static partial class ShaderParser
         }
 
         return true;
+    }
+
+    public static List<List<string>> ProcessVariants(List<string> variants, List<KeyValuePair<string, string>> variantDependencies)
+    {
+        var combinations = Utilities.Combinations(variants);
+
+        if(variantDependencies.Count == 0 || combinations.Count == 0)
+        {
+            return combinations;
+        }
+
+        for(var i = combinations.Count - 1; i >= 0; i--)
+        {
+            var combination = combinations[i];
+
+            if(combination.Count <= 1)
+            {
+                continue;
+            }
+
+            var found = false;
+
+            foreach (var dependency in variantDependencies)
+            {
+                if(combination.Contains(dependency.Key) && !combination.Contains(dependency.Value))
+                {
+                    found = true;
+
+                    break;
+                }
+            }
+
+            if(found)
+            {
+                combinations.RemoveAt(i);
+            }
+        }
+
+        return combinations;
     }
 }

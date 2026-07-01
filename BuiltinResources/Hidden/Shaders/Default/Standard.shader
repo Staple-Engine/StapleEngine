@@ -4,6 +4,10 @@ Blend SrcAlpha OneMinusSrcAlpha
 
 Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING, NORMALMAP, CUTOUT
 
+VariantDependency HALF_LAMBERT LIT
+VariantDependency PER_VERTEX_LIGHTING LIT
+VariantDependency NORMALMAP LIT
+
 Begin Parameters
 
 texture ambientOcclusionTexture

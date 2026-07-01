@@ -51,14 +51,21 @@ public struct Color32
     }
 
     /// <summary>
-    /// Converts a HTML hex string to a Color.
+    /// Attempts to parse a HTML hex string to a Color.
     /// </summary>
     /// <param name="value">The hex string</param>
     /// <remarks>Expected format: "#RRGGBB" or "#RRGGBBAA"</remarks>
     public Color32(string value)
     {
+        if (value.Length < 7 || value.Length > 9)
+        {
+            r = g = b = a = byte.MaxValue;
+
+            return;
+        }
+
         //Compensate for missing alpha component
-        if(value.Length == 7)
+        if (value.Length == 7)
         {
             value += "FF";
         }
@@ -77,6 +84,40 @@ public struct Color32
         g = (byte)((value & 0x00FF0000) >> 16);
         b = (byte)((value & 0x0000FF00) >> 8);
         a = (byte)(value & 0x000000FF);
+    }
+
+    /// <summary>
+    /// Attempts to parse a HTML hex string to a Color.
+    /// </summary>
+    /// <param name="value">The value to parse</param>
+    /// <param name="result">The resulting color, or White if failed</param>
+    /// <returns>Whether it was parsed successfully</returns>
+    /// <remarks>Expected format: "#RRGGBB" or "#RRGGBBAA"</remarks>
+    public static bool TryParse(string value, out Color32 result)
+    {
+        if(value.Length < 7 || value.Length > 9)
+        {
+            result = White;
+
+            return false;
+        }
+
+        //Compensate for missing alpha component
+        if (value.Length == 7)
+        {
+            value += "FF";
+        }
+
+        uint v = Convert.ToUInt32(value[1..], 16);
+
+        var r = (byte)((v & 0xFF000000) >> 24);
+        var g = (byte)((v & 0x00FF0000) >> 16);
+        var b = (byte)((v & 0x0000FF00) >> 8);
+        var a = (byte)(v & 0x000000FF);
+
+        result = new(r, g, b, a);
+
+        return true;
     }
 
     /// <summary>

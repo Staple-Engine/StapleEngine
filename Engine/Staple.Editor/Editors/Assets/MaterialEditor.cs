@@ -14,6 +14,47 @@ internal class MaterialEditor : AssetEditor
     private Shader activeShader;
     private bool needsShaderUpdate = true;
 
+    private void InitializeMaterialParameter(MaterialParameter parameter, ShaderUniform uniform)
+    {
+        if (string.IsNullOrEmpty(uniform.defaultValue))
+        {
+            return;
+        }
+
+        switch (uniform.type)
+        {
+            case ShaderUniformType.Texture:
+
+                parameter.textureValue = uniform.defaultValue;
+
+                break;
+
+            case ShaderUniformType.Int:
+
+                if (int.TryParse(uniform.defaultValue, out var intValue))
+                {
+                    parameter.intValue = intValue;
+                }
+
+                break;
+
+            case ShaderUniformType.Float:
+
+                if (float.TryParse(uniform.defaultValue, out var floatValue))
+                {
+                    parameter.floatValue = floatValue;
+                }
+
+                break;
+
+            case ShaderUniformType.Color:
+
+                parameter.colorValue = Color32.TryParse(uniform.defaultValue, out var colorValue) ? colorValue : Color32.White;
+
+                break;
+        }
+    }
+
     public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         var material = target as MaterialMetadata;
@@ -82,6 +123,8 @@ internal class MaterialEditor : AssetEditor
                     };
 
                     material.parameters.Add(uniform.name, parameter);
+
+                    InitializeMaterialParameter(parameter, uniform);
                 }
 
                 parameter.type = uniform.type switch
@@ -287,56 +330,58 @@ internal class MaterialEditor : AssetEditor
                                 };
                             }
 
-                            foreach(var parameter in s.shaderResource.metadata.uniforms)
+                            foreach(var uniform in s.shaderResource.metadata.uniforms)
                             {
-                                if(parameter.type == ShaderUniformType.Float &&
-                                    parameter.name.EndsWith("Set") && s.shaderResource.metadata.uniforms
+                                if(uniform.type == ShaderUniformType.Float &&
+                                    uniform.name.EndsWith("Set") && s.shaderResource.metadata.uniforms
                                         .Any(x => x.type == ShaderUniformType.Texture &&
-                                            x.name == parameter.name[..^"Set".Length]))
+                                            x.name == uniform.name[..^"Set".Length]))
                                 {
                                     continue;
                                 }
 
-                                var type = ParameterType(parameter.type);
+                                var type = ParameterType(uniform.type);
 
                                 if(type == (MaterialParameterType)(-1))
                                 {
                                     continue;
                                 }
 
-                                var p = new MaterialParameter()
+                                var parameter = new MaterialParameter()
                                 {
                                     type = type,
                                     source = MaterialParameterSource.Uniform,
                                 };
 
-                                material.parameters.Add(parameter.name, p);
+                                InitializeMaterialParameter(parameter, uniform);
+
+                                material.parameters.Add(uniform.name, parameter);
                             }
 
-                            foreach (var parameter in s.shaderResource.metadata.instanceParameters)
+                            foreach (var uniform in s.shaderResource.metadata.instanceParameters)
                             {
-                                if (parameter.type == ShaderUniformType.Float &&
-                                    parameter.name.EndsWith("Set") && s.shaderResource.metadata.uniforms
+                                if (uniform.type == ShaderUniformType.Float &&
+                                    uniform.name.EndsWith("Set") && s.shaderResource.metadata.uniforms
                                         .Any(x => x.type == ShaderUniformType.Texture &&
-                                            x.name == parameter.name[..^"Set".Length]))
+                                            x.name == uniform.name[..^"Set".Length]))
                                 {
                                     continue;
                                 }
 
-                                var type = ParameterType(parameter.type);
+                                var type = ParameterType(uniform.type);
 
                                 if (type == (MaterialParameterType)(-1))
                                 {
                                     continue;
                                 }
 
-                                var p = new MaterialParameter()
+                                var parameter = new MaterialParameter()
                                 {
                                     type = type,
                                     source = MaterialParameterSource.Instance,
                                 };
 
-                                material.parameters.Add(parameter.name, p);
+                                material.parameters.Add(uniform.name, parameter);
                             }
 
                             activeShader = s;

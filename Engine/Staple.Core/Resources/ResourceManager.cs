@@ -1682,6 +1682,11 @@ internal class ResourceManager
             return null;
         }
 
+        if(path == "WHITE")
+        {
+            return Material.WhiteTexture;
+        }
+
         if(!ignoreCache &&
             cachedTextures.TryGetValue(path, out var texture) &&
             texture != null &&

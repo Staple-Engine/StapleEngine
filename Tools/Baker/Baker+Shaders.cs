@@ -115,7 +115,8 @@ static partial class Program
                 }
 
                 if (ShaderParser.Parse(text, shader.type, out var blendMode, out var shaderParameters, out shader.variants,
-                    out var instancingParameters, out var vertexInputs, out var vertex, out var fragment, out var compute) == false)
+                    out var variantDependencies, out var instancingParameters, out var vertexInputs, out var vertex,
+                    out var fragment, out var compute) == false)
                 {
                     Console.WriteLine("\t\tError: File has invalid format");
 
@@ -265,9 +266,9 @@ static partial class Program
                 }
 
                 var variants = shader.type == ShaderType.VertexFragment ?
-                    Utilities.Combinations(shader.variants
+                    ShaderParser.ProcessVariants(shader.variants
                         .Concat(Shader.DefaultVariants)
-                        .ToList()) : [];
+                        .ToList(), variantDependencies) : [];
 
                 Console.WriteLine($"\t\tCompiling {variants.Count} variants");
 

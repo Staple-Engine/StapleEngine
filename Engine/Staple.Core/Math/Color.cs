@@ -80,6 +80,40 @@ public struct Color
     }
 
     /// <summary>
+    /// Attempts to parse a HTML hex string to a Color.
+    /// </summary>
+    /// <param name="value">The value to parse</param>
+    /// <param name="result">The resulting color, or White if failed</param>
+    /// <returns>Whether it was parsed successfully</returns>
+    /// <remarks>Expected format: "#RRGGBB" or "#RRGGBBAA"</remarks>
+    public static bool TryParse(string value, out Color result)
+    {
+        if (value.Length < 7 || value.Length > 9)
+        {
+            result = White;
+
+            return false;
+        }
+
+        //Compensate for missing alpha component
+        if (value.Length == 7)
+        {
+            value += "FF";
+        }
+
+        uint v = Convert.ToUInt32(value[1..], 16);
+
+        var r = ((byte)((v & 0xFF000000) >> 24)) / 255.0f;
+        var g = ((byte)((v & 0x00FF0000) >> 16)) / 255.0f;
+        var b = ((byte)((v & 0x0000FF00) >> 8)) / 255.0f;
+        var a = ((byte)(v & 0x000000FF)) / 255.0f;
+
+        result = new(r, g, b, a);
+
+        return true;
+    }
+
+    /// <summary>
     /// Gets a copy of this color with a different alpha value
     /// </summary>
     /// <param name="alpha">The new alpha value</param>
