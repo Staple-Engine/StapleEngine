@@ -436,6 +436,7 @@ internal class ProjectBrowser
             var item = new ImGuiUtils.ContentGridItem()
             {
                 name = node.name,
+                ID = $"{node.name}.{node.extension}",
                 notVisible = () => ThumbnailCache.RemoveRenderRequest(node.path),
             };
 

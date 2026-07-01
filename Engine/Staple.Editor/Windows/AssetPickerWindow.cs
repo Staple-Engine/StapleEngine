@@ -99,6 +99,7 @@ internal class AssetPickerWindow : EditorWindow
             .Select(x => new ImGuiUtils.ContentGridItem()
             {
                 name = x?.name ?? "(None)",
+                ID = $"{x?.name}.{x?.extension}",
                 notVisible = () =>
                 {
                     if(x != null)

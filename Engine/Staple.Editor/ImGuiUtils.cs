@@ -13,6 +13,7 @@ internal static class ImGuiUtils
         public bool selected = false;
         public string renamedName;
         public string name;
+        public string ID;
         public Texture texture;
         public Func<Texture, Texture> ensureValidTexture;
         public Action notVisible;
@@ -44,7 +45,7 @@ internal static class ImGuiUtils
             var index = i;
             var item = items[i];
 
-            ImGui.PushID($"{item.name}##0");
+            ImGui.PushID($"{item.ID}##0");
 
             ImGui.ImageButton("", ImGuiProxy.GetImGuiTexture(item.texture), new Vector2(thumbnailSize, thumbnailSize), new Vector2(0, 0), new Vector2(1, 1));
 
