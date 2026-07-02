@@ -260,11 +260,6 @@ static partial class Program
                         break;
                 }
 
-                if (shader.instancingParameters != default)
-                {
-                    shader.variants.Add(Shader.InstancingKeyword);
-                }
-
                 var variants = shader.type == ShaderType.VertexFragment ?
                     ShaderParser.ProcessVariants(shader.variants
                         .Concat(Shader.DefaultVariants)
@@ -772,8 +767,6 @@ static partial class Program
                             out object shaderMetrics, out ShaderUniformContainer uniforms)
                         {
                             code = "import Staple;\n";
-
-                            var instancing = variantKey.Contains(Shader.InstancingKeyword);
 
                             code += piece.code;
 

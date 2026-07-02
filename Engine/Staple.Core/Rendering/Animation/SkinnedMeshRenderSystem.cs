@@ -194,6 +194,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     if (renderer.mesh is not null)
                     {
                         instance.mesh = renderer.mesh;
+
+                        break;
                     }
                 }
 
@@ -307,8 +309,6 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 void SetupMaterial()
                 {
                     material.EnableShaderKeyword(Shader.SkinningKeyword);
-
-                    material.DisableShaderKeyword(Shader.InstancingKeyword);
 
                     LightSystem.Instance.ApplyMaterialLighting(material, lighting);
                 }

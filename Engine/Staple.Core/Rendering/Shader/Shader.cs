@@ -12,7 +12,6 @@ public partial class Shader : IGuidAsset
     public static readonly string SkinningKeyword = "SKINNING";
     public static readonly string LitKeyword = "LIT";
     public static readonly string HalfLambertKeyword = "HALF_LAMBERT";
-    public static readonly string InstancingKeyword = "INSTANCING";
 
     public static readonly string[] DefaultVariants =
     [

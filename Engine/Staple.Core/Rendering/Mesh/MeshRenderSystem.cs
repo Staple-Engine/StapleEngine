@@ -108,8 +108,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
 
-        material.DisableShaderKeyword(Shader.InstancingKeyword);
-
         material.ApplyProperties(ref renderState);
 
         LightSystem.Instance.ApplyMaterialLighting(material, lighting);
@@ -404,8 +402,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             LightSystem.Instance.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
 
-            material.DisableShaderKeyword(Shader.InstancingKeyword);
-
             if (material.ShaderProgram == null)
             {
                 continue;
@@ -441,15 +437,6 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             LightSystem.Instance.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
 
-            if (contents.instanceInfos.Contents.Length > 1)
-            {
-                material.EnableShaderKeyword(Shader.InstancingKeyword);
-            }
-            else
-            {
-                material.DisableShaderKeyword(Shader.InstancingKeyword);
-            }
-
             if (material.ShaderProgram == null)
             {
                 continue;
@@ -460,33 +447,26 @@ public sealed class MeshRenderSystem : IRenderSystem
             LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
                 contents.instanceInfos.Contents[0].lighting);
 
-            if (material.IsShaderKeywordEnabled(Shader.InstancingKeyword))
+            var program = material.ShaderProgram;
+
+            if(program == null)
             {
-                var program = material.ShaderProgram;
+                continue;
+            }
 
-                if(program == null)
-                {
-                    continue;
-                }
+            contents.instanceInfos.Contents[0].mesh.SetActive(ref renderState, contents.instanceInfos.Contents[0].submeshIndex);
 
-                contents.instanceInfos.Contents[0].mesh.SetActive(ref renderState, contents.instanceInfos.Contents[0].submeshIndex);
+            if (instanceBuffer != null)
+            {
+                renderState.instanceOffset = instanceOffset;
+                renderState.instanceCount = contents.instanceInfos.Length;
 
-                if (instanceBuffer != null)
-                {
-                    renderState.instanceOffset = instanceOffset;
-                    renderState.instanceCount = contents.instanceInfos.Length;
+                instanceOffset += renderState.instanceCount;
 
-                    instanceOffset += renderState.instanceCount;
+                renderState.ApplyStorageBufferIfNeeded("StapleInstancingTransforms", instanceBuffer);
 
-                    renderState.ApplyStorageBufferIfNeeded("StapleInstancingTransforms", instanceBuffer);
-
-                    RenderSystem.Submit(renderState, renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
-                        contents.instanceInfos.Length);
-                }
-                else
-                {
-                    Log.Error($"[MeshRenderSystem] Failed to render {contents.instanceInfos.Contents[0].mesh.Guid}: Instance buffer creation failed");
-                }
+                RenderSystem.Submit(renderState, renderData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
+                    contents.instanceInfos.Length);
             }
             else
             {
@@ -498,12 +478,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     content.mesh.SetActive(ref renderState, content.submeshIndex);
 
-                    var program = material.ShaderProgram;
-
-                    if(program != null)
-                    {
-                        RenderSystem.Submit(renderState, renderData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
-                    }
+                    RenderSystem.Submit(renderState, renderData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
                 }
             }
         }

@@ -347,7 +347,6 @@ public sealed class MeshCombineSystem : IRenderSystem
                 void SetupMaterial()
                 {
                     material.DisableShaderKeyword(Shader.SkinningKeyword);
-                    material.DisableShaderKeyword(Shader.InstancingKeyword);
 
                     LightSystem.Instance.ApplyMaterialLighting(material, lighting);
                 }

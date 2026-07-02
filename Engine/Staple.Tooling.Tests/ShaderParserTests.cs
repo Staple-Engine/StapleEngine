@@ -474,4 +474,24 @@ End Fragment
 
         Assert.That(processedCombinations, Has.Count.LessThan(combinations.Count));
     }
+
+    [Test]
+    public void TestProcessVariantsStandardShader()
+    {
+        var variants = new List<string>()
+        {
+            "VERTEX_COLORS", "LIT", "HALF_LAMBERT", "PER_VERTEX_LIGHTING", "NORMALMAP", "CUTOUT",
+        };
+
+        var variantDependencies = new List<KeyValuePair<string, string>>()
+        {
+            new("HALF_LAMBERT", "LIT"),
+            new("PER_VERTEX_LIGHTING", "LIT"),
+            new("NORMALMAP", "LIT"),
+        };
+
+        var processedCombinations = ShaderParser.ProcessVariants(variants.Concat(Shader.DefaultVariants).ToList(), variantDependencies);
+
+        Assert.That(processedCombinations, Has.Count.EqualTo(75));
+    }
 }

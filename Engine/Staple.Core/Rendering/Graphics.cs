@@ -59,8 +59,6 @@ namespace Staple
             {
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
-                material.DisableShaderKeyword(Shader.InstancingKeyword);
-
                 material.ApplyProperties(ref renderState);
             }
 
@@ -101,8 +99,6 @@ namespace Staple
             {
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
-                material.DisableShaderKeyword(Shader.InstancingKeyword);
-
                 material.ApplyProperties(ref renderState);
             }
 
@@ -142,8 +138,6 @@ namespace Staple
             else
             {
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
-
-                material.DisableShaderKeyword(Shader.InstancingKeyword);
 
                 material.ApplyProperties(ref renderState);
             }
