@@ -38,7 +38,6 @@ public partial class UIPanel
         material.MainTexture = texture;
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
-        material.DisableShaderKeyword(Shader.InstancingKeyword);
 
         Graphics.RenderSimple(vertices, SpriteUtils.VertexLayout.Value, indices, material, Vector3.Zero,
             Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit);
@@ -80,7 +79,6 @@ public partial class UIPanel
         material.MainTexture = texture;
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
-        material.DisableShaderKeyword(Shader.InstancingKeyword);
 
         Graphics.RenderSimple(vertices, SpriteUtils.VertexLayout.Value, indices, material, Vector3.Zero,
             Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit);
@@ -128,7 +126,6 @@ public partial class UIPanel
         material.MainTexture = texture;
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
-        material.DisableShaderKeyword(Shader.InstancingKeyword);
 
         Graphics.RenderSimple(ninePatchVertices, SpriteUtils.VertexLayout.Value, ninePatchIndices, material, Vector3.Zero,
             Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit);
