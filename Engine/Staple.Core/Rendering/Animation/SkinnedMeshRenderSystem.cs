@@ -269,6 +269,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         var lastMeshAsset = 0;
         var lastLighting = MaterialLighting.Unlit;
         var lastTopology = MeshTopology.Triangles;
+        var lastDisableSkinning = false;
 
         var renderState = RenderState.Default;
 
@@ -304,11 +305,19 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.StateHash != (lastMaterial?.StateHash ?? 0) ||
                     lastLighting != lighting ||
-                    lastTopology != renderer.mesh.MeshTopology;
+                    lastTopology != renderer.mesh.MeshTopology ||
+                    lastDisableSkinning != renderer.disableSkinning;
 
                 void SetupMaterial()
                 {
-                    material.EnableShaderKeyword(Shader.SkinningKeyword);
+                    if(renderer.disableSkinning)
+                    {
+                        material.DisableShaderKeyword(Shader.SkinningKeyword);
+                    }
+                    else
+                    {
+                        material.EnableShaderKeyword(Shader.SkinningKeyword);
+                    }
 
                     LightSystem.Instance.ApplyMaterialLighting(material, lighting);
                 }
@@ -319,6 +328,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
                     lastMaterial = material;
                     lastLighting = lighting;
                     lastTopology = renderer.mesh.MeshTopology;
+                    lastDisableSkinning = renderer.disableSkinning;
 
                     SetupMaterial();
 
@@ -341,7 +351,10 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
 
-                renderState.ApplyStorageBufferIfNeeded("StapleBoneMatrices", instance.boneBuffer);
+                if(!lastDisableSkinning)
+                {
+                    renderState.ApplyStorageBufferIfNeeded("StapleBoneMatrices", instance.boneBuffer);
+                }
 
                 RenderSystem.Submit(renderState, renderer.mesh.SubmeshTriangleCount(j), 1);
 

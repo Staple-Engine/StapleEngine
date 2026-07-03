@@ -127,6 +127,11 @@ public class Vector2Holder
     {
         return HashCode.Combine(x, y);
     }
+
+    public override string ToString()
+    {
+        return $"({x}, {y})";
+    }
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]
@@ -238,6 +243,11 @@ public class Vector3Holder
     public override int GetHashCode()
     {
         return HashCode.Combine(x, y, z);
+    }
+
+    public override string ToString()
+    {
+        return $"({x}, {y}, {z})";
     }
 }
 
@@ -363,6 +373,11 @@ public class Vector4Holder
     public override int GetHashCode()
     {
         return HashCode.Combine(x, y, z, w);
+    }
+
+    public override string ToString()
+    {
+        return $"({x}, {y}, {z}, {w})";
     }
 }
 

@@ -18,6 +18,11 @@ public sealed class SkinnedMeshRenderer : Renderable
     public List<Material> materials = [];
 
     /// <summary>
+    /// Whether to disable skinning entirely for this renderer
+    /// </summary>
+    public bool disableSkinning = false;
+
+    /// <summary>
     /// Skinned mesh instance query
     /// </summary>
     internal EntityQuery<SkinnedMeshInstance> instance;

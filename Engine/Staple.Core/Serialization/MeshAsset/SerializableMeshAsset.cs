@@ -41,7 +41,7 @@ public enum MeshAssetComponent
     UV8 = (1 << 8),
     Normal = (1 << 9),
     Tangent = (1 << 10),
-    Bitangent = (1 << 111),
+    Bitangent = (1 << 11),
     Color1 = (1 << 12),
     Color2 = (1 << 13),
     Color3 = (1 << 14),
