@@ -49,9 +49,63 @@ internal class ResourceManager
     internal readonly HashSet<int> lockedAssets = [];
 
     /// <summary>
+    /// Keeps track of all assets that failed to load while a scene was loading them
+    /// </summary>
+    internal readonly HashSet<StringID> failedSceneAssetLoads = [];
+
+    /// <summary>
+    /// Whether we're loading a scene
+    /// </summary>
+    internal bool loadingScene = false;
+
+    /// <summary>
     /// The default instance of the resource manager
     /// </summary>
     public static ResourceManager instance = new();
+
+    /// <summary>
+    /// Reports an asset that failed to load
+    /// </summary>
+    /// <param name="path">The asset path, if any</param>
+    /// <param name="guid">The asset guid, if any</param>
+    internal void ReportFailedAssetLoad(string path, string guid)
+    {
+        if(!loadingScene)
+        {
+            return;
+        }
+
+        if(path != null)
+        {
+            failedSceneAssetLoads.Add(path);
+        }
+
+        if(guid != null)
+        {
+            failedSceneAssetLoads.Add(guid);
+        }
+    }
+
+    /// <summary>
+    /// Check whether an asset failed to load
+    /// </summary>
+    /// <param name="path">The asset path, if any</param>
+    /// <param name="guid">The asset guid, if any</param>
+    /// <returns>Whether the asset failed to load</returns>
+    internal bool CheckFailedAssetLoad(string path, string guid)
+    {
+        if(path != null && failedSceneAssetLoads.Contains(path))
+        {
+            return true;
+        }
+
+        if(guid != null && failedSceneAssetLoads.Contains(guid))
+        {
+            return true;
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Loads a resource pak to use for resources
@@ -609,6 +663,10 @@ internal class ResourceManager
 
         var scene = new Scene();
 
+        loadingScene = true;
+
+        failedSceneAssetLoads.Clear();
+
         try
         {
             var sceneObjects = JsonSerializer.Deserialize(data, SceneObjectSerializationContext.Default.ListSceneObject);
@@ -738,10 +796,16 @@ internal class ResourceManager
                 }
             }
 
+            loadingScene = false;
+
             return scene;
         }
         catch (Exception e)
         {
+            Log.Error($"[ResourceManager] Failed to load scene {path}: {e}");
+
+            loadingScene = false;
+
             return null;
         }
     }
@@ -820,7 +884,11 @@ internal class ResourceManager
             var localSceneObjects = new Dictionary<int, int>();
             var parents = new Dictionary<int, int>();
 
-            for(var i = 0; i < sceneData.objects.Count; i++)
+            loadingScene = true;
+
+            failedSceneAssetLoads.Clear();
+
+            for (var i = 0; i < sceneData.objects.Count; i++)
             {
                 var sceneObject = sceneData.objects[i];
                 var entity = new Entity();
@@ -953,6 +1021,8 @@ internal class ResourceManager
 
             World.EmitWorldChangedEvent(true);
 
+            loadingScene = false;
+
             return scene;
         }
         catch (Exception e)
@@ -962,6 +1032,8 @@ internal class ResourceManager
             World.Current = null;
 
             World.EmitWorldChangedEvent(true);
+
+            loadingScene = false;
 
             return null;
         }
@@ -1035,11 +1107,18 @@ internal class ResourceManager
             return null;
         }
 
+        if(CheckFailedAssetLoad(path, guid))
+        {
+            return null;
+        }
+
         var data = LoadFile(guid);
 
         if (data == null)
         {
             Log.Error($"[ResourceManager] Failed to load shader at guid {guid}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -1055,6 +1134,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: Invalid header");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
@@ -1064,6 +1145,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: Invalid shader data");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
@@ -1072,6 +1155,8 @@ internal class ResourceManager
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: {e}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -1103,7 +1188,7 @@ internal class ResourceManager
             guid = AssetDatabase.GetAssetGuid(path) ?? guid;
         }
 
-        if (guid == null)
+        if (guid == null || CheckFailedAssetLoad(path, guid))
         {
             return null;
         }
@@ -1115,6 +1200,8 @@ internal class ResourceManager
         if (data == null)
         {
             Log.Error($"[ResourceManager] Failed to load shader at path {path}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -1130,6 +1217,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid header");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
@@ -1139,12 +1228,16 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid shader data");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
             if (shaderData.metadata.type != ShaderType.VertexFragment)
             {
                 Log.Error($"[ResourceManager] Failed to load shader at path {path}: Not a vertex/fragment shader");
+
+                ReportFailedAssetLoad(path, guid);
 
                 return null;
             }
@@ -1154,6 +1247,8 @@ internal class ResourceManager
                 Log.Error($"[ResourceManager] Failed to load shader at path {path}: " +
                     $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
@@ -1161,6 +1256,8 @@ internal class ResourceManager
             {
                 if ((pair.Value.vertexShader?.Length ?? 0) == 0 || (pair.Value.fragmentShader?.Length ?? 0) == 0)
                 {
+                    ReportFailedAssetLoad(path, guid);
+
                     return null;
                 }
             }
@@ -1176,11 +1273,15 @@ internal class ResourceManager
 
             Log.Error($"[ResourceManager] Failed to load shader at path {path}: Failed to initialize shader");
 
+            ReportFailedAssetLoad(path, guid);
+
             return null;
         }
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load shader at path {path}: {e}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -1230,6 +1331,8 @@ internal class ResourceManager
 
         if (resource == null)
         {
+            ReportFailedAssetLoad(path, guid);
+
             return null;
         }
 
@@ -1259,11 +1362,10 @@ internal class ResourceManager
 
         guid = AssetDatabase.GetAssetGuid(path) ?? guid;
 
-        if (guid == null)
+        if (guid == null || CheckFailedAssetLoad(path, guid))
         {
             return null;
         }
-
 
         var data = LoadFile(guid);
 
@@ -1272,6 +1374,8 @@ internal class ResourceManager
         if (data == null)
         {
             Log.Error($"[ResourceManager] Failed to load compute shader at path {path}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -1287,6 +1391,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid header");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
@@ -1296,12 +1402,16 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid shader data");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
             if (shaderData.metadata.type != ShaderType.Compute)
             {
                 Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Not a compute shader");
+
+                ReportFailedAssetLoad(path, guid);
 
                 return null;
             }
@@ -1311,6 +1421,8 @@ internal class ResourceManager
                 Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: " +
                     $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
@@ -1318,6 +1430,8 @@ internal class ResourceManager
             {
                 if ((pair.Value.computeShader?.Length ?? 0) == 0)
                 {
+                    ReportFailedAssetLoad(path, guid);
+
                     return null;
                 }
             }
@@ -1333,11 +1447,15 @@ internal class ResourceManager
 
             Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Failed to initialize shader");
 
+            ReportFailedAssetLoad(path, guid);
+
             return null;
         }
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: {e}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -1360,7 +1478,7 @@ internal class ResourceManager
 
         guid = AssetDatabase.GetAssetGuid(path) ?? guid;
 
-        if (guid == null)
+        if (guid == null || CheckFailedAssetLoad(path, guid))
         {
             return null;
         }
@@ -1397,7 +1515,7 @@ internal class ResourceManager
     /// <returns>The material resource, or null</returns>
     public MaterialResource LoadMaterialResource(string path)
     {
-        if ((path?.Length ?? 0) == 0)
+        if ((path?.Length ?? 0) == 0 || CheckFailedAssetLoad(path, path))
         {
             return null;
         }
@@ -1407,6 +1525,8 @@ internal class ResourceManager
         if (data == null)
         {
             Log.Error($"[ResourceManager] Failed to load material at path {path}");
+
+            ReportFailedAssetLoad(path, path);
 
             return null;
         }
@@ -1423,6 +1543,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid header");
 
+                ReportFailedAssetLoad(path, path);
+
                 return null;
             }
 
@@ -1432,12 +1554,16 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid data");
 
+                ReportFailedAssetLoad(path, path);
+
                 return null;
             }
 
             if ((materialData.metadata.shader?.Length ?? 0) == 0)
             {
                 Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid shader path");
+
+                ReportFailedAssetLoad(path, path);
 
                 return null;
             }
@@ -1447,6 +1573,8 @@ internal class ResourceManager
             if (shader == null)
             {
                 Log.Error($"[ResourceManager] Failed to load material at path {path}: Failed to load shader");
+
+                ReportFailedAssetLoad(path, path);
 
                 return null;
             }
@@ -1466,6 +1594,8 @@ internal class ResourceManager
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load material at path {path}: {e}");
+
+            ReportFailedAssetLoad(path, path);
 
             return null;
         }
@@ -1605,11 +1735,18 @@ internal class ResourceManager
 
         path = guid ?? path;
 
+        if(CheckFailedAssetLoad(path, guid))
+        {
+            return null;
+        }
+
         var data = LoadFile(path);
 
         if (data == null)
         {
             Log.Error($"[ResourceManager] Failed to load texture at path {path}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -1626,6 +1763,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid header");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
@@ -1635,6 +1774,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid texture data");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
@@ -1643,6 +1784,8 @@ internal class ResourceManager
             if (resource == null)
             {
                 Log.Error($"[ResourceManager] Failed to load texture at path {path}: Failed to create texture");
+
+                ReportFailedAssetLoad(path, guid);
 
                 return null;
             }
@@ -1663,6 +1806,8 @@ internal class ResourceManager
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load texture at path {path}: {e}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -1734,11 +1879,18 @@ internal class ResourceManager
 
         path = guid ?? path;
 
+        if(CheckFailedAssetLoad(path, guid))
+        {
+            return null;
+        }
+
         var data = LoadFile(path);
 
         if (data == null)
         {
             Log.Error($"[ResourceManager] Failed to load audio clip at path {path}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -1755,6 +1907,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load audio clip at path {path}: Invalid header");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
@@ -1763,6 +1917,8 @@ internal class ResourceManager
             if (audioData == null)
             {
                 Log.Error($"[ResourceManager] Failed to load audio clip at path {path}: Invalid audio data");
+
+                ReportFailedAssetLoad(path, guid);
 
                 return null;
             }
@@ -1781,6 +1937,8 @@ internal class ResourceManager
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load audio clip at path {path}: {e}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -1838,7 +1996,7 @@ internal class ResourceManager
     /// <returns>The mesh, or null</returns>
     public Mesh LoadMesh(string guid, bool ignoreCache = false)
     {
-        if ((guid?.Length ?? 0) == 0)
+        if ((guid?.Length ?? 0) == 0 || CheckFailedAssetLoad(guid, guid))
         {
             return null;
         }
@@ -1894,6 +2052,8 @@ internal class ResourceManager
             if(meshIndex < 0 || meshIndex >= asset.Meshes.Count)
             {
                 Log.Error($"[ResourceManager] Failed to load mesh {original}: Invalid mesh index {meshIndex}");
+
+                ReportFailedAssetLoad(original, original);
 
                 return null;
             }
@@ -1995,11 +2155,18 @@ internal class ResourceManager
 
         path = guid ?? path;
 
+        if(CheckFailedAssetLoad(path, guid))
+        {
+            return null;
+        }
+
         var data = LoadFile(path);
 
         if (data == null)
         {
             Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return null;
         }
@@ -2016,6 +2183,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}: Invalid header");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return null;
             }
 
@@ -2024,6 +2193,8 @@ internal class ResourceManager
             if (meshAssetData == null)
             {
                 Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}: Invalid mesh asset data");
+
+                ReportFailedAssetLoad(path, guid);
 
                 return null;
             }
@@ -2330,6 +2501,8 @@ internal class ResourceManager
         {
             Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}: {e}");
 
+            ReportFailedAssetLoad(path, guid);
+
             return null;
         }
     }
@@ -2430,6 +2603,11 @@ internal class ResourceManager
 
         path = guid ?? path;
 
+        if(CheckFailedAssetLoad(path, guid))
+        {
+            return default;
+        }
+
         if (!ignoreCache &&
             cachedAssets.TryGetValue(path, out var asset) &&
             asset != null)
@@ -2441,6 +2619,8 @@ internal class ResourceManager
 
         if (data == null)
         {
+            ReportFailedAssetLoad(path, guid);
+
             return default;
         }
 
@@ -2456,6 +2636,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid header");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return default;
             }
 
@@ -2464,6 +2646,8 @@ internal class ResourceManager
             if (assetBundle == null)
             {
                 Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid asset data");
+
+                ReportFailedAssetLoad(path, guid);
 
                 return default;
             }
@@ -2489,6 +2673,8 @@ internal class ResourceManager
         {
             Log.Error($"[ResourceManager] Failed to load asset at path {path}: {e}");
 
+            ReportFailedAssetLoad(path, guid);
+
             return default;
         }
     }
@@ -2502,7 +2688,7 @@ internal class ResourceManager
     {
         var data = LoadFileString(path);
 
-        if (data == null)
+        if (data == null || CheckFailedAssetLoad(path, path))
         {
             return null;
         }
@@ -2522,6 +2708,10 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
+            Log.Error($"[ResourceManager] Failed to load prefab at {path}: {e}");
+
+            ReportFailedAssetLoad(path, path);
+
             return null;
         }
     }
@@ -2543,6 +2733,11 @@ internal class ResourceManager
 
         path = guid ?? path;
 
+        if(CheckFailedAssetLoad(path, guid))
+        {
+            return null;
+        }
+
         if (!ignoreCache &&
             cachedPrefabs.TryGetValue(path, out var prefab) &&
             prefab != null)
@@ -2554,6 +2749,8 @@ internal class ResourceManager
 
         if (data == null)
         {
+            ReportFailedAssetLoad(path, guid);
+
             return default;
         }
 
@@ -2569,6 +2766,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load prefab at path {path}: Invalid header");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return default;
             }
 
@@ -2577,6 +2776,8 @@ internal class ResourceManager
             if (prefabData == null)
             {
                 Log.Error($"[ResourceManager] Failed to load prefab at path {path}: Invalid prefab data");
+
+                ReportFailedAssetLoad(path, guid);
 
                 return default;
             }
@@ -2599,6 +2800,8 @@ internal class ResourceManager
         {
             Log.Error($"[ResourceManager] Failed to load prefab at path {path}: {e}");
 
+            ReportFailedAssetLoad(path, guid);
+
             return default;
         }
     }
@@ -2619,10 +2822,17 @@ internal class ResourceManager
 
         path = guid ?? path;
 
+        if(CheckFailedAssetLoad(path, guid))
+        {
+            return null;
+        }
+
         var data = LoadFile(path);
 
         if (data == null)
         {
+            ReportFailedAssetLoad(path, guid);
+
             return default;
         }
 
@@ -2638,6 +2848,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load font at path {path}: Invalid header");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return default;
             }
 
@@ -2646,6 +2858,8 @@ internal class ResourceManager
             if (fontData == null)
             {
                 Log.Error($"[ResourceManager] Failed to load font at path {path}: Invalid font data");
+
+                ReportFailedAssetLoad(path, guid);
 
                 return default;
             }
@@ -2665,6 +2879,8 @@ internal class ResourceManager
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load font at path {path}: {e}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return default;
         }
@@ -2730,10 +2946,17 @@ internal class ResourceManager
 
         path = guid ?? path;
 
+        if(CheckFailedAssetLoad(path, guid))
+        {
+            return null;
+        }
+
         var data = LoadFile(path);
 
         if (data == null)
         {
+            ReportFailedAssetLoad(path, guid);
+
             return default;
         }
 
@@ -2749,6 +2972,8 @@ internal class ResourceManager
             {
                 Log.Error($"[ResourceManager] Failed to load text asset at path {path}: Invalid header");
 
+                ReportFailedAssetLoad(path, guid);
+
                 return default;
             }
 
@@ -2757,6 +2982,8 @@ internal class ResourceManager
             if (textData == null)
             {
                 Log.Error($"[ResourceManager] Failed to load text asset at path {path}: Invalid data");
+
+                ReportFailedAssetLoad(path, guid);
 
                 return default;
             }
@@ -2789,6 +3016,8 @@ internal class ResourceManager
         catch (Exception e)
         {
             Log.Error($"[ResourceManager] Failed to load text asset at path {path}: {e}");
+
+            ReportFailedAssetLoad(path, guid);
 
             return default;
         }
