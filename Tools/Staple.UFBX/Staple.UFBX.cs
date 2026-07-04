@@ -342,9 +342,7 @@ public class UFXImporter : IMeshImporter
 
                 nodeCounters[nodeName] = counter + 1;
 
-                var translation = node.localTransform.position;
-                var rotation = node.localTransform.rotation;
-                var scale = node.localTransform.scale;
+                Matrix4x4.Decompose(Matrix4x4.Transpose(node.localTransform), out var scale, out var rotation, out var translation);
 
                 var meshIndices = node.MeshIndices
                     .ToArray()

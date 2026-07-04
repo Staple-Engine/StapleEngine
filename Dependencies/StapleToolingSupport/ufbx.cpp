@@ -328,7 +328,7 @@ public:
 
 	int32_t meshCount;
 
-	Transform localTransform;
+	Matrix4x4 localTransform;
 
 	Node() : parentIndex(-1), meshIndices(nullptr), meshCount(0)
 	{
@@ -692,9 +692,7 @@ public:
 
 		parentIndex = node->parent ? node->parent->typed_id : -1;
 
-		localTransform.position = Vector3(node->local_transform.translation);
-		localTransform.rotation = Vector4(ufbx_euler_to_quat(node->euler_rotation, node->rotation_order));
-		localTransform.scale = Vector3(node->local_transform.scale);
+		localTransform = node->node_to_parent;
 
 		if (node->mesh != nullptr)
 		{

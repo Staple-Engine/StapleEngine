@@ -188,7 +188,7 @@ public unsafe struct UFBXNode
     public int* meshIndices;
     public int meshCount;
 
-    public UFBXTransform localTransform;
+    public Matrix4x4 localTransform;
 
     public readonly Span<int> MeshIndices => meshCount > 0 ? new(meshIndices, meshCount) : default;
 }
