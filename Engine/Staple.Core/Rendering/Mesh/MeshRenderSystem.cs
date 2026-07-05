@@ -456,7 +456,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             contents.instanceInfos.Contents[0].mesh.SetActive(ref renderState, contents.instanceInfos.Contents[0].submeshIndex);
 
-            if (instanceBuffer != null)
+            if (contents.instanceInfos.Length > 1 && instanceBuffer != null)
             {
                 renderState.instanceOffset = instanceOffset;
                 renderState.instanceCount = contents.instanceInfos.Length;
