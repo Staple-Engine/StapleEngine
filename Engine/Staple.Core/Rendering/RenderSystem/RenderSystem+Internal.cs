@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Staple.Internal;
@@ -14,7 +13,22 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Size of spatial partitioning cells
     /// </summary>
-    internal const int SpatialPartitionSize = 50;
+    internal const int StartingSpatialPartitionSize = 50;
+
+    /// <summary>
+    /// Size of spatial partitioning cells
+    /// </summary>
+    internal static int SpatialPartitionSize = 50;
+
+    /// <summary>
+    /// Offset when balancing the spatial partition size
+    /// </summary>
+    internal const int SpatialPartitionBalanceOffset = 50;
+
+    /// <summary>
+    /// The target amount of spatial nodes to check
+    /// </summary>
+    internal const int TargetSpatialPartitionNodeCount = 100;
 
     /// <summary>
     /// Maximum amount of frames before a spatial node's visibility is recalculated
@@ -29,12 +43,12 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Vector with the size of spatial partitioning cells
     /// </summary>
-    internal static readonly Vector3 SpatialPartitionSizeVector = new(SpatialPartitionSize, SpatialPartitionSize, SpatialPartitionSize);
+    internal static Vector3 SpatialPartitionSizeVector = new(SpatialPartitionSize, SpatialPartitionSize, SpatialPartitionSize);
 
     /// <summary>
     /// Vector with half the size of spatial partitioning cells
     /// </summary>
-    internal static readonly Vector3 SpatialPartitionSizeHalfVector = new(SpatialPartitionSize / 2.0f, SpatialPartitionSize / 2.0f,
+    internal static Vector3 SpatialPartitionSizeHalfVector = new(SpatialPartitionSize / 2.0f, SpatialPartitionSize / 2.0f,
         SpatialPartitionSize / 2.0f);
 
     /// <summary>
@@ -310,17 +324,14 @@ public sealed partial class RenderSystem
 
     public void Update()
     {
-        if (World.Current == null)
+        if (World.Current is not World world)
         {
             return;
         }
 
         RenderStats.Clear();
 
-        if(Platform.IsEditor == false || Platform.IsPlaying)
-        {
-            UpdateEntityTransforms();
-        }
+        UpdateEntityTransforms(world);
 
         foreach (var systemInfo in renderSystems)
         {
@@ -394,6 +405,23 @@ public sealed partial class RenderSystem
                 renderSystems.RemoveAt(i);
             }
         }
+    }
+
+    internal static void SetSpatialPartitionSize(int size)
+    {
+        SpatialPartitionSize = size;
+
+        SpatialPartitionSizeVector = new(SpatialPartitionSize, SpatialPartitionSize, SpatialPartitionSize);
+
+        SpatialPartitionSizeHalfVector = new(SpatialPartitionSize / 2.0f, SpatialPartitionSize / 2.0f,
+            SpatialPartitionSize / 2.0f);
+
+        Array.Clear(Instance.processedSpatialEntities);
+
+        Instance.spatialEntities.Clear();
+        Instance.entityRenderableTracker.Clear();
+        Instance.entityTransformTracker.Clear();
+        Instance.changedEntityTransformRanges.Clear();
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -524,17 +552,25 @@ public sealed partial class RenderSystem
         });
     }
 
-    /// <summary>
-    /// Updates all the entity transform data, should be called once per frame
-    /// </summary>
-    internal void UpdateEntityTransforms()
+    internal void BalanceSpatialNodes(World world)
     {
-        changedEntityTransformRanges.Clear();
-
-        if (World.Current is not World world)
+        if(spatialEntities.Count <= TargetSpatialPartitionNodeCount)
         {
             return;
         }
+
+        SetSpatialPartitionSize(SpatialPartitionSize + SpatialPartitionBalanceOffset);
+
+        UpdateEntityTransforms(world);
+    }
+
+    /// <summary>
+    /// Updates all the entity transform data, should be called once per frame
+    /// </summary>
+    /// <param name="world">The current world</param>
+    internal void UpdateEntityTransforms(World world)
+    {
+        changedEntityTransformRanges.Clear();
 
         var startIndex = -1;
         var length = 0;
@@ -612,6 +648,11 @@ public sealed partial class RenderSystem
         {
             changedEntityTransformRanges.Add(startIndex, length);
         }
+
+        if(spatialEntities.Count > TargetSpatialPartitionNodeCount)
+        {
+            BalanceSpatialNodes(world);
+        }
     }
 
     public void WorldReplaced(World world)
@@ -637,7 +678,7 @@ public sealed partial class RenderSystem
             Array.Clear(processedSpatialEntities);
             Array.Clear(renderables);
 
-            foreach(var set in lastSpatialEntities)
+            foreach (var set in lastSpatialEntities)
             {
                 set?.Clear();
             }
@@ -646,6 +687,8 @@ public sealed partial class RenderSystem
             {
                 pair.Value.Clear();
             }
+
+            SpatialPartitionSize = StartingSpatialPartitionSize;
 
             {
                 foreach (var entityInfo in entityQuery.Contents)

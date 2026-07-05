@@ -127,7 +127,7 @@ internal partial class StapleEditor
 
         var renderSystem = RenderSystem.Instance;
 
-        RenderSystem.Instance.UpdateEntityTransforms();
+        RenderSystem.Instance.UpdateEntityTransforms(World.Current);
         RenderSystem.RenderStats.Clear();
 
         foreach (var systemInfo in renderSystem.renderSystems)

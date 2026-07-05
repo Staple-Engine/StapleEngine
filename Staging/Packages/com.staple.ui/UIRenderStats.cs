@@ -16,6 +16,9 @@ public class UIRenderStats(UIManager manager, string ID) : UIText(manager, ID)
         builder.AppendLine($"{World.Current.EntityCount} Entities");
         builder.AppendLine($"{RenderSystem.RenderStats.drawCalls} drawcalls ({RenderSystem.RenderStats.savedDrawCalls} saved, {RenderSystem.RenderStats.culledDrawCalls} culled)");
         builder.AppendLine($"{RenderSystem.RenderStats.triangleCount} triangles");
+        builder.AppendLine($"{RenderSystem.RenderStats.instanceCount} instances");
+        builder.AppendLine($"{RenderSystem.RenderStats.spatialNodeCount} spatial nodes");
+        builder.AppendLine($"{RenderSystem.RenderStats.spatialPartitionSize} spatial partition size");
 
         Text = builder.ToString();
     }

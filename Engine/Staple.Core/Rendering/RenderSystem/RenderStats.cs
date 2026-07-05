@@ -7,6 +7,8 @@ public class RenderStats
     public int culledDrawCalls;
     public int triangleCount;
     public int instanceCount;
+    public int spatialNodeCount;
+    public int spatialPartitionSize;
 
     public void Clear()
     {
@@ -15,5 +17,7 @@ public class RenderStats
         culledDrawCalls = 0;
         triangleCount = 0;
         instanceCount = 0;
+        spatialNodeCount = RenderSystem.Instance.spatialEntities.Count;
+        spatialPartitionSize = RenderSystem.SpatialPartitionSize;
     }
 }

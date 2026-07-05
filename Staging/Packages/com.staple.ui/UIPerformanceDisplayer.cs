@@ -21,6 +21,9 @@ public class UIPerformanceDisplayer(UIManager manager, string ID) : UIText(manag
                 builder.AppendLine($"{World.Current.EntityCount} Entities");
                 builder.AppendLine($"{RenderSystem.RenderStats.drawCalls} drawcalls ({RenderSystem.RenderStats.savedDrawCalls} saved, {RenderSystem.RenderStats.culledDrawCalls} culled)");
                 builder.AppendLine($"{RenderSystem.RenderStats.triangleCount} triangles");
+                builder.AppendLine($"{RenderSystem.RenderStats.instanceCount} instances");
+                builder.AppendLine($"{RenderSystem.RenderStats.spatialNodeCount} spatial nodes");
+                builder.AppendLine($"{RenderSystem.RenderStats.spatialPartitionSize} spatial partition size");
 
                 break;
 
