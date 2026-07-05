@@ -11,16 +11,20 @@ namespace Staple.Internal;
 public sealed partial class RenderSystem
 {
     #region Fields and Classes
-
     /// <summary>
     /// Size of spatial partitioning cells
     /// </summary>
     internal const int SpatialPartitionSize = 50;
 
     /// <summary>
-    /// Maximum amount of frames before a node is recalculated
+    /// Maximum amount of frames before a spatial node's visibility is recalculated
     /// </summary>
-    internal const int MaxFramesBetwenRecalculation = 6;
+    internal const int MaxFramesBetwenSpatialRecalculation = 6;
+
+    /// <summary>
+    /// How many frames to wait before doing visibility checks
+    /// </summary>
+    internal const int MaxFramesBetweenVisibilityChecks = 3;
 
     /// <summary>
     /// Vector with the size of spatial partitioning cells
@@ -142,14 +146,20 @@ public sealed partial class RenderSystem
     private Renderable[] renderables = new Renderable[1024];
 
     /// <summary>
+    /// Frame counter for how many frames to wait before checking visibility
+    /// </summary>
+    private int visibilityCheckCounter = 0;
+
+    /// <summary>
     /// The renderer backend
     /// </summary>
     internal static readonly IRendererBackend Backend = new SDLGPURendererBackend();
 
     /// <summary>
-    /// Used for optimizing memory usage while doing spatial bounds coordinate calculations
+    /// The already verified to be visible entities.
+    /// So we can ignore the ones that were already validated as visible when we find them again to be tested
     /// </summary>
-    internal static readonly HashSet<Vector3Int> spatialStagingBoundsCollector = [];
+    internal static readonly HashSet<Entity> visibleEntities = [];
 
     #endregion
 
@@ -360,6 +370,8 @@ public sealed partial class RenderSystem
 
             renderable.cullingState = CullingState.None;
         }
+
+        visibleEntities.Clear();
     }
 
     /// <summary>
@@ -400,7 +412,8 @@ public sealed partial class RenderSystem
     /// <remarks>Should only ever be used by a single thread. Do not use this across threads!</remarks>
     internal static void IterateEntitySpatialLocations(AABB bounds, Func<Vector3Int, bool> callback)
     {
-        spatialStagingBoundsCollector.Clear();
+        var coordinateBoundsMin = new Vector3Int(9999, 9999, 9999);
+        var coordinateBoundsMax = new Vector3Int(-9999, -9999, -9999);
 
         var corners = bounds.Corners;
 
@@ -408,14 +421,48 @@ public sealed partial class RenderSystem
         {
             var coordinate = GetEntitySpatialLocation(corner);
 
-            spatialStagingBoundsCollector.Add(coordinate);
+            if(coordinateBoundsMin.X > coordinate.X)
+            {
+                coordinateBoundsMin.X = coordinate.X;
+            }
+
+            if (coordinateBoundsMax.X < coordinate.X)
+            {
+                coordinateBoundsMax.X = coordinate.X;
+            }
+
+            if (coordinateBoundsMin.Y > coordinate.Y)
+            {
+                coordinateBoundsMin.Y = coordinate.Y;
+            }
+
+            if (coordinateBoundsMax.Y < coordinate.Y)
+            {
+                coordinateBoundsMax.Y = coordinate.Y;
+            }
+
+            if (coordinateBoundsMin.Z > coordinate.Z)
+            {
+                coordinateBoundsMin.Z = coordinate.Z;
+            }
+
+            if (coordinateBoundsMax.Z < coordinate.Z)
+            {
+                coordinateBoundsMax.Z = coordinate.Z;
+            }
         }
 
-        foreach(var coordinate in spatialStagingBoundsCollector)
+        for (var x = coordinateBoundsMin.X; x <= coordinateBoundsMax.X; x++)
         {
-            if(callback(coordinate))
+            for (var y = coordinateBoundsMin.Y; y <= coordinateBoundsMax.Y; y++)
             {
-                break;
+                for (var z = coordinateBoundsMin.Z; z <= coordinateBoundsMax.Z; z++)
+                {
+                    if(callback(new(x, y, z)))
+                    {
+                        break;
+                    }
+                }
             }
         }
     }
@@ -866,8 +913,6 @@ public sealed partial class RenderSystem
 
         camera.UpdateFrustum(view, projection);
 
-        ClearCullingStates();
-
         Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport,
             in view, in projection);
     }
@@ -942,6 +987,7 @@ public sealed partial class RenderSystem
 
         RenderStats.drawCalls++;
         RenderStats.triangleCount += triangles * instances;
+        RenderStats.instanceCount += instances;
 
         if (instances > 1)
         {

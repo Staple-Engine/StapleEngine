@@ -482,4 +482,9 @@ public class Transform : IComponent, IComponentVersion
     {
         Rotation = Rotation.Rotate(angles, relativeToWorld);
     }
+
+    public override string ToString()
+    {
+        return $"{Entity} (P: {Position} R: {Rotation}({Rotation.ToEulerAngles()}) S: {Scale}";
+    }
 }

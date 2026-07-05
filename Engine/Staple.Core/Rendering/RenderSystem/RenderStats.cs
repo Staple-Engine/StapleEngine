@@ -6,6 +6,7 @@ public class RenderStats
     public int savedDrawCalls;
     public int culledDrawCalls;
     public int triangleCount;
+    public int instanceCount;
 
     public void Clear()
     {
@@ -13,5 +14,6 @@ public class RenderStats
         savedDrawCalls = 0;
         culledDrawCalls = 0;
         triangleCount = 0;
+        instanceCount = 0;
     }
 }

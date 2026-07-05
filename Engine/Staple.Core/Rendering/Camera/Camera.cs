@@ -359,7 +359,7 @@ public sealed class Camera : IComponent
 
             if (frames == 0)
             {
-                frames = RenderSystem.MaxFramesBetwenRecalculation;
+                frames = RenderSystem.MaxFramesBetwenSpatialRecalculation;
 
                 pair.Value.needsUpdate = true;
             }

@@ -166,51 +166,77 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         PrepareCamera(cameraEntity, camera, cameraTransform);
 
-        foreach(var pair in spatialEntities)
+        if(visibilityCheckCounter > 0)
         {
-            var result = camera.IsSpatialNodeVisible(pair.Key, false);
+            visibilityCheckCounter--;
+        }
 
-            var span = CollectionsMarshal.AsSpan(pair.Value);
+        var shouldCheckVisibility = visibilityCheckCounter == 0;
 
-            switch (result)
+        if(shouldCheckVisibility)
+        {
+            visibilityCheckCounter = MaxFramesBetweenVisibilityChecks;
+
+            ClearCullingStates();
+
+            foreach (var pair in spatialEntities)
             {
-                //Since we can process nodes in any way, it's possible for an entity to be visible then invisible and vice versa.
-                //Ensure it's marked as visible if it's visible at any point.
-                case CullingState.Visible:
+                var result = camera.IsSpatialNodeVisible(pair.Key, false);
 
-                    foreach (var transform in span)
-                    {
-                        var renderable = renderables[transform.Entity.Identifier.ID - 1];
+                var span = CollectionsMarshal.AsSpan(pair.Value);
 
-                        if (renderable == null || renderable.cullingState != CullingState.Invisible) //No work, not invisible yet!
+                switch (result)
+                {
+                    //Since we can process nodes in any way, it's possible for an entity to be visible then invisible and vice versa.
+                    //Ensure it's marked as visible if it's visible at any point.
+                    case CullingState.Visible:
+
+                        foreach (var transform in span)
                         {
-                            continue;
+                            if(visibleEntities.Contains(transform.Entity))
+                            {
+                                continue;
+                            }
+
+                            var renderable = renderables[transform.Entity.Identifier.ID - 1];
+
+                            if (renderable == null || renderable.cullingState != CullingState.Invisible) //No work, not invisible yet!
+                            {
+                                continue;
+                            }
+
+                            //Ensure marked as visible
+                            renderable.cullingState = CullingState.Visible;
+
+                            visibleEntities.Add(transform.Entity);
                         }
 
-                        //Ensure marked as visible
-                        renderable.cullingState = CullingState.Visible;
-                    }
+                        break;
 
-                    break;
+                    case CullingState.Invisible:
 
-                case CullingState.Invisible:
-
-                    foreach (var transform in span)
-                    {
-                        var renderable = renderables[transform.Entity.Identifier.ID - 1];
-
-                        if (renderable == null || renderable.cullingState == CullingState.Visible) //Already passed a visible test!
+                        foreach (var transform in span)
                         {
-                            continue;
+                            if(visibleEntities.Contains(transform.Entity))
+                            {
+                                continue;
+                            }
+
+                            var renderable = renderables[transform.Entity.Identifier.ID - 1];
+
+                            if (renderable == null || renderable.cullingState == CullingState.Visible) //Already passed a visible test!
+                            {
+                                continue;
+                            }
+
+                            renderable.isVisible = false;
+
+                            //Ensure marked as invisible
+                            renderable.cullingState = CullingState.Invisible;
                         }
 
-                        renderable.isVisible = false;
-
-                        //Ensure marked as invisible
-                        renderable.cullingState = CullingState.Invisible;
-                    }
-
-                    break;
+                        break;
+                }
             }
         }
 
@@ -240,16 +266,19 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                         return;
                     }
 
-                    renderable.isVisible = renderable.enabled &&
-                        !renderable.forceRenderingOff;
-
-                    if (renderable.isVisible && cull)
+                    if(shouldCheckVisibility)
                     {
-                        if (renderable.cullingState == CullingState.None)
-                        {
-                            renderable.isVisible = camera.IsVisible(renderable.bounds);
+                        renderable.isVisible = renderable.enabled &&
+                            !renderable.forceRenderingOff;
 
-                            renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                        if (renderable.isVisible && cull)
+                        {
+                            if (renderable.cullingState == CullingState.None)
+                            {
+                                renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                                renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                            }
                         }
                     }
 
