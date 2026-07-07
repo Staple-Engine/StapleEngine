@@ -13,6 +13,7 @@ namespace Staple;
 internal sealed class EntitySystemManager : ISubsystem
 {
     internal static readonly byte Priority = 0;
+    internal static readonly string LogTag = "EntitySystemManager";
 
     public SubsystemType type => SubsystemType.Update;
 
@@ -131,7 +132,7 @@ internal sealed class EntitySystemManager : ISubsystem
             }
             catch (Exception e)
             {
-                Log.Error($"[EntitySystemManager] Subsystem modified event exception: {e}");
+                Log.Error($"Subsystem modified event exception: {e}", LogTag);
             }
         }
     }
@@ -184,7 +185,7 @@ internal sealed class EntitySystemManager : ISubsystem
             }
             catch (Exception e)
             {
-                Log.Error($"[EntitySystemManager] Subsystem modified event exception: {e}");
+                Log.Error($"Subsystem modified event exception: {e}", LogTag);
             }
         }
     }
@@ -203,7 +204,7 @@ internal sealed class EntitySystemManager : ISubsystem
             }
             catch (Exception e)
             {
-                Log.Error($"[EntitySystemManager] Failed to startup {system.GetType().FullName}: {e}");
+                Log.Error($"Failed to startup {system.GetType().FullName}: {e}", LogTag);
 
                 lifecycleSystems.Remove(system);
 
@@ -251,7 +252,7 @@ internal sealed class EntitySystemManager : ISubsystem
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"[EntitySystemManager] Failed to shutdown {system.GetType().FullName}: {e}");
+                    Log.Error($"Failed to shutdown {system.GetType().FullName}: {e}", LogTag);
                 }
             }
         }
@@ -269,7 +270,7 @@ internal sealed class EntitySystemManager : ISubsystem
                 }
                 catch(Exception e)
                 {
-                    Log.Error($"[EntitySystemManager] Failed to shutdown {system.GetType().FullName}: {e}");
+                    Log.Error($"Failed to shutdown {system.GetType().FullName}: {e}", LogTag);
                 }
             }
 
@@ -313,7 +314,8 @@ internal sealed class EntitySystemManager : ISubsystem
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling FixedUpdate: {e}");
+                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling FixedUpdate: {e}",
+                            LogTag);
                     }
                 }
             });
@@ -354,7 +356,8 @@ internal sealed class EntitySystemManager : ISubsystem
                         }
                         catch (Exception e)
                         {
-                            Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Start: {e}");
+                            Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Start: {e}",
+                                LogTag);
                         }
                     }
 
@@ -364,7 +367,8 @@ internal sealed class EntitySystemManager : ISubsystem
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Update: {e}");
+                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Update: {e}",
+                            LogTag);
                     }
                 }
             });
@@ -381,7 +385,8 @@ internal sealed class EntitySystemManager : ISubsystem
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling LateUpdate: {e}");
+                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling LateUpdate: {e}",
+                            LogTag);
                     }
                 }
             });

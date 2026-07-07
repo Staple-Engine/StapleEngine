@@ -7,6 +7,8 @@ namespace Staple;
 
 internal class AppPlayer
 {
+    internal static readonly string LogTag = "Player";
+
     internal PlayerSettings playerSettings;
 
     public static AppPlayer instance;
@@ -37,20 +39,20 @@ internal class AppPlayer
         {
             Log.Instance.onLog += (type, message) =>
             {
-                Platform.platformProvider.ConsoleLog($"[{type}] {message}");
+                Platform.ConsoleLog($"[{type}] {message}");
             };
         }
 
         if(printTypeCacheTypes)
         {
-            Platform.platformProvider.ConsoleLog($"TypeCache Types:");
+            Platform.ConsoleLog($"TypeCache Types:");
 
             foreach (var type in TypeCache.AllTypes())
             {
-                Platform.platformProvider.ConsoleLog($"{type.FullName}");
+                Platform.ConsoleLog($"{type.FullName}");
             }
 
-            Platform.platformProvider.ConsoleLog($"Done");
+            Platform.ConsoleLog($"Done");
         }
     }
 
@@ -113,19 +115,19 @@ internal class AppPlayer
 
                     if (Scene.sceneList == null || Scene.sceneList.Count == 0)
                     {
-                        Log.Error($"Failed to load scene list");
+                        Log.Error($"Failed to load scene list", LogTag);
 
                         renderWindow.shouldStop = true;
 
                         throw new Exception("Failed to load scene list");
                     }
 
-                    Log.Info("Loaded scene list");
+                    Log.Info("Loaded scene list", LogTag);
                 }
 
                 if (Physics3D.ImplType != null && !Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)))
                 {
-                    Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D");
+                    Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D", LogTag);
 
                     renderWindow.shouldStop = true;
 
@@ -140,7 +142,7 @@ internal class AppPlayer
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e.ToString());
+                    Log.Error(e.ToString(), LogTag);
 
                     renderWindow.shouldStop = true;
 
@@ -162,7 +164,7 @@ internal class AppPlayer
                         .Where(x => check(x))
                         .ToArray();
 
-                    Log.Info($"Loading {types.Length} {caption}s");
+                    Log.Info($"Loading {types.Length} {caption}s", LogTag);
 
                     foreach (var type in types)
                     {
@@ -174,16 +176,16 @@ internal class AppPlayer
                             {
                                 callback(instance);
 
-                                Log.Info($"Created {caption} {type.FullName}");
+                                Log.Info($"Created {caption} {type.FullName}", LogTag);
                             }
                             else
                             {
-                                Log.Info($"Failed to create {caption} {type.FullName}");
+                                Log.Info($"Failed to create {caption} {type.FullName}", LogTag);
                             }
                         }
                         catch (Exception e)
                         {
-                            Log.Warning($"Player: Failed to load {caption} {type.FullName}: {e}");
+                            Log.Warning($"Failed to load {caption} {type.FullName}: {e}", LogTag);
                         }
                     }
                 }
@@ -203,7 +205,7 @@ internal class AppPlayer
 
                     if (scene == null)
                     {
-                        Log.Error($"Failed to load main scene");
+                        Log.Error($"Failed to load main scene", LogTag);
 
                         renderWindow.shouldStop = true;
 
@@ -212,10 +214,10 @@ internal class AppPlayer
 
                     Scene.SetActiveScene(scene);
 
-                    Log.Info("Loaded first scene");
+                    Log.Info("Loaded first scene", LogTag);
                 }
 
-                Log.Info("Finished initializing");
+                Log.Info("Finished initializing", LogTag);
 
                 initialized = true;
             });
@@ -271,7 +273,7 @@ internal class AppPlayer
 
         renderWindow.OnCleanup = () =>
         {
-            Log.Info("Terminating");
+            Log.Info("Terminating", LogTag);
 
             SubsystemManager.instance.Destroy();
 
@@ -279,7 +281,7 @@ internal class AppPlayer
 
             ModuleInitializer.UnloadAll();
 
-            Log.Info("Done");
+            Log.Info("Done", LogTag);
 
             Log.Cleanup();
         };

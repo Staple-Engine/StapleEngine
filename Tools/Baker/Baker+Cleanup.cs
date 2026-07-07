@@ -15,7 +15,7 @@ static partial class Program
             {
                 Directory.Delete(path, true);
 
-                Console.WriteLine($"\t Deleted {path}");
+                LogMessage($"\t Deleted {path}");
             }
             catch (Exception e)
             {
@@ -28,7 +28,7 @@ static partial class Program
             {
                 File.Delete(path);
 
-                Console.WriteLine($"\t Deleted {path}");
+                LogMessage($"\t Deleted {path}");
             }
             catch (Exception e)
             {

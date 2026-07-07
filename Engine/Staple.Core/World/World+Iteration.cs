@@ -54,7 +54,7 @@ public partial class World
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Failed to process entity {entity.ID}: {e}");
+                    Log.Error($"Failed to process entity {entity.ID}: {e}", LogTag);
                 }
             }
 
@@ -127,7 +127,7 @@ public partial class World
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Failed to process entity {entity.ID}: {e}");
+                    Log.Error($"Failed to process entity {entity.ID}: {e}", LogTag);
                 }
             }
 
@@ -215,7 +215,7 @@ public partial class World
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Failed to process entity {entity.ID}: {e}");
+                    Log.Error($"Failed to process entity {entity.ID}: {e}", LogTag);
                 }
             }
 
@@ -318,7 +318,7 @@ public partial class World
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Failed to process entity {entity.ID}: {e}");
+                    Log.Error($"Failed to process entity {entity.ID}: {e}", LogTag);
                 }
             }
 
@@ -436,7 +436,7 @@ public partial class World
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Failed to process entity {entity.ID}: {e}");
+                    Log.Error($"Failed to process entity {entity.ID}: {e}", LogTag);
                 }
             }
 
@@ -628,7 +628,7 @@ public partial class World
             }
             catch (Exception e)
             {
-                Log.Error($"[World] Failed to handle callable component callback: {e}");
+                Log.Error($"Failed to handle callable component callback: {e}", LogTag);
             }
         }
     }

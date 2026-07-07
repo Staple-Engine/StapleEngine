@@ -23,7 +23,7 @@ static partial class Program
         {
         }
 
-        Console.WriteLine($"Processing {materialFiles.Count} materials...");
+        LogMessage($"Processing {materialFiles.Count} materials...");
 
         for (var i = 0; i < materialFiles.Count; i++)
         {
@@ -35,14 +35,14 @@ static partial class Program
             {
                 if (File.Exists(materialFileName) == false)
                 {
-                    Console.WriteLine($"\t\tError: {materialFileName} doesn't exist");
+                    LogMessage($"\t\tError: {materialFileName} doesn't exist");
 
                     continue;
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine($"\t\tError: {materialFileName} doesn't exist");
+                LogMessage($"\t\tError: {materialFileName} doesn't exist");
 
                 continue;
             }
@@ -58,6 +58,11 @@ static partial class Program
             if (index >= 0 && index < outputFile.Length)
             {
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
+
+            if (ReportChangedAsset(inputPath, materialFileName, outputFile))
+            {
+                continue;
             }
 
             if (ShouldProcessFile(materialFileName, outputFile) == false &&
@@ -140,7 +145,7 @@ static partial class Program
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"\t\tError: Failed to save baked material: {e}");
+                    Console.WriteLine($"\t\tError: Failed to save material: {e}");
                 }
             });
         }

@@ -12,6 +12,8 @@ public partial class World
 {
     internal static readonly int TransformComponentID = typeof(Transform).FullName.GetHashCode();
 
+    internal static readonly string LogTag = "World";
+
     public delegate void IterateComponentCallback(ref IComponent component);
 
     public delegate void OnComponentChangedCallback(World world, Entity entity, ref IComponent component);

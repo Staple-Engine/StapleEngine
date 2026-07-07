@@ -86,7 +86,7 @@ public sealed class AudioClip : IGuidAsset
                     {
                         stream.Dispose();
 
-                        Log.Error($"[AudioSystem] Failed to load audio clip for {Guid.Guid}: {e}");
+                        Log.Error($"Failed to load audio clip for {Guid.Guid}: {e}", AudioSystem.LogTag);
                     }
                 }
                 catch (Exception)
@@ -109,7 +109,7 @@ public sealed class AudioClip : IGuidAsset
                     {
                         stream.Dispose();
 
-                        Log.Error($"[AudioSystem] Failed to load audio clip for {Guid.Guid}: {e}");
+                        Log.Error($"Failed to load audio clip for {Guid.Guid}: {e}", AudioSystem.LogTag);
                     }
                 }
                 catch(Exception)
@@ -132,7 +132,7 @@ public sealed class AudioClip : IGuidAsset
                     {
                         stream.Dispose();
 
-                        Log.Error($"[AudioSystem] Failed to load audio clip for {Guid.Guid}: {e}");
+                        Log.Error($"Failed to load audio clip for {Guid.Guid}: {e}", AudioSystem.LogTag);
                     }
                 }
                 catch(Exception)

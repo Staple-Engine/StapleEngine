@@ -147,7 +147,7 @@ static partial class Program
             }
         }
 
-        Console.WriteLine($"Processing {meshFiles.Count} meshes...");
+        LogMessage($"Processing {meshFiles.Count} meshes...");
 
         RenderWindow.CurrentRenderer = RendererType.Direct3D12;
 
@@ -155,7 +155,7 @@ static partial class Program
 
         if(standardShader == null)
         {
-            Console.WriteLine($"\t\tError: Failed to load standard shader");
+            LogMessage($"\t\tError: Failed to load standard shader");
 
             return;
         }
@@ -182,14 +182,14 @@ static partial class Program
             {
                 if (File.Exists(meshFileName) == false)
                 {
-                    Console.WriteLine($"\t\tError: {meshFileName} doesn't exist");
+                    LogMessage($"\t\tError: {meshFileName} doesn't exist");
 
                     continue;
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine($"\t\tError: {meshFileName} doesn't exist");
+                LogMessage($"\t\tError: {meshFileName} doesn't exist");
 
                 continue;
             }
@@ -210,6 +210,11 @@ static partial class Program
             }
 
             outputFile = outputFile.Replace("\\", "/").Replace("/./", "/");
+
+            if (ReportChangedAsset(inputPath, meshFileName, outputFile))
+            {
+                continue;
+            }
 
             if (ShouldProcessFile(meshFileName, outputFile) == false &&
                 ShouldProcessFile(meshFileName.Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)

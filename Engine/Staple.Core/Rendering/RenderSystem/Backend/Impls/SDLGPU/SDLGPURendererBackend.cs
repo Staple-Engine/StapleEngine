@@ -13,6 +13,8 @@ namespace Staple.Internal;
 
 internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldChangeReceiver
 {
+    internal static readonly string LogTag = "SDLGPURendererBackend";
+
     private const uint VulkanVersionMajor = 1;
     private const uint VulkanVersionMinor = 2;
     private const uint VulkanVersionPatch = 0;
@@ -509,7 +511,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     {
         if(window is not SDL3RenderWindow w)
         {
-            Log.Error($"Missing window for SDL GPU: {window}");
+            Log.Error($"Missing window for SDL GPU: {window}", LogTag);
 
             return false;
         }
@@ -522,7 +524,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         var version = SDL3.SDL_GetVersion();
 
-        Log.Debug($"SDL version {SDL3.SDL_VERSIONNUM_MAJOR(version)}.{SDL3.SDL_VERSIONNUM_MINOR(version)}.{SDL3.SDL_VERSIONNUM_MICRO(version)}");
+        Log.Debug($"SDL version {SDL3.SDL_VERSIONNUM_MAJOR(version)}.{SDL3.SDL_VERSIONNUM_MINOR(version)}.{SDL3.SDL_VERSIONNUM_MICRO(version)}",
+            LogTag);
 
         var props = SDL3.SDL_CreateProperties();
 
@@ -636,14 +639,14 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         if (device == null)
         {
-            Log.Error($"Failed to create device: {SDL3.SDL_GetError()}");
+            Log.Error($"Failed to create device: {SDL3.SDL_GetError()}", LogTag);
 
             return false;
         }
 
         if(!DepthStencilFormat.HasValue || !SDL3.SDL_ClaimWindowForGPUDevice(device, w.window))
         {
-            Log.Error($"Failed to get depth stencil format or claim window for GPU: {SDL3.SDL_GetError()}");
+            Log.Error($"Failed to get depth stencil format or claim window for GPU: {SDL3.SDL_GetError()}", LogTag);
 
             SDL3.SDL_DestroyGPUDevice(device);
 
@@ -936,7 +939,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         {
             if (!SDL3.SDL_WaitForGPUFences(device, true, f, 1))
             {
-                Log.Error($"[SDL GPU] Failed to wait for GPU Fences: {SDL3.SDL_GetError()}");
+                Log.Error($"Failed to wait for GPU Fences: {SDL3.SDL_GetError()}", LogTag);
             }
         }
 
@@ -1400,11 +1403,11 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                     if (attributes.Count > 0)
                     {
                         Log.Error($"{message}\nAdditionally, the following vertex attributes are missing: " +
-                            string.Join('\n', attributes.Select(x => x.ToString().ToUpperInvariant())));
+                            string.Join('\n', attributes.Select(x => x.ToString().ToUpperInvariant())), LogTag);
                     }
                     else
                     {
-                        Log.Error(message);
+                        Log.Error(message, LogTag);
                     }
 
                     pipeline = null;
@@ -1434,7 +1437,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                         if (attributes.Count > 0)
                         {
                             Log.Error("Failed to render: The following vertex attributes are missing: " +
-                                string.Join('\n', attributes.Select(x => x.ToString().ToUpperInvariant())));
+                                string.Join('\n', attributes.Select(x => x.ToString().ToUpperInvariant())), LogTag);
                         }
 
                         pipeline = null;
@@ -1944,8 +1947,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
             if (length != RenderDataByteSize)
             {
-                Log.Error($"[Rendering] Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {length}: "
-                    + $"Should be {RenderDataByteSize}!");
+                Log.Error($"Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {length}: "
+                    + $"Should be {RenderDataByteSize}!", LogTag);
 
                 return;
             }
@@ -1971,8 +1974,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
             if (length != FragmentRenderDataByteSize)
             {
-                Log.Error($"[Rendering] Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {length}: "
-                    + $"Should be {FragmentRenderDataByteSize}!");
+                Log.Error($"Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {length}: "
+                    + $"Should be {FragmentRenderDataByteSize}!", LogTag);
 
                 return;
             }

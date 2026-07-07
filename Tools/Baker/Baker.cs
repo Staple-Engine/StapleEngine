@@ -106,11 +106,57 @@ static partial class Program
         return lastFromWrite > lastToWrite || (checkAssemblyBuildTime && assemblyLastWrite > lastToWrite);
     }
 
+    public static void LogMessage(string message)
+    {
+        if(reportingChangedAssets)
+        {
+            return;
+        }
+
+        Console.WriteLine(message);
+    }
+
+    public static bool ReportChangedAsset(string inputPath, string from, string to)
+    {
+        if(!reportingChangedAssets)
+        {
+            return false;
+        }
+
+        var result = false;
+        var length = inputPath.Replace('\\', '/').Length + 1;
+
+        if(from.Length < length)
+        {
+            return false;
+        }
+
+        var outValue = from.Replace('\\', '/').Substring(length);
+
+        if (ShouldProcessFile(from, to))
+        {
+            result = true;
+
+            Console.WriteLine(outValue);
+        }
+
+        if (result == false && ShouldProcessFile(from.Replace(".meta", ""), to.Replace(".meta", "")))
+        {
+            result = true;
+
+            Console.WriteLine(outValue);
+        }
+
+        return result;
+    }
+
     private static readonly Dictionary<string, string> processedTextures = [];
 
     private static readonly Dictionary<string, string> processedShaders = [];
 
     internal static bool checkAssemblyBuildTime = true;
+
+    internal static bool reportingChangedAssets = false;
 
     internal static string StapleBasePath
     {
@@ -144,6 +190,7 @@ static partial class Program
                 "\t-sd [define]: add a shader define\n" +
                 "\t-editor: enable editor mode, which uses different directories\n" +
                 "\t-no-self-check: don't check this tool's last build time when checking whether to reimport a file\n" +
+                "\t-report-changed: outputs a list of changed assets, then quits\n" +
                 $"\t-platform [platform]: specify the platform to build for ({string.Join(", ", Enum.GetValues<AppPlatform>().Select(x => x.ToString()))}\n" +
                 "\t-r [name]: set the renderer to compile for (can be repeated for multiple exports)\n" +
                 "\t\tValid values are:\n" +
@@ -347,6 +394,12 @@ static partial class Program
 
                     break;
 
+                case "-report-changed":
+
+                    reportingChangedAssets = true;
+
+                    break;
+
                 default:
 
                     Console.WriteLine($"Unknown argument `{args[i]}`");
@@ -355,6 +408,11 @@ static partial class Program
 
                     return;
             }
+        }
+
+        if (reportingChangedAssets)
+        {
+            Platform.suppressLogging = true;
         }
 
         if (!setRenderer)
@@ -505,7 +563,7 @@ static partial class Program
 
         WorkScheduler.Main.WaitForTasks();
 
-        Console.WriteLine($"Cleaning up moved and deleted files in the output folder");
+        LogMessage($"Cleaning up moved and deleted files in the output folder");
 
         foreach (var path in inputPaths)
         {

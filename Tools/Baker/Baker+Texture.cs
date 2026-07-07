@@ -44,7 +44,7 @@ static partial class Program
             }
         }
 
-        Console.WriteLine($"Processing {textureFiles.Count} textures...");
+        LogMessage($"Processing {textureFiles.Count} textures...");
 
         for (var i = 0; i < textureFiles.Count; i++)
         {
@@ -56,14 +56,14 @@ static partial class Program
             {
                 if (File.Exists(textureFileName.Replace(".meta", "")) == false)
                 {
-                    Console.WriteLine($"\t\tError: {textureFileName.Replace(".meta", "")} doesn't exist");
+                    LogMessage($"\t\tError: {textureFileName.Replace(".meta", "")} doesn't exist");
 
                     continue;
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine($"\t\tError: {textureFileName.Replace(".meta", "")} doesn't exist");
+                LogMessage($"\t\tError: {textureFileName.Replace(".meta", "")} doesn't exist");
 
                 continue;
             }
@@ -82,6 +82,11 @@ static partial class Program
             }
 
             processedTextures.AddOrSetKey(textureFileName.Replace("\\", "/"), guid);
+
+            if (ReportChangedAsset(inputPath, textureFileName, outputFile))
+            {
+                continue;
+            }
 
             if (ShouldProcessFile(textureFileName, outputFile) == false &&
                 ShouldProcessFile(textureFileName.Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)
@@ -699,7 +704,7 @@ static partial class Program
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"\t\tError: Failed to save baked texture: {e}");
+                    Console.WriteLine($"\t\tError: Failed to save texture: {e}");
 
                     try
                     {

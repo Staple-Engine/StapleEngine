@@ -8,6 +8,8 @@ namespace Staple.Internal;
 
 internal static class SceneSerialization
 {
+    internal static readonly string LogTag = "SceneSerialization";
+
     /// <summary>
     /// Instantiates a scene object
     /// </summary>
@@ -53,7 +55,7 @@ internal static class SceneSerialization
 
             if (type == null)
             {
-                Log.Error($"Failed to create component {component.type} for entity {sceneObject.name}");
+                Log.Error($"Failed to create component {component.type} for entity {sceneObject.name}", LogTag);
 
                 continue;
             }
@@ -529,7 +531,7 @@ internal static class SceneSerialization
                     }
                     catch(Exception e)
                     {
-                        Log.Error($"[SceneSerialization] Failed to deserialize field {parameter.Key} for {component.type}: {e}");
+                        Log.Error($"Failed to deserialize field {parameter.Key} for {component.type}: {e}", LogTag);
                     }
                 }
             }

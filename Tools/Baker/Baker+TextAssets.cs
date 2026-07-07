@@ -28,7 +28,7 @@ static partial class Program
         {
         }
 
-        Console.WriteLine($"Processing {textFiles.Count} text assets...");
+        LogMessage($"Processing {textFiles.Count} text assets...");
 
         for (var i = 0; i < textFiles.Count; i++)
         {
@@ -38,14 +38,14 @@ static partial class Program
             {
                 if (File.Exists(textFileName) == false)
                 {
-                    Console.WriteLine($"\t\tError: {textFileName} doesn't exist");
+                    LogMessage($"\t\tError: {textFileName} doesn't exist");
 
                     continue;
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine($"\t\tError: {textFileName} doesn't exist");
+                LogMessage($"\t\tError: {textFileName} doesn't exist");
 
                 continue;
             }
@@ -61,6 +61,11 @@ static partial class Program
             if (index >= 0 && index < outputFile.Length)
             {
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
+
+            if (ReportChangedAsset(inputPath, textFileName, outputFile))
+            {
+                continue;
             }
 
             if (ShouldProcessFile(textFileName, outputFile) == false &&

@@ -24,7 +24,7 @@ static partial class Program
         {
         }
 
-        Console.WriteLine($"Processing {prefabFiles.Count} prefabs...");
+        LogMessage($"Processing {prefabFiles.Count} prefabs...");
 
         for (var i = 0; i < prefabFiles.Count; i++)
         {
@@ -36,14 +36,14 @@ static partial class Program
             {
                 if (File.Exists(prefabFileName) == false)
                 {
-                    Console.WriteLine($"\t\tError: {prefabFileName} doesn't exist");
+                    LogMessage($"\t\tError: {prefabFileName} doesn't exist");
 
                     continue;
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine($"\t\tError: {prefabFileName} doesn't exist");
+                LogMessage($"\t\tError: {prefabFileName} doesn't exist");
 
                 continue;
             }
@@ -59,6 +59,11 @@ static partial class Program
             if (index >= 0 && index < outputFile.Length)
             {
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
+
+            if (ReportChangedAsset(inputPath, prefabFileName, outputFile))
+            {
+                continue;
             }
 
             WorkScheduler.Main.Dispatch(Path.GetFileName(prefabFileName.Replace(".meta", "")), () =>
@@ -148,7 +153,7 @@ static partial class Program
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"\t\tError: Failed to save baked prefab: {e}");
+                    Console.WriteLine($"\t\tError: Failed to save prefab: {e}");
                 }
             });
         }

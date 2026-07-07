@@ -268,7 +268,7 @@ public sealed class ResourcePak : IDisposable
         }
         catch(Exception e)
         {
-            Log.Error($"[ResourcePak] Error serializing: {e}");
+            Log.Error($"Error serializing: {e}", "ResourcePak");
 
             return false;
         }
@@ -307,7 +307,7 @@ public sealed class ResourcePak : IDisposable
             if(!header.header.SequenceEqual(ValidHeader) ||
                 header.version != ValidVersion)
             {
-                Platform.platformProvider.ConsoleLog($"[ResourcePak] Invalid Header");
+                Platform.ConsoleLog($"[ResourcePak] Invalid Header");
 
                 return false;
             }
@@ -340,7 +340,7 @@ public sealed class ResourcePak : IDisposable
         }
         catch (Exception e)
         {
-            Platform.platformProvider.ConsoleLog($"[ResourcePak] Error deserializing: {e}");
+            Platform.ConsoleLog($"[ResourcePak] Error deserializing: {e}");
 
             return false;
         }

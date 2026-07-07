@@ -18,6 +18,11 @@ public static class AssetDatabase
     internal static SerializableAssetDatabase database = new();
 
     /// <summary>
+    /// The log tag for the asset database
+    /// </summary>
+    internal static readonly string LogTag = "AssetDatabase";
+
+    /// <summary>
     /// Asset Path to Guids
     /// </summary>
     internal static readonly Dictionary<string, string> assetGuids = [];
@@ -156,7 +161,7 @@ public static class AssetDatabase
                                 {
                                     if(debug)
                                     {
-                                        Log.Debug($"[AssetDatabase] Removing {item.path}: File not found");
+                                        Log.Debug($"Removing {item.path}: File not found", LogTag);
                                     }
 
                                     pair.Value.RemoveAt(i);
@@ -210,7 +215,7 @@ public static class AssetDatabase
                 assetGuids.Clear();
                 assetsByType.Clear();
 
-                Log.Error($"[AssetDatabase] Failed to load cached asset database:\n{e}\nRebuilding...");
+                Log.Error($"Failed to load cached asset database:\n{e}\nRebuilding...", LogTag);
             }
         }
 
@@ -328,7 +333,7 @@ public static class AssetDatabase
                         }
                     }
 
-                    Log.Info($"[AssetDatabase] Reloaded Asset Database with {database.assets.Count} assets");
+                    Log.Info($"Reloaded Asset Database with {database.assets.Count} assets", LogTag);
 
                     onFinish?.Invoke();
                 }
@@ -420,7 +425,7 @@ public static class AssetDatabase
                     }
                     catch (Exception e)
                     {
-                        Log.Warning($"[AssetDatabase] Missing guid or type name for potential asset at {f}. Skipping... (Exception: {e})");
+                        Log.Warning($"Missing guid or type name for potential asset at {f}. Skipping... (Exception: {e})", LogTag);
 
                         Counter(Path.GetFileNameWithoutExtension(f));
                     }

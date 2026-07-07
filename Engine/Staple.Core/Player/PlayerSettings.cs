@@ -35,7 +35,7 @@ internal class PlayerSettings
         }
         catch (Exception e)
         {
-            Log.Error($"[PlayerSettings] Failed to load the player settings. Returning default settings. {e}");
+            Log.Error($"Failed to load the player settings. Returning default settings. {e}", "PlayerSettings");
 
             return new PlayerSettings()
             {

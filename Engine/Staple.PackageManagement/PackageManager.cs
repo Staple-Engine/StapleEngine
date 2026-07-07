@@ -639,6 +639,7 @@ public partial class PackageManager
             if (process.Start())
             {
                 process.WaitForExit();
+
                 var stdout = process.StandardOutput.ReadToEnd();
                 var stderr = process.StandardError.ReadToEnd();
 

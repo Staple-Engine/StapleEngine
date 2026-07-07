@@ -10,6 +10,8 @@ namespace Staple.Internal;
 public sealed partial class RenderSystem
 {
     #region Fields and Classes
+    internal static readonly string LogTag = "RenderSystem";
+
     /// <summary>
     /// Size of spatial partitioning cells
     /// </summary>

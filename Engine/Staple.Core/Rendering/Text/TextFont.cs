@@ -258,7 +258,7 @@ internal class TextFont : IDisposable
             return true;
         }
 
-        Log.Error($"[TextFont] Failed to pack the glyphs for {guid}: Please try increasing the texture size to be higher than {textureSize}");
+        Log.Error($"Failed to pack the glyphs for {guid}: Please try increasing the texture size to be higher than {textureSize}", "TextFont");
 
         bitmapData = null;
         lineSpacing = default;

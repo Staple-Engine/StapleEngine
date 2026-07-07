@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Staple;
 
@@ -60,7 +61,7 @@ public class Log
     /// <summary>
     /// Thread lock
     /// </summary>
-    private static object lockObject = new();
+    private static readonly Lock lockObject = new();
 
     /// <summary>
     /// Event for when a message is logged
@@ -80,21 +81,24 @@ public class Log
     /// Logs an Info message.
     /// </summary>
     /// <param name="message">The message to log</param>
+    /// <param name="tag">The tag to display, if any</param>
+    /// <remarks>The result of using a tag will be similar to: "[tag] message"</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Info(string message)
+    public static void Info(object message, string tag = null)
     {
         lock (lockObject)
         {
-            if (!AllowedLogTypes.HasFlag(LogType.Info))
+            if (!AllowedLogTypes.HasFlag(LogType.Info) ||
+                Platform.suppressLogging)
             {
                 return;
             }
 
-            FormatMessage(ref message);
+            var result = FormatMessage(message, tag);
 
-            Instance?.impl?.Info(message);
+            Instance?.impl?.Info(result);
 
-            Instance?.onLog?.Invoke(LogType.Info, message);
+            Instance?.onLog?.Invoke(LogType.Info, result);
         }
     }
 
@@ -102,21 +106,24 @@ public class Log
     /// Logs a Warning message.
     /// </summary>
     /// <param name="message">The message to log</param>
+    /// <param name="tag">The tag to display, if any</param>
+    /// <remarks>The result of using a tag will be similar to: "[tag] message"</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Warning(string message)
+    public static void Warning(object message, string tag = null)
     {
         lock (lockObject)
         {
-            if (!AllowedLogTypes.HasFlag(LogType.Warning))
+            if (!AllowedLogTypes.HasFlag(LogType.Warning) ||
+                Platform.suppressLogging)
             {
                 return;
             }
 
-            FormatMessage(ref message);
+            var result = FormatMessage(message, tag);
 
-            Instance?.impl?.Warning(message);
+            Instance?.impl?.Warning(result);
 
-            Instance?.onLog?.Invoke(LogType.Warning, message);
+            Instance?.onLog?.Invoke(LogType.Warning, result);
         }
     }
 
@@ -124,21 +131,24 @@ public class Log
     /// Logs an Error message.
     /// </summary>
     /// <param name="message">The message to log</param>
+    /// <param name="tag">The tag to display, if any</param>
+    /// <remarks>The result of using a tag will be similar to: "[tag] message"</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Error(string message)
+    public static void Error(object message, string tag = null)
     {
         lock (lockObject)
         {
-            if (!AllowedLogTypes.HasFlag(LogType.Error))
+            if (!AllowedLogTypes.HasFlag(LogType.Error) ||
+                Platform.suppressLogging)
             {
                 return;
             }
 
-            FormatMessage(ref message);
+            var result = FormatMessage(message, tag);
 
-            Instance?.impl?.Error(message);
+            Instance?.impl?.Error(result);
 
-            Instance?.onLog?.Invoke(LogType.Error, message);
+            Instance?.onLog?.Invoke(LogType.Error, result);
         }
     }
 
@@ -146,21 +156,24 @@ public class Log
     /// Logs a Debug message.
     /// </summary>
     /// <param name="message">The message to log</param>
+    /// <param name="tag">The tag to display, if any</param>
+    /// <remarks>The result of using a tag will be similar to: "[tag] message"</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void Debug(string message)
+    public static void Debug(object message, string tag = null)
     {
         lock (lockObject)
         {
-            if (!AllowedLogTypes.HasFlag(LogType.Debug))
+            if (!AllowedLogTypes.HasFlag(LogType.Debug) ||
+                Platform.suppressLogging)
             {
                 return;
             }
 
-            FormatMessage(ref message);
+            var result = FormatMessage(message, tag);
 
-            Instance?.impl.Debug(message);
+            Instance?.impl.Debug(result);
 
-            Instance?.onLog?.Invoke(LogType.Debug, message);
+            Instance?.onLog?.Invoke(LogType.Debug, result);
         }
     }
 
@@ -174,19 +187,20 @@ public class Log
     /// </summary>
     /// <param name="message">The message to format</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static void FormatMessage(ref string message)
+    private static string FormatMessage(object message, string tag)
     {
-        switch(Format)
+        var messageString = message?.ToString() ?? "(null)";
+
+        if(!string.IsNullOrWhiteSpace(tag))
         {
-            case LogFormat.Normal:
-
-                break;
-
-            case LogFormat.DateTime:
-
-                message = $"[{DateTime.UtcNow:dd/MM/yyyy HH:mm:ss}] {message}";
-
-                break;
+            messageString = $"[{tag}] {messageString}";
         }
+
+        return Format switch
+        {
+            LogFormat.Normal => messageString,
+            LogFormat.DateTime => $"[{DateTime.UtcNow:dd/MM/yyyy HH:mm:ss}] {messageString}",
+            _ => "(null)",
+        };
     }
 }

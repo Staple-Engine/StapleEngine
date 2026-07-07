@@ -43,6 +43,8 @@ public sealed partial class Mesh
         public MeshTopology topology;
     }
 
+    internal static readonly string LogTag = "Mesh";
+
     /// <summary>
     /// Whether the mesh was changed
     /// </summary>

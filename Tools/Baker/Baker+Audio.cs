@@ -28,7 +28,7 @@ static partial class Program
             }
         }
 
-        Console.WriteLine($"Processing {audioFiles.Count} audio files...");
+        LogMessage($"Processing {audioFiles.Count} audio files...");
 
         for (var i = 0; i < audioFiles.Count; i++)
         {
@@ -40,14 +40,14 @@ static partial class Program
             {
                 if (File.Exists(audioFileName) == false)
                 {
-                    Console.WriteLine($"\t\tError: {audioFileName} doesn't exist");
+                    LogMessage($"\t\tError: {audioFileName} doesn't exist");
 
                     continue;
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine($"\t\tError: {audioFileName} doesn't exist");
+                LogMessage($"\t\tError: {audioFileName} doesn't exist");
 
                 continue;
             }
@@ -63,6 +63,11 @@ static partial class Program
             if (index >= 0 && index < outputFile.Length)
             {
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
+
+            if (ReportChangedAsset(inputPath, audioFileName, outputFile))
+            {
+                continue;
             }
 
             if (ShouldProcessFile(audioFileName, outputFile) == false &&

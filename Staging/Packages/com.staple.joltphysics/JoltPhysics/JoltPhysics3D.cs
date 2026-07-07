@@ -14,6 +14,8 @@ namespace Staple.JoltPhysics;
 [AdditionalLibrary(AppPlatform.Android, "joltc")]
 public class JoltPhysics3D : IPhysics3D
 {
+    public static readonly string LogTag = "JoltPhysics";
+
     public const float MinExtents = 0.2f;
     public const int PhysicsLayerCount = 32;
     public const int MaxBodyCount = 102400;
@@ -82,12 +84,12 @@ public class JoltPhysics3D : IPhysics3D
             {
                 System.Diagnostics.Debug.WriteLine(message);
 
-                Log.Info(message);
+                Log.Info(message, LogTag);
             });
         }
         catch (Exception)
         {
-            Log.Error("[JoltPhysics] Failed to initialize assertion failure handler");
+            Log.Error("Failed to initialize assertion failure handler", LogTag);
         }
 
         var table = new BroadPhaseLayerInterfaceTable(PhysicsLayerCount, PhysicsLayerCount);
@@ -535,7 +537,8 @@ public class JoltPhysics3D : IPhysics3D
         {
             if (entityCharacters.TryGetValue(entity, out var entityBody))
             {
-                Log.Warning($"[Physics3D] Attempting to create a character for {entity} failed: There's already a body for it! Returning existing body...");
+                Log.Warning($"Attempting to create a character for {entity} failed: There's already a body for it! Returning existing body...",
+                    LogTag);
 
                 body = entityBody;
 
@@ -598,7 +601,8 @@ public class JoltPhysics3D : IPhysics3D
         {
             if(entityBodies.TryGetValue(entity, out var entityBody))
             {
-                Log.Warning($"[Physics3D] Attempting to create a body for {entity} failed: There's already a body for it! Returning existing body...");
+                Log.Warning($"Attempting to create a body for {entity} failed: There's already a body for it! Returning existing body...",
+                    LogTag);
 
                 body = entityBody;
 
@@ -867,14 +871,15 @@ public class JoltPhysics3D : IPhysics3D
 
         if (!world.TryGetComponent(entity, out rigidBody) && !world.TryGetComponent(entity, out character))
         {
-            Log.Debug($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}: No RigidBody3D or Character3D component found");
+            Log.Debug($"Failed to create body for entity {world.GetEntityName(entity)}: No RigidBody3D or Character3D component found",
+                LogTag);
 
             return null;
         }
 
         if (!world.TryGetComponent<Transform>(entity, out var transform))
         {
-            Log.Debug($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}: No Transform component found");
+            Log.Debug($"Failed to create body for entity {world.GetEntityName(entity)}: No Transform component found", LogTag);
 
             return null;
         }
@@ -1029,7 +1034,7 @@ public class JoltPhysics3D : IPhysics3D
 
         if(!any)
         {
-            Log.Error($"[Physics3D] Rigid Body for entity {world.GetEntityName(entity)} has no attached colliders, ignoring...");
+            Log.Error($"Rigid Body for entity {world.GetEntityName(entity)} has no attached colliders, ignoring...", LogTag);
 
             return null;
         }
@@ -1054,7 +1059,7 @@ public class JoltPhysics3D : IPhysics3D
             }
         }
 
-        Log.Error($"[Physics3D] Failed to create body for entity {world.GetEntityName(entity)}");
+        Log.Error($"Failed to create body for entity {world.GetEntityName(entity)}", LogTag);
 
         return null;
     }
@@ -1285,11 +1290,13 @@ public class JoltPhysics3D : IPhysics3D
             {
                 if (locked)
                 {
-                    physicsSystem.BodyInterfaceNoLock.SetPosition(bodyPair.body.ID, newPosition, bodyPair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+                    physicsSystem.BodyInterfaceNoLock.SetPosition(bodyPair.body.ID, newPosition, bodyPair.body.IsActive ?
+                        Activation.Activate : Activation.DontActivate);
                 }
                 else
                 {
-                    physicsSystem.BodyInterface.SetPosition(bodyPair.body.ID, newPosition, bodyPair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+                    physicsSystem.BodyInterface.SetPosition(bodyPair.body.ID, newPosition, bodyPair.body.IsActive ?
+                        Activation.Activate : Activation.DontActivate);
                 }
             }
         }
@@ -1312,11 +1319,13 @@ public class JoltPhysics3D : IPhysics3D
             {
                 if(locked)
                 {
-                    physicsSystem.BodyInterfaceNoLock.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+                    physicsSystem.BodyInterfaceNoLock.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ?
+                        Activation.Activate : Activation.DontActivate);
                 }
                 else
                 {
-                    physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ? Activation.Activate : Activation.DontActivate);
+                    physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ?
+                        Activation.Activate : Activation.DontActivate);
                 }
             }
         }

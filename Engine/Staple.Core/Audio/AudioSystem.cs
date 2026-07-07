@@ -61,6 +61,8 @@ public class AudioSystem : ISubsystem
 
     internal static readonly byte Priority = 3;
 
+    internal static readonly string LogTag = "AudioSystem";
+
     /// <summary>
     /// Thread to load audio in the background
     /// </summary>
@@ -122,7 +124,7 @@ public class AudioSystem : ISubsystem
             device = null;
         }
 
-        Log.Debug(device != null ? "[AudioSystem] Initialized audio device" : "[AudioSystem] Failed to initialize audio device");
+        Log.Debug(device != null ? "Initialized audio device" : "Failed to initialize audio device", LogTag);
 
         if(device == null)
         {
@@ -155,7 +157,7 @@ public class AudioSystem : ISubsystem
 
             if(source.audioSource == null || !source.audioSource.Init())
             {
-                Log.Debug($"[AudioSystem] Failed to create audio source for entity {entity}");
+                Log.Debug($"Failed to create audio source for entity {entity}", LogTag);
 
                 source.audioSource = null;
 
@@ -206,7 +208,7 @@ public class AudioSystem : ISubsystem
                     }
                     catch(Exception e)
                     {
-                        Log.Debug($"[AudioSystem] Background thread exception: {e}");
+                        Log.Debug($"Background thread exception: {e}", LogTag);
                     }
                 }
             }
@@ -271,7 +273,7 @@ public class AudioSystem : ISubsystem
                 {
                     if(samples == null || channels == 0 || bits == 0 || sampleRate == 0)
                     {
-                        Log.Debug($"[AudioSystem] Failed to load audio clip for {source.audioClip.Guid.Guid}");
+                        Log.Debug($"Failed to load audio clip for {source.audioClip.Guid.Guid}", LogTag);
 
                         return;
                     }
@@ -410,7 +412,7 @@ public class AudioSystem : ISubsystem
 
             if(stream == null)
             {
-                Log.Debug($"[AudioSystem] Failed to get audio stream for {clip.Guid.Guid}");
+                Log.Debug($"Failed to get audio stream for {clip.Guid.Guid}", LogTag);
 
                 onFinish?.Invoke(default, 0, 0, 0);
 
@@ -452,7 +454,7 @@ public class AudioSystem : ISubsystem
         }
         catch (Exception e)
         {
-            Log.Debug($"[AudioClip] Failed to load audio clip {clip.Guid.Guid}: {e}");
+            Log.Debug($"Failed to load audio clip {clip.Guid.Guid}: {e}", LogTag);
         }
 
         return cts;

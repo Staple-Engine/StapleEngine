@@ -24,7 +24,7 @@ static partial class Program
         {
         }
 
-        Console.WriteLine($"Processing {sceneFiles.Count} scenes...");
+        LogMessage($"Processing {sceneFiles.Count} scenes...");
 
         for (var i = 0; i < sceneFiles.Count; i++)
         {
@@ -36,14 +36,14 @@ static partial class Program
             {
                 if (File.Exists(sceneFileName) == false)
                 {
-                    Console.WriteLine($"\t\tError: {sceneFileName} doesn't exist");
+                    LogMessage($"\t\tError: {sceneFileName} doesn't exist");
 
                     continue;
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine($"\t\tError: {sceneFileName} doesn't exist");
+                LogMessage($"\t\tError: {sceneFileName} doesn't exist");
 
                 continue;
             }
@@ -59,6 +59,11 @@ static partial class Program
             if (index >= 0 && index < outputFile.Length)
             {
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
+
+            if (ReportChangedAsset(inputPath, sceneFileName, outputFile))
+            {
+                continue;
             }
 
             if (ShouldProcessFile(sceneFileName, outputFile) == false &&
@@ -165,7 +170,7 @@ static partial class Program
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"\t\tError: Failed to save baked scene: {e}");
+                    Console.WriteLine($"\t\tError: Failed to save scene: {e}");
                 }
             });
         }
@@ -185,7 +190,7 @@ static partial class Program
         }
         catch(Exception)
         {
-            Console.WriteLine($"\t\tError: Failed to read scene list");
+            LogMessage($"\t\tError: Failed to read scene list");
 
             return;
         }
@@ -200,7 +205,7 @@ static partial class Program
             }
             catch(Exception)
             {
-                Console.WriteLine($"\t\tError: Failed to load scene list");
+                LogMessage($"\t\tError: Failed to load scene list");
 
                 return;
             }
@@ -232,7 +237,7 @@ static partial class Program
 
                 writer.Write(encoded.ToArray());
 
-                Console.WriteLine($"\tProcessed scene list");
+                LogMessage($"\tProcessed scene list");
             }
         }
     }

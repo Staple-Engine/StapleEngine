@@ -22,6 +22,8 @@ internal class ResourceManager
         UserOnly,
     }
 
+    internal static readonly string LogTag = "ResourceManager";
+
     /// <summary>
     /// Resource paths to load resources from
     /// </summary>
@@ -118,7 +120,7 @@ internal class ResourceManager
         {
             if(resourcePaks.ContainsKey(path))
             {
-                Platform.platformProvider.ConsoleLog($"Attempted to load resource pak twice for path {path}");
+                Platform.ConsoleLog($"Attempted to load resource pak twice for path {path}");
 
                 return false;
             }
@@ -131,12 +133,12 @@ internal class ResourceManager
             {
                 stream.Dispose();
 
-                Platform.platformProvider.ConsoleLog($"[Error] Failed to load resource pak at {path}: Likely invalid file");
+                Platform.ConsoleLog($"[Error] Failed to load resource pak at {path}: Likely invalid file");
 
                 return false;
             }
 
-            Platform.platformProvider.ConsoleLog($"[Debug] Loaded resource pak at {path}: {resourcePak.FileCount} files");
+            Platform.ConsoleLog($"[Debug] Loaded resource pak at {path}: {resourcePak.FileCount} files");
 
             resourcePaks.Add(path, resourcePak);
 
@@ -144,7 +146,7 @@ internal class ResourceManager
         }
         catch(Exception e)
         {
-            Platform.platformProvider.ConsoleLog($"[Error] Failed to load resource pak at {path}: {e}");
+            Platform.ConsoleLog($"[Error] Failed to load resource pak at {path}: {e}");
 
             return false;
         }
@@ -802,7 +804,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load scene {path}: {e}");
+            Log.Error($"Failed to load scene {path}: {e}", LogTag);
 
             loadingScene = false;
 
@@ -838,7 +840,7 @@ internal class ResourceManager
 
         if (data == null)
         {
-            Log.Error($"[ResourceManager] Failed to load scene at path {path}");
+            Log.Error($"Failed to load scene at path {path}", LogTag);
 
             World.Current = null;
 
@@ -858,7 +860,7 @@ internal class ResourceManager
             if (header == null || !header.header.SequenceEqual(SerializableSceneHeader.ValidHeader) ||
                 header.version != SerializableSceneHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load scene at path {path}: Invalid header");
+                Log.Error($"Failed to load scene at path {path}: Invalid header", LogTag);
 
                 World.Current = null;
 
@@ -871,7 +873,7 @@ internal class ResourceManager
 
             if (sceneData == null || sceneData.objects == null)
             {
-                Log.Error($"[ResourceManager] Failed to load scene at path {path}: Invalid scene data");
+                Log.Error($"Failed to load scene at path {path}: Invalid scene data", LogTag);
 
                 World.Current = null;
 
@@ -1027,7 +1029,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load scene at path {path}: {e}");
+            Log.Error($"Failed to load scene at path {path}: {e}", LogTag);
 
             World.Current = null;
 
@@ -1060,11 +1062,11 @@ internal class ResourceManager
         {
             if(assetType == null)
             {
-                Log.Debug($"[ResourceManager] Failed to load scene {name}: Failed to find asset");
+                Log.Debug($"Failed to load scene {name}: Failed to find asset", LogTag);
             }
             else
             {
-                Log.Debug($"[ResourceManager] Failed to load scene {name}: Invalid asset type {assetType}");
+                Log.Debug($"Failed to load scene {name}: Invalid asset type {assetType}", LogTag);
             }
 
             return null;
@@ -1082,7 +1084,7 @@ internal class ResourceManager
     {
         if ((path?.Length ?? 0) == 0)
         {
-            Log.Error($"[ResourceManager] Failed to load shader data: invalid path");
+            Log.Error($"Failed to load shader data: invalid path", LogTag);
 
             return null;
         }
@@ -1102,7 +1104,7 @@ internal class ResourceManager
 
         if (guid == null)
         {
-            Log.Error($"[ResourceManager] Failed to load shader data: invalid guid");
+            Log.Error($"Failed to load shader data: invalid guid", LogTag);
 
             return null;
         }
@@ -1116,7 +1118,7 @@ internal class ResourceManager
 
         if (data == null)
         {
-            Log.Error($"[ResourceManager] Failed to load shader at guid {guid}");
+            Log.Error($"Failed to load shader at guid {guid}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1132,7 +1134,7 @@ internal class ResourceManager
             if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
                 header.version != SerializableShaderHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: Invalid header");
+                Log.Error($"Failed to load shader at guid {guid}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1143,7 +1145,7 @@ internal class ResourceManager
 
             if (shaderData == null || shaderData.metadata == null)
             {
-                Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: Invalid shader data");
+                Log.Error($"Failed to load shader at guid {guid}: Invalid shader data", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1154,7 +1156,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load shader at guid {guid}: {e}");
+            Log.Error($"Failed to load shader at guid {guid}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1199,7 +1201,7 @@ internal class ResourceManager
 
         if (data == null)
         {
-            Log.Error($"[ResourceManager] Failed to load shader at path {path}");
+            Log.Error($"Failed to load shader at path {path}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1215,7 +1217,7 @@ internal class ResourceManager
             if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
                 header.version != SerializableShaderHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid header");
+                Log.Error($"Failed to load shader at path {path}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1226,7 +1228,7 @@ internal class ResourceManager
 
             if (shaderData == null || shaderData.metadata == null)
             {
-                Log.Error($"[ResourceManager] Failed to load shader at path {path}: Invalid shader data");
+                Log.Error($"Failed to load shader at path {path}: Invalid shader data", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1235,7 +1237,7 @@ internal class ResourceManager
 
             if (shaderData.metadata.type != ShaderType.VertexFragment)
             {
-                Log.Error($"[ResourceManager] Failed to load shader at path {path}: Not a vertex/fragment shader");
+                Log.Error($"Failed to load shader at path {path}: Not a vertex/fragment shader", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1244,8 +1246,8 @@ internal class ResourceManager
 
             if (!shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries))
             {
-                Log.Error($"[ResourceManager] Failed to load shader at path {path}: " +
-                    $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
+                Log.Error($"Failed to load shader at path {path}: Missing shader data for renderer {RenderWindow.CurrentRenderer}",
+                    LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1271,7 +1273,7 @@ internal class ResourceManager
                 return resource;
             }
 
-            Log.Error($"[ResourceManager] Failed to load shader at path {path}: Failed to initialize shader");
+            Log.Error($"Failed to load shader at path {path}: Failed to initialize shader", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1279,7 +1281,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load shader at path {path}: {e}");
+            Log.Error($"Failed to load shader at path {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1373,7 +1375,7 @@ internal class ResourceManager
 
         if (data == null)
         {
-            Log.Error($"[ResourceManager] Failed to load compute shader at path {path}");
+            Log.Error($"Failed to load compute shader at path {path}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1389,7 +1391,7 @@ internal class ResourceManager
             if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
                 header.version != SerializableShaderHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid header");
+                Log.Error($"Failed to load compute shader at path {path}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1400,7 +1402,7 @@ internal class ResourceManager
 
             if (shaderData == null || shaderData.metadata == null)
             {
-                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Invalid shader data");
+                Log.Error($"Failed to load compute shader at path {path}: Invalid shader data", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1409,7 +1411,7 @@ internal class ResourceManager
 
             if (shaderData.metadata.type != ShaderType.Compute)
             {
-                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Not a compute shader");
+                Log.Error($"Failed to load compute shader at path {path}: Not a compute shader", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1418,8 +1420,8 @@ internal class ResourceManager
 
             if (!shaderData.data.TryGetValue(RenderWindow.CurrentRenderer, out var entries))
             {
-                Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: " +
-                    $"Missing shader data for renderer {RenderWindow.CurrentRenderer}");
+                Log.Error($"Failed to load compute shader at path {path}: Missing shader data for renderer {RenderWindow.CurrentRenderer}",
+                    LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1445,7 +1447,7 @@ internal class ResourceManager
                 return shader;
             }
 
-            Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: Failed to initialize shader");
+            Log.Error($"Failed to load compute shader at path {path}: Failed to initialize shader", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1453,7 +1455,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load compute shader at path {path}: {e}");
+            Log.Error($"Failed to load compute shader at path {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1524,7 +1526,7 @@ internal class ResourceManager
 
         if (data == null)
         {
-            Log.Error($"[ResourceManager] Failed to load material at path {path}");
+            Log.Error($"Failed to load material at path {path}", LogTag);
 
             ReportFailedAssetLoad(path, path);
 
@@ -1541,7 +1543,7 @@ internal class ResourceManager
                 !header.header.SequenceEqual(SerializableMaterialHeader.ValidHeader) ||
                 header.version != SerializableMaterialHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid header");
+                Log.Error($"Failed to load material at path {path}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, path);
 
@@ -1552,7 +1554,7 @@ internal class ResourceManager
 
             if (materialData == null || materialData.metadata == null)
             {
-                Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid data");
+                Log.Error($"Failed to load material at path {path}: Invalid data", LogTag);
 
                 ReportFailedAssetLoad(path, path);
 
@@ -1561,7 +1563,7 @@ internal class ResourceManager
 
             if ((materialData.metadata.shader?.Length ?? 0) == 0)
             {
-                Log.Error($"[ResourceManager] Failed to load material at path {path}: Invalid shader path");
+                Log.Error($"Failed to load material at path {path}: Invalid shader path", LogTag);
 
                 ReportFailedAssetLoad(path, path);
 
@@ -1572,7 +1574,7 @@ internal class ResourceManager
 
             if (shader == null)
             {
-                Log.Error($"[ResourceManager] Failed to load material at path {path}: Failed to load shader");
+                Log.Error($"Failed to load material at path {path}: Failed to load shader", LogTag);
 
                 ReportFailedAssetLoad(path, path);
 
@@ -1593,7 +1595,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load material at path {path}: {e}");
+            Log.Error($"Failed to load material at path {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, path);
 
@@ -1744,7 +1746,7 @@ internal class ResourceManager
 
         if (data == null)
         {
-            Log.Error($"[ResourceManager] Failed to load texture at path {path}");
+            Log.Error($"Failed to load texture at path {path}: File not found", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1761,7 +1763,7 @@ internal class ResourceManager
                 !header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) ||
                 header.version != SerializableTextureHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid header");
+                Log.Error($"Failed to load texture at path {path}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1772,7 +1774,7 @@ internal class ResourceManager
 
             if (textureData == null)
             {
-                Log.Error($"[ResourceManager] Failed to load texture at path {path}: Invalid texture data");
+                Log.Error($"Failed to load texture at path {path}: Invalid texture data", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1783,7 +1785,7 @@ internal class ResourceManager
 
             if (resource == null)
             {
-                Log.Error($"[ResourceManager] Failed to load texture at path {path}: Failed to create texture");
+                Log.Error($"Failed to load texture at path {path}: Failed to create texture", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1805,7 +1807,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load texture at path {path}: {e}");
+            Log.Error($"Failed to load texture at path {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1888,7 +1890,7 @@ internal class ResourceManager
 
         if (data == null)
         {
-            Log.Error($"[ResourceManager] Failed to load audio clip at path {path}");
+            Log.Error($"Failed to load audio clip at path {path}: File not found", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -1905,7 +1907,7 @@ internal class ResourceManager
                 !header.header.SequenceEqual(SerializableAudioClipHeader.ValidHeader) ||
                 header.version != SerializableAudioClipHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load audio clip at path {path}: Invalid header");
+                Log.Error($"Failed to load audio clip at path {path}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1916,7 +1918,7 @@ internal class ResourceManager
 
             if (audioData == null)
             {
-                Log.Error($"[ResourceManager] Failed to load audio clip at path {path}: Invalid audio data");
+                Log.Error($"Failed to load audio clip at path {path}: Invalid audio data", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -1936,7 +1938,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load audio clip at path {path}: {e}");
+            Log.Error($"Failed to load audio clip at path {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -2051,7 +2053,7 @@ internal class ResourceManager
 
             if(meshIndex < 0 || meshIndex >= asset.Meshes.Count)
             {
-                Log.Error($"[ResourceManager] Failed to load mesh {original}: Invalid mesh index {meshIndex}");
+                Log.Error($"Failed to load mesh {original}: Invalid mesh index {meshIndex}", LogTag);
 
                 ReportFailedAssetLoad(original, original);
 
@@ -2164,7 +2166,7 @@ internal class ResourceManager
 
         if (data == null)
         {
-            Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}");
+            Log.Error($"Failed to load mesh asset at path {path}: File not found", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -2181,7 +2183,7 @@ internal class ResourceManager
                 !header.header.SequenceEqual(SerializableMeshAssetHeader.ValidHeader) ||
                 header.version != SerializableMeshAssetHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}: Invalid header");
+                Log.Error($"Failed to load mesh asset at path {path}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -2192,7 +2194,7 @@ internal class ResourceManager
 
             if (meshAssetData == null)
             {
-                Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}: Invalid mesh asset data");
+                Log.Error($"Failed to load mesh asset at path {path}: Invalid mesh asset data", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -2499,7 +2501,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load mesh asset at path {path}: {e}");
+            Log.Error($"Failed to load mesh asset at path {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -2578,7 +2580,8 @@ internal class ResourceManager
 
         if (value.GetType() != typeof(T))
         {
-            Log.Error($"[ResourceManager] Failed to load asset at path {path}: Type {value.GetType().FullName} is not matching requested type {typeof(T).FullName}");
+            Log.Error($"Failed to load asset at path {path}: Type {value.GetType().FullName} is not matching requested type {typeof(T).FullName}",
+                LogTag);
 
             return default;
         }
@@ -2634,7 +2637,7 @@ internal class ResourceManager
                 !header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) ||
                 header.version != SerializableStapleAssetHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid header");
+                Log.Error($"Failed to load asset at path {path}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -2645,7 +2648,7 @@ internal class ResourceManager
 
             if (assetBundle == null)
             {
-                Log.Error($"[ResourceManager] Failed to load asset at path {path}: Invalid asset data");
+                Log.Error($"Failed to load asset at path {path}: Invalid asset data", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -2671,7 +2674,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load asset at path {path}: {e}");
+            Log.Error($"Failed to load asset at path {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -2708,7 +2711,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load prefab at {path}: {e}");
+            Log.Error($"Failed to load prefab at {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, path);
 
@@ -2764,7 +2767,7 @@ internal class ResourceManager
                 !header.header.SequenceEqual(SerializablePrefabHeader.ValidHeader) ||
                 header.version != SerializablePrefabHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load prefab at path {path}: Invalid header");
+                Log.Error($"Failed to load prefab at path {path}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -2775,7 +2778,7 @@ internal class ResourceManager
 
             if (prefabData == null)
             {
-                Log.Error($"[ResourceManager] Failed to load prefab at path {path}: Invalid prefab data");
+                Log.Error($"Failed to load prefab at path {path}: Invalid prefab data", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -2798,7 +2801,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load prefab at path {path}: {e}");
+            Log.Error($"Failed to load prefab at path {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -2846,7 +2849,7 @@ internal class ResourceManager
                 !header.header.SequenceEqual(SerializableFontHeader.ValidHeader) ||
                 header.version != SerializableFontHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load font at path {path}: Invalid header");
+                Log.Error($"Failed to load font at path {path}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -2857,7 +2860,7 @@ internal class ResourceManager
 
             if (fontData == null)
             {
-                Log.Error($"[ResourceManager] Failed to load font at path {path}: Invalid font data");
+                Log.Error($"Failed to load font at path {path}: Invalid font data", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -2878,7 +2881,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load font at path {path}: {e}");
+            Log.Error($"Failed to load font at path {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 
@@ -2970,7 +2973,7 @@ internal class ResourceManager
                 !header.header.SequenceEqual(SerializableTextAssetHeader.ValidHeader) ||
                 header.version != SerializableTextAssetHeader.ValidVersion)
             {
-                Log.Error($"[ResourceManager] Failed to load text asset at path {path}: Invalid header");
+                Log.Error($"Failed to load text asset at path {path}: Invalid header", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -2981,7 +2984,7 @@ internal class ResourceManager
 
             if (textData == null)
             {
-                Log.Error($"[ResourceManager] Failed to load text asset at path {path}: Invalid data");
+                Log.Error($"Failed to load text asset at path {path}: Invalid data", LogTag);
 
                 ReportFailedAssetLoad(path, guid);
 
@@ -3015,7 +3018,7 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
-            Log.Error($"[ResourceManager] Failed to load text asset at path {path}: {e}");
+            Log.Error($"Failed to load text asset at path {path}: {e}", LogTag);
 
             ReportFailedAssetLoad(path, guid);
 

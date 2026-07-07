@@ -14,6 +14,11 @@ public static class Platform
     internal static IPlatformProvider platformProvider;
 
     /// <summary>
+    /// Whether no log message should be printed
+    /// </summary>
+    internal static bool suppressLogging = false;
+
+    /// <summary>
     /// Gets the current platform. If it's unsupported, it'll return null.
     /// </summary>
     public static AppPlatform? CurrentPlatform
@@ -106,22 +111,50 @@ public static class Platform
     /// </summary>
     public static bool IsDesktopPlatform => IsWindows || IsLinux || IsMacOS || IsSteamDeck;
 
+    /// <summary>
+    /// Returns the current text in the clipboard, or "" if none
+    /// </summary>
     public static string ClipboardText
     {
         get
         {
-            #if !ANDROID && !IOS
-            return SDL.SDL3.SDL_GetClipboardText();
-            #else
+#if !ANDROID && !IOS
+            var text = SDL.SDL3.SDL_GetClipboardText();
+
+            if(string.IsNullOrEmpty(text))
+            {
+                return "";
+            }
+
+            return text;
+#else
             return "";
-            #endif
+#endif
         }
     }
 
+    /// <summary>
+    /// Sets the current clipboard text for the user
+    /// </summary>
+    /// <param name="text">The new text</param>
     public static void SetClipboardText(string text)
     {
 #if !ANDROID && !IOS
-        SDL.SDL3.SDL_SetClipboardText(text);
+        SDL.SDL3.SDL_SetClipboardText(text ?? "");
 #endif
+    }
+
+    /// <summary>
+    /// Logs a message to the console
+    /// </summary>
+    /// <param name="message">The message to log</param>
+    internal static void ConsoleLog(object message)
+    {
+        if(suppressLogging)
+        {
+            return;
+        }
+
+        platformProvider?.ConsoleLog(message);
     }
 }

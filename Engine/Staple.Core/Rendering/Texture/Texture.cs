@@ -11,6 +11,8 @@ namespace Staple;
 /// </summary>
 public class Texture : IGuidAsset
 {
+    internal static readonly string LogTag = "Texture";
+
     internal TextureResource textureResource;
 
     public GuidHasher Guid => textureResource?.Guid ?? new();
@@ -223,7 +225,7 @@ public class Texture : IGuidAsset
 
             if(rawData == null)
             {
-                Log.Error($"[Texture] Failed to load texture at {path}: Failed to load image data");
+                Log.Error($"Failed to load texture at {path}: Failed to load image data", LogTag);
 
                 return null;
             }
@@ -237,7 +239,7 @@ public class Texture : IGuidAsset
         }
         catch (System.Exception e)
         {
-            Log.Error($"[Texture] Failed to load texture at {path}: {e}");
+            Log.Error($"Failed to load texture at {path}: {e}", LogTag);
 
             return null;
         }
@@ -528,7 +530,7 @@ public class Texture : IGuidAsset
     {
         if(textureResource?.readbackData == null)
         {
-            Log.Error($"Texture {Guid.Guid} isn't readable (missing readback flag)");
+            Log.Error($"Texture {Guid.Guid} isn't readable (missing readback flag)", LogTag);
 
             return null;
         }

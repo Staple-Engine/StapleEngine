@@ -1311,14 +1311,14 @@ public sealed partial class Mesh : IGuidAsset
 
         if(layout == null)
         {
-            Log.Error($"[Mesh] Failed to get vertex layout for this mesh!");
+            Log.Error($"Failed to get vertex layout for this mesh!", LogTag);
 
             return;
         }
 
         if(meshDataBlob != null && meshDataBlob.Length % layout.Stride != 0)
         {
-            Log.Error($"[Mesh] Mesh Data Blob has misaligned data (has {meshDataBlob.Length} bytes, should be multiples of {layout.Stride})");
+            Log.Error($"Mesh Data Blob has misaligned data (has {meshDataBlob.Length} bytes, should be multiples of {layout.Stride})", LogTag);
 
             return;
         }
@@ -1348,7 +1348,7 @@ public sealed partial class Mesh : IGuidAsset
                     {
                         if (indices[i] >= ushort.MaxValue)
                         {
-                            throw new InvalidOperationException($"[Mesh] Invalid value {indices[i]} for 16-bit indices");
+                            throw new InvalidOperationException($"[{LogTag}] Invalid value {indices[i]} for 16-bit indices");
                         }
 
                         data[i] = (ushort)indices[i];

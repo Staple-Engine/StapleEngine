@@ -1,5 +1,3 @@
-using System;
-
 namespace Staple;
 
 /// <summary>
@@ -9,22 +7,22 @@ internal class ConsoleLog : ILog
 {
     public void Debug(string message)
     {
-        Platform.platformProvider.ConsoleLog($"[Debug] {message}");
+        Platform.ConsoleLog($"[Debug] {message}");
     }
 
     public void Error(string message)
     {
-        Platform.platformProvider.ConsoleLog($"[Error] {message}");
+        Platform.ConsoleLog($"[Error] {message}");
     }
 
     public void Info(string message)
     {
-        Platform.platformProvider.ConsoleLog($"[Info] {message}");
+        Platform.ConsoleLog($"[Info] {message}");
     }
 
     public void Warning(string message)
     {
-        Platform.platformProvider.ConsoleLog($"[Warning] {message}");
+        Platform.ConsoleLog($"[Warning] {message}");
     }
 
     public void Cleanup()

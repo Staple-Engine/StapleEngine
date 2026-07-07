@@ -39,7 +39,7 @@ static partial class Program
         {
         }
 
-        Console.WriteLine($"Processing {shaderFiles.Count} shaders...");
+        LogMessage($"Processing {shaderFiles.Count} shaders...");
 
         var shaderDefineString = "";
         
@@ -67,6 +67,11 @@ static partial class Program
             if (index >= 0 && index < outputFile.Length)
             {
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
+
+            if (ReportChangedAsset(inputPath, currentShader, outputFile))
+            {
+                continue;
             }
 
             if (ShouldProcessFile(currentShader, outputFile) == false)

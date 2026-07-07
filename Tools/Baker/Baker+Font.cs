@@ -26,7 +26,7 @@ static partial class Program
             }
         }
 
-        Console.WriteLine($"Processing {fontFiles.Count} font files...");
+        LogMessage($"Processing {fontFiles.Count} font files...");
 
         for (var i = 0; i < fontFiles.Count; i++)
         {
@@ -38,14 +38,14 @@ static partial class Program
             {
                 if (File.Exists(fontFileName) == false)
                 {
-                    Console.WriteLine($"\t\tError: {fontFileName} doesn't exist");
+                    LogMessage($"\t\tError: {fontFileName} doesn't exist");
 
                     continue;
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine($"\t\tError: {fontFileName} doesn't exist");
+                LogMessage($"\t\tError: {fontFileName} doesn't exist");
 
                 continue;
             }
@@ -61,6 +61,11 @@ static partial class Program
             if (index >= 0 && index < outputFile.Length)
             {
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
+
+            if (ReportChangedAsset(inputPath, fontFileName, outputFile))
+            {
+                continue;
             }
 
             WorkScheduler.Main.Dispatch(Path.GetFileName(fontFileName.Replace(".meta", "")), () =>

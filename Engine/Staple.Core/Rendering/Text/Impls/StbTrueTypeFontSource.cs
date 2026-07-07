@@ -53,7 +53,7 @@ public class StbTrueTypeFontSource : ITextFontSource
         }
         catch(Exception e)
         {
-            Log.Error($"[StbTrueTypeFontSource]: Failed to load font: {e}");
+            Log.Error($"Failed to load font: {e}", "StbTrueTypeFontSource");
 
             return false;
         }

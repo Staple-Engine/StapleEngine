@@ -90,7 +90,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             }
             catch (Exception e)
             {
-                Log.Error($"[RenderSystem] Failed to initialize {system.GetType().FullName}: {e}");
+                Log.Error($"Failed to initialize {system.GetType().FullName}: {e}", LogTag);
 
                 return;
             }

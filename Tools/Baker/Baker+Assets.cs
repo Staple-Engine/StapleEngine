@@ -24,7 +24,7 @@ static partial class Program
         {
         }
 
-        Console.WriteLine($"Processing {assetFiles.Count} assets...");
+        LogMessage($"Processing {assetFiles.Count} assets...");
 
         for (var i = 0; i < assetFiles.Count; i++)
         {
@@ -36,14 +36,14 @@ static partial class Program
             {
                 if (File.Exists(assetFileName) == false)
                 {
-                    Console.WriteLine($"\t\tError: {assetFileName} doesn't exist");
+                    LogMessage($"\t\tError: {assetFileName} doesn't exist");
 
                     continue;
                 }
             }
             catch (Exception)
             {
-                Console.WriteLine($"\t\tError: {assetFileName} doesn't exist");
+                LogMessage($"\t\tError: {assetFileName} doesn't exist");
 
                 continue;
             }
@@ -57,6 +57,11 @@ static partial class Program
             if (index >= 0 && index < outputFile.Length)
             {
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
+            }
+
+            if (ReportChangedAsset(inputPath, assetFileName, outputFile))
+            {
+                continue;
             }
 
             WorkScheduler.Main.Dispatch(Path.GetFileName(assetFileName.Replace(".meta", "")), () =>

@@ -11,6 +11,8 @@ internal class RenderWindow
 {
     public const int ClearView = 0;
 
+    internal static readonly string LogTag = "RenderWindow";
+
     //In case we have more than one window in the future
     internal static int windowReferences = 0;
     internal static int rendererReferences = 0;
@@ -111,7 +113,7 @@ internal class RenderWindow
         }
         catch (Exception e)
         {
-            Log.Error($"RenderWindow Init Exception: {e}");
+            Log.Error($"RenderWindow Init Exception: {e}", LogTag);
 
             shouldStop = true;
         }
@@ -298,7 +300,7 @@ internal class RenderWindow
         }
         catch (Exception e)
         {
-            Log.Error($"Error initializing: {e}");
+            Log.Error($"Error initializing: {e}", LogTag);
 
             shouldStop = true;
         }
@@ -467,7 +469,7 @@ internal class RenderWindow
 
         if (!platform.HasValue)
         {
-            Log.Error("[RenderWindow] Unsupported platform");
+            Log.Error("Unsupported platform", LogTag);
 
             rendererReferences--;
 
@@ -492,7 +494,7 @@ internal class RenderWindow
 
         if (!AppSettings.Active.renderers.TryGetValue(currentPlatform, out renderers))
         {
-            Log.Error($"[RenderWindow] No Renderers found for platform {platform}, terminating...");
+            Log.Error($"No Renderers found for platform {platform}, terminating...", LogTag);
 
             rendererReferences--;
 
@@ -517,13 +519,13 @@ internal class RenderWindow
 
         (width, height) = (size.X, size.Y);
 
-        Log.Info($"[RenderWindow] Initializing rendering: {width}x{height}");
+        Log.Info($"Initializing rendering: {width}x{height}", LogTag);
 
         var ok = false;
 
         if (renderers != null)
         {
-            Log.Info($"[RenderWindow] Attempting to find the right renderer");
+            Log.Info($"Attempting to find the right renderer", LogTag);
 
 #if _DEBUG
             bool debug = true;
@@ -533,7 +535,7 @@ internal class RenderWindow
 
             foreach (var renderer in renderers)
             {
-                Log.Info($"[RenderWindow] Trying {renderer}");
+                Log.Info($"Trying {renderer}", LogTag);
 
                 unsafe
                 {
@@ -541,7 +543,7 @@ internal class RenderWindow
 
                     if (ok)
                     {
-                        Log.Info($"[RenderWindow] {renderer} OK!");
+                        Log.Info($"{renderer} OK!", LogTag);
 
                         CurrentRenderer = renderer;
 
@@ -552,7 +554,7 @@ internal class RenderWindow
 
             if (!ok)
             {
-                Log.Error($"[RenderWindow] Failed to find a working renderer, terminating...");
+                Log.Error($"Failed to find a working renderer, terminating...", LogTag);
 
                 rendererReferences--;
 
@@ -683,7 +685,7 @@ internal class RenderWindow
         }
         catch (Exception e)
         {
-            Log.Error($"RenderWindow Render Exception: {e}");
+            Log.Error($"Render Exception: {e}", LogTag);
         }
 
         StapleHooks.ExecuteHooks(StapleHookEvent.FrameEnd, null);
@@ -799,12 +801,12 @@ internal class RenderWindow
         var maximizedString = maximized ? "Maximized" : "Normal";
         var positionString = position.HasValue ? position.Value.ToString() : "(default)";
 
-        Log.Info($"[RenderWindow] Creating {windowMode} window {AppSettings.Active.appName} with size {width}x{height} at {positionString} " +
-            $"({resizableString}, {maximizedString}) for monitor {monitorIndex}");
+        Log.Info($"Creating {windowMode} window {AppSettings.Active.appName} with size {width}x{height} at {positionString} " +
+            $"({resizableString}, {maximizedString}) for monitor {monitorIndex}", LogTag);
 
         if (windowReferences > 0)
         {
-            Log.Error($"[RenderWindow] Multiple windows are not supported!");
+            Log.Error($"Multiple windows are not supported!", LogTag);
 
             return null;
         }
@@ -817,7 +819,7 @@ internal class RenderWindow
 
         if (renderWindow.window == null)
         {
-            Log.Error($"[RenderWindow] Missing render window implementation!");
+            Log.Error($"Missing render window implementation!", LogTag);
 
             return null;
         }
@@ -835,7 +837,7 @@ internal class RenderWindow
         if (!renderWindow.window.Create(ref width, ref height, AppSettings.Active.appName, resizable, windowMode, position, maximized,
             monitorIndex))
         {
-            Log.Error($"[RenderWindow] Failed to create {windowMode} window \"{AppSettings.Active.appName}\" with size {originalWidth}x{originalHeight}");
+            Log.Error($"Failed to create {windowMode} window \"{AppSettings.Active.appName}\" with size {originalWidth}x{originalHeight}", LogTag);
 
             windowReferences--;
 

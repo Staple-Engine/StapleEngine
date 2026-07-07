@@ -12,7 +12,12 @@ static partial class Program
 {
     private static void ProcessAppSettings(AppPlatform platform, string inputPath, string outputPath, bool editorMode)
     {
-        Console.WriteLine($"Processing AppSettings");
+        if(reportingChangedAssets)
+        {
+            return;
+        }
+
+        LogMessage($"Processing AppSettings");
 
         string appSettingsText;
 
@@ -29,7 +34,7 @@ static partial class Program
         }
         catch (Exception)
         {
-            Console.WriteLine($"\t\tError: Failed to read app settings");
+            LogMessage($"\t\tError: Failed to read app settings");
 
             return;
         }
@@ -44,7 +49,7 @@ static partial class Program
             }
             catch (Exception e)
             {
-                Console.WriteLine($"\t\tError: Failed to load app settings: {e.Message}");
+                LogMessage($"\t\tError: Failed to load app settings: {e.Message}");
 
                 return;
             }
@@ -71,7 +76,7 @@ static partial class Program
 
                 writer.Write(encoded.ToArray());
 
-                Console.WriteLine($"\tProcessed app settings");
+                LogMessage($"\tProcessed app settings");
             }
         }
     }
