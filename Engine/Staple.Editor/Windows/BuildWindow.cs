@@ -179,7 +179,7 @@ internal class BuildWindow : EditorWindow
                         StapleEditor.instance.buildPlayerDebugRedists, false, StapleEditor.instance.buildPlayerSingleFile,
                         StapleEditor.instance.SetBackgroundProgress,
                         (message) => StapleEditor.instance.ShowMessageBox(message, "OK", null),
-                        (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish),
+                        (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish, StagingRefreshFlags.None),
                         () =>
                         {
                             Log.Info("Player built successfully!");
@@ -212,7 +212,7 @@ internal class BuildWindow : EditorWindow
                         StapleEditor.instance.buildPlayerDebugRedists, true, StapleEditor.instance.buildPlayerSingleFile,
                         StapleEditor.instance.SetBackgroundProgress,
                         (message) => StapleEditor.instance.ShowMessageBox(message, "OK", null),
-                        (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish),
+                        (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish, StagingRefreshFlags.None),
                         () =>
                         {
                             Log.Info("Player built successfully!");

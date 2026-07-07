@@ -667,7 +667,7 @@ internal partial class StapleEditor
                         buildPlayerDebug, buildPlayerNativeAOT, buildPlayerDebugRedists, false, buildPlayerSingleFile,
                         (percent, message) => Log.Info($"[{(int)(percent * 100)}%] {message}"),
                         (message) => Log.Info(message),
-                        (platform, finish) => RefreshStaging(platform, finish),
+                        (platform, finish) => RefreshStaging(platform, finish, StagingRefreshFlags.UpdateProject),
                         () =>
                         {
                             finished = true;
@@ -1202,7 +1202,8 @@ internal partial class StapleEditor
 
                         UnloadGame();
 
-                        RefreshStaging(currentPlatform, null, true, !forceGameRecompile);
+                        RefreshStaging(currentPlatform, null, forceGameRecompile ? StagingRefreshFlags.UpdateProject :
+                            StagingRefreshFlags.UpdateProject | StagingRefreshFlags.CheckBuild);
 
                         forceGameRecompile = false;
                     }
@@ -1213,7 +1214,7 @@ internal partial class StapleEditor
                             RefreshStaging(currentPlatform, () =>
                             {
                                 RefreshChangedAssets(assets);
-                            }, false);
+                            }, StagingRefreshFlags.CheckBuild);
                         });
                     }
                 }

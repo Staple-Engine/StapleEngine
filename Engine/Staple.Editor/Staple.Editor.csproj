@@ -88,10 +88,12 @@
     <Compile Include="ProjectBrowser\ProjectBrowserNodeAction.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserNodeType.cs" />
     <Compile Include="ProjectBrowser\ProjectBrowserResourceType.cs" />
+    <Compile Include="StagingRefreshFlags.cs" />
     <Compile Include="StapleEditor+AssetDatabaseObserver.cs" />
     <Compile Include="StapleEditor+ImGuiStyle.cs" />
     <Compile Include="StapleEditor+MessageBox.cs" />
     <Compile Include="StapleEditor+Prefab.cs" />
+    <Compile Include="StapleEditor+Refresh.cs" />
     <Compile Include="StapleEditor+Settings.cs" />
     <Compile Include="Templates\CubeTemplate.cs" />
     <Compile Include="Templates\EntityTemplate.cs" />

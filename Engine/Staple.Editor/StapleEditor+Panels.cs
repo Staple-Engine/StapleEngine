@@ -377,7 +377,7 @@ internal partial class StapleEditor
 
                     EditorGUI.MenuItem("Rebuild", "RebuildProject.Menu", () =>
                     {
-                        RefreshStaging(currentPlatform, null, true, false);
+                        RefreshStaging(currentPlatform, null, StagingRefreshFlags.UpdateProject);
                     });
                 });
 
@@ -417,7 +417,7 @@ internal partial class StapleEditor
                         {
                         }
 
-                        RefreshStaging(currentPlatform, null, false);
+                        RefreshStaging(currentPlatform, null, StagingRefreshFlags.CheckBuild);
                     });
                 });
             });
@@ -430,7 +430,7 @@ internal partial class StapleEditor
 
                     UnloadGame();
 
-                    RefreshStaging(currentPlatform, null, true);
+                    RefreshStaging(currentPlatform, null, StagingRefreshFlags.CheckBuild | StagingRefreshFlags.UpdateProject);
                 });
             }
 
