@@ -83,7 +83,7 @@ static partial class Program
 
             processedTextures.AddOrSetKey(textureFileName.Replace("\\", "/"), guid);
 
-            if (ReportChangedAsset(inputPath, textureFileName, outputFile))
+            if (ReportChangedAsset(textureFileName, outputFile))
             {
                 continue;
             }

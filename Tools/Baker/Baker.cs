@@ -116,7 +116,7 @@ static partial class Program
         Console.WriteLine(message);
     }
 
-    public static bool ReportChangedAsset(string inputPath, string from, string to)
+    public static bool ReportChangedAsset(string from, string to)
     {
         if(!reportingChangedAssets)
         {
@@ -124,27 +124,19 @@ static partial class Program
         }
 
         var result = false;
-        var length = inputPath.Replace('\\', '/').Length + 1;
-
-        if(from.Length < length)
-        {
-            return false;
-        }
-
-        var outValue = from.Replace('\\', '/').Substring(length);
 
         if (ShouldProcessFile(from, to))
         {
             result = true;
 
-            Console.WriteLine(outValue);
+            Console.WriteLine(from);
         }
 
         if (result == false && ShouldProcessFile(from.Replace(".meta", ""), to.Replace(".meta", "")))
         {
             result = true;
 
-            Console.WriteLine(outValue);
+            Console.WriteLine(from);
         }
 
         return result;

@@ -59,7 +59,7 @@ static partial class Program
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
             }
 
-            if (ReportChangedAsset(inputPath, assetFileName, outputFile))
+            if (ReportChangedAsset(assetFileName, outputFile))
             {
                 continue;
             }

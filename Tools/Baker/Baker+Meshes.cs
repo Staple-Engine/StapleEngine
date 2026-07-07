@@ -211,7 +211,7 @@ static partial class Program
 
             outputFile = outputFile.Replace("\\", "/").Replace("/./", "/");
 
-            if (ReportChangedAsset(inputPath, meshFileName, outputFile))
+            if (ReportChangedAsset(meshFileName, outputFile))
             {
                 continue;
             }

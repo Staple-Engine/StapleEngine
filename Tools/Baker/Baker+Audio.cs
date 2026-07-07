@@ -65,7 +65,7 @@ static partial class Program
                 outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
             }
 
-            if (ReportChangedAsset(inputPath, audioFileName, outputFile))
+            if (ReportChangedAsset(audioFileName, outputFile))
             {
                 continue;
             }
