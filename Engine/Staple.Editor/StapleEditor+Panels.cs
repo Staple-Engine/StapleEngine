@@ -1712,6 +1712,12 @@ internal partial class StapleEditor
                             }
 
                             break;
+
+                        case ProjectBrowserNodeAction.Open:
+
+                            StorageUtils.ShellOpenFile(item.path);
+
+                            break;
                     }
 
                     break;

@@ -173,34 +173,9 @@ public partial class ProjectManager
     {
         var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", "Sandbox");
 
-        switch (Platform.CurrentPlatform)
-        {
-            case AppPlatform.Linux:
-                {
-                    var startInfo = new ProcessStartInfo()
-                    {
-                        FileName = "xdg-open",
-                        Arguments = Path.Combine(projectDirectory, "Sandbox.sln"),
-                        UseShellExecute = true,
-                    };
+        var target = Path.Combine(projectDirectory, "Sandbox.sln");
 
-                    Process.Start(startInfo);
-                }
-
-                break;
-
-            default:
-                {
-                    var startInfo = new ProcessStartInfo(Path.Combine(projectDirectory, "Sandbox.sln"))
-                    {
-                        UseShellExecute = true,
-                    };
-
-                    Process.Start(startInfo);
-                }
-
-                break;
-        }
+        StorageUtils.ShellOpenFile(target);
     }
 
     /// <summary>

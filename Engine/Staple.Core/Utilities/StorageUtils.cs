@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 namespace Staple.Internal;
@@ -37,7 +38,7 @@ internal class StorageUtils
     /// <param name="basePath">The base path of the project</param>
     /// <param name="assetPath">The path of the asset (not a GUID)</param>
     /// <returns>The root path, or null</returns>
-    internal static string GetRootPath(string basePath, string assetPath)
+    public static string GetRootPath(string basePath, string assetPath)
     {
         if (assetPath == null)
         {
@@ -208,5 +209,41 @@ internal class StorageUtils
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Attempts to open a file at a specific path
+    /// </summary>
+    /// <param name="path">The path</param>
+    public static void ShellOpenFile(string path)
+    {
+        switch (Platform.CurrentPlatform)
+        {
+            case AppPlatform.Linux:
+                {
+                    var startInfo = new ProcessStartInfo()
+                    {
+                        FileName = "xdg-open",
+                        Arguments = path,
+                        UseShellExecute = true,
+                    };
+
+                    Process.Start(startInfo);
+                }
+
+                break;
+
+            default:
+                {
+                    var startInfo = new ProcessStartInfo(path)
+                    {
+                        UseShellExecute = true,
+                    };
+
+                    Process.Start(startInfo);
+                }
+
+                break;
+        }
     }
 }

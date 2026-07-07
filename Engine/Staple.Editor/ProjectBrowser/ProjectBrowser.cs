@@ -341,12 +341,14 @@ internal class ProjectBrowser
 
                         case ProjectBrowserResourceType.Texture:
 
+                            node.action = ProjectBrowserNodeAction.Open;
                             node.typeName = typeof(Texture).FullName;
 
                             break;
 
                         case ProjectBrowserResourceType.Audio:
 
+                            node.action = ProjectBrowserNodeAction.Open;
                             node.typeName = typeof(AudioClip).FullName;
 
                             break;
@@ -359,6 +361,7 @@ internal class ProjectBrowser
 
                         case ProjectBrowserResourceType.Mesh:
 
+                            node.action = ProjectBrowserNodeAction.Open;
                             node.typeName = typeof(Mesh).FullName;
 
                             break;
@@ -384,12 +387,14 @@ internal class ProjectBrowser
 
                         case ProjectBrowserResourceType.Text:
 
+                            node.action = ProjectBrowserNodeAction.Open;
                             node.typeName = typeof(TextAsset).FullName;
 
                             break;
 
                         default:
 
+                            node.action = ProjectBrowserNodeAction.Open;
                             node.typeName = "Unknown";
 
                             break;
