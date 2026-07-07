@@ -37,6 +37,7 @@ internal class ResourceManager
     internal readonly Dictionary<StringID, AudioClip> cachedAudioClips = [];
     internal readonly Dictionary<StringID, MeshAsset> cachedMeshAssets = [];
     internal readonly Dictionary<StringID, FontAsset> cachedFonts = [];
+    internal readonly Dictionary<StringID, TextAsset> cachedTextAssets = [];
     internal readonly Dictionary<StringID, IStapleAsset> cachedAssets = [];
     internal readonly Dictionary<StringID, Prefab> cachedPrefabs = [];
     internal readonly Dictionary<StringID, ResourcePak> resourcePaks = [];
@@ -225,6 +226,14 @@ internal class ResourceManager
             }
         }
 
+        foreach (var pair in cachedTextAssets)
+        {
+            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            {
+                destroyed.Add(pair.Key);
+            }
+        }
+
         foreach (var pair in cachedAssets)
         {
             if (!lockedAssets.Contains(pair.Key.GetHashCode()))
@@ -253,6 +262,7 @@ internal class ResourceManager
             cachedFonts.Remove(key);
             cachedAssets.Remove(key);
             cachedPrefabs.Remove(key);
+            cachedTextAssets.Remove(key);
         }
     }
 
@@ -3030,8 +3040,9 @@ internal class ResourceManager
     /// Attempts to load a text or binary file as a text asset
     /// </summary>
     /// <param name="path">The path to load from</param>
+    /// <param name="ignoreCache">Whether to ignore the asset cache</param>
     /// <returns>The text asset, or null</returns>
-    public TextAsset LoadTextAsset(string path)
+    public TextAsset LoadTextAsset(string path, bool ignoreCache = false)
     {
         if ((path?.Length ?? 0) == 0)
         {
@@ -3041,6 +3052,13 @@ internal class ResourceManager
         var guid = AssetDatabase.GetAssetGuid(path);
 
         path = guid ?? path;
+
+        if (!ignoreCache &&
+            cachedTextAssets.TryGetValue(path, out var textAsset) &&
+            textAsset != null)
+        {
+            return textAsset;
+        }
 
         var resource = LoadTextAssetResource(path);
 
@@ -3053,6 +3071,11 @@ internal class ResourceManager
         {
             textResource = resource,
         };
+
+        if (!ignoreCache)
+        {
+            cachedTextAssets.AddOrSetKey(path, outAsset);
+        }
 
         return outAsset;
     }
@@ -3083,5 +3106,285 @@ internal class ResourceManager
         }
 
         lockedAssets.Add(guid.GetHashCode());
+    }
+
+    public void ReloadMaterial(string guid)
+    {
+        if(!cachedMaterials.TryGetValue(guid, out var material))
+        {
+            return;
+        }
+
+        var resource = LoadMaterialResource(guid);
+
+        if(resource != null)
+        {
+            material.materialResource = resource;
+            material.CullingMode = resource.metadata.cullingMode;
+
+            material.shaderKeywords.Clear();
+
+            foreach (var variant in resource.metadata.enabledShaderVariants)
+            {
+                if (resource.shader.shaderResource.metadata.variants.Contains(variant))
+                {
+                    material.EnableShaderKeyword(variant);
+                }
+            }
+
+            foreach (var parameter in resource.metadata.parameters)
+            {
+                switch (parameter.Value.type)
+                {
+                    case MaterialParameterType.TextureWrap:
+
+                        material.materialResource.parameters.Add(parameter.Key, new()
+                        {
+                            name = parameter.Key,
+                            type = MaterialParameterType.TextureWrap,
+                            textureWrapValue = parameter.Value.textureWrapValue,
+                        });
+
+                        break;
+
+                    case MaterialParameterType.Texture:
+
+                        var texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
+
+                        material.SetTexture(parameter.Key, texture);
+
+                        break;
+
+                    case MaterialParameterType.Matrix3x3:
+
+                        material.SetMatrix3x3(parameter.Key, new(), parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Matrix4x4:
+
+                        material.SetMatrix4x4(parameter.Key, new(), parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Vector2:
+
+                        material.SetVector2(parameter.Key, parameter.Value.vec2Value.ToVector2(), parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Vector3:
+
+                        material.SetVector3(parameter.Key, parameter.Value.vec3Value.ToVector3(), parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Vector4:
+
+                        material.SetVector4(parameter.Key, parameter.Value.vec4Value.ToVector4(), parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Color:
+
+                        material.SetColor(parameter.Key, parameter.Value.colorValue, parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Float:
+
+                        material.SetFloat(parameter.Key, parameter.Value.floatValue, parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Int:
+
+                        material.SetInt(parameter.Key, parameter.Value.intValue, parameter.Value.source);
+
+                        break;
+                }
+            }
+        }
+    }
+
+    public bool TryGetMaterial(string guid, out Material material) => cachedMaterials.TryGetValue(guid, out material);
+
+    public Material GetMaterial(string guid)
+    {
+        return TryGetMaterial(guid, out var material) ? material : null;
+    }
+
+    public void ReloadShader(string guid)
+    {
+        if (!cachedShaders.TryGetValue(guid, out var shader))
+        {
+            return;
+        }
+
+        var resource = LoadShaderResource(guid);
+
+        if (resource != null)
+        {
+            //TODO: Destroy
+            /*
+            if (shader.shaderResource != null)
+            {
+                shader.shaderResource.Destroy();
+            }
+            */
+
+            shader.shaderResource = resource;
+        }
+    }
+
+    public bool TryGetShader(string guid, out Shader shader) => cachedShaders.TryGetValue(guid, out shader);
+
+    public Shader GetShader(string guid)
+    {
+        return TryGetShader(guid, out var shader) ? shader : null;
+    }
+
+    public void ReloadComputeShader(string guid)
+    {
+        if (!cachedComputeShaders.TryGetValue(guid, out var shader))
+        {
+            return;
+        }
+
+        var resource = LoadComputeShaderResource(guid);
+
+        if (resource != null)
+        {
+            //TODO: Destroy
+            /*
+            if (shader.shaderResource != null)
+            {
+                shader.shaderResource.Destroy();
+            }
+            */
+
+            shader.shaderResource = resource;
+        }
+    }
+
+    public bool TryGetComputeShader(string guid, out ComputeShader shader) => cachedComputeShaders.TryGetValue(guid, out shader);
+
+    public ComputeShader GetComputeShader(string guid)
+    {
+        return TryGetComputeShader(guid, out var shader) ? shader : null;
+    }
+
+    public void ReloadMeshAsset(string guid)
+    {
+        if (!cachedMeshAssets.TryGetValue(guid, out var mesh))
+        {
+            return;
+        }
+
+        var resource = LoadMeshAssetResource(guid);
+
+        if (resource != null)
+        {
+            mesh.meshResource = resource;
+
+            //TODO: Repopulate
+        }
+    }
+
+    public bool TryGetMeshAsset(string guid, out MeshAsset mesh) => cachedMeshAssets.TryGetValue(guid, out mesh);
+
+    public MeshAsset GetMeshAsset(string guid)
+    {
+        return TryGetMeshAsset(guid, out var meshAsset) ? meshAsset : null;
+    }
+
+    public void ReloadTextAsset(string guid)
+    {
+        if (!cachedTextAssets.TryGetValue(guid, out var textAsset))
+        {
+            return;
+        }
+
+        var resource = LoadTextAssetResource(guid);
+
+        if (resource != null)
+        {
+            textAsset.textResource = resource;
+        }
+    }
+
+    public bool TryGetTextAsset(string guid, out TextAsset textAsset) => cachedTextAssets.TryGetValue(guid, out textAsset);
+
+    public TextAsset GetTextAsset(string guid)
+    {
+        return TryGetTextAsset(guid, out var textAsset) ? textAsset : null;
+    }
+
+    public void ReloadAudioClip(string guid)
+    {
+        if (!cachedAudioClips.TryGetValue(guid, out var audioClip))
+        {
+            return;
+        }
+
+        var resource = LoadAudioClipResource(guid);
+
+        if (resource != null)
+        {
+            audioClip.audioResource = resource;
+        }
+    }
+
+    public bool TryGetAudioClip(string guid, out AudioClip audioClip) => cachedAudioClips.TryGetValue(guid, out audioClip);
+
+    public AudioClip GetAudioClip(string guid)
+    {
+        return TryGetAudioClip(guid, out var audioClip) ? audioClip : null;
+    }
+
+    public void ReloadFont(string guid)
+    {
+        if (!cachedFonts.TryGetValue(guid, out var font))
+        {
+            return;
+        }
+
+        var resource = LoadFontResource(guid);
+
+        if (resource != null)
+        {
+            font.fontResource = resource;
+        }
+    }
+
+    public bool TryGetFont(string guid, out FontAsset font) => cachedFonts.TryGetValue(guid, out font);
+
+    public FontAsset GetFont(string guid)
+    {
+        return TryGetFont(guid, out var font) ? font : null;
+    }
+
+    public void ReloadTexture(string guid)
+    {
+        if (!cachedTextures.TryGetValue(guid, out var texture))
+        {
+            return;
+        }
+
+        var resource = LoadTextureResource(guid);
+
+        if (resource != null)
+        {
+            texture.textureResource = resource;
+
+            texture.ApplyTextureToSprites();
+        }
+    }
+
+    public bool TryGetTexture(string guid, out Texture texture) => cachedTextures.TryGetValue(guid, out texture);
+
+    public Texture GetTexture(string guid)
+    {
+        return TryGetTexture(guid, out var texture) ? texture : null;
     }
 }

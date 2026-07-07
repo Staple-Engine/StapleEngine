@@ -1747,29 +1747,29 @@ internal partial class StapleEditor
     /// <param name="io">The current ImGUI IO</param>
     private void ProgressPopup(ImGuiIOPtr io)
     {
-        if(wasShowingProgress != showingProgress && showingProgress)
+        lock (backgroundLock)
         {
-            ImGui.OpenPopup("ShowingProgress");
-        }
-
-        if (showingProgress)
-        {
-            ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - 300) / 2, (io.DisplaySize.Y - 200) / 2));
-            ImGui.SetNextWindowSize(new Vector2(300, 200));
-
-            ImGui.BeginPopupModal("ShowingProgress", ref showingProgress,
-                ImGuiWindowFlags.NoTitleBar |
-                ImGuiWindowFlags.NoDocking |
-                ImGuiWindowFlags.NoResize |
-                ImGuiWindowFlags.NoMove);
-
-            ImGui.Text(progressMessage ?? "");
-            ImGui.ProgressBar(progressFraction, new Vector2(250, 20));
-
-            ImGui.EndPopup();
-
-            lock(backgroundLock)
+            if (wasShowingProgress != showingProgress && showingProgress)
             {
+                ImGui.OpenPopup("ShowingProgress");
+            }
+
+            if (showingProgress)
+            {
+                ImGui.SetNextWindowPos(new Vector2((io.DisplaySize.X - 300) / 2, (io.DisplaySize.Y - 200) / 2));
+                ImGui.SetNextWindowSize(new Vector2(300, 200));
+
+                ImGui.BeginPopupModal("ShowingProgress", ref showingProgress,
+                    ImGuiWindowFlags.NoTitleBar |
+                    ImGuiWindowFlags.NoDocking |
+                    ImGuiWindowFlags.NoResize |
+                    ImGuiWindowFlags.NoMove);
+
+                ImGui.Text(progressMessage ?? "");
+                ImGui.ProgressBar(progressFraction, new Vector2(250, 20));
+
+                ImGui.EndPopup();
+
                 showingProgress = backgroundHandles.Count == 0 || backgroundHandles.Any(x => !x.Completed);
 
                 if (!showingProgress)
@@ -1777,9 +1777,9 @@ internal partial class StapleEditor
                     ImGui.CloseCurrentPopup();
                 }
             }
-        }
 
-        wasShowingProgress = showingProgress;
+            wasShowingProgress = showingProgress;
+        }
     }
 
     private void MessageBoxPopup(ImGuiIOPtr io)

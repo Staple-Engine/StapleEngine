@@ -431,9 +431,23 @@ internal partial class StapleEditor
     /// <param name="updateProject">Whether to update the project</param>
     public void RefreshAssets(bool updateProject, Action onFinish)
     {
-        RefreshStaging(currentPlatform, onFinish, updateProject);
+        QueryChangedAssets(currentPlatform, (assets) =>
+        {
+            RefreshStaging(currentPlatform, () =>
+            {
+                RefreshChangedAssets(assets);
+
+                onFinish?.Invoke();
+            },
+            updateProject);
+        });
     }
 
+    /// <summary>
+    /// Gets a list of all changed assets
+    /// </summary>
+    /// <param name="platform">The platform to check</param>
+    /// <param name="onFinish">A callback with a list of changed assets</param>
     public void QueryChangedAssets(AppPlatform platform, Action<string[]> onFinish)
     {
         lock (backgroundLock)
@@ -507,7 +521,7 @@ internal partial class StapleEditor
                         }
 
                         var args = $"-i \"{BasePath}/Assets\" {packageArgs} -o \"{BasePath}/Cache/Staging/{platform}\" " +
-                            $"-platform {platform} -editor {string.Join(" ", rendererParameters)} -report-changes".Replace("\\", "/");
+                            $"-platform {platform} -editor {string.Join(" ", rendererParameters)} -report-changed".Replace("\\", "/");
 
                         var processInfo = new ProcessStartInfo(bakerPath, args)
                         {
@@ -549,7 +563,8 @@ internal partial class StapleEditor
                         RefreshingAssets = false;
                     }
                 }
-            }, (e) =>
+            },
+            (e) =>
             {
                 Log.Error(e);
 
@@ -558,6 +573,79 @@ internal partial class StapleEditor
 
             StartBackgroundTask(handle);
         });
+    }
+
+    public void RefreshChangedAssets(Span<string> changedAssets)
+    {
+        foreach(var item in changedAssets)
+        {
+            if(item.Length <= BasePath.Length)
+            {
+                continue;
+            }
+
+            var assetPath = item.Replace('\\', '/').Substring(BasePath.Length + 1);
+
+            var guid = AssetDatabase.GetAssetGuid(assetPath);
+
+            if(guid == null)
+            {
+                continue;
+            }
+
+            var type = AssetDatabase.GetAssetType(guid);
+
+            switch(type)
+            {
+                case string s when s == typeof(Material).FullName:
+
+                    ResourceManager.instance.ReloadMaterial(guid);
+
+                    break;
+
+                case string s when s == typeof(Shader).FullName:
+
+                    ResourceManager.instance.ReloadShader(guid);
+
+                    break;
+
+                case string s when s == typeof(ComputeShader).FullName:
+
+                    ResourceManager.instance.ReloadComputeShader(guid);
+
+                    break;
+
+                case string s when s == typeof(Mesh).FullName:
+
+                    ResourceManager.instance.ReloadMeshAsset(guid);
+
+                    break;
+
+                case string s when s == typeof(TextAsset).FullName:
+
+                    ResourceManager.instance.ReloadTextAsset(guid);
+
+                    break;
+
+                case string s when s == typeof(AudioClip).FullName:
+
+                    ResourceManager.instance.ReloadAudioClip(guid);
+
+                    break;
+
+                case string s when s == typeof(FontAsset).FullName:
+
+                    ResourceManager.instance.ReloadFont(guid);
+
+                    break;
+
+                case string s when s == typeof(Texture).FullName:
+
+                    ResourceManager.instance.ReloadTexture(guid);
+
+                    break;
+            }
+        }
     }
 
     /// <summary>

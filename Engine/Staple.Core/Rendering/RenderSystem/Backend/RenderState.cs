@@ -41,8 +41,8 @@ internal struct RenderState
             return new()
             {
                 renderTarget = RenderTarget.Current,
-                vertexStorageBuffers = [],
-                fragmentStorageBuffers = [],
+                vertexStorageBuffers = null,
+                fragmentStorageBuffers = null,
                 enableDepth = true,
                 depthWrite = true,
             };

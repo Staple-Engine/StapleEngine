@@ -123,23 +123,16 @@ static partial class Program
             return false;
         }
 
-        var result = false;
-
         if (ShouldProcessFile(from, to))
         {
-            result = true;
-
             Console.WriteLine(from);
         }
-
-        if (result == false && ShouldProcessFile(from.Replace(".meta", ""), to.Replace(".meta", "")))
+        else if (ShouldProcessFile(from.Replace(".meta", ""), to.Replace(".meta", "")))
         {
-            result = true;
-
             Console.WriteLine(from);
         }
 
-        return result;
+        return true;
     }
 
     private static readonly Dictionary<string, string> processedTextures = [];

@@ -1208,7 +1208,13 @@ internal partial class StapleEditor
                     }
                     else if (needsRefreshStaging)
                     {
-                        RefreshStaging(currentPlatform, null, false);
+                        QueryChangedAssets(currentPlatform, (assets) =>
+                        {
+                            RefreshStaging(currentPlatform, () =>
+                            {
+                                RefreshChangedAssets(assets);
+                            }, false);
+                        });
                     }
                 }
             }
