@@ -434,6 +434,132 @@ internal partial class StapleEditor
         RefreshStaging(currentPlatform, onFinish, updateProject);
     }
 
+    public void QueryChangedAssets(AppPlatform platform, Action<string[]> onFinish)
+    {
+        lock (backgroundLock)
+        {
+            RefreshingAssets = true;
+        }
+
+        projectBrowser.UpdateProjectBrowserNodes();
+
+        projectBrowser.CreateMissingMetaFiles(() =>
+        {
+            var bakerPath = Path.Combine(Storage.StapleBasePath, "Tools", "bin", "Baker");
+
+            if (projectAppSettings == null)
+            {
+                lock (backgroundLock)
+                {
+                    RefreshingAssets = false;
+                }
+
+                return;
+            }
+
+            var handle = JobScheduler.Schedule(new ActionJob(() =>
+            {
+                try
+                {
+                    if (projectAppSettings.renderers.TryGetValue(platform, out var renderers))
+                    {
+                        var rendererParameters = new HashSet<string>();
+
+                        foreach (var item in renderers)
+                        {
+                            switch (item)
+                            {
+                                case RendererType.Direct3D12:
+
+                                    rendererParameters.Add("-r d3d12");
+
+                                    break;
+
+                                case RendererType.Metal:
+
+                                    rendererParameters.Add("-r metal");
+
+                                    break;
+
+                                case RendererType.Vulkan:
+
+                                    rendererParameters.Add("-r spirv");
+
+                                    break;
+                            }
+                        }
+
+                        string[] packageDirectories = [];
+
+                        try
+                        {
+                            packageDirectories = Directory.GetDirectories(Path.Combine(BasePath, "Cache", "Packages"));
+                        }
+                        catch (Exception)
+                        {
+                        }
+
+                        var packageArgs = "";
+
+                        foreach (var directory in packageDirectories)
+                        {
+                            packageArgs += $"-i \"{directory}\" ";
+                        }
+
+                        var args = $"-i \"{BasePath}/Assets\" {packageArgs} -o \"{BasePath}/Cache/Staging/{platform}\" " +
+                            $"-platform {platform} -editor {string.Join(" ", rendererParameters)} -report-changes".Replace("\\", "/");
+
+                        var processInfo = new ProcessStartInfo(bakerPath, args)
+                        {
+                            CreateNoWindow = true,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true,
+                            WindowStyle = ProcessWindowStyle.Hidden,
+                            WorkingDirectory = Environment.CurrentDirectory
+                        };
+
+                        var process = new Process
+                        {
+                            StartInfo = processInfo
+                        };
+
+                        var changes = new List<string>();
+
+                        Staple.Tooling.Utilities.ExecuteAndCollectProcess(process,
+                            (m) =>
+                            {
+                                changes.Add(m);
+                            });
+
+                        lock (backgroundLock)
+                        {
+                            RefreshingAssets = false;
+                        }
+
+                        ThreadHelper.Dispatch(() =>
+                        {
+                            onFinish?.Invoke(changes.ToArray());
+                        });
+                    }
+                }
+                catch (Exception)
+                {
+                    lock (backgroundLock)
+                    {
+                        RefreshingAssets = false;
+                    }
+                }
+            }, (e) =>
+            {
+                Log.Error(e);
+
+                onFinish?.Invoke([]);
+            }));
+
+            StartBackgroundTask(handle);
+        });
+    }
+
     /// <summary>
     /// Refreshes the assets cache and optionally updates the C# project
     /// </summary>
@@ -450,7 +576,8 @@ internal partial class StapleEditor
                 return;
             }
 
-            RecordScene();
+            //TODO: Consider if necessary
+            //RecordScene();
 
             lock (backgroundLock)
             {
@@ -588,6 +715,8 @@ internal partial class StapleEditor
                                     LoadGame();
                                 }
 
+                                //TODO: Consider if necessary
+                                /*
                                 World.Current?.Iterate((entity) =>
                                 {
                                     World.Current.IterateComponents(entity, (ref IComponent component) =>
@@ -600,6 +729,7 @@ internal partial class StapleEditor
                                 });
 
                                 ResourceManager.instance.Clear();
+                                */
 
                                 ShowBackgroundProcess();
 
@@ -612,6 +742,8 @@ internal partial class StapleEditor
                                         {
                                             projectBrowser.UpdateProjectBrowserNodes();
 
+                                            //TODO: Consider if necessary
+                                            /*
                                             if (!LoadRecordedScene())
                                             {
                                                 if ((lastOpenScene?.Length ?? 0) > 0)
@@ -644,6 +776,7 @@ internal partial class StapleEditor
                                             }
 
                                             ResetScenePhysics(false);
+                                            */
 
                                             onFinish?.Invoke();
                                         });
