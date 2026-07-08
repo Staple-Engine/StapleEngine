@@ -306,7 +306,7 @@ internal partial class StapleEditor
 
     private readonly RenderQueue renderQueue = new();
 
-    private bool debugSpatialInfo = true;
+    private bool debugSpatialInfo = false;
     #endregion
 
     #region Entities

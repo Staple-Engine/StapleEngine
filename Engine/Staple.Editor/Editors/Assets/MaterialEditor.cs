@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 
 namespace Staple.Editor;
 
@@ -642,6 +641,25 @@ internal class MaterialEditor : AssetEditor
                         if(skip)
                         {
                             break;
+                        }
+                    }
+                }
+
+                return true;
+
+            case nameof(MaterialMetadata.cullingMode):
+
+                if(getter() is CullingMode cullingMode)
+                {
+                    var newValue = EditorGUI.EnumDropdown(name.ExpandCamelCaseName(), "MaterialCullingMode", cullingMode);
+
+                    if(newValue != cullingMode)
+                    {
+                        material.cullingMode = newValue;
+
+                        if(ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                        {
+                            materialInstance.CullingMode = newValue;
                         }
                     }
                 }
