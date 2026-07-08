@@ -55,6 +55,76 @@ internal class MaterialEditor : AssetEditor
         }
     }
 
+    private static void ApplyMaterialInstanceParameter(string name, MaterialParameter parameter, Material instance)
+    {
+        if(instance?.materialResource == null)
+        {
+            return;
+        }
+
+        switch(parameter.type)
+        {
+            case MaterialParameterType.Color:
+
+                instance.SetColor(name, parameter.colorValue, parameter.source);
+
+                break;
+
+            case MaterialParameterType.Float:
+
+                instance.SetFloat(name, parameter.floatValue, parameter.source);
+
+                break;
+
+            case MaterialParameterType.Int:
+
+                instance.SetInt(name, parameter.intValue, parameter.source);
+
+                break;
+
+            case MaterialParameterType.Texture:
+
+                instance.SetTexture(name, ResourceManager.instance.LoadTexture(parameter.textureValue));
+
+                break;
+
+            case MaterialParameterType.TextureWrap:
+
+                if(instance.materialResource.parameters.TryGetValue(name, out var p))
+                {
+                    p.textureWrapValue = parameter.textureWrapValue;
+                }
+                else
+                {
+                    instance.materialResource.parameters.Add(name, new()
+                    {
+                        type = parameter.type,
+                        textureWrapValue = parameter.textureWrapValue,
+                    });
+                }
+
+                break;
+
+            case MaterialParameterType.Vector2:
+
+                instance.SetVector2(name, parameter.vec2Value.ToVector2(), parameter.source);
+
+                break;
+
+            case MaterialParameterType.Vector3:
+
+                instance.SetVector3(name, parameter.vec3Value.ToVector3(), parameter.source);
+
+                break;
+
+            case MaterialParameterType.Vector4:
+
+                instance.SetVector4(name, parameter.vec4Value.ToVector4(), parameter.source);
+
+                break;
+        }
+    }
+
     public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
         var material = target as MaterialMetadata;
@@ -197,6 +267,11 @@ internal class MaterialEditor : AssetEditor
                                     {
                                         parameter.Value.textureValue = null;
                                     }
+
+                                    if (ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                                    {
+                                        materialInstance.SetTexture(parameter.Key, (Texture)newValue);
+                                    }
                                 }
                             }
 
@@ -218,6 +293,11 @@ internal class MaterialEditor : AssetEditor
                                 {
                                     parameter.Value.vec2Value.x = newValue.X;
                                     parameter.Value.vec2Value.y = newValue.Y;
+
+                                    if (ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                                    {
+                                        materialInstance.SetVector2(parameter.Key, newValue);
+                                    }
                                 }
                             }
 
@@ -240,6 +320,11 @@ internal class MaterialEditor : AssetEditor
                                     parameter.Value.vec3Value.x = newValue.X;
                                     parameter.Value.vec3Value.y = newValue.Y;
                                     parameter.Value.vec3Value.z = newValue.Z;
+
+                                    if (ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                                    {
+                                        materialInstance.SetVector3(parameter.Key, newValue);
+                                    }
                                 }
                             }
 
@@ -263,6 +348,11 @@ internal class MaterialEditor : AssetEditor
                                     parameter.Value.vec4Value.y = newValue.Y;
                                     parameter.Value.vec4Value.z = newValue.Z;
                                     parameter.Value.vec4Value.w = newValue.W;
+
+                                    if (ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                                    {
+                                        materialInstance.SetVector4(parameter.Key, newValue);
+                                    }
                                 }
                             }
 
@@ -270,13 +360,29 @@ internal class MaterialEditor : AssetEditor
 
                         case MaterialParameterType.Color:
 
-                            parameter.Value.colorValue = EditorGUI.ColorField(label, parameter.Key, parameter.Value.colorValue);
+                            {
+                                var previous = parameter.Value.colorValue;
+
+                                var newValue = (Color32)EditorGUI.ColorField(label, parameter.Key, parameter.Value.colorValue);
+
+                                if(previous != newValue)
+                                {
+                                    parameter.Value.colorValue = newValue;
+
+                                    if (ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                                    {
+                                        materialInstance.SetColor(parameter.Key, newValue);
+                                    }
+                                }
+                            }
 
                             break;
 
                         case MaterialParameterType.Float:
 
                             {
+                                var previous = parameter.Value.floatValue;
+
                                 if (activeShader.TryGetUniformAttributeType(parameter.Key, out var attribute))
                                 {
                                     switch (attribute)
@@ -298,6 +404,14 @@ internal class MaterialEditor : AssetEditor
                                 {
                                     parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Key, parameter.Value.floatValue);
                                 }
+
+                                var newValue = parameter.Value.floatValue;
+
+                                if(previous != newValue &&
+                                    ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                                {
+                                    materialInstance.SetFloat(parameter.Key, newValue);
+                                }
                             }
 
                             break;
@@ -305,6 +419,8 @@ internal class MaterialEditor : AssetEditor
                         case MaterialParameterType.Int:
 
                             {
+                                var previous = parameter.Value.intValue;
+
                                 if (activeShader.TryGetUniformAttributeType(parameter.Key, out var attribute))
                                 {
                                     switch (attribute)
@@ -326,13 +442,36 @@ internal class MaterialEditor : AssetEditor
                                 {
                                     parameter.Value.intValue = EditorGUI.IntField(label, parameter.Key, parameter.Value.intValue);
                                 }
+
+                                var newValue = parameter.Value.intValue;
+
+                                if (previous != newValue &&
+                                    ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                                {
+                                    materialInstance.SetInt(parameter.Key, newValue);
+                                }
                             }
 
                             break;
 
                         case MaterialParameterType.TextureWrap:
 
-                            parameter.Value.textureWrapValue = EditorGUI.EnumDropdown(label, parameter.Key, parameter.Value.textureWrapValue);
+                            {
+                                var previous = parameter.Value.textureWrapValue;
+
+                                var newValue = EditorGUI.EnumDropdown(label, parameter.Key, parameter.Value.textureWrapValue);
+
+                                if(newValue != previous)
+                                {
+                                    parameter.Value.textureWrapValue = newValue;
+
+                                    if(ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance) &&
+                                        materialInstance.materialResource.parameters.TryGetValue(parameter.Key, out var p))
+                                    {
+                                        p.textureWrapValue = newValue;
+                                    }
+                                }
+                            }
 
                             break;
                     }
@@ -347,6 +486,8 @@ internal class MaterialEditor : AssetEditor
 
                     if (newValue != shader)
                     {
+                        var materialInstance = ResourceManager.instance.GetMaterial(material.guid);
+
                         if (newValue is Shader s && !(s?.Disposed ?? true))
                         {
                             cachedShaders.AddOrSetKey(s.shaderResource.metadata.guid, s);
@@ -354,6 +495,8 @@ internal class MaterialEditor : AssetEditor
                             material.shader = s.Guid.Guid;
 
                             material.parameters = [];
+
+                            materialInstance?.materialResource?.parameters.Clear();
 
                             static MaterialParameterType ParameterType(ShaderUniformType type)
                             {
@@ -400,6 +543,8 @@ internal class MaterialEditor : AssetEditor
                                 InitializeMaterialParameter(parameter, uniform);
 
                                 material.parameters.Add(uniform.name, parameter);
+
+                                ApplyMaterialInstanceParameter(uniform.name, parameter, materialInstance);
                             }
 
                             foreach (var uniform in s.shaderResource.metadata.instanceParameters)
@@ -426,15 +571,21 @@ internal class MaterialEditor : AssetEditor
                                 };
 
                                 material.parameters.Add(uniform.name, parameter);
+
+                                ApplyMaterialInstanceParameter(uniform.name, parameter, materialInstance);
                             }
 
                             activeShader = s;
+
+                            materialInstance?.materialResource?.shader = s;
                         }
                         else
                         {
                             material.shader = "";
 
                             activeShader = null;
+
+                            materialInstance?.materialResource?.shader = null;
                         }
                     }
                 }
@@ -465,6 +616,11 @@ internal class MaterialEditor : AssetEditor
                         if(currentIndex != index && index >= 0)
                         {
                             material.enabledShaderVariants[i] = activeShader.shaderResource.metadata.variants[index];
+
+                            if(ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                            {
+                                materialInstance.EnableShaderKeyword(material.enabledShaderVariants[i]);
+                            }
                         }
 
                         EditorGUI.SameLine();
@@ -472,6 +628,13 @@ internal class MaterialEditor : AssetEditor
                         EditorGUI.Button("-", $"MaterialVariantRemove{i}", () =>
                         {
                             skip = true;
+
+                            var variant = material.enabledShaderVariants[i];
+
+                            if (ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                            {
+                                materialInstance.DisableShaderKeyword(variant);
+                            }
 
                             material.enabledShaderVariants.RemoveAt(i);
                         });
