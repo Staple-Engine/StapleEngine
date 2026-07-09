@@ -123,13 +123,15 @@ static partial class Program
             return false;
         }
 
+        var result = from.EndsWith(".meta", StringComparison.InvariantCulture) ? from[..^".meta".Length] : from;
+
         if (ShouldProcessFile(from, to))
         {
-            Console.WriteLine(from);
+            Console.WriteLine(result);
         }
         else if (ShouldProcessFile(from.Replace(".meta", ""), to.Replace(".meta", "")))
         {
-            Console.WriteLine(from);
+            Console.WriteLine(result);
         }
 
         return true;
