@@ -2,6 +2,7 @@ local BUILD_DIR = path.join("build", "native")
 local SUPPORT_DIR = "StapleSupport"
 local TOOLING_SUPPORT_DIR = "StapleToolingSupport"
 local UFBX_DIR = "ufbx"
+local NFD_DIR = "NativeFileDialog"
 
 solution "Dependencies"
 	location(BUILD_DIR)
@@ -28,6 +29,20 @@ solution "Dependencies"
 		
 	filter "action:vs*"
 		buildoptions { "/Zc:preprocessor" }
+		
+project "nfd"
+	kind "SharedLib"
+	language "C"
+	includedirs {
+		path.join(NFD_DIR, "src/*.h")
+	}
+	
+	files {
+		path.join(NFD_DIR, "src/*.c")
+	}
+
+	filter "system:macosx"
+		files { path.join(NFD_DIR, "src/*.m") }
 
 project "StapleSupport"
 	kind "SharedLib"
