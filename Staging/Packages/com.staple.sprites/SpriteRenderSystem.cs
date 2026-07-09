@@ -454,7 +454,6 @@ public class SpriteRenderSystem : IRenderSystem
                 mutableMaterial = new(r.material);
 
                 mutableMaterial.DisableShaderKeyword(Shader.SkinningKeyword);
-                mutableMaterial.DisableShaderKeyword(Shader.InstancingKeyword);
 
                 mutableMaterials.Add(r.material.Guid.GuidHash, mutableMaterial);
             }
