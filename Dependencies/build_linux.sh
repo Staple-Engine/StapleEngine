@@ -29,6 +29,7 @@ rm -f $SLANG_FILENAME
 cd ..
 
 ./premake.sh --os=linux gmake
+./premake.sh --os=linux --file=NativeFileDialog/build/premake5.lua gmake
 
 cmake -B build/native/freetype/Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=true -S freetype -G "Unix Makefiles"
 

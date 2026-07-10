@@ -1107,6 +1107,8 @@ CEXPORT Scene* UFBXLoadScene(const char* fileName)
 
 	opts.space_conversion = UFBX_SPACE_CONVERSION_MODIFY_GEOMETRY;
 
+	opts.obj_search_mtl_by_filename = true;
+
 	ufbx_error error;
 
 	ufbx_scene* scene = ufbx_load_file(fileName, &opts, &error);

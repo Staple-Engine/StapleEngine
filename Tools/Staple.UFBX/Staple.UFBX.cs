@@ -12,7 +12,7 @@ namespace Staple.Tooling;
 
 public class UFXImporter : IMeshImporter
 {
-    public bool HandlesExtension(string extension) => extension == ".fbx";
+    public bool HandlesExtension(string extension) => extension == ".fbx" || extension == ".obj";
 
     public SerializableMeshAsset ImportMesh(MeshImporterContext context)
     {

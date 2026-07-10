@@ -27,6 +27,7 @@ del /S /Q %SLANG_FILENAME%
 cd ..
 
 call premake5 vs2026
+call premake5 --file=NativeFileDialog/build/premake5.lua vs2026
 
 cmake -B build\native\freetype\Debug -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=true -S freetype -G "Visual Studio 18 2026"
 

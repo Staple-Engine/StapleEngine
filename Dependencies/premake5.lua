@@ -29,20 +29,6 @@ solution "Dependencies"
 		
 	filter "action:vs*"
 		buildoptions { "/Zc:preprocessor" }
-		
-project "nfd"
-	kind "SharedLib"
-	language "C"
-	includedirs {
-		path.join(NFD_DIR, "src/*.h")
-	}
-	
-	files {
-		path.join(NFD_DIR, "src/*.c")
-	}
-
-	filter "system:macosx"
-		files { path.join(NFD_DIR, "src/*.m") }
 
 project "StapleSupport"
 	kind "SharedLib"

@@ -255,13 +255,13 @@ public class TextureMetadata
     public TextureFilter filter = TextureFilter.Linear;
 
     [Key(5)]
-    public TextureWrap wrapU = TextureWrap.Clamp;
+    public TextureWrap wrapU = TextureWrap.Repeat;
 
     [Key(6)]
-    public TextureWrap wrapV = TextureWrap.Clamp;
+    public TextureWrap wrapV = TextureWrap.Repeat;
 
     [Key(7)]
-    public TextureWrap wrapW = TextureWrap.Clamp;
+    public TextureWrap wrapW = TextureWrap.Repeat;
 
     [Key(8)]
     public bool premultiplyAlpha = false;

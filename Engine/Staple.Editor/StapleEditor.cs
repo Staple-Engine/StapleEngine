@@ -123,18 +123,11 @@ internal partial class StapleEditor
         public List<MenuItemInfo> children = [];
     }
 
-    public class StapleAssemblyLoadContext : AssemblyLoadContext
+    public class StapleAssemblyLoadContext(string path, Func<(string[], string[])> assemblyPathsCallback) : AssemblyLoadContext(true)
     {
-        private readonly AssemblyDependencyResolver resolver;
+        private readonly AssemblyDependencyResolver resolver = new(path);
 
-        private readonly Func<(string[], string[])> assemblyPathsCallback;
-
-        public StapleAssemblyLoadContext(string path, Func<(string[], string[])> assemblyPathsCallback) : base(true)
-        {
-            this.assemblyPathsCallback = assemblyPathsCallback;
-
-            resolver = new AssemblyDependencyResolver(path);
-        }
+        private readonly Func<(string[], string[])> assemblyPathsCallback = assemblyPathsCallback;
 
         protected override Assembly Load(AssemblyName assemblyName)
         {
@@ -307,6 +300,8 @@ internal partial class StapleEditor
     private readonly RenderQueue renderQueue = new();
 
     private bool debugSpatialInfo = false;
+
+    private float cameraSpeedUp = 2.0f;
     #endregion
 
     #region Entities
@@ -894,8 +889,20 @@ internal partial class StapleEditor
                         axis += cameraTransform.Back;
                     }
 
-                    cameraTransform.LocalPosition += axis * 5 * Time.unscaledDeltaTime *
-                        (Input.GetKey(KeyCode.LeftShift) ? 2 : Input.GetKey(KeyCode.LeftControl) ? 0.5f : 1);
+                    var speed = Input.GetKey(KeyCode.LeftControl) ? 0.5f : 1.0f;
+
+                    if(Input.GetKey(KeyCode.LeftShift))
+                    {
+                        cameraSpeedUp *= 1 + Time.unscaledDeltaTime * 0.5f;
+
+                        speed = cameraSpeedUp;
+                    }
+                    else
+                    {
+                        cameraSpeedUp = 2;
+                    }
+
+                    cameraTransform.LocalPosition += axis * 5 * Time.unscaledDeltaTime * speed;
                 }
 
                 if (!io.WantTextInput && Input.GetMouseButton(MouseButton.Right))

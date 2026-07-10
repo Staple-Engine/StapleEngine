@@ -169,7 +169,6 @@ static partial class Program
             [
                 new UFXImporter(),
                 new SharpGLTFImporter(),
-                new OBJImporter(),
             ];
 
         for (var i = 0; i < meshFiles.Count; i++)
@@ -268,7 +267,7 @@ static partial class Program
 
                 SerializableMeshAsset meshData = null;
 
-                var extension = Path.GetExtension(meshFileName.Replace(".meta", ""));
+                var extension = Path.GetExtension(meshFileName.Replace(".meta", "")).ToLowerInvariant();
 
                 foreach(var importer in importers)
                 {
