@@ -338,7 +338,6 @@ public class TextureMetadata
         {
             return format switch
             {
-
                 TextureMetadataFormat.BC1 => TextureFormat.BC1,
                 TextureMetadataFormat.BC2 => TextureFormat.BC2,
                 TextureMetadataFormat.BC3 => TextureFormat.BC3,

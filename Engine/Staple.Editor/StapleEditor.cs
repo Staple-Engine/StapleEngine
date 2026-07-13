@@ -891,9 +891,9 @@ internal partial class StapleEditor
 
                     var speed = Input.GetKey(KeyCode.LeftControl) ? 0.5f : 1.0f;
 
-                    if(Input.GetKey(KeyCode.LeftShift))
+                    if(Input.GetKey(KeyCode.LeftShift) && axis != Vector3.Zero)
                     {
-                        cameraSpeedUp *= 1 + Time.unscaledDeltaTime * 0.5f;
+                        cameraSpeedUp *= 1 + Time.unscaledDeltaTime * 0.8f;
 
                         speed = cameraSpeedUp;
                     }
