@@ -279,11 +279,6 @@ internal class MaterialEditor : AssetEditor
                         case MaterialParameterType.Vector2:
 
                             {
-                                if (parameter.Value.vec2Value == null)
-                                {
-                                    parameter.Value.vec2Value = new();
-                                }
-
                                 var current = parameter.Value.vec2Value.ToVector2();
 
                                 var newValue = EditorGUI.Vector2Field(label, parameter.Key, current);
@@ -305,11 +300,6 @@ internal class MaterialEditor : AssetEditor
                         case MaterialParameterType.Vector3:
 
                             {
-                                if (parameter.Value.vec3Value == null)
-                                {
-                                    parameter.Value.vec3Value = new();
-                                }
-
                                 var current = parameter.Value.vec3Value.ToVector3();
 
                                 var newValue = EditorGUI.Vector3Field(label, parameter.Key, current);
@@ -332,11 +322,6 @@ internal class MaterialEditor : AssetEditor
                         case MaterialParameterType.Vector4:
 
                             {
-                                if (parameter.Value.vec4Value == null)
-                                {
-                                    parameter.Value.vec4Value = new();
-                                }
-
                                 var current = parameter.Value.vec4Value.ToVector4();
 
                                 var newValue = EditorGUI.Vector4Field(label, parameter.Key, current);

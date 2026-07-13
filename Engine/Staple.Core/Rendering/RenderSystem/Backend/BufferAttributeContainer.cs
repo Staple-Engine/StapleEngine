@@ -32,26 +32,26 @@ internal class BufferAttributeContainer
 
     public class Entries
     {
-        public UnmanagedFreeformAllocator<Vector3>.Entry positionEntry;
-        public UnmanagedFreeformAllocator<Vector3>.Entry normalEntry;
-        public UnmanagedFreeformAllocator<Vector3>.Entry tangentEntry;
-        public UnmanagedFreeformAllocator<Vector3>.Entry bitangentEntry;
-        public UnmanagedFreeformAllocator<Vector4>.Entry blendIndicesEntry;
-        public UnmanagedFreeformAllocator<Vector4>.Entry blendWeightsEntry;
-        public UnmanagedFreeformAllocator<Color>.Entry color0Entry;
-        public UnmanagedFreeformAllocator<Color>.Entry color1Entry;
-        public UnmanagedFreeformAllocator<Color>.Entry color2Entry;
-        public UnmanagedFreeformAllocator<Color>.Entry color3Entry;
-        public UnmanagedFreeformAllocator<Vector2>.Entry texCoord0Entry;
-        public UnmanagedFreeformAllocator<Vector2>.Entry texCoord1Entry;
-        public UnmanagedFreeformAllocator<Vector2>.Entry texCoord2Entry;
-        public UnmanagedFreeformAllocator<Vector2>.Entry texCoord3Entry;
-        public UnmanagedFreeformAllocator<Vector2>.Entry texCoord4Entry;
-        public UnmanagedFreeformAllocator<Vector2>.Entry texCoord5Entry;
-        public UnmanagedFreeformAllocator<Vector2>.Entry texCoord6Entry;
-        public UnmanagedFreeformAllocator<Vector2>.Entry texCoord7Entry;
+        public ManagedFreeformAllocator<Vector3>.Entry positionEntry;
+        public ManagedFreeformAllocator<Vector3>.Entry normalEntry;
+        public ManagedFreeformAllocator<Vector3>.Entry tangentEntry;
+        public ManagedFreeformAllocator<Vector3>.Entry bitangentEntry;
+        public ManagedFreeformAllocator<Vector4>.Entry blendIndicesEntry;
+        public ManagedFreeformAllocator<Vector4>.Entry blendWeightsEntry;
+        public ManagedFreeformAllocator<Color>.Entry color0Entry;
+        public ManagedFreeformAllocator<Color>.Entry color1Entry;
+        public ManagedFreeformAllocator<Color>.Entry color2Entry;
+        public ManagedFreeformAllocator<Color>.Entry color3Entry;
+        public ManagedFreeformAllocator<Vector2>.Entry texCoord0Entry;
+        public ManagedFreeformAllocator<Vector2>.Entry texCoord1Entry;
+        public ManagedFreeformAllocator<Vector2>.Entry texCoord2Entry;
+        public ManagedFreeformAllocator<Vector2>.Entry texCoord3Entry;
+        public ManagedFreeformAllocator<Vector2>.Entry texCoord4Entry;
+        public ManagedFreeformAllocator<Vector2>.Entry texCoord5Entry;
+        public ManagedFreeformAllocator<Vector2>.Entry texCoord6Entry;
+        public ManagedFreeformAllocator<Vector2>.Entry texCoord7Entry;
 
-        public UnmanagedFreeformAllocator<int>.Entry indicesEntry;
+        public ManagedFreeformAllocator<int>.Entry indicesEntry;
     }
 
     public readonly BufferAttributeSource<Vector3, VertexBuffer> Position = new(VertexAttribute.Position, BufferSlot.Position);

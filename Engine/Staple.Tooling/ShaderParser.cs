@@ -362,11 +362,6 @@ public static partial class ShaderParser
         {
             var combination = combinations[i];
 
-            if(combination.Count <= 1)
-            {
-                continue;
-            }
-
             var found = false;
 
             foreach (var dependency in variantDependencies)

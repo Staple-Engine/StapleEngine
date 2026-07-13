@@ -257,7 +257,7 @@ internal partial class StapleEditor
                 UpdateWindowTitle();
             });
         },
-        StagingRefreshFlags.UpdateProject |
+            StagingRefreshFlags.UpdateProject |
             StagingRefreshFlags.CheckBuild |
             StagingRefreshFlags.LoadLastScene);
     }

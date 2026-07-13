@@ -13,12 +13,17 @@ namespace Staple;
 /// <typeparam name="T">The type to use</typeparam>
 public class ExpandableContainer<T>
 {
-    private T[] contents = [];
+    private T[] contents = new T[1024];
 
     /// <summary>
     /// The amount of elements contained
     /// </summary>
     public int Length { get; private set; } = 0;
+
+    /// <summary>
+    /// How much storage capacity the container has
+    /// </summary>
+    public int Capacity => contents.Length;
 
     /// <summary>
     /// Gets the current contents.
@@ -44,9 +49,66 @@ public class ExpandableContainer<T>
     {
         if(Length + 1 >= contents.Length)
         {
-            Array.Resize(ref contents, (Length + 1) * 2);
+            Resize(Length + 1, true);
+
+            contents[Length - 1] = item;
+
+            return;
         }
 
         contents[Length++] = item;
+    }
+
+    /// <summary>
+    /// Adds a range of items to the container
+    /// </summary>
+    /// <param name="items">The items to add</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void AddRange(Span<T> items)
+    {
+        if (Length + items.Length >= contents.Length)
+        {
+            Resize(Length + 1, true);
+
+            items.CopyTo(contents.AsSpan(Length - items.Length, items.Length));
+
+            return;
+        }
+
+        items.CopyTo(contents.AsSpan(Length, items.Length));
+
+        Length += items.Length;
+    }
+
+    /// <summary>
+    /// Resizes this container to a specific size. The size is guaranteed to be the same or larger.
+    /// </summary>
+    /// <param name="newSize">The new size</param>
+    /// <param name="copyElements">Whether to copy the previous elements over</param>
+    /// <remarks>May not resize if the requested size is less or equal to the <see cref="Capacity"/></remarks>
+    public void Resize(int newSize, bool copyElements)
+    {
+        Length = newSize;
+
+        if (newSize <= contents.Length)
+        {
+            return;
+        }
+
+        var targetSize = contents.Length;
+
+        while(newSize > targetSize)
+        {
+            targetSize *= 2;
+        }
+
+        if (copyElements)
+        {
+            Array.Resize(ref contents, targetSize);
+        }
+        else
+        {
+            contents = new T[targetSize];
+        }
     }
 }

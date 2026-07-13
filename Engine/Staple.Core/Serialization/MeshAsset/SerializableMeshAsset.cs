@@ -213,7 +213,7 @@ public class MeshAssetMetadata
 }
 
 [MessagePackObject]
-public class Matrix4x4Holder
+public struct Matrix4x4Holder
 {
     [Key(0)]
     public float M11;
@@ -281,7 +281,7 @@ public class Matrix4x4Holder
 }
 
 [MessagePackObject]
-public class MeshAssetBone
+public struct MeshAssetBone
 {
     [Key(0)]
     public int nodeIndex;
@@ -303,22 +303,22 @@ public class MeshAssetMeshInfo
     public MeshTopology topology;
 
     [Key(3)]
-    public List<Vector3Holder> vertices = [];
+    public Vector3Holder[] vertices = [];
 
     [Key(4)]
-    public List<Vector4Holder> colors = [];
+    public Vector4Holder[] colors = [];
 
     [Key(5)]
-    public List<Vector3Holder> normals = [];
+    public Vector3Holder[] normals = [];
 
     [Key(6)]
-    public List<Vector3Holder> tangents = [];
+    public Vector3Holder[] tangents = [];
 
     [Key(7)]
-    public List<Vector3Holder> bitangents = [];
+    public Vector3Holder[] bitangents = [];
 
     [Key(8)]
-    public List<int> indices = [];
+    public int[] indices = [];
 
     [Key(9)]
     public Vector3Holder boundsCenter;
@@ -327,49 +327,49 @@ public class MeshAssetMeshInfo
     public Vector3Holder boundsExtents;
 
     [Key(11)]
-    public List<Vector2Holder> UV1 = [];
+    public Vector2Holder[] UV1 = [];
 
     [Key(12)]
-    public List<Vector2Holder> UV2 = [];
+    public Vector2Holder[] UV2 = [];
 
     [Key(13)]
-    public List<Vector2Holder> UV3 = [];
+    public Vector2Holder[] UV3 = [];
 
     [Key(14)]
-    public List<Vector2Holder> UV4 = [];
+    public Vector2Holder[] UV4 = [];
 
     [Key(15)]
-    public List<Vector2Holder> UV5 = [];
+    public Vector2Holder[] UV5 = [];
 
     [Key(16)]
-    public List<Vector2Holder> UV6 = [];
+    public Vector2Holder[] UV6 = [];
 
     [Key(17)]
-    public List<Vector2Holder> UV7 = [];
+    public Vector2Holder[] UV7 = [];
 
     [Key(18)]
-    public List<Vector2Holder> UV8 = [];
+    public Vector2Holder[] UV8 = [];
 
     [Key(19)]
     public MeshAssetType type;
 
     [Key(20)]
-    public List<MeshAssetBone> bones = [];
+    public MeshAssetBone[] bones = [];
 
     [Key(21)]
-    public List<Vector4Holder> boneIndices = [];
+    public Vector4Holder[] boneIndices = [];
 
     [Key(22)]
-    public List<Vector4Holder> boneWeights = [];
+    public Vector4Holder[] boneWeights = [];
 
     [Key(23)]
-    public List<Vector4Holder> colors2 = [];
+    public Vector4Holder[] colors2 = [];
 
     [Key(24)]
-    public List<Vector4Holder> colors3 = [];
+    public Vector4Holder[] colors3 = [];
 
     [Key(25)]
-    public List<Vector4Holder> colors4 = [];
+    public Vector4Holder[] colors4 = [];
 
     [IgnoreMember]
     public MeshAssetComponent Components
@@ -378,82 +378,82 @@ public class MeshAssetMeshInfo
         {
             var result = MeshAssetComponent.None;
 
-            if ((UV1?.Count ?? 0) > 0)
+            if ((UV1?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.UV1;
             }
 
-            if ((UV2?.Count ?? 0) > 0)
+            if ((UV2?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.UV2;
             }
 
-            if ((UV3?.Count ?? 0) > 0)
+            if ((UV3?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.UV3;
             }
 
-            if ((UV4?.Count ?? 0) > 0)
+            if ((UV4?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.UV4;
             }
 
-            if ((UV5?.Count ?? 0) > 0)
+            if ((UV5?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.UV5;
             }
 
-            if ((UV6?.Count ?? 0) > 0)
+            if ((UV6?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.UV6;
             }
 
-            if ((UV7?.Count ?? 0) > 0)
+            if ((UV7?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.UV7;
             }
 
-            if ((UV8?.Count ?? 0) > 0)
+            if ((UV8?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.UV8;
             }
 
-            if ((normals?.Count ?? 0) > 0)
+            if ((normals?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.Normal;
             }
 
-            if ((tangents?.Count ?? 0) > 0)
+            if ((tangents?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.Tangent;
             }
 
-            if ((bitangents?.Count ?? 0) > 0)
+            if ((bitangents?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.Bitangent;
             }
 
-            if ((colors?.Count ?? 0) > 0)
+            if ((colors?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.Color1;
             }
 
-            if ((colors2?.Count ?? 0) > 0)
+            if ((colors2?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.Color2;
             }
 
-            if ((colors3?.Count ?? 0) > 0)
+            if ((colors3?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.Color3;
             }
 
-            if ((colors4?.Count ?? 0) > 0)
+            if ((colors4?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.Color4;
             }
 
-            if ((boneIndices?.Count ?? 0) > 0 || (boneWeights?.Count ?? 0) > 0)
+            if ((boneIndices?.Length ?? 0) > 0 || (boneWeights?.Length ?? 0) > 0)
             {
                 result |= MeshAssetComponent.BoneIndicesWeights;
             }
@@ -486,7 +486,7 @@ public class MeshAssetNode
 }
 
 [MessagePackObject]
-public class MeshAssetVectorAnimationKey
+public struct MeshAssetVectorAnimationKey
 {
     [Key(0)]
     public float time;
@@ -496,7 +496,7 @@ public class MeshAssetVectorAnimationKey
 }
 
 [MessagePackObject]
-public class MeshAssetQuaternionAnimationKey
+public struct MeshAssetQuaternionAnimationKey
 {
     [Key(0)]
     public float time;
@@ -531,7 +531,7 @@ public class MeshAssetAnimation
     public float duration;
 
     [Key(2)]
-    public List<MeshAssetAnimationChannel> channels = [];
+    public MeshAssetAnimationChannel[] channels = [];
 }
 
 [MessagePackObject]
@@ -541,7 +541,7 @@ public class SerializableMeshAsset
     public MeshAssetMetadata metadata;
 
     [Key(1)]
-    public List<MeshAssetMeshInfo> meshes = [];
+    public MeshAssetMeshInfo[] meshes = [];
 
     [Key(2)]
     public MeshAssetNode[] nodes;

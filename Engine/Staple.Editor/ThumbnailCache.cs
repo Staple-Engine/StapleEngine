@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -120,15 +119,6 @@ internal class ThumbnailCache
                         break;
                     }
 
-                    var mesh = ResourceManager.instance.LoadMeshAsset(cachePath, true);
-
-                    if (mesh == null || mesh.Meshes.Count == 0)
-                    {
-                        Cleanup();
-
-                        break;
-                    }
-
                     var thumbnailPath = Path.Combine(basePath, "Cache", "Thumbnails");
 
                     try
@@ -176,6 +166,15 @@ internal class ThumbnailCache
 
                     if (lastLocalModified >= lastModified)
                     {
+                        var mesh = ResourceManager.instance.LoadMeshAsset(cachePath, true);
+
+                        if (mesh == null || mesh.Meshes.Length == 0)
+                        {
+                            Cleanup();
+
+                            break;
+                        }
+
                         var renderTarget = RenderTarget.Create(ThumbnailSize, ThumbnailSize);
 
                         if(renderTarget == null)
@@ -184,7 +183,6 @@ internal class ThumbnailCache
 
                             return;
                         }
-
                         var tempEntity = Mesh.InstanceMesh("TEMP", mesh);
 
                         if(!tempEntity.IsValid)

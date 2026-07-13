@@ -1,6 +1,7 @@
 ﻿using MeshOptimizer;
 using Staple.Internal;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
@@ -39,7 +40,7 @@ public static class MeshOptimization
         unsafe
         {
             if(mesh.topology != MeshTopology.Triangles ||
-                mesh.vertices.Count == 0)
+                mesh.vertices.Length == 0)
             {
                 return mesh;
             }
@@ -55,25 +56,25 @@ public static class MeshOptimization
                 type = mesh.type,
             };
 
-            var tempVertices = new PlaceholderVertex[mesh.vertices.Count];
+            var tempVertices = new PlaceholderVertex[mesh.vertices.Length];
 
-            var hasNormals = (mesh.normals?.Count ?? 0) == tempVertices.Length;
-            var hasTangents = (mesh.tangents?.Count ?? 0) == tempVertices.Length;
-            var hasBitangents = (mesh.bitangents?.Count ?? 0) == tempVertices.Length;
-            var hasColors = (mesh.colors?.Count ?? 0) == tempVertices.Length;
-            var hasColors2 = (mesh.colors2?.Count ?? 0) == tempVertices.Length;
-            var hasColors3 = (mesh.colors3?.Count ?? 0) == tempVertices.Length;
-            var hasColors4 = (mesh.colors4?.Count ?? 0) == tempVertices.Length;
-            var hasUV1 = (mesh.UV1?.Count ?? 0) == tempVertices.Length;
-            var hasUV2 = (mesh.UV2?.Count ?? 0) == tempVertices.Length;
-            var hasUV3 = (mesh.UV3?.Count ?? 0) == tempVertices.Length;
-            var hasUV4 = (mesh.UV4?.Count ?? 0) == tempVertices.Length;
-            var hasUV5 = (mesh.UV5?.Count ?? 0) == tempVertices.Length;
-            var hasUV6 = (mesh.UV6?.Count ?? 0) == tempVertices.Length;
-            var hasUV7 = (mesh.UV7?.Count ?? 0) == tempVertices.Length;
-            var hasUV8 = (mesh.UV8?.Count ?? 0) == tempVertices.Length;
-            var hasBoneIndices = (mesh.boneIndices?.Count ?? 0) == tempVertices.Length;
-            var hasBoneWeights = (mesh.boneWeights?.Count ?? 0) == tempVertices.Length;
+            var hasNormals = (mesh.normals?.Length ?? 0) == tempVertices.Length;
+            var hasTangents = (mesh.tangents?.Length ?? 0) == tempVertices.Length;
+            var hasBitangents = (mesh.bitangents?.Length ?? 0) == tempVertices.Length;
+            var hasColors = (mesh.colors?.Length ?? 0) == tempVertices.Length;
+            var hasColors2 = (mesh.colors2?.Length ?? 0) == tempVertices.Length;
+            var hasColors3 = (mesh.colors3?.Length ?? 0) == tempVertices.Length;
+            var hasColors4 = (mesh.colors4?.Length ?? 0) == tempVertices.Length;
+            var hasUV1 = (mesh.UV1?.Length ?? 0) == tempVertices.Length;
+            var hasUV2 = (mesh.UV2?.Length ?? 0) == tempVertices.Length;
+            var hasUV3 = (mesh.UV3?.Length ?? 0) == tempVertices.Length;
+            var hasUV4 = (mesh.UV4?.Length ?? 0) == tempVertices.Length;
+            var hasUV5 = (mesh.UV5?.Length ?? 0) == tempVertices.Length;
+            var hasUV6 = (mesh.UV6?.Length ?? 0) == tempVertices.Length;
+            var hasUV7 = (mesh.UV7?.Length ?? 0) == tempVertices.Length;
+            var hasUV8 = (mesh.UV8?.Length ?? 0) == tempVertices.Length;
+            var hasBoneIndices = (mesh.boneIndices?.Length ?? 0) == tempVertices.Length;
+            var hasBoneWeights = (mesh.boneWeights?.Length ?? 0) == tempVertices.Length;
 
             for (var i = 0; i < tempVertices.Length; i++)
             {
@@ -165,7 +166,7 @@ public static class MeshOptimization
                 }
             }
 
-            var remap = new uint[mesh.indices.Count];
+            var remap = new uint[mesh.indices.Length];
 
             var originalIndices = mesh.indices.Select(x => (uint)x).ToArray();
 
@@ -189,7 +190,7 @@ public static class MeshOptimization
 
                 var resultError = 0.0f;
 
-                var simplifiedIndices = new uint[mesh.indices.Count];
+                var simplifiedIndices = new uint[mesh.indices.Length];
 
                 fixed (float* vptr = &tempVertices[0].position.X)
                 {
@@ -198,7 +199,7 @@ public static class MeshOptimization
                         fixed (uint* ni = originalIndices)
                         {
                             var simplifiedIndexCount = Meshopt.Simplify(si, ni, (nuint)originalIndices.Length,
-                                vptr, (nuint)mesh.vertices.Count, (nuint)sizeof(PlaceholderVertex), (nuint)newIndexCount, error,
+                                vptr, (nuint)mesh.vertices.Length, (nuint)sizeof(PlaceholderVertex), (nuint)newIndexCount, error,
                                 SimplificationOptions.None, &resultError);
 
                             originalIndices = simplifiedIndices.Take((int)simplifiedIndexCount).ToArray();
@@ -240,97 +241,189 @@ public static class MeshOptimization
                 }
             }
 
-            newMesh.indices.AddRange(newIndices.Select(x => (int)x));
+            newMesh.indices = new int[newIndices.Length];
+
+            for(var i = 0; i < newIndices.Length; i++)
+            {
+                newMesh.indices[i] = (int)newIndices[i];
+            }
+
+            newMesh.vertices = new Vector3Holder[vertexCount];
+
+            if (hasNormals)
+            {
+                newMesh.normals = new Vector3Holder[vertexCount];
+            }
+
+            if (hasTangents)
+            {
+                newMesh.tangents = new Vector3Holder[vertexCount];
+            }
+
+            if (hasBitangents)
+            {
+                newMesh.bitangents = new Vector3Holder[vertexCount];
+            }
+
+            if (hasColors)
+            {
+                newMesh.colors = new Vector4Holder[vertexCount];
+            }
+
+            if (hasColors2)
+            {
+                newMesh.colors2 = new Vector4Holder[vertexCount];
+            }
+
+            if (hasColors3)
+            {
+                newMesh.colors3 = new Vector4Holder[vertexCount];
+            }
+
+            if (hasColors4)
+            {
+                newMesh.colors4 = new Vector4Holder[vertexCount];
+            }
+
+            if (hasUV1)
+            {
+                newMesh.UV1 = new Vector2Holder[vertexCount];
+            }
+
+            if (hasUV2)
+            {
+                newMesh.UV2 = new Vector2Holder[vertexCount];
+            }
+
+            if (hasUV3)
+            {
+                newMesh.UV3 = new Vector2Holder[vertexCount];
+            }
+
+            if (hasUV4)
+            {
+                newMesh.UV4 = new Vector2Holder[vertexCount];
+            }
+
+            if (hasUV5)
+            {
+                newMesh.UV5 = new Vector2Holder[vertexCount];
+            }
+
+            if (hasUV6)
+            {
+                newMesh.UV6 = new Vector2Holder[vertexCount];
+            }
+
+            if (hasUV7)
+            {
+                newMesh.UV7 = new Vector2Holder[vertexCount];
+            }
+
+            if (hasUV8)
+            {
+                newMesh.UV8 = new Vector2Holder[vertexCount];
+            }
+
+            if (hasBoneIndices)
+            {
+                newMesh.boneIndices = new Vector4Holder[vertexCount];
+            }
+
+            if (hasBoneWeights)
+            {
+                newMesh.boneWeights = new Vector4Holder[vertexCount];
+            }
 
             for (var i = 0; i < (int)vertexCount; i++)
             {
                 var v = newVertices[i];
 
-                newMesh.vertices.Add(new(v.position));
+                newMesh.vertices[i] = new(v.position);
 
                 if (hasNormals)
                 {
-                    newMesh.normals.Add(new(v.normal));
+                    newMesh.normals[i] = new(v.normal);
                 }
 
                 if (hasTangents)
                 {
-                    newMesh.tangents.Add(new(v.tangent));
+                    newMesh.tangents[i] = new(v.tangent);
                 }
 
                 if (hasBitangents)
                 {
-                    newMesh.bitangents.Add(new(v.bitangent));
+                    newMesh.bitangents[i] = new(v.bitangent);
                 }
 
                 if (hasColors)
                 {
-                    newMesh.colors.Add(new(v.color));
+                    newMesh.colors[i] = new(v.color);
                 }
 
                 if (hasColors2)
                 {
-                    newMesh.colors2.Add(new(v.color2));
+                    newMesh.colors2[i] = new(v.color2);
                 }
 
                 if (hasColors3)
                 {
-                    newMesh.colors3.Add(new(v.color3));
+                    newMesh.colors3[i] = new(v.color3);
                 }
 
                 if (hasColors4)
                 {
-                    newMesh.colors4.Add(new(v.color4));
+                    newMesh.colors4[i] = new(v.color4);
                 }
 
                 if (hasUV1)
                 {
-                    newMesh.UV1.Add(new(v.uv1));
+                    newMesh.UV1[i] = new(v.uv1);
                 }
 
                 if (hasUV2)
                 {
-                    newMesh.UV2.Add(new(v.uv2));
+                    newMesh.UV2[i] = new(v.uv2);
                 }
 
                 if (hasUV3)
                 {
-                    newMesh.UV3.Add(new(v.uv3));
+                    newMesh.UV3[i] = new(v.uv3);
                 }
 
                 if (hasUV4)
                 {
-                    newMesh.UV4.Add(new(v.uv4));
+                    newMesh.UV4[i] = new(v.uv4);
                 }
 
                 if (hasUV5)
                 {
-                    newMesh.UV5.Add(new(v.uv5));
+                    newMesh.UV5[i] = new(v.uv5);
                 }
 
                 if (hasUV6)
                 {
-                    newMesh.UV6.Add(new(v.uv6));
+                    newMesh.UV6[i] = new(v.uv6);
                 }
 
                 if (hasUV7)
                 {
-                    newMesh.UV7.Add(new(v.uv7));
+                    newMesh.UV7[i] = new(v.uv7);
                 }
 
                 if (hasUV8)
                 {
-                    newMesh.UV8.Add(new(v.uv8));
+                    newMesh.UV8[i] = new(v.uv8);
                 }
 
                 if (hasBoneIndices)
                 {
-                    newMesh.boneIndices.Add(new(v.boneIndices));
+                    newMesh.boneIndices[i] = new(v.boneIndices);
                 }
 
                 if (hasBoneWeights)
                 {
-                    newMesh.boneWeights.Add(new(v.boneWeights));
+                    newMesh.boneWeights[i] = new(v.boneWeights);
                 }
             }
 
@@ -349,12 +442,14 @@ public static class MeshOptimization
                 nodes = meshAsset.nodes,
             };
 
+            var meshes = new List<MeshAssetMeshInfo>();
+
             foreach (var mesh in meshAsset.meshes)
             {
                 if(mesh.topology != MeshTopology.Triangles ||
-                    mesh.vertices.Count == 0)
+                    mesh.vertices.Length == 0)
                 {
-                    outValue.meshes.Add(mesh);
+                    meshes.Add(mesh);
 
                     continue;
                 }
@@ -370,27 +465,27 @@ public static class MeshOptimization
                     type = mesh.type,
                 };
 
-                outValue.meshes.Add(newMesh);
+                meshes.Add(newMesh);
 
-                var tempVertices = new PlaceholderVertex[mesh.vertices.Count];
+                var tempVertices = new PlaceholderVertex[mesh.vertices.Length];
 
-                var hasNormals = (mesh.normals?.Count ?? 0) == tempVertices.Length;
-                var hasTangents = (mesh.tangents?.Count ?? 0) == tempVertices.Length;
-                var hasBitangents = (mesh.bitangents?.Count ?? 0) == tempVertices.Length;
-                var hasColors = (mesh.colors?.Count ?? 0) == tempVertices.Length;
-                var hasColors2 = (mesh.colors2?.Count ?? 0) == tempVertices.Length;
-                var hasColors3 = (mesh.colors3?.Count ?? 0) == tempVertices.Length;
-                var hasColors4 = (mesh.colors4?.Count ?? 0) == tempVertices.Length;
-                var hasUV1 = (mesh.UV1?.Count ?? 0) == tempVertices.Length;
-                var hasUV2 = (mesh.UV2?.Count ?? 0) == tempVertices.Length;
-                var hasUV3 = (mesh.UV3?.Count ?? 0) == tempVertices.Length;
-                var hasUV4 = (mesh.UV4?.Count ?? 0) == tempVertices.Length;
-                var hasUV5 = (mesh.UV5?.Count ?? 0) == tempVertices.Length;
-                var hasUV6 = (mesh.UV6?.Count ?? 0) == tempVertices.Length;
-                var hasUV7 = (mesh.UV7?.Count ?? 0) == tempVertices.Length;
-                var hasUV8 = (mesh.UV8?.Count ?? 0) == tempVertices.Length;
-                var hasBoneIndices = (mesh.boneIndices?.Count ?? 0) == tempVertices.Length;
-                var hasBoneWeights = (mesh.boneWeights?.Count ?? 0) == tempVertices.Length;
+                var hasNormals = (mesh.normals?.Length ?? 0) == tempVertices.Length;
+                var hasTangents = (mesh.tangents?.Length ?? 0) == tempVertices.Length;
+                var hasBitangents = (mesh.bitangents?.Length ?? 0) == tempVertices.Length;
+                var hasColors = (mesh.colors?.Length ?? 0) == tempVertices.Length;
+                var hasColors2 = (mesh.colors2?.Length ?? 0) == tempVertices.Length;
+                var hasColors3 = (mesh.colors3?.Length ?? 0) == tempVertices.Length;
+                var hasColors4 = (mesh.colors4?.Length ?? 0) == tempVertices.Length;
+                var hasUV1 = (mesh.UV1?.Length ?? 0) == tempVertices.Length;
+                var hasUV2 = (mesh.UV2?.Length ?? 0) == tempVertices.Length;
+                var hasUV3 = (mesh.UV3?.Length ?? 0) == tempVertices.Length;
+                var hasUV4 = (mesh.UV4?.Length ?? 0) == tempVertices.Length;
+                var hasUV5 = (mesh.UV5?.Length ?? 0) == tempVertices.Length;
+                var hasUV6 = (mesh.UV6?.Length ?? 0) == tempVertices.Length;
+                var hasUV7 = (mesh.UV7?.Length ?? 0) == tempVertices.Length;
+                var hasUV8 = (mesh.UV8?.Length ?? 0) == tempVertices.Length;
+                var hasBoneIndices = (mesh.boneIndices?.Length ?? 0) == tempVertices.Length;
+                var hasBoneWeights = (mesh.boneWeights?.Length ?? 0) == tempVertices.Length;
 
                 for (var i = 0; i < tempVertices.Length; i++)
                 {
@@ -482,7 +577,7 @@ public static class MeshOptimization
                     }
                 }
 
-                var remap = new uint[mesh.indices.Count];
+                var remap = new uint[mesh.indices.Length];
 
                 var originalIndices = mesh.indices.Select(x => (uint)x).ToArray();
 
@@ -506,7 +601,7 @@ public static class MeshOptimization
 
                     var resultError = 0.0f;
 
-                    var simplifiedIndices = new uint[mesh.indices.Count];
+                    var simplifiedIndices = new uint[mesh.indices.Length];
 
                     fixed (float* vptr = &tempVertices[0].position.X)
                     {
@@ -515,7 +610,7 @@ public static class MeshOptimization
                             fixed (uint* ni = originalIndices)
                             {
                                 var simplifiedIndexCount = Meshopt.Simplify(si, ni, (nuint)originalIndices.Length,
-                                    vptr, (nuint)mesh.vertices.Count, (nuint)sizeof(PlaceholderVertex), (nuint)newIndexCount, error,
+                                    vptr, (nuint)mesh.vertices.Length, (nuint)sizeof(PlaceholderVertex), (nuint)newIndexCount, error,
                                     SimplificationOptions.None, &resultError);
 
                                 originalIndices = simplifiedIndices.Take((int)simplifiedIndexCount).ToArray();
@@ -557,100 +652,194 @@ public static class MeshOptimization
                     }
                 }
 
-                newMesh.indices.AddRange(newIndices.Select(x => (int)x));
+                newMesh.indices = new int[newIndices.Length];
+
+                for (var i = 0; i < newIndices.Length; i++)
+                {
+                    newMesh.indices[i] = (int)newIndices[i];
+                }
+
+                newMesh.vertices = new Vector3Holder[vertexCount];
+
+                if (hasNormals)
+                {
+                    newMesh.normals = new Vector3Holder[vertexCount];
+                }
+
+                if (hasTangents)
+                {
+                    newMesh.tangents = new Vector3Holder[vertexCount];
+                }
+
+                if (hasBitangents)
+                {
+                    newMesh.bitangents = new Vector3Holder[vertexCount];
+                }
+
+                if (hasColors)
+                {
+                    newMesh.colors = new Vector4Holder[vertexCount];
+                }
+
+                if (hasColors2)
+                {
+                    newMesh.colors2 = new Vector4Holder[vertexCount];
+                }
+
+                if (hasColors3)
+                {
+                    newMesh.colors3 = new Vector4Holder[vertexCount];
+                }
+
+                if (hasColors4)
+                {
+                    newMesh.colors4 = new Vector4Holder[vertexCount];
+                }
+
+                if (hasUV1)
+                {
+                    newMesh.UV1 = new Vector2Holder[vertexCount];
+                }
+
+                if (hasUV2)
+                {
+                    newMesh.UV2 = new Vector2Holder[vertexCount];
+                }
+
+                if (hasUV3)
+                {
+                    newMesh.UV3 = new Vector2Holder[vertexCount];
+                }
+
+                if (hasUV4)
+                {
+                    newMesh.UV4 = new Vector2Holder[vertexCount];
+                }
+
+                if (hasUV5)
+                {
+                    newMesh.UV5 = new Vector2Holder[vertexCount];
+                }
+
+                if (hasUV6)
+                {
+                    newMesh.UV6 = new Vector2Holder[vertexCount];
+                }
+
+                if (hasUV7)
+                {
+                    newMesh.UV7 = new Vector2Holder[vertexCount];
+                }
+
+                if (hasUV8)
+                {
+                    newMesh.UV8 = new Vector2Holder[vertexCount];
+                }
+
+                if (hasBoneIndices)
+                {
+                    newMesh.boneIndices = new Vector4Holder[vertexCount];
+                }
+
+                if (hasBoneWeights)
+                {
+                    newMesh.boneWeights = new Vector4Holder[vertexCount];
+                }
 
                 for (var i = 0; i < (int)vertexCount; i++)
                 {
                     var v = newVertices[i];
 
-                    newMesh.vertices.Add(new(v.position));
+                    newMesh.vertices[i] = new(v.position);
 
                     if (hasNormals)
                     {
-                        newMesh.normals.Add(new(v.normal));
+                        newMesh.normals[i] = new(v.normal);
                     }
 
                     if (hasTangents)
                     {
-                        newMesh.tangents.Add(new(v.tangent));
+                        newMesh.tangents[i] = new(v.tangent);
                     }
 
                     if (hasBitangents)
                     {
-                        newMesh.bitangents.Add(new(v.bitangent));
+                        newMesh.bitangents[i] = new(v.bitangent);
                     }
 
                     if (hasColors)
                     {
-                        newMesh.colors.Add(new(v.color));
+                        newMesh.colors[i] = new(v.color);
                     }
 
                     if (hasColors2)
                     {
-                        newMesh.colors2.Add(new(v.color2));
+                        newMesh.colors2[i] = new(v.color2);
                     }
 
                     if (hasColors3)
                     {
-                        newMesh.colors3.Add(new(v.color3));
+                        newMesh.colors3[i] = new(v.color3);
                     }
 
                     if (hasColors4)
                     {
-                        newMesh.colors4.Add(new(v.color4));
+                        newMesh.colors4[i] = new(v.color4);
                     }
 
                     if (hasUV1)
                     {
-                        newMesh.UV1.Add(new(v.uv1));
+                        newMesh.UV1[i] = new(v.uv1);
                     }
 
                     if (hasUV2)
                     {
-                        newMesh.UV2.Add(new(v.uv2));
+                        newMesh.UV2[i] = new(v.uv2);
                     }
 
                     if (hasUV3)
                     {
-                        newMesh.UV3.Add(new(v.uv3));
+                        newMesh.UV3[i] = new(v.uv3);
                     }
 
                     if (hasUV4)
                     {
-                        newMesh.UV4.Add(new(v.uv4));
+                        newMesh.UV4[i] = new(v.uv4);
                     }
 
                     if (hasUV5)
                     {
-                        newMesh.UV5.Add(new(v.uv5));
+                        newMesh.UV5[i] = new(v.uv5);
                     }
 
                     if (hasUV6)
                     {
-                        newMesh.UV6.Add(new(v.uv6));
+                        newMesh.UV6[i] = new(v.uv6);
                     }
 
                     if (hasUV7)
                     {
-                        newMesh.UV7.Add(new(v.uv7));
+                        newMesh.UV7[i] = new(v.uv7);
                     }
 
                     if (hasUV8)
                     {
-                        newMesh.UV8.Add(new(v.uv8));
+                        newMesh.UV8[i] = new(v.uv8);
                     }
 
                     if (hasBoneIndices)
                     {
-                        newMesh.boneIndices.Add(new(v.boneIndices));
+                        newMesh.boneIndices[i] = new(v.boneIndices);
                     }
 
                     if (hasBoneWeights)
                     {
-                        newMesh.boneWeights.Add(new(v.boneWeights));
+                        newMesh.boneWeights[i] = new(v.boneWeights);
                     }
                 }
             }
+
+            outValue.meshes = meshes.ToArray();
 
             return outValue;
         }

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 
 namespace Staple.ProjectManagement;
 
@@ -44,6 +45,7 @@ public partial class ProjectManager
         Debug = (1 << 6),
         NativeAOT = (1 << 7),
         PublishSingleFile = (1 << 8),
+        ForceRegenerateProjects = (1 << 9),
     }
 
     private readonly Dictionary<string, DateTime> fileModifyStates = [];
@@ -445,38 +447,59 @@ public partial class ProjectManager
     public void GenerateProject(string projectDirectory, string assetsDirectory, PlayerBackend backend, Dictionary<string, string> projectProperties, 
         Dictionary<string, string> asmDefProperties, AppSettings projectAppSettings, AppPlatform platform, ProjectGenerationFlags flags)
     {
-        using var collection = new ProjectCollection();
-
-        try
+        if(flags.HasFlag(ProjectGenerationFlags.ForceRegenerateProjects))
         {
-            var csprojFiles = Directory.GetFiles(projectDirectory, "*.csproj");
-
-            foreach (var file in csprojFiles)
+            try
             {
-                try
-                {
-                    var directoryName = Path.GetDirectoryName(file);
+                var csprojFiles = Directory.GetFiles(projectDirectory, "*.csproj");
 
-                    if (directoryName == projectDirectory.Replace('/', Path.DirectorySeparatorChar))
-                    {
-                        File.Delete(file);
-                    }
-                    else
-                    {
-                        Directory.Delete(Path.GetDirectoryName(file), true);
-                    }
-                }
-                catch(Exception)
+                foreach (var file in csprojFiles)
                 {
+                    try
+                    {
+                        var directoryName = Path.GetDirectoryName(file);
+
+                        if (directoryName == projectDirectory.Replace('/', Path.DirectorySeparatorChar))
+                        {
+                            File.Delete(file);
+                        }
+                        else
+                        {
+                            Directory.Delete(Path.GetDirectoryName(file), true);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                    }
                 }
             }
-        }
-        catch (Exception)
-        {
+            catch (Exception)
+            {
+            }
         }
 
         var mainProjectName = flags.HasFlag(ProjectGenerationFlags.IsSandbox) ? "Sandbox" :
             flags.HasFlag(ProjectGenerationFlags.IsPlayer) ? "Player" : "Game";
+
+        var fileName = $"{mainProjectName}.sln";
+
+        var target = Path.Combine(projectDirectory, fileName);
+
+        if (!flags.HasFlag(ProjectGenerationFlags.ForceRegenerateProjects))
+        {
+            try
+            {
+                if(File.Exists(target) && File.GetLastWriteTime(target) >= File.GetLastWriteTime(Assembly.GetExecutingAssembly().Location))
+                {
+                    return;
+                }
+            }
+            catch(Exception e)
+            {
+            }
+        }
+
+        using var collection = new ProjectCollection();
 
         if (projectAppSettings.allowUnsafeCode)
         {
@@ -1180,10 +1203,6 @@ public partial class ProjectManager
 
         p.Save(Path.Combine(projectDirectory, mainProjectName, $"{mainProjectName}.csproj"));
 
-        var fileName = $"{mainProjectName}.sln";
-
-        var target = Path.Combine(projectDirectory, fileName);
-
         if (File.Exists(target))
         {
             File.Delete(target);
@@ -1255,7 +1274,8 @@ public partial class ProjectManager
     /// <param name="projectAppSettings">The project app settings</param>
     /// <param name="platform">The current platform</param>
     /// <param name="sandbox">Whether we want the project to be separate for the developer to customize</param>
-    public void GenerateGameCSProj(PlayerBackend backend, AppSettings projectAppSettings, AppPlatform platform, bool sandbox)
+    public void GenerateGameCSProj(PlayerBackend backend, AppSettings projectAppSettings, AppPlatform platform, bool sandbox,
+        bool force)
     {
         var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", sandbox ? "Sandbox" : "Game");
         var assetsDirectory = Path.Combine(basePath, "Assets");
@@ -1280,6 +1300,11 @@ public partial class ProjectManager
         if(sandbox)
         {
             flags |= ProjectGenerationFlags.IsSandbox;
+        }
+
+        if (force)
+        {
+            flags |= ProjectGenerationFlags.ForceRegenerateProjects;
         }
 
         GenerateProject(projectDirectory, assetsDirectory, backend, projectProperties, projectProperties, projectAppSettings, platform, flags);
@@ -1390,7 +1415,7 @@ public partial class ProjectManager
             _ => true,
         };
 
-        var flags = ProjectGenerationFlags.IsPlayer;
+        var flags = ProjectGenerationFlags.IsPlayer | ProjectGenerationFlags.ForceRegenerateProjects;
 
         if(debug)
         {

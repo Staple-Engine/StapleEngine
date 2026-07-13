@@ -389,7 +389,7 @@ internal partial class SDLGPURendererBackend
         unsafe
         {
             var index = buffer.index;
-            var targetLength = buffer.allocator.buffer.Length * buffer.allocator.elementSize;
+            var targetLength = buffer.allocator.Length * buffer.allocator.elementSize;
 
             ref var vertexBuffer = ref staticMeshVertexBuffers[index];
             ref var vertexBufferLength = ref staticMeshVertexBuffersLength[index];
@@ -439,8 +439,8 @@ internal partial class SDLGPURendererBackend
 
             unsafe
             {
-                var from = new Span<byte>((byte*)buffer.allocator.NativePointer, vertexBufferLength);
-                var to = new Span<byte>((void*)mapData, vertexBufferLength);
+                var from = buffer.allocator.Contents.Slice(0, vertexBufferLength / buffer.allocator.elementSize);
+                var to = new Span<T>((void*)mapData, vertexBufferLength / buffer.allocator.elementSize);
 
                 from.CopyTo(to);
             }
@@ -466,7 +466,7 @@ internal partial class SDLGPURendererBackend
     {
         unsafe
         {
-            var targetLength = buffer.allocator.buffer.Length * buffer.allocator.elementSize;
+            var targetLength = buffer.allocator.Length * buffer.allocator.elementSize;
 
             ref var indexBuffer = ref staticMeshIndexBuffer;
             ref var bufferLength = ref staticMeshIndexBufferLength;
@@ -516,8 +516,8 @@ internal partial class SDLGPURendererBackend
 
             unsafe
             {
-                var from = new Span<byte>((byte*)buffer.allocator.NativePointer, bufferLength);
-                var to = new Span<byte>((void*)mapData, bufferLength);
+                var from = buffer.allocator.Contents.Slice(0, bufferLength / buffer.allocator.elementSize);
+                var to = new Span<int>((void*)mapData, bufferLength / buffer.allocator.elementSize);
 
                 from.CopyTo(to);
             }

@@ -46,7 +46,7 @@ internal class MeshAssetEditor : AssetEditor
                 var boneSet = new HashSet<string>();
 
                 boneCount = meshAsset.BoneCount;
-                meshCount = meshAsset.Meshes.Count;
+                meshCount = meshAsset.Meshes.Length;
                 hasExcessiveBones = false;
                 triangleCount = 0;
 

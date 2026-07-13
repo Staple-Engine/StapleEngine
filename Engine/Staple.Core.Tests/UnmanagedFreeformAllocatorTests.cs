@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace CoreTests;
 
-internal class FreeformAllocatorTests
+internal class UnmanagedFreeformAllocatorTests
 {
     [Test]
     public void TestAllocate()

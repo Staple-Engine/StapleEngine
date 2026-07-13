@@ -11,20 +11,13 @@ internal class SkinnedMeshRendererEditor : Editor
             renderer.mesh == null ||
             renderer.mesh.meshAsset == null ||
             renderer.mesh.meshAssetIndex < 0 ||
-            renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.Meshes.Count)
+            renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.Meshes.Length)
         {
             return;
         }
 
         var mesh = renderer.mesh.meshAsset.Meshes[renderer.mesh.meshAssetIndex];
 
-        var boneCount = 0;
-
-        foreach(var b in mesh.bones)
-        {
-            boneCount += b.Length;
-        }
-
-        EditorGUI.Label($"{mesh.name}\n{boneCount} bones");
+        EditorGUI.Label($"{mesh.name}\n{mesh.bones.Length} bones");
     }
 }

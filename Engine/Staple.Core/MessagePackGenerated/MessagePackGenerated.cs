@@ -52,34 +52,34 @@ namespace MessagePack.Resolvers
         {
             lookup = new global::System.Collections.Generic.Dictionary<Type, int>(139)
             {
-                { typeof(global::Staple.Internal.MeshAssetNode[]), 0 },
-                { typeof(global::Staple.VertexAttribute[]), 1 },
-                { typeof(global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>), 2 },
-                { typeof(global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>), 3 },
-                { typeof(global::System.Collections.Generic.Dictionary<global::Staple.RendererType, global::Staple.Internal.SerializableShaderEntry>), 4 },
-                { typeof(global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>), 5 },
-                { typeof(global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableShaderData>), 6 },
-                { typeof(global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>), 7 },
-                { typeof(global::System.Collections.Generic.Dictionary<string, global::System.Collections.Generic.List<global::Staple.Internal.SerializableAssetDatabaseAssetInfo>>), 8 },
-                { typeof(global::System.Collections.Generic.Dictionary<string, object>), 9 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.ColliderMask.Item>), 10 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimation>), 11 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>), 12 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetBone>), 13 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>), 14 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetQuaternionAnimationKey>), 15 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>), 16 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SceneComponent>), 17 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>), 18 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SerializableAssetDatabaseAssetInfo>), 19 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.ShaderInstanceParameter>), 20 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>), 21 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniformField>), 22 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniformMapping>), 23 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.TextureSpriteInfo>), 24 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>), 25 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>), 26 },
-                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>), 27 },
+                { typeof(global::Staple.Internal.MeshAssetAnimationChannel[]), 0 },
+                { typeof(global::Staple.Internal.MeshAssetBone[]), 1 },
+                { typeof(global::Staple.Internal.MeshAssetMeshInfo[]), 2 },
+                { typeof(global::Staple.Internal.MeshAssetNode[]), 3 },
+                { typeof(global::Staple.Internal.Vector2Holder[]), 4 },
+                { typeof(global::Staple.Internal.Vector3Holder[]), 5 },
+                { typeof(global::Staple.Internal.Vector4Holder[]), 6 },
+                { typeof(global::Staple.VertexAttribute[]), 7 },
+                { typeof(global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>), 8 },
+                { typeof(global::System.Collections.Generic.Dictionary<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>), 9 },
+                { typeof(global::System.Collections.Generic.Dictionary<global::Staple.RendererType, global::Staple.Internal.SerializableShaderEntry>), 10 },
+                { typeof(global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>), 11 },
+                { typeof(global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableShaderData>), 12 },
+                { typeof(global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.SerializableStapleAssetParameter>), 13 },
+                { typeof(global::System.Collections.Generic.Dictionary<string, global::System.Collections.Generic.List<global::Staple.Internal.SerializableAssetDatabaseAssetInfo>>), 14 },
+                { typeof(global::System.Collections.Generic.Dictionary<string, object>), 15 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.ColliderMask.Item>), 16 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimation>), 17 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetQuaternionAnimationKey>), 18 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetVectorAnimationKey>), 19 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SceneComponent>), 20 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SceneObject>), 21 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.SerializableAssetDatabaseAssetInfo>), 22 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.ShaderInstanceParameter>), 23 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniform>), 24 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniformField>), 25 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.ShaderUniformMapping>), 26 },
+                { typeof(global::System.Collections.Generic.List<global::Staple.Internal.TextureSpriteInfo>), 27 },
                 { typeof(global::System.Collections.Generic.List<global::Staple.RendererType>), 28 },
                 { typeof(global::System.Collections.Generic.List<int>), 29 },
                 { typeof(global::System.Collections.Generic.List<string>), 30 },
@@ -204,34 +204,34 @@ namespace MessagePack.Resolvers
 
             switch (key)
             {
-                case 0: return new global::MessagePack.Formatters.ArrayFormatter<global::Staple.Internal.MeshAssetNode>();
-                case 1: return new global::MessagePack.Formatters.ArrayFormatter<global::Staple.VertexAttribute>();
-                case 2: return new global::MessagePack.Formatters.DictionaryFormatter<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>();
-                case 3: return new global::MessagePack.Formatters.DictionaryFormatter<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>();
-                case 4: return new global::MessagePack.Formatters.DictionaryFormatter<global::Staple.RendererType, global::Staple.Internal.SerializableShaderEntry>();
-                case 5: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::Staple.Internal.MaterialParameter>();
-                case 6: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::Staple.Internal.SerializableShaderData>();
-                case 7: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::Staple.Internal.SerializableStapleAssetParameter>();
-                case 8: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::System.Collections.Generic.List<global::Staple.Internal.SerializableAssetDatabaseAssetInfo>>();
-                case 9: return new global::MessagePack.Formatters.DictionaryFormatter<string, object>();
-                case 10: return new global::MessagePack.Formatters.ListFormatter<global::Staple.ColliderMask.Item>();
-                case 11: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetAnimation>();
-                case 12: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetAnimationChannel>();
-                case 13: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetBone>();
-                case 14: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetMeshInfo>();
-                case 15: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetQuaternionAnimationKey>();
-                case 16: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetVectorAnimationKey>();
-                case 17: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SceneComponent>();
-                case 18: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SceneObject>();
-                case 19: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SerializableAssetDatabaseAssetInfo>();
-                case 20: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.ShaderInstanceParameter>();
-                case 21: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.ShaderUniform>();
-                case 22: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.ShaderUniformField>();
-                case 23: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.ShaderUniformMapping>();
-                case 24: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.TextureSpriteInfo>();
-                case 25: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.Vector2Holder>();
-                case 26: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.Vector3Holder>();
-                case 27: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.Vector4Holder>();
+                case 0: return new global::MessagePack.Formatters.ArrayFormatter<global::Staple.Internal.MeshAssetAnimationChannel>();
+                case 1: return new global::MessagePack.Formatters.ArrayFormatter<global::Staple.Internal.MeshAssetBone>();
+                case 2: return new global::MessagePack.Formatters.ArrayFormatter<global::Staple.Internal.MeshAssetMeshInfo>();
+                case 3: return new global::MessagePack.Formatters.ArrayFormatter<global::Staple.Internal.MeshAssetNode>();
+                case 4: return new global::MessagePack.Formatters.ArrayFormatter<global::Staple.Internal.Vector2Holder>();
+                case 5: return new global::MessagePack.Formatters.ArrayFormatter<global::Staple.Internal.Vector3Holder>();
+                case 6: return new global::MessagePack.Formatters.ArrayFormatter<global::Staple.Internal.Vector4Holder>();
+                case 7: return new global::MessagePack.Formatters.ArrayFormatter<global::Staple.VertexAttribute>();
+                case 8: return new global::MessagePack.Formatters.DictionaryFormatter<global::Staple.AppPlatform, global::Staple.Internal.TextureMetadataOverride>();
+                case 9: return new global::MessagePack.Formatters.DictionaryFormatter<global::Staple.AppPlatform, global::System.Collections.Generic.List<global::Staple.RendererType>>();
+                case 10: return new global::MessagePack.Formatters.DictionaryFormatter<global::Staple.RendererType, global::Staple.Internal.SerializableShaderEntry>();
+                case 11: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::Staple.Internal.MaterialParameter>();
+                case 12: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::Staple.Internal.SerializableShaderData>();
+                case 13: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::Staple.Internal.SerializableStapleAssetParameter>();
+                case 14: return new global::MessagePack.Formatters.DictionaryFormatter<string, global::System.Collections.Generic.List<global::Staple.Internal.SerializableAssetDatabaseAssetInfo>>();
+                case 15: return new global::MessagePack.Formatters.DictionaryFormatter<string, object>();
+                case 16: return new global::MessagePack.Formatters.ListFormatter<global::Staple.ColliderMask.Item>();
+                case 17: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetAnimation>();
+                case 18: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetQuaternionAnimationKey>();
+                case 19: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.MeshAssetVectorAnimationKey>();
+                case 20: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SceneComponent>();
+                case 21: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SceneObject>();
+                case 22: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.SerializableAssetDatabaseAssetInfo>();
+                case 23: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.ShaderInstanceParameter>();
+                case 24: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.ShaderUniform>();
+                case 25: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.ShaderUniformField>();
+                case 26: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.ShaderUniformMapping>();
+                case 27: return new global::MessagePack.Formatters.ListFormatter<global::Staple.Internal.TextureSpriteInfo>();
                 case 28: return new global::MessagePack.Formatters.ListFormatter<global::Staple.RendererType>();
                 case 29: return new global::MessagePack.Formatters.ListFormatter<int>();
                 case 30: return new global::MessagePack.Formatters.ListFormatter<string>();
@@ -2053,12 +2053,6 @@ namespace MessagePack.Formatters.Staple.Internal
 
         public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.Matrix4x4Holder value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             writer.WriteArrayHeader(16);
             writer.Write(value.M11);
             writer.Write(value.M12);
@@ -2082,7 +2076,7 @@ namespace MessagePack.Formatters.Staple.Internal
         {
             if (reader.TryReadNil())
             {
-                return null;
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
             }
 
             options.Security.DepthStep(ref reader);
@@ -2167,7 +2161,7 @@ namespace MessagePack.Formatters.Staple.Internal
             writer.WriteArrayHeader(3);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             writer.Write(value.duration);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>>().Serialize(ref writer, value.channels, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetAnimationChannel[]>().Serialize(ref writer, value.channels, options);
         }
 
         public global::Staple.Internal.MeshAssetAnimation Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2193,7 +2187,7 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.duration = reader.ReadSingle();
                         break;
                     case 2:
-                        ____result.channels = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimationChannel>>().Deserialize(ref reader, options);
+                        ____result.channels = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetAnimationChannel[]>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2269,12 +2263,6 @@ namespace MessagePack.Formatters.Staple.Internal
 
         public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.MeshAssetBone value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
             writer.Write(value.nodeIndex);
@@ -2285,7 +2273,7 @@ namespace MessagePack.Formatters.Staple.Internal
         {
             if (reader.TryReadNil())
             {
-                return null;
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
             }
 
             options.Security.DepthStep(ref reader);
@@ -2330,29 +2318,29 @@ namespace MessagePack.Formatters.Staple.Internal
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.materialGuid, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.MeshTopology>().Serialize(ref writer, value.topology, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Serialize(ref writer, value.vertices, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Serialize(ref writer, value.colors, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Serialize(ref writer, value.normals, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Serialize(ref writer, value.tangents, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Serialize(ref writer, value.bitangents, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Serialize(ref writer, value.indices, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Serialize(ref writer, value.vertices, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Serialize(ref writer, value.colors, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Serialize(ref writer, value.normals, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Serialize(ref writer, value.tangents, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Serialize(ref writer, value.bitangents, options);
+            formatterResolver.GetFormatterWithVerify<int[]>().Serialize(ref writer, value.indices, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.boundsCenter, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Serialize(ref writer, value.boundsExtents, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV1, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV2, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV3, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV4, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV5, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV6, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV7, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Serialize(ref writer, value.UV8, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Serialize(ref writer, value.UV1, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Serialize(ref writer, value.UV2, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Serialize(ref writer, value.UV3, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Serialize(ref writer, value.UV4, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Serialize(ref writer, value.UV5, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Serialize(ref writer, value.UV6, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Serialize(ref writer, value.UV7, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Serialize(ref writer, value.UV8, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetType>().Serialize(ref writer, value.type, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetBone>>().Serialize(ref writer, value.bones, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Serialize(ref writer, value.boneIndices, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Serialize(ref writer, value.boneWeights, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Serialize(ref writer, value.colors2, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Serialize(ref writer, value.colors3, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Serialize(ref writer, value.colors4, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetBone[]>().Serialize(ref writer, value.bones, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Serialize(ref writer, value.boneIndices, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Serialize(ref writer, value.boneWeights, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Serialize(ref writer, value.colors2, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Serialize(ref writer, value.colors3, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Serialize(ref writer, value.colors4, options);
         }
 
         public global::Staple.Internal.MeshAssetMeshInfo Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -2381,22 +2369,22 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.topology = formatterResolver.GetFormatterWithVerify<global::Staple.MeshTopology>().Deserialize(ref reader, options);
                         break;
                     case 3:
-                        ____result.vertices = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Deserialize(ref reader, options);
+                        ____result.vertices = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 4:
-                        ____result.colors = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Deserialize(ref reader, options);
+                        ____result.colors = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.normals = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Deserialize(ref reader, options);
+                        ____result.normals = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 6:
-                        ____result.tangents = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Deserialize(ref reader, options);
+                        ____result.tangents = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 7:
-                        ____result.bitangents = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector3Holder>>().Deserialize(ref reader, options);
+                        ____result.bitangents = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 8:
-                        ____result.indices = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<int>>().Deserialize(ref reader, options);
+                        ____result.indices = formatterResolver.GetFormatterWithVerify<int[]>().Deserialize(ref reader, options);
                         break;
                     case 9:
                         ____result.boundsCenter = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
@@ -2405,49 +2393,49 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.boundsExtents = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder>().Deserialize(ref reader, options);
                         break;
                     case 11:
-                        ____result.UV1 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
+                        ____result.UV1 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 12:
-                        ____result.UV2 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
+                        ____result.UV2 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 13:
-                        ____result.UV3 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
+                        ____result.UV3 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 14:
-                        ____result.UV4 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
+                        ____result.UV4 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 15:
-                        ____result.UV5 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
+                        ____result.UV5 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 16:
-                        ____result.UV6 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
+                        ____result.UV6 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 17:
-                        ____result.UV7 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
+                        ____result.UV7 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 18:
-                        ____result.UV8 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector2Holder>>().Deserialize(ref reader, options);
+                        ____result.UV8 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector2Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 19:
                         ____result.type = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetType>().Deserialize(ref reader, options);
                         break;
                     case 20:
-                        ____result.bones = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetBone>>().Deserialize(ref reader, options);
+                        ____result.bones = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetBone[]>().Deserialize(ref reader, options);
                         break;
                     case 21:
-                        ____result.boneIndices = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Deserialize(ref reader, options);
+                        ____result.boneIndices = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 22:
-                        ____result.boneWeights = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Deserialize(ref reader, options);
+                        ____result.boneWeights = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 23:
-                        ____result.colors2 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Deserialize(ref reader, options);
+                        ____result.colors2 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 24:
-                        ____result.colors3 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Deserialize(ref reader, options);
+                        ____result.colors3 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Deserialize(ref reader, options);
                         break;
                     case 25:
-                        ____result.colors4 = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.Vector4Holder>>().Deserialize(ref reader, options);
+                        ____result.colors4 = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector4Holder[]>().Deserialize(ref reader, options);
                         break;
                     default:
                         reader.Skip();
@@ -2629,12 +2617,6 @@ namespace MessagePack.Formatters.Staple.Internal
 
         public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.MeshAssetQuaternionAnimationKey value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
             writer.Write(value.time);
@@ -2645,7 +2627,7 @@ namespace MessagePack.Formatters.Staple.Internal
         {
             if (reader.TryReadNil())
             {
-                return null;
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
             }
 
             options.Security.DepthStep(ref reader);
@@ -2679,12 +2661,6 @@ namespace MessagePack.Formatters.Staple.Internal
 
         public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.MeshAssetVectorAnimationKey value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(2);
             writer.Write(value.time);
@@ -2695,7 +2671,7 @@ namespace MessagePack.Formatters.Staple.Internal
         {
             if (reader.TryReadNil())
             {
-                return null;
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
             }
 
             options.Security.DepthStep(ref reader);
@@ -3590,7 +3566,7 @@ namespace MessagePack.Formatters.Staple.Internal
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
             writer.WriteArrayHeader(4);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetMetadata>().Serialize(ref writer, value.metadata, options);
-            formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>>().Serialize(ref writer, value.meshes, options);
+            formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetMeshInfo[]>().Serialize(ref writer, value.meshes, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetNode[]>().Serialize(ref writer, value.nodes, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetAnimation>>().Serialize(ref writer, value.animations, options);
         }
@@ -3615,7 +3591,7 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.metadata = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetMetadata>().Deserialize(ref reader, options);
                         break;
                     case 1:
-                        ____result.meshes = formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<global::Staple.Internal.MeshAssetMeshInfo>>().Deserialize(ref reader, options);
+                        ____result.meshes = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetMeshInfo[]>().Deserialize(ref reader, options);
                         break;
                     case 2:
                         ____result.nodes = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.MeshAssetNode[]>().Deserialize(ref reader, options);
@@ -5341,12 +5317,6 @@ namespace MessagePack.Formatters.Staple.Internal
 
         public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.Vector2Holder value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             writer.WriteArrayHeader(2);
             writer.Write(value.x);
             writer.Write(value.y);
@@ -5356,7 +5326,7 @@ namespace MessagePack.Formatters.Staple.Internal
         {
             if (reader.TryReadNil())
             {
-                return null;
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
             }
 
             options.Security.DepthStep(ref reader);
@@ -5391,12 +5361,6 @@ namespace MessagePack.Formatters.Staple.Internal
 
         public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.Vector3Holder value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             writer.WriteArrayHeader(3);
             writer.Write(value.x);
             writer.Write(value.y);
@@ -5407,25 +5371,27 @@ namespace MessagePack.Formatters.Staple.Internal
         {
             if (reader.TryReadNil())
             {
-                return null;
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
             }
 
             options.Security.DepthStep(ref reader);
             var length = reader.ReadArrayHeader();
-            var ____result = new global::Staple.Internal.Vector3Holder();
+            var __x__ = default(float);
+            var __y__ = default(float);
+            var __z__ = default(float);
 
             for (int i = 0; i < length; i++)
             {
                 switch (i)
                 {
                     case 0:
-                        ____result.x = reader.ReadSingle();
+                        __x__ = reader.ReadSingle();
                         break;
                     case 1:
-                        ____result.y = reader.ReadSingle();
+                        __y__ = reader.ReadSingle();
                         break;
                     case 2:
-                        ____result.z = reader.ReadSingle();
+                        __z__ = reader.ReadSingle();
                         break;
                     default:
                         reader.Skip();
@@ -5433,6 +5399,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 }
             }
 
+            var ____result = new global::Staple.Internal.Vector3Holder(__x__, __y__, __z__);
             reader.Depth--;
             return ____result;
         }
@@ -5443,12 +5410,6 @@ namespace MessagePack.Formatters.Staple.Internal
 
         public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.Vector4Holder value, global::MessagePack.MessagePackSerializerOptions options)
         {
-            if (value == null)
-            {
-                writer.WriteNil();
-                return;
-            }
-
             writer.WriteArrayHeader(4);
             writer.Write(value.x);
             writer.Write(value.y);
@@ -5460,28 +5421,31 @@ namespace MessagePack.Formatters.Staple.Internal
         {
             if (reader.TryReadNil())
             {
-                return null;
+                throw new global::System.InvalidOperationException("typecode is null, struct not supported");
             }
 
             options.Security.DepthStep(ref reader);
             var length = reader.ReadArrayHeader();
-            var ____result = new global::Staple.Internal.Vector4Holder();
+            var __x__ = default(float);
+            var __y__ = default(float);
+            var __z__ = default(float);
+            var __w__ = default(float);
 
             for (int i = 0; i < length; i++)
             {
                 switch (i)
                 {
                     case 0:
-                        ____result.x = reader.ReadSingle();
+                        __x__ = reader.ReadSingle();
                         break;
                     case 1:
-                        ____result.y = reader.ReadSingle();
+                        __y__ = reader.ReadSingle();
                         break;
                     case 2:
-                        ____result.z = reader.ReadSingle();
+                        __z__ = reader.ReadSingle();
                         break;
                     case 3:
-                        ____result.w = reader.ReadSingle();
+                        __w__ = reader.ReadSingle();
                         break;
                     default:
                         reader.Skip();
@@ -5489,6 +5453,7 @@ namespace MessagePack.Formatters.Staple.Internal
                 }
             }
 
+            var ____result = new global::Staple.Internal.Vector4Holder(__x__, __y__, __z__, __w__);
             reader.Depth--;
             return ____result;
         }

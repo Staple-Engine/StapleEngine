@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -8,7 +7,7 @@ internal class MeshAssetResource
     /// <summary>
     /// List of each mesh in the asset
     /// </summary>
-    public List<MeshAsset.MeshInfo> meshes = [];
+    public MeshAsset.MeshInfo[] meshes = [];
 
     /// <summary>
     /// The nodes of the transform tree

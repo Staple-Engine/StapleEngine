@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -170,7 +171,7 @@ public sealed class MeshAsset : IGuidAsset
         /// <summary>
         /// A list of bones per submesh
         /// </summary>
-        public List<Bone[]> bones = [];
+        public Bone[] bones = [];
 
         /// <summary>
         /// The index at which this mesh's bones start at
@@ -206,6 +207,64 @@ public sealed class MeshAsset : IGuidAsset
         /// The components of this mesh
         /// </summary>
         public MeshAssetComponent components;
+
+        public int StorageSize
+        {
+            get
+            {
+                var result = 0;
+
+                void AddSize<T>(T[] array) where T: unmanaged
+                {
+                    if(array == null || array.Length == 0)
+                    {
+                        return;
+                    }
+
+                    result += array.Length * TypeCache.SizeOf(typeof(T).FullName);
+                }
+
+                AddSize(vertices);
+
+                AddSize(normals);
+
+                AddSize(colors);
+
+                AddSize(colors2);
+
+                AddSize(colors3);
+
+                AddSize(colors4);
+
+                AddSize(tangents);
+
+                AddSize(bitangents);
+
+                AddSize(UV1);
+
+                AddSize(UV2);
+
+                AddSize(UV3);
+
+                AddSize(UV4);
+
+                AddSize(UV5);
+
+                AddSize(UV6);
+
+                AddSize(UV7);
+
+                AddSize(UV8);
+
+                AddSize(indices);
+
+                AddSize(boneIndices);
+
+                AddSize(boneWeights);
+
+                return result;
+            }
+        }
     }
 
     /// <summary>
@@ -611,7 +670,7 @@ public sealed class MeshAsset : IGuidAsset
     /// <summary>
     /// List of each mesh in the asset
     /// </summary>
-    public List<MeshInfo> Meshes => meshResource?.meshes ?? [];
+    public MeshInfo[] Meshes => meshResource?.meshes ?? [];
 
     /// <summary>
     /// The nodes of the transform tree
@@ -647,6 +706,21 @@ public sealed class MeshAsset : IGuidAsset
     /// The amount of bones in the meshes within this MeshAsset
     /// </summary>
     public int BoneCount => meshResource?.BoneCount ?? 0;
+
+    public int StorageSize
+    {
+        get
+        {
+            var count = 0;
+
+            foreach(var mesh in Meshes)
+            {
+                count += mesh.StorageSize;
+            }
+
+            return count;
+        }
+    }
 
     public GuidHasher Guid => meshResource?.Guid ?? new();
 

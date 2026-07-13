@@ -157,7 +157,7 @@ public float3 StapleProcessLightsTangent(float3 worldPosition, float3 normal, fl
         return StapleLightAmbientColor.rgb;
     }
 
-    float3 diffuse;
+    float3 diffuse = float3(0, 0, 0);
 
     for (int i = 0; i < count; i++)
     {

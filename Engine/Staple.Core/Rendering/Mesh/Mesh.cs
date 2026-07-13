@@ -1888,7 +1888,7 @@ public sealed partial class Mesh : IGuidAsset
 
                 foreach (var index in node.meshIndices)
                 {
-                    if (index < 0 || index >= asset.Meshes.Count)
+                    if (index < 0 || index >= asset.Meshes.Length)
                     {
                         continue;
                     }
@@ -1899,7 +1899,7 @@ public sealed partial class Mesh : IGuidAsset
 
                     var meshTransform = meshEntity.GetComponent<Transform>();
 
-                    var isSkinned = mesh.bones.Any(x => x.Length > 0);
+                    var isSkinned = mesh.bones.Length > 0;
 
                     meshTransform.SetParent(isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned) ? baseTransform : nodeTransform);
 
@@ -1930,9 +1930,9 @@ public sealed partial class Mesh : IGuidAsset
                 }
             }
         }
-        else if ((asset.Meshes?.Count ?? 0) > 0)
+        else if ((asset.Meshes?.Length ?? 0) > 0)
         {
-            for (var i = 0; i < asset.Meshes.Count; i++)
+            for (var i = 0; i < asset.Meshes.Length; i++)
             {
                 var mesh = asset.Meshes[i];
 
@@ -1940,7 +1940,7 @@ public sealed partial class Mesh : IGuidAsset
 
                 var meshTransform = meshEntity.GetComponent<Transform>();
 
-                var isSkinned = mesh.bones.Any(x => x.Length > 0);
+                var isSkinned = mesh.bones.Length > 0;
 
                 meshTransform.SetParent(baseTransform);
 

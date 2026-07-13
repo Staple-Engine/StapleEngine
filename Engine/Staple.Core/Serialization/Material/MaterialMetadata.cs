@@ -31,7 +31,7 @@ public enum MaterialParameterSource
 
 [Serializable]
 [MessagePackObject]
-public class Vector2Holder
+public struct Vector2Holder
 {
     [Key(0)]
     public float x;
@@ -78,32 +78,12 @@ public class Vector2Holder
 
     public static bool operator==(Vector2Holder lhs, Vector2Holder rhs)
     {
-        if (lhs is null)
-        {
-            return rhs is null;
-        }
-
-        if (rhs is null)
-        {
-            return lhs is null;
-        }
-
         return lhs.x == rhs.x &&
             lhs.y == rhs.y;
     }
 
     public static bool operator !=(Vector2Holder lhs, Vector2Holder rhs)
     {
-        if (lhs is null)
-        {
-            return rhs is not null;
-        }
-
-        if (rhs is null)
-        {
-            return lhs is not null;
-        }
-
         return lhs.x != rhs.x ||
             lhs.y != rhs.y;
     }
@@ -143,7 +123,7 @@ internal partial class Vector2HolderSerializationContext : JsonSerializerContext
 
 [Serializable]
 [MessagePackObject]
-public class Vector3Holder
+public struct Vector3Holder
 {
     [Key(0)]
     public float x;
@@ -156,6 +136,13 @@ public class Vector3Holder
 
     public Vector3Holder()
     {
+    }
+
+    public Vector3Holder(float x, float y, float z)
+    {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     public Vector3Holder(Vector3 v)
@@ -193,16 +180,6 @@ public class Vector3Holder
 
     public static bool operator==(Vector3Holder lhs, Vector3Holder rhs)
     {
-        if (lhs is null)
-        {
-            return rhs is null;
-        }
-
-        if (rhs is null)
-        {
-            return lhs is null;
-        }
-
         return lhs.x == rhs.x &&
             lhs.y == rhs.y &&
             lhs.z == rhs.z;
@@ -210,16 +187,6 @@ public class Vector3Holder
 
     public static bool operator!=(Vector3Holder lhs, Vector3Holder rhs)
     {
-        if (lhs is null)
-        {
-            return rhs is not null;
-        }
-
-        if (rhs is null)
-        {
-            return lhs is not null;
-        }
-
         return lhs.x != rhs.x ||
             lhs.y != rhs.y ||
             lhs.z != rhs.z;
@@ -260,7 +227,7 @@ internal partial class Vector3HolderSerializationContext : JsonSerializerContext
 
 [Serializable]
 [MessagePackObject]
-public class Vector4Holder
+public struct Vector4Holder
 {
     [Key(0)]
     public float x;
@@ -276,6 +243,14 @@ public class Vector4Holder
 
     public Vector4Holder()
     {
+    }
+
+    public Vector4Holder(float x, float y, float z, float w)
+    {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
     }
 
     public Vector4Holder(Vector3 v)
@@ -321,16 +296,6 @@ public class Vector4Holder
 
     public static bool operator==(Vector4Holder lhs, Vector4Holder rhs)
     {
-        if (lhs is null)
-        {
-            return rhs is null;
-        }
-
-        if (rhs is null)
-        {
-            return lhs is null;
-        }
-
         return lhs.x == rhs.x &&
             lhs.y == rhs.y &&
             lhs.z == rhs.z &&
@@ -339,16 +304,6 @@ public class Vector4Holder
 
     public static bool operator!=(Vector4Holder lhs, Vector4Holder rhs)
     {
-        if (lhs is null)
-        {
-            return rhs is not null;
-        }
-
-        if (rhs is null)
-        {
-            return lhs is not null;
-        }
-
         return lhs.x != rhs.x ||
             lhs.y != rhs.y ||
             lhs.z != rhs.z |
@@ -449,37 +404,10 @@ public class MaterialParameter
             floatValue = floatValue,
             textureWrapValue = textureWrapValue,
             source = source,
+            vec2Value = vec2Value,
+            vec3Value = vec3Value,
+            vec4Value = vec4Value,
         };
-
-        if(vec2Value != null)
-        {
-            outValue.vec2Value = new()
-            {
-                x = vec2Value.x,
-                y = vec2Value.y,
-            };
-        }
-
-        if(vec3Value != null)
-        {
-            outValue.vec3Value = new()
-            {
-                x = vec3Value.x,
-                y = vec3Value.y,
-                z = vec3Value.z,
-            };
-        }
-
-        if(vec4Value != null)
-        {
-            outValue.vec4Value = new()
-            {
-                x = vec4Value.x,
-                y = vec4Value.y,
-                z = vec4Value.z,
-                w = vec4Value.w,
-            };
-        }
 
         return outValue;
     }

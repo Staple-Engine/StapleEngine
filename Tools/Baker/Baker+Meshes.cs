@@ -339,27 +339,63 @@ static partial class Program
                                 materialGuid = first.materialGuid,
                             };
 
+                            var vertexCount = meshPair.Value.Select(x => x.vertices.Length).Sum();
+
+                            newMesh.vertices = new Vector3Holder[vertexCount];
+                            newMesh.indices = new int[meshPair.Value.Select(x => x.indices.Length).Sum()];
+
+                            newMesh.normals = meshPair.Key.HasFlag(MeshAssetComponent.Normal) ? new Vector3Holder[vertexCount] : [];
+                            newMesh.tangents = meshPair.Key.HasFlag(MeshAssetComponent.Tangent) ? new Vector3Holder[vertexCount] : [];
+                            newMesh.bitangents = meshPair.Key.HasFlag(MeshAssetComponent.Bitangent) ? new Vector3Holder[vertexCount] : [];
+                            newMesh.colors = meshPair.Key.HasFlag(MeshAssetComponent.Color1) ? new Vector4Holder[vertexCount] : [];
+                            newMesh.colors2 = meshPair.Key.HasFlag(MeshAssetComponent.Color2) ? new Vector4Holder[vertexCount] : [];
+                            newMesh.colors3 = meshPair.Key.HasFlag(MeshAssetComponent.Color3) ? new Vector4Holder[vertexCount] : [];
+                            newMesh.colors4 = meshPair.Key.HasFlag(MeshAssetComponent.Color4) ? new Vector4Holder[vertexCount] : [];
+                            newMesh.UV1 = meshPair.Key.HasFlag(MeshAssetComponent.UV1) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV2 = meshPair.Key.HasFlag(MeshAssetComponent.UV2) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV3 = meshPair.Key.HasFlag(MeshAssetComponent.UV3) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV4 = meshPair.Key.HasFlag(MeshAssetComponent.UV4) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV5 = meshPair.Key.HasFlag(MeshAssetComponent.UV5) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV6 = meshPair.Key.HasFlag(MeshAssetComponent.UV6) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV7 = meshPair.Key.HasFlag(MeshAssetComponent.UV7) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV8 = meshPair.Key.HasFlag(MeshAssetComponent.UV8) ? new Vector2Holder[vertexCount] : [];
+
+                            var startVertex = 0;
+                            var startIndex = 0;
+
+                            static void Copy<T>(Span<T> from, Span<T> to, int start, int length) where T: unmanaged
+                            {
+                                if(to.Length == 0)
+                                {
+                                    return;
+                                }
+
+                                from.CopyTo(to.Slice(start, length));
+                            }
+
                             foreach (var submesh in meshPair.Value)
                             {
-                                var startVertex = newMesh.vertices.Count;
+                                Copy(submesh.vertices.AsSpan(), newMesh.vertices.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.normals.AsSpan(), newMesh.normals.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.tangents.AsSpan(), newMesh.tangents.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.bitangents.AsSpan(), newMesh.bitangents.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.colors.AsSpan(), newMesh.colors.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.colors2.AsSpan(), newMesh.colors2.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.colors3.AsSpan(), newMesh.colors3.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.colors4.AsSpan(), newMesh.colors4.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.UV1.AsSpan(), newMesh.UV1.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.UV2.AsSpan(), newMesh.UV2.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.UV3.AsSpan(), newMesh.UV3.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.UV4.AsSpan(), newMesh.UV4.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.UV5.AsSpan(), newMesh.UV5.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.UV6.AsSpan(), newMesh.UV6.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.UV7.AsSpan(), newMesh.UV7.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.UV8.AsSpan(), newMesh.UV8.AsSpan(), startVertex, submesh.vertices.Length);
+                                Copy(submesh.indices.Select(x => x + startIndex).ToArray().AsSpan(), newMesh.indices,
+                                    startIndex, submesh.indices.Length);
 
-                                newMesh.vertices.AddRange(submesh.vertices);
-                                newMesh.normals.AddRange(submesh.normals);
-                                newMesh.tangents.AddRange(submesh.tangents);
-                                newMesh.bitangents.AddRange(submesh.bitangents);
-                                newMesh.colors.AddRange(submesh.colors);
-                                newMesh.colors2.AddRange(submesh.colors2);
-                                newMesh.colors3.AddRange(submesh.colors3);
-                                newMesh.colors4.AddRange(submesh.colors4);
-                                newMesh.UV1.AddRange(submesh.UV1);
-                                newMesh.UV2.AddRange(submesh.UV2);
-                                newMesh.UV3.AddRange(submesh.UV3);
-                                newMesh.UV4.AddRange(submesh.UV4);
-                                newMesh.UV5.AddRange(submesh.UV5);
-                                newMesh.UV6.AddRange(submesh.UV6);
-                                newMesh.UV7.AddRange(submesh.UV7);
-                                newMesh.UV8.AddRange(submesh.UV8);
-                                newMesh.indices.AddRange(submesh.indices.Select(x => x + startVertex));
+                                startVertex += submesh.vertices.Length;
+                                startIndex += submesh.indices.Length;
                             }
 
                             var p = newMesh.vertices.Select(x => x.ToVector3()).ToArray();
@@ -373,7 +409,7 @@ static partial class Program
                         }
                     }
 
-                    meshData.meshes = newMeshes;
+                    meshData.meshes = newMeshes.ToArray();
 
                     meshData.nodes = 
                         [
@@ -392,15 +428,15 @@ static partial class Program
 
                 foreach (var mesh in meshData.meshes)
                 {
-                    if ((mesh.tangents?.Count ?? 0) == 0 &&
+                    if ((mesh.tangents?.Length ?? 0) == 0 &&
                         mesh.topology == MeshTopology.Triangles &&
-                        (mesh.UV1?.Count ?? 0) > 0 &&
-                        (mesh.normals?.Count ?? 0) > 0)
+                        (mesh.UV1?.Length ?? 0) > 0 &&
+                        (mesh.normals?.Length ?? 0) > 0)
                     {
-                        var tangents = new Vector3[mesh.vertices.Count];
-                        var bitangents = new Vector3[mesh.vertices.Count];
+                        var tangents = new Vector3[mesh.vertices.Length];
+                        var bitangents = new Vector3[mesh.vertices.Length];
 
-                        for (var j = 0; j < mesh.indices.Count; j += 3)
+                        for (var j = 0; j < mesh.indices.Length; j += 3)
                         {
                             var indices = (mesh.indices[j], mesh.indices[j + 1], mesh.indices[j + 2]);
 
@@ -432,7 +468,10 @@ static partial class Program
                             bitangents[indices.Item3] += bitangent;
                         }
 
-                        for (var j = 0; j < mesh.vertices.Count; j++)
+                        mesh.tangents = new Vector3Holder[mesh.vertices.Length];
+                        mesh.bitangents = new Vector3Holder[mesh.vertices.Length];
+
+                        for (var j = 0; j < mesh.vertices.Length; j++)
                         {
                             var normal = mesh.normals[j].ToVector3();
                             var t = Vector3.Normalize(tangents[j]);
@@ -447,8 +486,8 @@ static partial class Program
                                 bitangent = -bitangent;
                             }
 
-                            mesh.tangents.Add(new(tangent));
-                            mesh.bitangents.Add(new(bitangent));
+                            mesh.tangents[j] = new(tangent);
+                            mesh.bitangents[j] = new(bitangent);
                         }
                     }
                 }

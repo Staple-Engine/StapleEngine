@@ -1,4 +1,5 @@
 ﻿
+using Staple;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -18,7 +19,12 @@ internal class ManagedFreeformAllocator<T>
 
     private readonly List<Entry> entries = [];
 
-    public T[] buffer = [];
+    private ExpandableContainer<T> buffer = new();
+    private ExpandableContainer<T> stagingBuffer = new();
+
+    public int Length => buffer.Length;
+
+    public Span<T> Contents => buffer.Contents;
 
     public void Compact(int extraLength = 0)
     {
@@ -29,18 +35,14 @@ internal class ManagedFreeformAllocator<T>
             compactedLength -= entry.length;
         }
 
-        var newBuffer = new T[compactedLength + extraLength];
-
-        var newPosition = 0;
+        stagingBuffer.Clear();
 
         foreach (var entry in entries)
         {
-            Array.Copy(buffer, entry.start, newBuffer, newPosition, entry.length);
-
-            newPosition += entry.length;
+            stagingBuffer.AddRange(buffer.Contents.Slice(entry.start, entry.length));
         }
 
-        newPosition = 0;
+        var newPosition = 0;
 
         foreach (var entry in entries)
         {
@@ -51,7 +53,9 @@ internal class ManagedFreeformAllocator<T>
 
         freeEntries.Clear();
 
-        buffer = newBuffer;
+        stagingBuffer.Resize(compactedLength + extraLength, true);
+
+        (buffer, stagingBuffer) = (stagingBuffer, buffer);
     }
 
     public Entry Allocate(int length)
@@ -62,7 +66,7 @@ internal class ManagedFreeformAllocator<T>
         {
             var start = buffer.Length;
 
-            Array.Resize(ref buffer, buffer.Length + length);
+            buffer.Resize(buffer.Length + length, true);
 
             outValue = new Entry()
             {
@@ -145,6 +149,6 @@ internal class ManagedFreeformAllocator<T>
             return default;
         }
 
-        return buffer.AsSpan(entry.start, entry.length);
+        return buffer.Contents.Slice(entry.start, entry.length);
     }
 }

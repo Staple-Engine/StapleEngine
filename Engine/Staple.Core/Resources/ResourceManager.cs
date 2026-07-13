@@ -2051,17 +2051,17 @@ internal class ResourceManager
 
         var meshIndex = 0;
 
-        if (asset.Meshes.Count > 0)
+        if (asset.Meshes.Length > 0)
         {
             if(!string.IsNullOrEmpty(indexString))
             {
                 if(!int.TryParse(indexString, out meshIndex))
                 {
-                    meshIndex = asset.Meshes.FindIndex(x => x.name == indexString);
+                    meshIndex = Array.FindIndex(asset.Meshes, x => x.name == indexString);
                 }
             }
 
-            if(meshIndex < 0 || meshIndex >= asset.Meshes.Count)
+            if(meshIndex < 0 || meshIndex >= asset.Meshes.Length)
             {
                 Log.Error($"Failed to load mesh {original}: Invalid mesh index {meshIndex}", LogTag);
 
@@ -2248,8 +2248,12 @@ internal class ResourceManager
 
             var startBoneIndex = 0;
 
-            foreach (var m in meshAssetData.meshes)
+            resource.meshes = new MeshAsset.MeshInfo[meshAssetData.meshes.Length];
+
+            for(var i = 0; i < resource.meshes.Length; i++)
             {
+                var m = meshAssetData.meshes[i];
+
                 var newMesh = new MeshAsset.MeshInfo()
                 {
                     name = m.name,
@@ -2352,16 +2356,16 @@ internal class ResourceManager
 
                     startBoneIndex = startBoneIndex,
 
-                    bones = [m.bones.Select(x => new MeshAsset.Bone()
+                    bones = m.bones.Select(x => new MeshAsset.Bone()
                     {
                         nodeIndex = x.nodeIndex,
                         offsetMatrix = x.offsetMatrix.ToMatrix(),
-                    }).ToArray()],
+                    }).ToArray(),
                 };
 
-                for (var i = 0; i < newMesh.boneIndices.Length; i++)
+                for (var j = 0; j < newMesh.boneIndices.Length; j++)
                 {
-                    var index = newMesh.boneIndices[i];
+                    var index = newMesh.boneIndices[j];
 
                     if (index.X >= 0)
                     {
@@ -2383,17 +2387,17 @@ internal class ResourceManager
                         index.W += startBoneIndex;
                     }
 
-                    newMesh.boneIndices[i] = index;
+                    newMesh.boneIndices[j] = index;
                 }
 
-                startBoneIndex += newMesh.bones[0].Length;
+                startBoneIndex += newMesh.bones.Length;
 
                 newMesh.submeshes = [new()
                 {
                     startVertex = 0,
                     startIndex = 0,
-                    vertexCount = m.vertices.Count,
-                    indexCount = m.indices.Count,
+                    vertexCount = m.vertices.Length,
+                    indexCount = m.indices.Length,
                 }];
 
                 newMesh.submeshMaterialGuids = [m.materialGuid];
@@ -2404,7 +2408,7 @@ internal class ResourceManager
                 {
                     foreach (var node in resource.nodes)
                     {
-                        if (node.meshIndices.Contains(resource.meshes.Count))
+                        if (node.meshIndices.Contains(resource.meshes.Length))
                         {
                             Matrix4x4.Decompose(node.OriginalGlobalTransform, out var scale, out var rotation, out var position);
 
@@ -2419,16 +2423,16 @@ internal class ResourceManager
                     }
                 }
 
-                resource.meshes.Add(newMesh);
+                resource.meshes[i] = newMesh;
             }
 
             resource.BoneCount = startBoneIndex;
 
-            if (resource.meshes.Count == 1)
+            if (resource.meshes.Length == 1)
             {
                 resource.Bounds = resource.meshes[0].transformedBounds;
             }
-            else if (resource.meshes.Count > 0)
+            else if (resource.meshes.Length > 0)
             {
                 var min = Vector3.One * 999999;
                 var max = Vector3.One * -999999;

@@ -188,9 +188,9 @@ float4 FragmentMain(VertexOutput input) : SV_Target
 
 	float3 light = StapleProcessLightsTangent(input.worldPosition, normalMapNormal, tbn);
 #else
-	float3 light = StapleProcessLights(input.worldPosition, input.lightNormal);
+	float3 light = StapleProcessLights(input.worldPosition, normalize(input.lightNormal));
 #endif
-
+ 
 	return float4(light, 1) * diffuse;
 #else
 	return diffuse;

@@ -53,7 +53,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             if (renderer.mesh == null ||
                 renderer.mesh.meshAsset == null ||
                 renderer.mesh.meshAssetIndex < 0 ||
-                renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.Meshes.Count ||
+                renderer.mesh.meshAssetIndex >= renderer.mesh.meshAsset.Meshes.Length ||
                 renderer.materials == null ||
                 renderer.materials.Count == 0)
             {
@@ -432,33 +432,27 @@ public class SkinnedMeshRenderSystem : IRenderSystem
             Matrix4x4.Invert(parent.Matrix, out reverseParentTransform);
         }
 
-        for (var i = 0; i < meshAsset.Meshes.Count; i++)
+        for (var i = 0; i < meshAsset.Meshes.Length; i++)
         {
             var m = meshAsset.Meshes[i];
-            var c = m.bones.Count;
+            var c = m.bones.Length;
 
             for (var j = 0; j < c; j++)
             {
-                var bones = m.bones[j];
-                var l = bones.Length;
+                var bone = m.bones[j];
 
-                for (var k = 0; k < l; k++)
+                var localTransform = bone.nodeIndex >= 0 && bone.nodeIndex < transforms.Length ?
+                    transforms[bone.nodeIndex] : null;
+
+                var transformMatrix = localTransform?.Matrix ?? Matrix4x4.Identity;
+
+                if (localTransform != null)
                 {
-                    var bone = bones[k];
-
-                    var localTransform = bone.nodeIndex >= 0 && bone.nodeIndex < transforms.Length ?
-                        transforms[bone.nodeIndex] : null;
-
-                    var transformMatrix = localTransform?.Matrix ?? Matrix4x4.Identity;
-
-                    if (localTransform != null)
-                    {
-                        transformMatrix *= reverseParentTransform;
-                    }
-
-                    boneMatrices[m.startBoneIndex + k] = localTransform != null ?
-                        bone.offsetMatrix * transformMatrix : bone.offsetMatrix;
+                    transformMatrix *= reverseParentTransform;
                 }
+
+                boneMatrices[m.startBoneIndex + j] = localTransform != null ?
+                    bone.offsetMatrix * transformMatrix : bone.offsetMatrix;
             }
         }
     }
