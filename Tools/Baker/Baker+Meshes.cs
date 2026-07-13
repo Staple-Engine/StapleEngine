@@ -391,7 +391,7 @@ static partial class Program
                                 Copy(submesh.UV6.AsSpan(), newMesh.UV6.AsSpan(), startVertex, submesh.vertices.Length);
                                 Copy(submesh.UV7.AsSpan(), newMesh.UV7.AsSpan(), startVertex, submesh.vertices.Length);
                                 Copy(submesh.UV8.AsSpan(), newMesh.UV8.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.indices.Select(x => x + startIndex).ToArray().AsSpan(), newMesh.indices,
+                                Copy(submesh.indices.Select(x => x + startVertex).ToArray().AsSpan(), newMesh.indices,
                                     startIndex, submesh.indices.Length);
 
                                 startVertex += submesh.vertices.Length;
