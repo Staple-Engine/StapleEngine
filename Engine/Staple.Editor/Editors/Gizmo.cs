@@ -51,7 +51,7 @@ public static class Gizmo
                 meshTopology = MeshTopology.LineStrip,
             };
 
-            wireCube.vertices =
+            wireCube.VerticesInternal =
             [
                 //back
                 new Vector3(-0.5f, -0.5f, -0.5f),
@@ -88,7 +88,7 @@ public static class Gizmo
                 //No need for right
             ];
 
-            wireCube.indices = wireCube.vertices.Select((x, xIndex) => xIndex).ToArray();
+            wireCube.IndicesInternal = wireCube.VerticesInternal.Select((x, xIndex) => xIndex).ToArray();
 
             wireCube.UploadMeshData();
         }

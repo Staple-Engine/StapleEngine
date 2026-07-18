@@ -247,7 +247,7 @@ internal static class SceneSerialization
             name = entity.Name,
             enabled = entity.Enabled,
             kind = SceneObjectKind.Entity,
-            components = components,
+            components = [.. components],
             layer = entityLayer,
             hierarchyVisibility = entity.HierarchyVisibility,
         };
@@ -304,6 +304,8 @@ internal static class SceneSerialization
     {
         var outValue = new SerializableScene();
 
+        var objects = new List<SceneObject>();
+
         Scene.IterateEntities((Entity entity) =>
         {
             if(entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
@@ -318,8 +320,10 @@ internal static class SceneSerialization
                 return;
             }
 
-            outValue.objects.Add(outEntity);
+            objects.Add(outEntity);
         });
+
+        outValue.objects = [.. objects];
 
         return outValue;
     }
@@ -363,6 +367,8 @@ internal static class SceneSerialization
 
         GatherIDs(entityTransform);
 
+        var children = new List<SceneObject>();
+
         void GatherSceneObjects(Transform transform, bool first)
         {
             if(transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
@@ -384,7 +390,7 @@ internal static class SceneSerialization
                 entityObject.ID = localID;
                 entityObject.parent = localParent;
 
-                outValue.children.Add(entityObject);
+                children.Add(entityObject);
             }
 
             foreach (var child in transform.Children)
@@ -394,6 +400,8 @@ internal static class SceneSerialization
         }
 
         GatherSceneObjects(entityTransform, true);
+
+        outValue.children = [.. children];
 
         return outValue;
     }
@@ -539,9 +547,9 @@ internal static class SceneSerialization
 
         HandleReferences(newEntity, prefab.mainObject);
 
-        for(var i = 0; i < prefab.children.Count; i++)
+        for(var i = 0; i < prefab.children.Length; i++)
         {
-            var sceneObject = prefab.children[i];
+            ref var sceneObject = ref prefab.children[i];
 
             if(localEntities.TryGetValue(i + 1, out var entity) && entity.IsValid)
             {

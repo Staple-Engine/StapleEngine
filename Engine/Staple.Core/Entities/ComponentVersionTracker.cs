@@ -5,7 +5,7 @@ namespace Staple;
 
 public class ComponentVersionTracker<T> where T: IComponent, IComponentVersion
 {
-    private ulong[] versions = new ulong[1024];
+    private readonly ExpandableContainer<ulong> versions = new();
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldUpdateComponent(Entity entity, in T component)
@@ -20,21 +20,16 @@ public class ComponentVersionTracker<T> where T: IComponent, IComponentVersion
 
         if (index >= versions.Length)
         {
-            var newSize = versions.Length * 2;
-
-            while(newSize < entity.Identifier.ID)
-            {
-                newSize *= 2;
-            }
-
-            Array.Resize(ref versions, newSize);
+            versions.Resize(index + 1, true);
         }
 
-        var version = versions[index];
+        var contents = versions.Contents;
+
+        var version = contents[index];
 
         if(version != componentVersion)
         {
-            versions[index] = componentVersion;
+            contents[index] = componentVersion;
 
             return true;
         }
@@ -44,6 +39,6 @@ public class ComponentVersionTracker<T> where T: IComponent, IComponentVersion
 
     public void Clear()
     {
-        Array.Clear(versions);
+        versions.ClearValues();
     }
 }

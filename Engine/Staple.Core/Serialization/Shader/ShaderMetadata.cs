@@ -82,14 +82,14 @@ public class ShaderUniformTypeInfo
     public int size;
 
     [Key(2)]
-    public List<ShaderUniformField> fields;
+    public ShaderUniformField[] fields;
 }
 
 [MessagePackObject]
 public class ShaderUniformMapping
 {
     [Key(0)]
-    public List<ShaderUniformField> fields = [];
+    public ShaderUniformField[] fields;
 
     [Key(1)]
     public int binding;
@@ -175,13 +175,13 @@ public class ShaderMetadata
     public ShaderType type = ShaderType.VertexFragment;
 
     [Key(2)]
-    public List<string> variants = [];
+    public string[] variants = [];
 
     [Key(3)]
-    public List<ShaderUniform> uniforms = [];
+    public ShaderUniform[] uniforms = [];
 
     [Key(4)]
-    public List<ShaderInstanceParameter> instanceParameters = [];
+    public ShaderInstanceParameter[] instanceParameters = [];
 
     [Key(5)]
     public BlendMode sourceBlend = BlendMode.Off;

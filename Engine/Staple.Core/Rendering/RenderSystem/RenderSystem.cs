@@ -61,7 +61,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <summary>
     /// The current camera
     /// </summary>
-    public static (Camera, Transform) CurrentCamera { get; internal set; }
+    public static (Camera camera, Transform transform) CurrentCamera { get; internal set; }
 
     /// <summary>
     /// The instance of this render system
@@ -178,6 +178,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             visibilityCheckCounter = MaxFramesBetweenVisibilityChecks;
 
             ClearCullingStates();
+
+            var renderables = this.renderables.Contents;
 
             foreach (var pair in spatialEntities)
             {
@@ -319,7 +321,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     {
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
-        var c = (CurrentCamera.Item1, CurrentCamera.Item2);
+        var c = CurrentCamera;
 
         CurrentCamera = (camera, cameraTransform);
 
@@ -419,7 +421,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             pair.Key.system.Submit();
         }
 
-        CurrentCamera = (c.Item1, c.Item2);
+        CurrentCamera = c;
     }
 
     /// <summary>

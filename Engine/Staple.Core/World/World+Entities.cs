@@ -20,6 +20,8 @@ public partial class World
 
         lock (lockObject)
         {
+            var entities = this.entities.Contents;
+
             if (localID >= 0 &&
                 localID < entities.Length &&
                 entities[localID].alive &&
@@ -44,6 +46,8 @@ public partial class World
 
         lock (lockObject)
         {
+            var entities = this.entities.Contents;
+
             if (localID < 0 ||
                 localID >= entities.Length ||
                 !entities[localID].alive ||
@@ -103,7 +107,7 @@ public partial class World
 
             void Handle(Entity e)
             {
-                var eInfo = entities[e.Identifier.ID - 1];
+                var eInfo = entities.Contents[e.Identifier.ID - 1];
 
                 eInfo.enabledInHierarchy = eInfo.enabled && enabled;
 
@@ -134,13 +138,13 @@ public partial class World
         {
             entityCount++;
 
-            while(deadEntities.Count > 0)
+            while (deadEntities.Count > 0)
             {
                 var first = deadEntities.FirstOrDefault();
 
                 deadEntities.Remove(first);
 
-                var other = entities[first];
+                var other = entities.Contents[first];
 
                 if(other.alive)
                 {
@@ -180,18 +184,18 @@ public partial class World
 
             if(entities.Length == 0)
             {
-                entities = new EntityInfo[64];
+                entities.Resize(64, false);
             }
             else
             {
-                Array.Resize(ref entities, entities.Length * 2);
+                entities.Resize(entities.Length * 2, true);
             }
 
-            entities[current] = newEntity;
+            entities.Contents[current] = newEntity;
 
             for(var i = current + 1; i < entities.Length; i++)
             {
-                entities[i] = new()
+                entities.Contents[i] = new()
                 {
                     ID = i + 1,
                     alive = false,

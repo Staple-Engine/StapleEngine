@@ -1,5 +1,4 @@
-﻿
-using Staple;
+﻿using Staple;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -19,12 +18,19 @@ internal class ManagedFreeformAllocator<T>
 
     private readonly List<Entry> entries = [];
 
-    private ExpandableContainer<T> buffer = new();
-    private ExpandableContainer<T> stagingBuffer = new();
+    private readonly ExpandableContainer<T> buffer = new();
 
     public int Length => buffer.Length;
 
     public Span<T> Contents => buffer.Contents;
+
+    public int StorageSize
+    {
+        get
+        {
+            return elementSize * buffer.RawContents.Length;
+        }
+    }
 
     public void Compact(int extraLength = 0)
     {
@@ -35,14 +41,21 @@ internal class ManagedFreeformAllocator<T>
             compactedLength -= entry.length;
         }
 
-        stagingBuffer.Clear();
+        //Better for memory handling since otherwise we'll have double the memory usage that can't be GC-redeemable
+        var stagingBuffer = new T[compactedLength];
+
+        var stagingSpan = stagingBuffer.AsSpan();
+
+        var newPosition = 0;
 
         foreach (var entry in entries)
         {
-            stagingBuffer.AddRange(buffer.Contents.Slice(entry.start, entry.length));
+            buffer.Contents.Slice(entry.start, entry.length).CopyTo(stagingSpan.Slice(newPosition, entry.length));
+
+            newPosition += entry.length;
         }
 
-        var newPosition = 0;
+        newPosition = 0;
 
         foreach (var entry in entries)
         {
@@ -53,9 +66,9 @@ internal class ManagedFreeformAllocator<T>
 
         freeEntries.Clear();
 
-        stagingBuffer.Resize(compactedLength + extraLength, true);
+        buffer.Resize(compactedLength + extraLength, false);
 
-        (buffer, stagingBuffer) = (stagingBuffer, buffer);
+        stagingSpan.CopyTo(buffer.Contents);
     }
 
     public Entry Allocate(int length)

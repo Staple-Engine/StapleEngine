@@ -578,7 +578,7 @@ internal class MaterialEditor : AssetEditor
 
             case nameof(MaterialMetadata.enabledShaderVariants):
 
-                if(!(activeShader?.Disposed ?? true) && activeShader.shaderResource.metadata.variants.Count > 0)
+                if(!(activeShader?.Disposed ?? true) && activeShader.shaderResource.metadata.variants.Length > 0)
                 {
                     EditorGUI.Label("Enabled Variants");
 

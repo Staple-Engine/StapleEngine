@@ -53,9 +53,7 @@ public static class StaplePlayer
             {
                 var data = ResourceManager.instance.LoadFile("AppSettings");
 
-                using var stream = new MemoryStream(data);
-
-                var header = MessagePackSerializer.Deserialize<AppSettingsHeader>(stream);
+                var header = SerializationUtils.MessagePackDeserialize<AppSettingsHeader>(data.AsMemory(), out var offset);
 
                 if (header == null || !header.header.SequenceEqual(AppSettingsHeader.ValidHeader) ||
                     header.version != AppSettingsHeader.ValidVersion)
@@ -63,7 +61,7 @@ public static class StaplePlayer
                     throw new Exception($"Invalid app settings header");
                 }
 
-                AppSettings.Current = MessagePackSerializer.Deserialize<AppSettings>(stream) ??
+                AppSettings.Current = SerializationUtils.MessagePackDeserialize<AppSettings>(data.AsMemory(offset), out _) ??
                     throw new Exception("Failed to deserialize app settings");
 
                 LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Active.layers),

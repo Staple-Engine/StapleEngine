@@ -17,7 +17,7 @@ public class HighlightableSystem : IEntitySystemUpdate
             return;
         }
 
-        var c = sortedCameras.FirstOrDefault();
+        var c = sortedCameras[0];
 
         var mousePosition = Vector2.Zero;
 

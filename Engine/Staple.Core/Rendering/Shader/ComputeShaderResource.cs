@@ -40,7 +40,7 @@ internal partial class ComputeShaderResource
 
         foreach (var uniform in entry.computeUniforms.uniforms)
         {
-            if ((uniform.fields?.Count ?? 0) == 0)
+            if ((uniform.fields?.Length ?? 0) == 0)
             {
                 //TODO: Actual uniforms
             }

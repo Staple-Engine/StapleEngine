@@ -800,18 +800,18 @@ public class SharpGLTFImporter : IMeshImporter
                         m.topology = MeshTopology.Triangles;
                     }
 
-                    m.colors = colors[0] != null ? colors[0].Select(x => new Vector4Holder(x)).ToArray() : [];
-                    m.colors2 = colors[1] != null ? colors[1].Select(x => new Vector4Holder(x)).ToArray() : [];
-                    m.colors3 = colors[2] != null ? colors[2].Select(x => new Vector4Holder(x)).ToArray() : [];
-                    m.colors4 = colors[3] != null ? colors[3].Select(x => new Vector4Holder(x)).ToArray() : [];
+                    m.colors = colors[0] != null ? [.. colors[0].Select(x => new Vector4Holder(x))] : [];
+                    m.colors2 = colors[1] != null ? [.. colors[1].Select(x => new Vector4Holder(x))] : [];
+                    m.colors3 = colors[2] != null ? [.. colors[2].Select(x => new Vector4Holder(x))] : [];
+                    m.colors4 = colors[3] != null ? [.. colors[3].Select(x => new Vector4Holder(x))] : [];
 
-                    m.vertices = vertices.ToArray();
+                    m.vertices = [.. vertices];
 
-                    m.tangents = tangents.ToArray();
+                    m.tangents = [.. tangents];
 
-                    m.bitangents = bitangents.ToArray();
+                    m.bitangents = [.. bitangents];
 
-                    m.indices = indices.ToArray();
+                    m.indices = [.. indices];
 
                     if (metadata.regenerateNormals)
                     {
@@ -822,18 +822,16 @@ public class SharpGLTFImporter : IMeshImporter
                         normals = Mesh.GenerateNormals(v, m.indices.AsSpan(), metadata.useSmoothNormals);
                     }
 
-                    m.normals = normals
-                        .Select(x => ApplyNormalTransform(new Vector3Holder(x)))
-                        .ToArray();
+                    m.normals = [.. normals.Select(x => ApplyNormalTransform(new Vector3Holder(x)))];
 
-                    m.UV1 = texcoords[0] != null ? texcoords[0].Select(x => new Vector2Holder(x)).ToArray() : [];
-                    m.UV2 = texcoords[1] != null ? texcoords[1].Select(x => new Vector2Holder(x)).ToArray() : [];
-                    m.UV3 = texcoords[2] != null ? texcoords[2].Select(x => new Vector2Holder(x)).ToArray() : [];
-                    m.UV4 = texcoords[3] != null ? texcoords[3].Select(x => new Vector2Holder(x)).ToArray() : [];
-                    m.UV5 = texcoords[4] != null ? texcoords[4].Select(x => new Vector2Holder(x)).ToArray() : [];
-                    m.UV6 = texcoords[5] != null ? texcoords[5].Select(x => new Vector2Holder(x)).ToArray() : [];
-                    m.UV7 = texcoords[6] != null ? texcoords[6].Select(x => new Vector2Holder(x)).ToArray() : [];
-                    m.UV8 = texcoords[7] != null ? texcoords[7].Select(x => new Vector2Holder(x)).ToArray() : [];
+                    m.UV1 = texcoords[0] != null ? [.. texcoords[0].Select(x => new Vector2Holder(x))] : [];
+                    m.UV2 = texcoords[1] != null ? [.. texcoords[1].Select(x => new Vector2Holder(x))] : [];
+                    m.UV3 = texcoords[2] != null ? [.. texcoords[2].Select(x => new Vector2Holder(x))] : [];
+                    m.UV4 = texcoords[3] != null ? [.. texcoords[3].Select(x => new Vector2Holder(x))] : [];
+                    m.UV5 = texcoords[4] != null ? [.. texcoords[4].Select(x => new Vector2Holder(x))] : [];
+                    m.UV6 = texcoords[5] != null ? [.. texcoords[5].Select(x => new Vector2Holder(x))] : [];
+                    m.UV7 = texcoords[6] != null ? [.. texcoords[6].Select(x => new Vector2Holder(x))] : [];
+                    m.UV8 = texcoords[7] != null ? [.. texcoords[7].Select(x => new Vector2Holder(x))] : [];
 
                     if (node.Skin != null)
                     {
@@ -884,9 +882,9 @@ public class SharpGLTFImporter : IMeshImporter
                             };
                         }
 
-                        m.boneIndices = boneIndices.ToArray();
+                        m.boneIndices = [.. boneIndices];
 
-                        m.boneWeights = boneWeights.ToArray();
+                        m.boneWeights = [.. boneWeights];
                     }
 
                     meshes.Add(m);
@@ -931,8 +929,8 @@ public class SharpGLTFImporter : IMeshImporter
             RegisterNode(root, null);
         }
 
-        meshData.nodes = nodes.ToArray();
-        meshData.meshes = meshes.ToArray();
+        meshData.nodes = [.. nodes];
+        meshData.meshes = [.. meshes];
 
         foreach (var mesh in meshData.meshes)
         {
@@ -946,6 +944,8 @@ public class SharpGLTFImporter : IMeshImporter
 
         var animations = model.LogicalAnimations;
         var animationCounter = 0;
+
+        var meshAnimations = new List<MeshAssetAnimation>();
 
         for (var j = 0; j < animations.Count; j++)
         {
@@ -1047,17 +1047,17 @@ public class SharpGLTFImporter : IMeshImporter
                 var c = new MeshAssetAnimationChannel()
                 {
                     nodeIndex = nodeToIndex[pair.Key],
-                    positionKeys = pair.Value.Item1.Count > 0 ? pair.Value.Item1 : [new MeshAssetVectorAnimationKey()
+                    positionKeys = pair.Value.Item1.Count > 0 ? [.. pair.Value.Item1] : [new MeshAssetVectorAnimationKey()
                     {
                         time = 0,
                         value = new(pair.Key.LocalTransform.GetDecomposed().Translation),
                     }],
-                    rotationKeys = pair.Value.Item2.Count > 0 ? pair.Value.Item2 : [new MeshAssetQuaternionAnimationKey()
+                    rotationKeys = pair.Value.Item2.Count > 0 ? [.. pair.Value.Item2] : [new MeshAssetQuaternionAnimationKey()
                     {
                         time = 0,
                         value = new(pair.Key.LocalTransform.GetDecomposed().Rotation),
                     }],
-                    scaleKeys = pair.Value.Item3.Count > 0 ? pair.Value.Item3 : [new MeshAssetVectorAnimationKey()
+                    scaleKeys = pair.Value.Item3.Count > 0 ? [.. pair.Value.Item3] : [new MeshAssetVectorAnimationKey()
                     {
                         time = 0,
                         value = new(pair.Key.LocalTransform.GetDecomposed().Scale),
@@ -1067,8 +1067,10 @@ public class SharpGLTFImporter : IMeshImporter
                 a.channels[channelCounter++] = c;
             }
 
-            meshData.animations.Add(a);
+            meshAnimations.Add(a);
         }
+
+        meshData.animations = [.. meshAnimations];
 
         return meshData;
     }

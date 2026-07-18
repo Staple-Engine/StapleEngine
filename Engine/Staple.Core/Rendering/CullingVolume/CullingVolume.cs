@@ -47,7 +47,7 @@ public sealed class CullingVolume : IComponent
     /// <summary>
     /// Cached bounds coordinates to reduce allocations.
     /// </summary>
-    internal Vector3[] boundsCoordinates = [];
+    internal readonly ExpandableContainer<Vector3> boundsCoordinates = new();
 
     /// <summary>
     /// Whether this culling volume needs to be updated

@@ -13,7 +13,9 @@ namespace Staple;
 /// <typeparam name="T">The type to use</typeparam>
 public class ExpandableContainer<T>
 {
-    private T[] contents = new T[1024];
+    private T[] contents;
+
+    private readonly bool ShouldResetOnClear = typeof(T).IsClass;
 
     /// <summary>
     /// The amount of elements contained
@@ -31,13 +33,38 @@ public class ExpandableContainer<T>
     public Span<T> Contents => contents.AsSpan(0, Length);
 
     /// <summary>
+    /// Gets the raw contents, including any extra space. Necessary for raw pointer access.
+    /// </summary>
+    public T[] RawContents => contents;
+
+    public ExpandableContainer()
+    {
+        contents = new T[1024];
+    }
+
+    public ExpandableContainer(int length)
+    {
+        contents = new T[length];
+
+        Length = length;
+    }
+
+    /// <summary>
     /// Clears the contents
     /// </summary>
-    /// <remarks>This doesn't actually deallocate memory, just sets the length to 0.</remarks>
+    /// <remarks>This doesn't actually deallocate memory, just sets the length to 0.
+    /// If the type is a class, the contents will be marked as null to allow them to be collected by GC</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Clear()
     {
         Length = 0;
+
+        if (!ShouldResetOnClear)
+        {
+            return;
+        }
+
+        ClearValues();
     }
 
     /// <summary>
@@ -109,6 +136,19 @@ public class ExpandableContainer<T>
         else
         {
             contents = new T[targetSize];
+        }
+    }
+
+    /// <summary>
+    /// Clears all values in this container to their default value
+    /// </summary>
+    public void ClearValues()
+    {
+        var defaultValue = default(T);
+
+        for(var i = 0; i < contents.Length; i++)
+        {
+            contents[i] = defaultValue;
         }
     }
 }

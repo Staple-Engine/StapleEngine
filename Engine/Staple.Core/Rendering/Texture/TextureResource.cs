@@ -1,6 +1,6 @@
 ﻿namespace Staple.Internal;
 
-internal class TextureResource
+internal class TextureResource(ITextureCreateMethod createMethod)
 {
     internal TextureMetadata metadata;
     internal bool renderTarget = false;
@@ -8,27 +8,31 @@ internal class TextureResource
 
     internal RawTextureData readbackData;
 
-    internal readonly ITextureCreateMethod createMethod;
+    internal ITextureCreateMethod createMethod = createMethod;
 
     public GuidHasher Guid = new();
 
     public Sprite[] Sprites { get; internal set; } = [];
 
-    public TextureResource(ITextureCreateMethod createMethod)
-    {
-        this.createMethod = createMethod;
-    }
+    public bool CreateMethodDisposed => createMethod == null;
 
     internal bool Create()
     {
         var ok = false;
 
-        if (renderTarget || createMethod.Create(this))
+        if (renderTarget || (createMethod != null && createMethod.Create(this)))
         {
             ok = true;
         }
 
-        if ((metadata?.sprites?.Count ?? 0) > 0)
+        createMethod = null;
+
+        if (!ok)
+        {
+            return false;
+        }
+
+        if (ok && (metadata?.sprites?.Count ?? 0) > 0)
         {
             var sprites = Sprites;
 

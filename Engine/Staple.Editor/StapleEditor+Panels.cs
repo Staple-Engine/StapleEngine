@@ -393,6 +393,11 @@ internal partial class StapleEditor
                     ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, currentPlatform, true, false);
                     ProjectManager.Instance.OpenGameSolution();
                 });
+
+                EditorGUI.MenuItem("Force GC Collect", "ForceGC.Menu", () =>
+                {
+                    MemoryUtils.GarbageCollect(true);
+                });
             });
 
             EditorGUI.Menu("Assets", "Assets.Menu", () =>
@@ -1588,14 +1593,12 @@ internal partial class StapleEditor
                         {
                             var byteData = File.ReadAllBytes(cachePath);
 
-                            using var stream = new MemoryStream(byteData);
-
-                            var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
+                            var header = SerializationUtils.MessagePackDeserialize<SerializableStapleAssetHeader>(byteData.AsMemory(), out var offset);
 
                             if (header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) &&
                                 header.version == SerializableStapleAssetHeader.ValidVersion)
                             {
-                                var asset = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
+                                var asset = SerializationUtils.MessagePackDeserialize<SerializableStapleAsset>(byteData.AsMemory(offset), out _);
 
                                 if (asset != null)
                                 {
@@ -1621,14 +1624,14 @@ internal partial class StapleEditor
                                             {
                                                 var byteData = File.ReadAllBytes(cachePath);
 
-                                                using var stream = new MemoryStream(byteData);
-
-                                                var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
+                                                var header = SerializationUtils.MessagePackDeserialize<SerializableStapleAssetHeader>(byteData.AsMemory(),
+                                                    out offset);
 
                                                 if (header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) &&
                                                     header.version == SerializableStapleAssetHeader.ValidVersion)
                                                 {
-                                                    var asset = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
+                                                    var asset = SerializationUtils.MessagePackDeserialize<SerializableStapleAsset>(
+                                                        byteData.AsMemory(offset), out _);
 
                                                     if (asset != null)
                                                     {

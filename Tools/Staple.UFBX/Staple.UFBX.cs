@@ -365,7 +365,7 @@ public class UFXImporter : IMeshImporter
                 nodes.Add(newNode);
             }
 
-            meshData.nodes = nodes.ToArray();
+            meshData.nodes = [.. nodes];
 
             #region Meshes
             foreach (var mesh in scene->Meshes)
@@ -414,18 +414,18 @@ public class UFXImporter : IMeshImporter
                     }
                 }
 
-                indices.AddRange(mesh.Indices.ToArray().Select(x => (int)x).ToArray());
+                indices.AddRange([.. mesh.Indices.ToArray().Select(x => (int)x)]);
 
-                m.colors = mesh.Color0.Length > 0 ? mesh.Color0.ToArray().Select(x => new Vector4Holder(x)).ToArray() : [];
-                m.colors2 = mesh.Color1.Length > 0 ? mesh.Color1.ToArray().Select(x => new Vector4Holder(x)).ToArray() : [];
-                m.colors3 = mesh.Color2.Length > 0 ? mesh.Color2.ToArray().Select(x => new Vector4Holder(x)).ToArray() : [];
-                m.colors4 = mesh.Color3.Length > 0 ? mesh.Color3.ToArray().Select(x => new Vector4Holder(x)).ToArray() : [];
+                m.colors = mesh.Color0.Length > 0 ? [.. mesh.Color0.ToArray().Select(x => new Vector4Holder(x))] : [];
+                m.colors2 = mesh.Color1.Length > 0 ? [.. mesh.Color1.ToArray().Select(x => new Vector4Holder(x))] : [];
+                m.colors3 = mesh.Color2.Length > 0 ? [.. mesh.Color2.ToArray().Select(x => new Vector4Holder(x))] : [];
+                m.colors4 = mesh.Color3.Length > 0 ? [.. mesh.Color3.ToArray().Select(x => new Vector4Holder(x))] : [];
 
-                m.vertices = vertices.ToArray();
+                m.vertices = [.. vertices];
 
-                m.tangents = tangents.ToArray();
+                m.tangents = [.. tangents];
 
-                m.bitangents = bitangents.ToArray();
+                m.bitangents = [.. bitangents];
 
                 if (metadata.flipWindingOrder && indices.Count % 3 == 0)
                 {
@@ -435,7 +435,7 @@ public class UFXImporter : IMeshImporter
                     }
                 }
 
-                m.indices = indices.ToArray();
+                m.indices = [.. indices];
 
                 if (metadata.regenerateNormals)
                 {
@@ -446,9 +446,7 @@ public class UFXImporter : IMeshImporter
                     normals = Mesh.GenerateNormals(v, m.indices.AsSpan(), metadata.useSmoothNormals);
                 }
 
-                m.normals = normals
-                    .Select(x => ApplyNormalTransform(new Vector3Holder(x)))
-                    .ToArray();
+                m.normals = [.. normals.Select(x => ApplyNormalTransform(new Vector3Holder(x)))];
 
                 Vector2 FlipUV(Vector2 uv)
                 {
@@ -460,14 +458,14 @@ public class UFXImporter : IMeshImporter
                     return uv;
                 }
 
-                m.UV1 = mesh.UV0.Length > 0 ? mesh.UV0.ToArray().Select(x => new Vector2Holder(FlipUV(x))).ToArray() : [];
-                m.UV2 = mesh.UV1.Length > 0 ? mesh.UV1.ToArray().Select(x => new Vector2Holder(FlipUV(x))).ToArray() : [];
-                m.UV3 = mesh.UV2.Length > 0 ? mesh.UV2.ToArray().Select(x => new Vector2Holder(FlipUV(x))).ToArray() : [];
-                m.UV4 = mesh.UV3.Length > 0 ? mesh.UV3.ToArray().Select(x => new Vector2Holder(FlipUV(x))).ToArray() : [];
-                m.UV5 = mesh.UV4.Length > 0 ? mesh.UV4.ToArray().Select(x => new Vector2Holder(FlipUV(x))).ToArray() : [];
-                m.UV6 = mesh.UV5.Length > 0 ? mesh.UV5.ToArray().Select(x => new Vector2Holder(FlipUV(x))).ToArray() : [];
-                m.UV7 = mesh.UV6.Length > 0 ? mesh.UV6.ToArray().Select(x => new Vector2Holder(FlipUV(x))).ToArray() : [];
-                m.UV8 = mesh.UV7.Length > 0 ? mesh.UV7.ToArray().Select(x => new Vector2Holder(FlipUV(x))).ToArray() : [];
+                m.UV1 = mesh.UV0.Length > 0 ? [.. mesh.UV0.ToArray().Select(x => new Vector2Holder(FlipUV(x)))] : [];
+                m.UV2 = mesh.UV1.Length > 0 ? [.. mesh.UV1.ToArray().Select(x => new Vector2Holder(FlipUV(x)))] : [];
+                m.UV3 = mesh.UV2.Length > 0 ? [.. mesh.UV2.ToArray().Select(x => new Vector2Holder(FlipUV(x)))] : [];
+                m.UV4 = mesh.UV3.Length > 0 ? [.. mesh.UV3.ToArray().Select(x => new Vector2Holder(FlipUV(x)))] : [];
+                m.UV5 = mesh.UV4.Length > 0 ? [.. mesh.UV4.ToArray().Select(x => new Vector2Holder(FlipUV(x)))] : [];
+                m.UV6 = mesh.UV5.Length > 0 ? [.. mesh.UV5.ToArray().Select(x => new Vector2Holder(FlipUV(x)))] : [];
+                m.UV7 = mesh.UV6.Length > 0 ? [.. mesh.UV6.ToArray().Select(x => new Vector2Holder(FlipUV(x)))] : [];
+                m.UV8 = mesh.UV7.Length > 0 ? [.. mesh.UV7.ToArray().Select(x => new Vector2Holder(FlipUV(x)))] : [];
 
                 if (mesh.isSkinned)
                 {
@@ -486,37 +484,35 @@ public class UFXImporter : IMeshImporter
                         };
                     }
 
-                    m.boneIndices = mesh.BoneIndices
+                    m.boneIndices = [.. mesh.BoneIndices
                         .ToArray()
-                        .Select(x => new Vector4Holder(x))
-                        .ToArray();
+                        .Select(x => new Vector4Holder(x))];
 
-                    m.boneWeights = mesh.BoneWeights
+                    m.boneWeights = [.. mesh.BoneWeights
                         .ToArray()
-                        .Select(x => new Vector4Holder(x))
-                        .ToArray();
+                        .Select(x => new Vector4Holder(x))];
                 }
 
                 meshes.Add(m);
             }
 
-            meshData.meshes = meshes.ToArray();
+            meshData.meshes = [.. meshes];
             #endregion
 
             #region Animations
             var animations = scene->Animations;
+            var meshAnimations = new List<MeshAssetAnimation>();
 
             for (var j = 0; j < animations.Length; j++)
             {
                 var animation = animations[j];
 
-                var a = new MeshAssetAnimation()
+                var a = new MeshAssetAnimation
                 {
                     duration = animation.duration,
                     name = animation.name.ToString(),
+                    channels = new MeshAssetAnimationChannel[animation.nodeCount],
                 };
-
-                a.channels = new MeshAssetAnimationChannel[animation.nodeCount];
 
                 for (var k = 0; k < animation.nodeCount; k++)
                 {
@@ -529,7 +525,7 @@ public class UFXImporter : IMeshImporter
                             time = x.time,
                             value = new(x.value)
                         })
-                        .ToList();
+                        .ToArray();
 
                     var rotationKeys = frame.Rotations
                         .ToArray()
@@ -538,7 +534,7 @@ public class UFXImporter : IMeshImporter
                             time = x.time,
                             value = new(x.value)
                         })
-                        .ToList();
+                        .ToArray();
 
                     var scaleKeys = frame.Scales
                         .ToArray()
@@ -547,7 +543,7 @@ public class UFXImporter : IMeshImporter
                             time = x.time,
                             value = new(x.value)
                         })
-                        .ToList();
+                        .ToArray();
 
                     var c = new MeshAssetAnimationChannel()
                     {
@@ -560,8 +556,11 @@ public class UFXImporter : IMeshImporter
                     a.channels[k] = c;
                 }
 
-                meshData.animations.Add(a);
+                meshAnimations.Add(a);
             }
+
+            meshData.animations = [.. meshAnimations];
+
             #endregion
 
             UFBX.UFBX.FreeScene(scene);

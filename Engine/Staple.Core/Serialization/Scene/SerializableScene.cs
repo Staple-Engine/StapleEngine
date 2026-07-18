@@ -30,13 +30,13 @@ public enum SceneComponentParameterType
 public class SceneObjectTransform
 {
     [Key(0)]
-    public Vector3Holder position = new();
+    public Vector3Holder position;
 
     [Key(1)]
-    public Vector3Holder rotation = new();
+    public Vector3Holder rotation;
 
     [Key(2)]
-    public Vector3Holder scale = new();
+    public Vector3Holder scale;
 }
 
 [JsonSourceGenerationOptions(IncludeFields = true)]
@@ -100,7 +100,7 @@ public class SceneObject
     public SceneObjectTransform transform = new();
 
     [Key(5)]
-    public List<SceneComponent> components = [];
+    public SceneComponent[] components = [];
 
     [Key(6)]
     public string layer;
@@ -164,7 +164,7 @@ public class SerializableScene
     public string guid = Guid.NewGuid().ToString();
 
     [Key(1)]
-    public List<SceneObject> objects = [];
+    public SceneObject[] objects = [];
 
     [Key(2)]
     public string typeName = typeof(Scene).FullName;

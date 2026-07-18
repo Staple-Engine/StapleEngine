@@ -93,9 +93,11 @@ internal class ThumbnailCache
                     mayRenderInMainThread = true;
                 });
             });
+
+            MemoryUtils.GarbageCollect(false);
         }
 
-        switch(request.type)
+        switch (request.type)
         {
             case RenderRequestType.Mesh:
                 {
@@ -183,6 +185,7 @@ internal class ThumbnailCache
 
                             return;
                         }
+
                         var tempEntity = Mesh.InstanceMesh("TEMP", mesh);
 
                         if(!tempEntity.IsValid)

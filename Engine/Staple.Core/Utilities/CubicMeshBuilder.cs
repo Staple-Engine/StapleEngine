@@ -316,9 +316,9 @@ public class CubicMeshBuilder
         var mesh = new Mesh(true, true)
         {
             indexFormat = MeshIndexFormat.UInt32,
-            vertices = vertices.ToArray(),
-            normals = Mesh.GenerateNormals(vertices.ToArray(), indices.ToArray()),
-            indices = indices.ToArray(),
+            Vertices = [.. vertices],
+            Normals = Mesh.GenerateNormals(vertices.ToArray(), indices.ToArray()),
+            Indices = [.. indices],
             meshTopology = MeshTopology.Triangles,
             changed = true,
         };
@@ -327,7 +327,7 @@ public class CubicMeshBuilder
 
         if (addUVs)
         {
-            mesh.uv = uvs.ToArray();
+            mesh.UV = [.. uvs];
         }
 
         return mesh;

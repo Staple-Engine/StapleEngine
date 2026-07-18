@@ -1,5 +1,4 @@
-﻿using MessagePack;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -621,11 +620,9 @@ internal class ResourceManager
             return null;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SceneListHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SceneListHeader>(data.AsMemory(), out var offset);
 
             if (header == null || !header.header.SequenceEqual(SceneListHeader.ValidHeader) ||
                 header.version != SceneListHeader.ValidVersion)
@@ -633,7 +630,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var sceneData = MessagePackSerializer.Deserialize<SceneList>(stream);
+            var sceneData = SerializationUtils.MessagePackDeserialize<SceneList>(data.AsMemory(offset), out _);
 
             if (sceneData == null || sceneData.scenes == null)
             {
@@ -861,11 +858,9 @@ internal class ResourceManager
 
         var scene = new Scene();
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableSceneHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableSceneHeader>(data.AsMemory(), out var offset);
 
             if (header == null || !header.header.SequenceEqual(SerializableSceneHeader.ValidHeader) ||
                 header.version != SerializableSceneHeader.ValidVersion)
@@ -879,7 +874,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var sceneData = MessagePackSerializer.Deserialize<SerializableScene>(stream);
+            var sceneData = SerializationUtils.MessagePackDeserialize<SerializableScene>(data.AsMemory(offset), out _);
 
             if (sceneData == null || sceneData.objects == null)
             {
@@ -900,9 +895,10 @@ internal class ResourceManager
 
             failedSceneAssetLoads.Clear();
 
-            for (var i = 0; i < sceneData.objects.Count; i++)
+            for (var i = 0; i < sceneData.objects.Length; i++)
             {
-                var sceneObject = sceneData.objects[i];
+                ref var sceneObject = ref sceneData.objects[i];
+
                 var entity = new Entity();
 
                 switch (sceneObject.kind)
@@ -1135,11 +1131,9 @@ internal class ResourceManager
             return null;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableShaderHeader>(data.AsMemory(), out var offset);
 
             if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
                 header.version != SerializableShaderHeader.ValidVersion)
@@ -1151,7 +1145,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var shaderData = MessagePackSerializer.Deserialize<SerializableShader>(stream);
+            var shaderData = SerializationUtils.MessagePackDeserialize<SerializableShader>(data.AsMemory(offset), out _);
 
             if (shaderData == null || shaderData.metadata == null)
             {
@@ -1218,11 +1212,9 @@ internal class ResourceManager
             return null;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableShaderHeader>(data.AsMemory(), out var offset);
 
             if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
                 header.version != SerializableShaderHeader.ValidVersion)
@@ -1234,7 +1226,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var shaderData = MessagePackSerializer.Deserialize<SerializableShader>(stream);
+            var shaderData = SerializationUtils.MessagePackDeserialize<SerializableShader>(data.AsMemory(offset), out _);
 
             if (shaderData == null || shaderData.metadata == null)
             {
@@ -1392,11 +1384,9 @@ internal class ResourceManager
             return null;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableShaderHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableShaderHeader>(data.AsMemory(), out var offset);
 
             if (header == null || !header.header.SequenceEqual(SerializableShaderHeader.ValidHeader) ||
                 header.version != SerializableShaderHeader.ValidVersion)
@@ -1408,7 +1398,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var shaderData = MessagePackSerializer.Deserialize<SerializableShader>(stream);
+            var shaderData = SerializationUtils.MessagePackDeserialize<SerializableShader>(data.AsMemory(offset), out _);
 
             if (shaderData == null || shaderData.metadata == null)
             {
@@ -1543,11 +1533,9 @@ internal class ResourceManager
             return null;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableMaterialHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableMaterialHeader>(data.AsMemory(), out var offset);
 
             if (header == null ||
                 !header.header.SequenceEqual(SerializableMaterialHeader.ValidHeader) ||
@@ -1560,7 +1548,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var materialData = MessagePackSerializer.Deserialize<SerializableMaterial>(stream);
+            var materialData = SerializationUtils.MessagePackDeserialize<SerializableMaterial>(data.AsMemory(offset), out _);
 
             if (materialData == null || materialData.metadata == null)
             {
@@ -1763,11 +1751,9 @@ internal class ResourceManager
             return null;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableTextureHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableTextureHeader>(data.AsMemory(), out var offset);
 
             if (header == null ||
                 !header.header.SequenceEqual(SerializableTextureHeader.ValidHeader) ||
@@ -1780,7 +1766,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var textureData = MessagePackSerializer.Deserialize<SerializableTexture>(stream);
+            var textureData = SerializationUtils.MessagePackDeserialize<SerializableTexture>(data.AsMemory(offset), out _);
 
             if (textureData == null)
             {
@@ -1907,11 +1893,9 @@ internal class ResourceManager
             return null;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableAudioClipHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableAudioClipHeader>(data.AsMemory(), out var offset);
 
             if (header == null ||
                 !header.header.SequenceEqual(SerializableAudioClipHeader.ValidHeader) ||
@@ -1924,7 +1908,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var audioData = MessagePackSerializer.Deserialize<SerializableAudioClip>(stream);
+            var audioData = SerializationUtils.MessagePackDeserialize<SerializableAudioClip>(data.AsMemory(offset), out _);
 
             if (audioData == null)
             {
@@ -2044,101 +2028,59 @@ internal class ResourceManager
 
         var asset = LoadMeshAsset(guid);
 
-        if(asset == null)
+        if (asset == null || asset.Meshes.Length == 0)
         {
+            if(asset != null && asset.Meshes.Length == 0)
+            {
+                Log.Error($"Failed to load mesh {original}: Asset contains no mesh data", LogTag);
+
+                ReportFailedAssetLoad(original, original);
+            }
+
             return null;
         }
 
         var meshIndex = 0;
 
-        if (asset.Meshes.Length > 0)
+        if(!string.IsNullOrEmpty(indexString))
         {
-            if(!string.IsNullOrEmpty(indexString))
+            if(!int.TryParse(indexString, out meshIndex))
             {
-                if(!int.TryParse(indexString, out meshIndex))
-                {
-                    meshIndex = Array.FindIndex(asset.Meshes, x => x.name == indexString);
-                }
-            }
-
-            if(meshIndex < 0 || meshIndex >= asset.Meshes.Length)
-            {
-                Log.Error($"Failed to load mesh {original}: Invalid mesh index {meshIndex}", LogTag);
-
-                ReportFailedAssetLoad(original, original);
-
-                return null;
-            }
-
-            var m = asset.Meshes[meshIndex];
-
-            mesh = new Mesh(true, false)
-            {
-                vertices = m.vertices,
-                normals = m.normals,
-                tangents = m.tangents,
-                bitangents = m.bitangents,
-
-                uv = m.UV1,
-                uv2 = m.UV2,
-                uv3 = m.UV3,
-                uv4 = m.UV4,
-                uv5 = m.UV5,
-                uv6 = m.UV6,
-                uv7 = m.UV7,
-                uv8 = m.UV8,
-
-                indices = m.indices,
-
-                boneIndices = m.boneIndices,
-                boneWeights = m.boneWeights,
-
-                meshTopology = m.topology,
-                indexFormat = MeshIndexFormat.UInt32,
-                bounds = m.transformedBounds,
-
-                meshAsset = asset,
-                meshAssetIndex = meshIndex,
-            };
-
-            if (m.colors.Length > 0)
-            {
-                mesh.colors = m.colors;
-            }
-
-            if (m.colors2.Length > 0)
-            {
-                mesh.colors2 = m.colors2;
-            }
-
-            if (m.colors3.Length > 0)
-            {
-                mesh.colors3 = m.colors3;
-            }
-
-            if (m.colors4.Length > 0)
-            {
-                mesh.colors4 = m.colors4;
-            }
-
-            foreach (var submesh in m.submeshes)
-            {
-                mesh.AddSubmesh(submesh.startVertex, submesh.vertexCount, submesh.startIndex, submesh.indexCount, m.topology);
-            }
-
-            mesh.changed = true;
-
-            if((mesh.boneIndices?.Length ?? 0) == 0)
-            {
-                mesh.MarkStaticMesh();
+                meshIndex = Array.FindIndex(asset.Meshes, x => x.name == indexString);
             }
         }
-        else
+
+        if(meshIndex < 0 || meshIndex >= asset.Meshes.Length)
         {
-            mesh = new Mesh(true, false)
-            {
-                meshAsset = asset,
-            };
+            Log.Error($"Failed to load mesh {original}: Invalid mesh index {meshIndex}", LogTag);
+
+            ReportFailedAssetLoad(original, original);
+
+            return null;
+        }
+
+        var m = asset.Meshes[meshIndex];
+
+        mesh = new Mesh(true, false)
+        {
+            meshTopology = m.topology,
+            indexFormat = MeshIndexFormat.UInt32,
+            bounds = m.transformedBounds,
+
+            meshAsset = asset,
+            meshAssetIndex = meshIndex,
+        };
+
+        foreach (var submesh in m.submeshes)
+        {
+            mesh.AddSubmesh(submesh.startVertex, submesh.vertexCount, submesh.startIndex, submesh.indexCount, m.topology);
+        }
+
+        mesh.changed = true;
+
+        if(!mesh.HasBoneIndices)
+        {
+            mesh.MarkStaticMesh();
         }
 
         mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{meshIndex}" : original;
@@ -2183,11 +2125,9 @@ internal class ResourceManager
             return null;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableMeshAssetHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableMeshAssetHeader>(data.AsMemory(), out var offset);
 
             if (header == null ||
                 !header.header.SequenceEqual(SerializableMeshAssetHeader.ValidHeader) ||
@@ -2200,7 +2140,7 @@ internal class ResourceManager
                 return null;
             }
 
-            var meshAssetData = MessagePackSerializer.Deserialize<SerializableMeshAsset>(stream);
+            var meshAssetData = SerializationUtils.MessagePackDeserialize<SerializableMeshAsset>(data.AsMemory(offset), out _);
 
             if (meshAssetData == null)
             {
@@ -2234,8 +2174,8 @@ internal class ResourceManager
                     index = i,
                     Transform = transform,
                     OriginalTransform = transform,
-                    meshIndices = node.meshIndices.ToArray(),
-                    children = node.children.ToArray(),
+                    meshIndices = [.. node.meshIndices],
+                    children = [.. node.children],
                 };
             }
 
@@ -2264,103 +2204,75 @@ internal class ResourceManager
 
                     bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
 
-                    vertices = m.vertices
-                        .Select(x => x.ToVector3())
-                        .ToArray(),
+                    vertices = [.. m.vertices.Select(x => x.ToVector3())],
 
-                    normals = m.normals
-                        .Select(x => x.ToVector3())
-                        .ToArray(),
+                    normals = [.. m.normals.Select(x => x.ToVector3())],
 
-                    colors = m.colors
+                    colors = [.. m.colors
                         .Select(x =>
                         {
                             var v = x.ToVector4();
 
                             return new Color(v.X, v.Y, v.Z, v.W);
-                        }).ToArray(),
+                        })],
 
-                    colors2 = m.colors2
+                    colors2 = [.. m.colors2
                         .Select(x =>
                         {
                             var v = x.ToVector4();
 
                             return new Color(v.X, v.Y, v.Z, v.W);
-                        }).ToArray(),
+                        })],
 
-                    colors3 = m.colors3
+                    colors3 = [.. m.colors3
                         .Select(x =>
                         {
                             var v = x.ToVector4();
 
                             return new Color(v.X, v.Y, v.Z, v.W);
-                        }).ToArray(),
+                        })],
 
-                    colors4 = m.colors4
+                    colors4 = [.. m.colors4
                         .Select(x =>
                         {
                             var v = x.ToVector4();
 
                             return new Color(v.X, v.Y, v.Z, v.W);
-                        }).ToArray(),
+                        })],
 
-                    tangents = m.tangents
-                        .Select(x => x.ToVector3())
-                        .ToArray(),
+                    tangents = [.. m.tangents.Select(x => x.ToVector3())],
 
-                    bitangents = m.bitangents
-                        .Select(x => x.ToVector3())
-                        .ToArray(),
+                    bitangents = [.. m.bitangents.Select(x => x.ToVector3())],
 
-                    UV1 = m.UV1
-                        .Select(x => x.ToVector2())
-                        .ToArray(),
+                    UV1 = [.. m.UV1.Select(x => x.ToVector2())],
 
-                    UV2 = m.UV2
-                        .Select(x => x.ToVector2())
-                        .ToArray(),
+                    UV2 = [.. m.UV2.Select(x => x.ToVector2())],
 
-                    UV3 = m.UV3
-                        .Select(x => x.ToVector2())
-                        .ToArray(),
+                    UV3 = [.. m.UV3.Select(x => x.ToVector2())],
 
-                    UV4 = m.UV4
-                        .Select(x => x.ToVector2())
-                        .ToArray(),
+                    UV4 = [.. m.UV4.Select(x => x.ToVector2())],
 
-                    UV5 = m.UV5
-                        .Select(x => x.ToVector2())
-                        .ToArray(),
+                    UV5 = [.. m.UV5.Select(x => x.ToVector2())],
 
-                    UV6 = m.UV6
-                        .Select(x => x.ToVector2())
-                        .ToArray(),
+                    UV6 = [.. m.UV6.Select(x => x.ToVector2())],
 
-                    UV7 = m.UV7
-                        .Select(x => x.ToVector2())
-                        .ToArray(),
+                    UV7 = [.. m.UV7.Select(x => x.ToVector2())],
 
-                    UV8 = m.UV8
-                        .Select(x => x.ToVector2())
-                        .ToArray(),
+                    UV8 = [.. m.UV8.Select(x => x.ToVector2())],
 
-                    indices = m.indices.ToArray(),
+                    indices = [.. m.indices],
 
-                    boneIndices = m.boneIndices
-                        .Select(x => x.ToVector4())
-                        .ToArray(),
+                    boneIndices = [.. m.boneIndices.Select(x => x.ToVector4())],
 
-                    boneWeights = m.boneWeights
-                        .Select(x => x.ToVector4())
-                        .ToArray(),
+                    boneWeights = [.. m.boneWeights.Select(x => x.ToVector4())],
 
                     startBoneIndex = startBoneIndex,
 
-                    bones = m.bones.Select(x => new MeshAsset.Bone()
+                    bones = [.. m.bones.Select(x => new MeshAsset.Bone()
                     {
                         nodeIndex = x.nodeIndex,
                         offsetMatrix = x.offsetMatrix.ToMatrix(),
-                    }).ToArray(),
+                    })],
                 };
 
                 for (var j = 0; j < newMesh.boneIndices.Length; j++)
@@ -2486,23 +2398,23 @@ internal class ResourceManager
                     var channel = new MeshAsset.AnimationChannel()
                     {
                         nodeIndex = c.nodeIndex,
-                        positions = c.positionKeys.Select(x => new MeshAsset.AnimationKey<Vector3>()
+                        positions = [.. c.positionKeys.Select(x => new MeshAsset.AnimationKey<Vector3>()
                         {
                             time = x.time,
                             value = x.value.ToVector3(),
-                        }).ToArray(),
+                        })],
 
-                        rotations = c.rotationKeys.Select(x => new MeshAsset.AnimationKey<Quaternion>()
+                        rotations = [.. c.rotationKeys.Select(x => new MeshAsset.AnimationKey<Quaternion>()
                         {
                             time = x.time,
                             value = new Quaternion(x.value.x, x.value.y, x.value.z, x.value.w),
-                        }).ToArray(),
+                        })],
 
-                        scales = c.scaleKeys.Select(x => new MeshAsset.AnimationKey<Vector3>()
+                        scales = [.. c.scaleKeys.Select(x => new MeshAsset.AnimationKey<Vector3>()
                         {
                             time = x.time,
                             value = x.value.ToVector3(),
-                        }).ToArray(),
+                        })],
                     };
 
                     animation.channels.Add(channel);
@@ -2641,11 +2553,9 @@ internal class ResourceManager
             return default;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableStapleAssetHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableStapleAssetHeader>(data.AsMemory(), out var offset);
 
             if (header == null ||
                 !header.header.SequenceEqual(SerializableStapleAssetHeader.ValidHeader) ||
@@ -2658,7 +2568,7 @@ internal class ResourceManager
                 return default;
             }
 
-            var assetBundle = MessagePackSerializer.Deserialize<SerializableStapleAsset>(stream);
+            var assetBundle = SerializationUtils.MessagePackDeserialize<SerializableStapleAsset>(data.AsMemory(offset), out _);
 
             if (assetBundle == null)
             {
@@ -2771,11 +2681,9 @@ internal class ResourceManager
             return default;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializablePrefabHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializablePrefabHeader>(data.AsMemory(), out var offset);
 
             if (header == null ||
                 !header.header.SequenceEqual(SerializablePrefabHeader.ValidHeader) ||
@@ -2788,7 +2696,7 @@ internal class ResourceManager
                 return default;
             }
 
-            var prefabData = MessagePackSerializer.Deserialize<SerializablePrefab>(stream);
+            var prefabData = SerializationUtils.MessagePackDeserialize<SerializablePrefab>(data.AsMemory(offset), out _);
 
             if (prefabData == null)
             {
@@ -2853,11 +2761,9 @@ internal class ResourceManager
             return default;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableFontHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableFontHeader>(data.AsMemory(), out var offset);
 
             if (header == null ||
                 !header.header.SequenceEqual(SerializableFontHeader.ValidHeader) ||
@@ -2870,7 +2776,7 @@ internal class ResourceManager
                 return default;
             }
 
-            var fontData = MessagePackSerializer.Deserialize<SerializableFont>(stream);
+            var fontData = SerializationUtils.MessagePackDeserialize<SerializableFont>(data.AsMemory(offset), out _);
 
             if (fontData == null)
             {
@@ -2977,11 +2883,9 @@ internal class ResourceManager
             return default;
         }
 
-        using var stream = new MemoryStream(data);
-
         try
         {
-            var header = MessagePackSerializer.Deserialize<SerializableTextAssetHeader>(stream);
+            var header = SerializationUtils.MessagePackDeserialize<SerializableTextAssetHeader>(data.AsMemory(), out var offset);
 
             if (header == null ||
                 !header.header.SequenceEqual(SerializableTextAssetHeader.ValidHeader) ||
@@ -2994,7 +2898,7 @@ internal class ResourceManager
                 return default;
             }
 
-            var textData = MessagePackSerializer.Deserialize<SerializableTextAsset>(stream);
+            var textData = SerializationUtils.MessagePackDeserialize<SerializableTextAsset>(data.AsMemory(offset), out _);
 
             if (textData == null)
             {

@@ -58,117 +58,97 @@ public sealed partial class Mesh
     /// <summary>
     /// List of vertices. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector3[] vertices;
+    private Vector3[] vertices;
 
     /// <summary>
     /// List of normals. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector3[] normals;
+    private Vector3[] normals;
 
     /// <summary>
     /// List of tangents. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector3[] tangents;
+    private Vector3[] tangents;
 
     /// <summary>
     /// List of bitangents. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector3[] bitangents;
+    private Vector3[] bitangents;
 
     /// <summary>
     /// List of colors. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Color[] colors;
+    private Color[] colors;
 
     /// <summary>
     /// List of colors. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Color[] colors2;
+    private Color[] colors2;
 
     /// <summary>
     /// List of colors. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Color[] colors3;
+    private Color[] colors3;
 
     /// <summary>
     /// List of colors. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Color[] colors4;
-
-    /// <summary>
-    /// List of colors (byte version). This is only valid if you don't use SetMeshData.
-    /// </summary>
-    internal Color32[] colors32;
-
-    /// <summary>
-    /// List of colors (byte version). This is only valid if you don't use SetMeshData.
-    /// </summary>
-    internal Color32[] colors322;
-
-    /// <summary>
-    /// List of colors (byte version). This is only valid if you don't use SetMeshData.
-    /// </summary>
-    internal Color32[] colors323;
-
-    /// <summary>
-    /// List of colors (byte version). This is only valid if you don't use SetMeshData.
-    /// </summary>
-    internal Color32[] colors324;
+    private Color[] colors4;
 
     /// <summary>
     /// List of UVs in the first channel. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector2[] uv;
+    private Vector2[] uv;
 
     /// <summary>
     /// List of UVs in the second channel. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector2[] uv2;
+    private Vector2[] uv2;
 
     /// <summary>
     /// List of UVs in the third channel. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector2[] uv3;
+    private Vector2[] uv3;
 
     /// <summary>
     /// List of UVs in the fourth channel. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector2[] uv4;
+    private Vector2[] uv4;
 
     /// <summary>
     /// List of UVs in the fifth channel. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector2[] uv5;
+    private Vector2[] uv5;
 
     /// <summary>
     /// List of UVs in the sixth channel. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector2[] uv6;
+    private Vector2[] uv6;
 
     /// <summary>
     /// List of UVs in the seventh channel. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector2[] uv7;
+    private Vector2[] uv7;
 
     /// <summary>
     /// List of UVs in the eighth channel. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector2[] uv8;
+    private Vector2[] uv8;
 
     /// <summary>
     /// List of indices
     /// </summary>
-    internal int[] indices;
+    private int[] indices;
 
     /// <summary>
     /// List of bone indices. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector4[] boneIndices;
+    private Vector4[] boneIndices;
 
     /// <summary>
     /// List of bone weights. This is only valid if you don't use SetMeshData.
     /// </summary>
-    internal Vector4[] boneWeights;
+    private Vector4[] boneWeights;
 
     /// <summary>
     /// The index format of the mesh
@@ -232,51 +212,444 @@ public sealed partial class Mesh
     }
 
     /// <summary>
+    /// List of vertices. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector3[] VerticesInternal
+    {
+        get
+        {
+            if(MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.vertices;
+            }
+
+            return vertices ?? [];
+        }
+
+        set
+        {
+            vertices = value;
+        }
+    }
+
+    /// <summary>
+    /// List of normals. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector3[] NormalsInternal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.normals;
+            }
+
+            return normals ?? [];
+        }
+
+        set
+        {
+            normals = value;
+        }
+    }
+
+    /// <summary>
+    /// List of tangents. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector3[] TangentsInternal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.tangents;
+            }
+
+            return tangents ?? [];
+        }
+
+        set
+        {
+            tangents = value;
+        }
+    }
+
+    /// <summary>
+    /// List of bitangents. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector3[] BitangentsInternal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.bitangents;
+            }
+
+            return bitangents ?? [];
+        }
+
+        set
+        {
+            bitangents = value;
+        }
+    }
+
+    /// <summary>
+    /// List of colors. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Color[] ColorsInternal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.colors;
+            }
+
+            return colors ?? [];
+        }
+
+        set
+        {
+            colors = value;
+        }
+    }
+
+    /// <summary>
+    /// List of colors. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Color[] Colors2Internal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.colors2;
+            }
+
+            return colors2 ?? [];
+        }
+
+        set
+        {
+            colors2 = value;
+        }
+    }
+
+
+    /// <summary>
+    /// List of colors. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Color[] Colors3Internal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.colors3;
+            }
+
+            return colors3 ?? [];
+        }
+
+        set
+        {
+            colors3 = value;
+        }
+    }
+
+
+    /// <summary>
+    /// List of colors. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Color[] Colors4Internal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.colors4;
+            }
+
+            return colors4 ?? [];
+        }
+
+        set
+        {
+            colors4 = value;
+        }
+    }
+
+    /// <summary>
+    /// List of UVs in the first channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector2[] UVInternal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.UV1;
+            }
+
+            return uv ?? [];
+        }
+
+        set
+        {
+            uv = value;
+        }
+    }
+
+    /// <summary>
+    /// List of UVs in the second channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector2[] UV2Internal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.UV2;
+            }
+
+            return uv2 ?? [];
+        }
+
+        set
+        {
+            uv2 = value;
+        }
+    }
+
+    /// <summary>
+    /// List of UVs in the third channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector2[] UV3Internal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.UV3;
+            }
+
+            return uv3 ?? [];
+        }
+
+        set
+        {
+            uv3 = value;
+        }
+    }
+
+    /// <summary>
+    /// List of UVs in the fourth channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector2[] UV4Internal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.UV4;
+            }
+
+            return uv4 ?? [];
+        }
+
+        set
+        {
+            uv4 = value;
+        }
+    }
+
+    /// <summary>
+    /// List of UVs in the fifth channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector2[] UV5Internal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.UV5;
+            }
+
+            return uv5 ?? [];
+        }
+
+        set
+        {
+            uv5 = value;
+        }
+    }
+
+    /// <summary>
+    /// List of UVs in the sixth channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector2[] UV6Internal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.UV6;
+            }
+
+            return uv6 ?? [];
+        }
+
+        set
+        {
+            uv6 = value;
+        }
+    }
+
+    /// <summary>
+    /// List of UVs in the seventh channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector2[] UV7Internal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.UV7;
+            }
+
+            return uv7 ?? [];
+        }
+
+        set
+        {
+            uv7 = value;
+        }
+    }
+
+    /// <summary>
+    /// List of UVs in the eighth channel. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector2[] UV8Internal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.UV8;
+            }
+
+            return uv8 ?? [];
+        }
+
+        set
+        {
+            uv8 = value;
+        }
+    }
+
+    /// <summary>
+    /// List of indices
+    /// </summary>
+    internal int[] IndicesInternal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.indices;
+            }
+
+            return indices ?? [];
+        }
+
+        set
+        {
+            indices = value;
+        }
+    }
+
+    /// <summary>
+    /// List of bone indices. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector4[] BoneIndicesInternal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.boneIndices;
+            }
+
+            return boneIndices ?? [];
+        }
+
+        set
+        {
+            boneIndices = value;
+        }
+    }
+
+    /// <summary>
+    /// List of bone weights. This is only valid if you don't use SetMeshData.
+    /// </summary>
+    internal Vector4[] BoneWeightsInternal
+    {
+        get
+        {
+            if (MeshAssetMesh is MeshAsset.MeshInfo mesh)
+            {
+                return mesh.boneWeights;
+            }
+
+            return boneWeights ?? [];
+        }
+
+        set
+        {
+            boneWeights = value;
+        }
+    }
+
+    /// <summary>
     /// Internal list of vertex layouts for each a unique key
     /// </summary>
     internal static Dictionary<string, VertexLayout> vertexLayouts = [];
 
-    internal bool HasNormals => (normals?.Length ?? 0) > 0;
+    internal bool HasNormals => (NormalsInternal?.Length ?? 0) > 0;
 
-    internal bool HasTangents => (tangents?.Length ?? 0) > 0;
+    internal bool HasTangents => (TangentsInternal?.Length ?? 0) > 0;
 
-    internal bool HasBitangents => (bitangents?.Length ?? 0) > 0;
+    internal bool HasBitangents => (BitangentsInternal?.Length ?? 0) > 0;
 
-    internal bool HasColors => (colors?.Length ?? 0) > 0;
+    internal bool HasColors => (ColorsInternal?.Length ?? 0) > 0;
 
-    internal bool HasColors2 => (colors2?.Length ?? 0) > 0;
+    internal bool HasColors2 => (Colors2Internal?.Length ?? 0) > 0;
 
-    internal bool HasColors3 => (colors3?.Length ?? 0) > 0;
+    internal bool HasColors3 => (Colors3Internal?.Length ?? 0) > 0;
 
-    internal bool HasColors4 => (colors4?.Length ?? 0) > 0;
+    internal bool HasColors4 => (Colors4Internal?.Length ?? 0) > 0;
 
-    internal bool HasColors32 => (colors32?.Length ?? 0) > 0;
+    internal bool HasUV => (UVInternal?.Length ?? 0) > 0;
 
-    internal bool HasColors322 => (colors322?.Length ?? 0) > 0;
+    internal bool HasUV2 => (UV2Internal?.Length ?? 0) > 0;
 
-    internal bool HasColors323 => (colors323?.Length ?? 0) > 0;
+    internal bool HasUV3 => (UV3Internal?.Length ?? 0) > 0;
 
-    internal bool HasColors324 => (colors324?.Length ?? 0) > 0;
+    internal bool HasUV4 => (UV4Internal?.Length ?? 0) > 0;
 
-    internal bool HasUV => (uv?.Length ?? 0) > 0;
+    internal bool HasUV5 => (UV5Internal?.Length ?? 0) > 0;
 
-    internal bool HasUV2 => (uv2?.Length ?? 0) > 0;
+    internal bool HasUV6 => (UV6Internal?.Length ?? 0) > 0;
 
-    internal bool HasUV3 => (uv3?.Length ?? 0) > 0;
+    internal bool HasUV7 => (UV7Internal?.Length ?? 0) > 0;
 
-    internal bool HasUV4 => (uv4?.Length ?? 0) > 0;
+    internal bool HasUV8 => (UV8Internal?.Length ?? 0) > 0;
 
-    internal bool HasUV5 => (uv5?.Length ?? 0) > 0;
+    internal bool HasBoneIndices => (BoneIndicesInternal?.Length ?? 0) > 0;
 
-    internal bool HasUV6 => (uv6?.Length ?? 0) > 0;
-
-    internal bool HasUV7 => (uv7?.Length ?? 0) > 0;
-
-    internal bool HasUV8 => (uv8?.Length ?? 0) > 0;
-
-    internal bool HasBoneIndices => (boneIndices?.Length ?? 0) > 0;
-
-    internal bool HasBoneWeights => (boneWeights?.Length ?? 0) > 0;
+    internal bool HasBoneWeights => (BoneWeightsInternal?.Length ?? 0) > 0;
 
     internal bool IsStaticMesh;
 
@@ -451,26 +824,6 @@ public sealed partial class Mesh
             keyBuilder.Append("c4");
         }
 
-        if (mesh.HasColors32)
-        {
-            keyBuilder.Append("c32");
-        }
-
-        if (mesh.HasColors322)
-        {
-            keyBuilder.Append("c322");
-        }
-
-        if (mesh.HasColors323)
-        {
-            keyBuilder.Append("c323");
-        }
-
-        if (mesh.HasColors324)
-        {
-            keyBuilder.Append("c324");
-        }
-
         if (mesh.HasUV)
         {
             keyBuilder.Append('u');
@@ -547,22 +900,22 @@ public sealed partial class Mesh
             builder.Add(VertexAttribute.Bitangent, VertexAttributeType.Float3);
         }
 
-        if (mesh.HasColors || mesh.HasColors32)
+        if (mesh.HasColors)
         {
             builder.Add(VertexAttribute.Color0, VertexAttributeType.Float4);
         }
 
-        if (mesh.HasColors2 || mesh.HasColors322)
+        if (mesh.HasColors2)
         {
             builder.Add(VertexAttribute.Color1, VertexAttributeType.Float4);
         }
 
-        if (mesh.HasColors3 || mesh.HasColors323)
+        if (mesh.HasColors3)
         {
             builder.Add(VertexAttribute.Color2, VertexAttributeType.Float4);
         }
 
-        if (mesh.HasColors4 || mesh.HasColors324)
+        if (mesh.HasColors4)
         {
             builder.Add(VertexAttribute.Color3, VertexAttributeType.Float4);
         }
@@ -635,6 +988,25 @@ public sealed partial class Mesh
     /// <exception cref="InvalidOperationException">Thrown if the mesh data is invalid</exception>
     internal byte[] MakeVertexDataBlob(VertexLayout layout)
     {
+        var vertices = VerticesInternal;
+        var normals = NormalsInternal;
+        var tangents = TangentsInternal;
+        var bitangents = BitangentsInternal;
+        var colors = ColorsInternal;
+        var colors2 = Colors2Internal;
+        var colors3 = Colors3Internal;
+        var colors4 = Colors4Internal;
+        var uv = UVInternal;
+        var uv2 = UV2Internal;
+        var uv3 = UV3Internal;
+        var uv4 = UV4Internal;
+        var uv5 = UV5Internal;
+        var uv6 = UV6Internal;
+        var uv7 = UV7Internal;
+        var uv8 = UV8Internal;
+        var boneIndices = BoneIndicesInternal;
+        var boneWeights = BoneWeightsInternal;
+
         var size = layout.Stride * vertices.Length;
 
         var buffer = new byte[size];
@@ -688,44 +1060,20 @@ public sealed partial class Mesh
             {
                 Copy(colors[i], ref index);
             }
-            else if(HasColors32)
-            {
-                var c = (Color)colors32[i];
-
-                Copy(c, ref index);
-            }
 
             if (HasColors2)
             {
                 Copy(colors2[i], ref index);
-            }
-            else if (HasColors322)
-            {
-                var c = (Color)colors322[i];
-
-                Copy(c, ref index);
             }
 
             if (HasColors3)
             {
                 Copy(colors3[i], ref index);
             }
-            else if (HasColors323)
-            {
-                var c = (Color)colors323[i];
-
-                Copy(c, ref index);
-            }
 
             if (HasColors4)
             {
                 Copy(colors4[i], ref index);
-            }
-            else if (HasColors324)
-            {
-                var c = (Color)colors324[i];
-
-                Copy(c, ref index);
             }
 
             if (HasUV)
@@ -849,8 +1197,8 @@ public sealed partial class Mesh
     internal void MarkStaticMesh()
     {
         if(IsStaticMesh ||
-            (vertices?.Length ?? 0) == 0 ||
-            (indices?.Length ?? 0) == 0)
+            (VerticesInternal?.Length ?? 0) == 0 ||
+            (IndicesInternal?.Length ?? 0) == 0)
         {
             return;
         }
@@ -864,149 +1212,135 @@ public sealed partial class Mesh
     {
         if (staticMeshEntries == null)
         {
-            var vertexCount = vertices.Length;
-            var indexCount = indices.Length;
+            var vertexCount = VerticesInternal.Length;
+            var indexCount = IndicesInternal.Length;
 
             staticMeshEntries = RenderSystem.Backend.StaticMeshData.Allocate(vertexCount, indexCount);
         }
 
-        if ((vertices?.Length ?? 0) > staticMeshEntries.positionEntry.length ||
-            (indices?.Length ?? 0) > staticMeshEntries.indicesEntry.length)
+        if ((VerticesInternal?.Length ?? 0) > staticMeshEntries.positionEntry.length ||
+            (IndicesInternal?.Length ?? 0) > staticMeshEntries.indicesEntry.length)
         {
             RenderSystem.Backend.StaticMeshData.Free(staticMeshEntries);
 
-            staticMeshEntries = RenderSystem.Backend.StaticMeshData.Allocate(vertices.Length, indices.Length);
+            staticMeshEntries = RenderSystem.Backend.StaticMeshData.Allocate(VerticesInternal.Length, IndicesInternal.Length);
         }
 
         if (RenderSystem.Backend.StaticMeshData.TryGetPositions(staticMeshEntries, out var positions, true))
         {
-            var source = vertices.AsSpan();
+            var source = VerticesInternal.AsSpan();
 
             source.CopyTo(positions);
         }
 
         if (HasNormals && RenderSystem.Backend.StaticMeshData.TryGetNormals(staticMeshEntries, out var normals, true))
         {
-            var source = this.normals.AsSpan();
+            var source = NormalsInternal.AsSpan();
 
             source.CopyTo(normals);
         }
 
         if (HasTangents && RenderSystem.Backend.StaticMeshData.TryGetTangents(staticMeshEntries, out var tangents, true))
         {
-            var source = this.tangents.AsSpan();
+            var source = TangentsInternal.AsSpan();
 
             source.CopyTo(tangents);
         }
 
         if (HasBitangents && RenderSystem.Backend.StaticMeshData.TryGetBitangents(staticMeshEntries, out var bitangents, true))
         {
-            var source = this.bitangents.AsSpan();
+            var source = BitangentsInternal.AsSpan();
 
             source.CopyTo(bitangents);
         }
 
-        if (HasBoneIndices && RenderSystem.Backend.StaticMeshData.TryGetBlendIndices(staticMeshEntries, out var boneIndices, true))
-        {
-            var source = this.boneIndices.AsSpan();
-
-            source.CopyTo(boneIndices);
-        }
-
-        if (HasBoneWeights && RenderSystem.Backend.StaticMeshData.TryGetBlendWeights(staticMeshEntries, out var boneWeights, true))
-        {
-            var source = this.boneWeights.AsSpan();
-
-            source.CopyTo(boneWeights);
-        }
-
         if (HasColors && RenderSystem.Backend.StaticMeshData.TryGetColor0(staticMeshEntries, out var colors, true))
         {
-            var source = this.colors.AsSpan();
+            var source = ColorsInternal.AsSpan();
 
             source.CopyTo(colors);
         }
 
         if (HasColors2 && RenderSystem.Backend.StaticMeshData.TryGetColor1(staticMeshEntries, out var colors2, true))
         {
-            var source = this.colors2.AsSpan();
+            var source = Colors2Internal.AsSpan();
 
             source.CopyTo(colors2);
         }
 
         if (HasColors3 && RenderSystem.Backend.StaticMeshData.TryGetColor2(staticMeshEntries, out var colors3, true))
         {
-            var source = this.colors3.AsSpan();
+            var source = Colors3Internal.AsSpan();
 
             source.CopyTo(colors3);
         }
 
         if (HasColors4 && RenderSystem.Backend.StaticMeshData.TryGetColor3(staticMeshEntries, out var colors4, true))
         {
-            var source = this.colors4.AsSpan();
+            var source = Colors4Internal.AsSpan();
 
             source.CopyTo(colors4);
         }
 
         if (HasUV && RenderSystem.Backend.StaticMeshData.TryGetTexCoord0(staticMeshEntries, out var uv0, true))
         {
-            var source = this.uv.AsSpan();
+            var source = UVInternal.AsSpan();
 
             source.CopyTo(uv0);
         }
 
         if (HasUV2 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord1(staticMeshEntries, out var uv1, true))
         {
-            var source = this.uv2.AsSpan();
+            var source = UV2Internal.AsSpan();
 
             source.CopyTo(uv1);
         }
 
         if (HasUV3 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord2(staticMeshEntries, out var uv2, true))
         {
-            var source = this.uv3.AsSpan();
+            var source = UV3Internal.AsSpan();
 
             source.CopyTo(uv2);
         }
 
         if (HasUV4 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord3(staticMeshEntries, out var uv3, true))
         {
-            var source = this.uv4.AsSpan();
+            var source = UV4Internal.AsSpan();
 
             source.CopyTo(uv3);
         }
 
         if (HasUV5 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord4(staticMeshEntries, out var uv4, true))
         {
-            var source = this.uv5.AsSpan();
+            var source = UV5Internal.AsSpan();
 
             source.CopyTo(uv4);
         }
 
         if (HasUV6 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord5(staticMeshEntries, out var uv5, true))
         {
-            var source = this.uv6.AsSpan();
+            var source = UV6Internal.AsSpan();
 
             source.CopyTo(uv5);
         }
 
         if (HasUV7 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord6(staticMeshEntries, out var uv6, true))
         {
-            var source = this.uv7.AsSpan();
+            var source = UV7Internal.AsSpan();
 
             source.CopyTo(uv6);
         }
 
         if (HasUV8 && RenderSystem.Backend.StaticMeshData.TryGetTexCoord7(staticMeshEntries, out var uv7, true))
         {
-            var source = this.uv8.AsSpan();
+            var source = UV8Internal.AsSpan();
 
             source.CopyTo(uv7);
         }
 
         if(RenderSystem.Backend.StaticMeshData.TryGetIndices(staticMeshEntries, out var meshIndices, true))
         {
-            var from = indices.AsSpan();
+            var from = IndicesInternal.AsSpan();
 
             from.CopyTo(meshIndices);
 

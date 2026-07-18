@@ -43,17 +43,17 @@ internal class SkinnedMeshAnimationEvaluator
     /// <summary>
     /// Cache of last indices for positions (channel index -> frame index)
     /// </summary>
-    private int[] lastPositionIndex = [];
+    private readonly ExpandableContainer<int> lastPositionIndex = new();
 
     /// <summary>
     /// Cache of last indices for rotations (channel index -> frame index)
     /// </summary>
-    private int[] lastRotationIndex = [];
+    private readonly ExpandableContainer<int> lastRotationIndex = new();
 
     /// <summary>
     /// Cache of last indices for scales (channel index -> frame index)
     /// </summary>
-    private int[] lastScaleIndex = [];
+    private readonly ExpandableContainer<int> lastScaleIndex = new();
 
     /// <summary>
     /// Last update time
@@ -117,18 +117,22 @@ internal class SkinnedMeshAnimationEvaluator
 
         if(lastPositionIndex.Length != animation.channels.Count)
         {
-            Array.Resize(ref lastPositionIndex, animation.channels.Count);
+            lastPositionIndex.Resize(animation.channels.Count, true);
         }
 
         if (lastScaleIndex.Length != animation.channels.Count)
         {
-            Array.Resize(ref lastScaleIndex, animation.channels.Count);
+            lastScaleIndex.Resize(animation.channels.Count, true);
         }
 
         if (lastRotationIndex.Length != animation.channels.Count)
         {
-            Array.Resize(ref lastRotationIndex, animation.channels.Count);
+            lastRotationIndex.Resize(animation.channels.Count, true);
         }
+
+        var positionContents = lastPositionIndex.Contents;
+        var scaleContents = lastScaleIndex.Contents;
+        var rotationContents = lastRotationIndex.Contents;
 
         for (var i = 0; i < animation.channels.Count; i++)
         {
@@ -238,18 +242,14 @@ internal class SkinnedMeshAnimationEvaluator
 
                 return outValue;
             }
-
-            var positionIndex = lastPositionIndex[i];
-            var scaleIndex = lastScaleIndex[i];
-            var rotationIndex = lastRotationIndex[i];
+            
+            ref var positionIndex = ref positionContents[i];
+            ref var scaleIndex = ref scaleContents[i];
+            ref var rotationIndex = ref rotationContents[i];
 
             var position = GetVector3(channel.positions, ref positionIndex);
             var scale = GetVector3(channel.scales, ref scaleIndex);
             var rotation = GetQuaternion(channel.rotations, ref rotationIndex);
-
-            lastPositionIndex[i] = positionIndex;
-            lastScaleIndex[i] = scaleIndex;
-            lastRotationIndex[i] = rotationIndex;
 
             SkinnedMeshRenderSystem.ApplyNodeTransformQuick(channel.nodeIndex, position, rotation, scale, animator.transformCache);
         }

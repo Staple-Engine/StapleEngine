@@ -409,8 +409,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     private readonly ulong[] lastFragmentShaderUniformHashes = new ulong[20];
     private RenderTarget currentRenderTarget;
 
-    private SDL_GPUIndexedIndirectDrawCommand[] indirectCommands = new SDL_GPUIndexedIndirectDrawCommand[1024];
-    private uint[] indirectEntityIndices = new uint[1024];
+    private readonly ExpandableContainer<SDL_GPUIndexedIndirectDrawCommand> indirectCommands = new(1024);
+    private readonly ExpandableContainer<uint> indirectEntityIndices = new(1024);
     internal SDL_GPUBuffer *indirectCommandBuffer = null;
     private int indirectCommandBufferLength;
     private int indirectCommandPosition;
@@ -2119,7 +2119,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         if(indirectCommandPosition + commandCount > indirectCommands.Length)
         {
-            Array.Resize(ref indirectCommands, indirectCommandPosition + commandCount);
+            indirectCommands.Resize(indirectCommandPosition + commandCount, true);
         }
 
         var instanceCount = 0;
@@ -2131,10 +2131,13 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         if (indirectCommandInstance + instanceCount > indirectEntityIndices.Length)
         {
-            Array.Resize(ref indirectEntityIndices, indirectCommandInstance + instanceCount);
+            indirectEntityIndices.Resize(indirectCommandInstance + instanceCount, true);
         }
 
         var commandIndex = 0;
+
+        var commandContents = indirectCommands.Contents;
+        var indexContents = indirectEntityIndices.Contents;
 
         for(var i = 0; i < entries.Length; i++)
         {
@@ -2145,7 +2148,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                 continue;
             }
 
-            ref var command = ref indirectCommands[indirectCommandPosition + commandIndex++];
+            ref var command = ref commandContents[indirectCommandPosition + commandIndex++];
 
             var indices = (uint)entry.entries.indicesEntry.length;
             var instances = (uint)entry.transforms.Count;
@@ -2172,7 +2175,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                     continue;
                 }
 
-                ref var entityIndex = ref indirectEntityIndices[indirectCommandInstance++];
+                ref var entityIndex = ref indexContents[indirectCommandInstance++];
 
                 var index = (uint)(entry.transforms[j].Entity.Identifier.ID - 1);
 

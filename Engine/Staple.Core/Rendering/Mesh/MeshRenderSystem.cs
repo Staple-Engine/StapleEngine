@@ -47,7 +47,7 @@ public sealed class MeshRenderSystem : IRenderSystem
     private VertexBuffer instanceBuffer;
     private int instanceOffset;
     private int instanceCount;
-    private Matrix4x4[] transformMatrices = [];
+    private readonly ExpandableContainer<Matrix4x4> transformMatrices = new();
 
     private readonly Lazy<VertexLayout> instanceLayout = new(() => VertexLayoutBuilder.CreateNew()
         .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float4)
@@ -117,7 +117,7 @@ public sealed class MeshRenderSystem : IRenderSystem
             return;
         }
 
-        LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+        LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, lighting);
 
         RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
     }
@@ -347,10 +347,11 @@ public sealed class MeshRenderSystem : IRenderSystem
         {
             if(instanceCount > transformMatrices.Length)
             {
-                Array.Resize(ref transformMatrices, instanceCount);
+                transformMatrices.Resize(instanceCount, false);
             }
 
             var needsUpdate = false;
+            var transformContents = transformMatrices.Contents;
 
             foreach (var (_, contents) in instanceCache)
             {
@@ -361,7 +362,9 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                 for(var i = 0; i < contents.instanceInfos.Length; i++)
                 {
-                    var transform = contents.instanceInfos.Contents[i].transform;
+                    ref var item = ref contents.instanceInfos.Contents[i];
+
+                    var transform = item.transform;
 
                     if(!instanceTransformTracker.ShouldUpdateComponent(transform.Entity, in transform))
                     {
@@ -370,7 +373,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     needsUpdate = true;
 
-                    transformMatrices[instanceOffset++] = contents.instanceInfos.Contents[i].transform.Matrix;
+                    transformContents[instanceOffset++] = item.transform.Matrix;
                 }
             }
 
@@ -378,9 +381,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             if(needsUpdate)
             {
-                var span = new Span<Matrix4x4>(transformMatrices, 0, instanceCount);
-
-                instanceBuffer.Update(span);
+                instanceBuffer.Update(transformContents[..instanceCount]);
             }
         }
 
@@ -409,7 +410,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             material.ApplyProperties(ref renderState);
 
-            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position,
                 contents.instanceInfos.Contents[0].lighting);
 
             renderState.world = Matrix4x4.Identity;
@@ -444,7 +445,7 @@ public sealed class MeshRenderSystem : IRenderSystem
 
             material.ApplyProperties(ref renderState);
 
-            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position,
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position,
                 contents.instanceInfos.Contents[0].lighting);
 
             var program = material.ShaderProgram;

@@ -506,23 +506,23 @@ public struct MeshAssetQuaternionAnimationKey
 }
 
 [MessagePackObject]
-public class MeshAssetAnimationChannel
+public struct MeshAssetAnimationChannel
 {
     [Key(0)]
     public int nodeIndex;
 
     [Key(1)]
-    public List<MeshAssetVectorAnimationKey> positionKeys = [];
+    public MeshAssetVectorAnimationKey[] positionKeys;
 
     [Key(2)]
-    public List<MeshAssetQuaternionAnimationKey> rotationKeys = [];
+    public MeshAssetQuaternionAnimationKey[] rotationKeys;
 
     [Key(3)]
-    public List<MeshAssetVectorAnimationKey> scaleKeys = [];
+    public MeshAssetVectorAnimationKey[] scaleKeys;
 }
 
 [MessagePackObject]
-public class MeshAssetAnimation
+public struct MeshAssetAnimation
 {
     [Key(0)]
     public string name;
@@ -531,7 +531,7 @@ public class MeshAssetAnimation
     public float duration;
 
     [Key(2)]
-    public MeshAssetAnimationChannel[] channels = [];
+    public MeshAssetAnimationChannel[] channels;
 }
 
 [MessagePackObject]
@@ -544,8 +544,8 @@ public class SerializableMeshAsset
     public MeshAssetMeshInfo[] meshes = [];
 
     [Key(2)]
-    public MeshAssetNode[] nodes;
+    public MeshAssetNode[] nodes = [];
 
     [Key(3)]
-    public List<MeshAssetAnimation> animations = [];
+    public MeshAssetAnimation[] animations = [];
 }

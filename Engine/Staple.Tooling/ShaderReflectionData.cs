@@ -198,6 +198,8 @@ public class ShaderReflectionData
 
             if (parameter.type?.elementType?.fields != null)
             {
+                var fields = new List<ShaderUniformField>();
+
                 var last = parameter.type.elementType.fields.LastOrDefault();
 
                 data.size = last.binding.offset + last.binding.size;
@@ -224,7 +226,7 @@ public class ShaderReflectionData
 
                         case ShaderUniformType.Array:
 
-                            data.fields.Add(new()
+                            fields.Add(new()
                             {
                                 binding = parameter.binding.index,
                                 name = field.name,
@@ -238,7 +240,7 @@ public class ShaderReflectionData
 
                         default:
 
-                            data.fields.Add(new()
+                            fields.Add(new()
                             {
                                 binding = parameter.binding.index,
                                 name = field.name,
@@ -251,10 +253,12 @@ public class ShaderReflectionData
                     }
                 }
 
-                if(data.fields.Count == 0)
+                if(fields.Count == 0)
                 {
                     continue;
                 }
+
+                data.fields = fields.ToArray();
             }
             else if (parameter.type.TryGetUniformType(out var parameterUniformType))
             {
@@ -326,7 +330,7 @@ public class ShaderReflectionData
 
                             if (elementType == ShaderUniformType.Structure)
                             {
-                                data.elementType.fields = [];
+                                var fields = new List<ShaderUniformField>();
 
                                 var last = fieldType.fields.LastOrDefault();
 
@@ -344,7 +348,7 @@ public class ShaderReflectionData
                                         continue;
                                     }
 
-                                    data.elementType.fields.Add(new()
+                                    fields.Add(new()
                                     {
                                         binding = parameter.binding.index,
                                         name = field.name,
@@ -354,6 +358,8 @@ public class ShaderReflectionData
                                         count = uniformType == ShaderUniformType.Array ? field.type.elementCount : 0,
                                     });
                                 }
+
+                                data.elementType.fields = fields.ToArray();
                             }
                         }
 

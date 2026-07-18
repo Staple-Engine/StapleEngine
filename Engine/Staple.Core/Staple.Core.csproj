@@ -404,6 +404,7 @@
 		<Compile Include="Utilities\MemoryUtils.cs" />
 		<Compile Include="Utilities\NativePointerWrapper.cs" />
 		<Compile Include="Utilities\Ref.cs" />
+		<Compile Include="Utilities\SerializationUtils.cs" />
 		<Compile Include="Utilities\UnmanagedFreeformAllocator.cs" />
 		<Compile Include="Utilities\GlobalAllocator.cs" />
 		<Compile Include="Utilities\GuidGenerator.cs" />

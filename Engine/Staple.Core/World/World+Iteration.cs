@@ -25,7 +25,7 @@ public partial class World
         {
             var outValue = new List<(Entity, T)>();
 
-            foreach (var entity in cachedEntityList)
+            foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive ||
                     (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
@@ -86,7 +86,7 @@ public partial class World
         {
             var outValue = new List<(Entity, T, T2)>();
 
-            foreach (var entity in cachedEntityList)
+            foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive ||
                     (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
@@ -163,7 +163,7 @@ public partial class World
         {
             var outValue = new List<(Entity, T, T2, T3)>();
 
-            foreach (var entity in cachedEntityList)
+            foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive ||
                     (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
@@ -255,7 +255,7 @@ public partial class World
         {
             var outValue = new List<(Entity, T, T2, T3, T4)>();
 
-            foreach (var entity in cachedEntityList)
+            foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive ||
                     (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
@@ -362,7 +362,7 @@ public partial class World
         {
             var outValue = new List<(Entity, T, T2, T3, T4, T5)>();
 
-            foreach (var entity in cachedEntityList)
+            foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive ||
                     (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
@@ -460,7 +460,7 @@ public partial class World
                 return default;
             }
 
-            var e = entities[localID];
+            var e = entities.Contents[localID];
 
             if(!e.alive)
             {
@@ -488,7 +488,7 @@ public partial class World
     {
         lock(lockObject)
         {
-            foreach(var pair in entities)
+            foreach(var pair in entities.Contents)
             {
                 if(!pair.alive || (!pair.enabled && !allowDisabled))
                 {
@@ -550,7 +550,7 @@ public partial class World
     {
         lock (lockObject)
         {
-            foreach (var entity in cachedEntityList)
+            foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive)
                 {

@@ -65,9 +65,7 @@ public static class AssetDatabase
                 {
                     var data = File.ReadAllBytes(path);
 
-                    using var stream = new MemoryStream(data);
-
-                    var header = MessagePackSerializer.Deserialize<SerializableAssetDatabaseHeader>(stream);
+                    var header = SerializationUtils.MessagePackDeserialize<SerializableAssetDatabaseHeader>(data.AsMemory(), out var offset);
 
                     if (header == null ||
                         !header.header.SequenceEqual(SerializableAssetDatabaseHeader.ValidHeader) ||
@@ -76,7 +74,7 @@ public static class AssetDatabase
                         throw new Exception("Invalid header");
                     }
 
-                    var database = MessagePackSerializer.Deserialize<SerializableAssetDatabase>(stream);
+                    var database = SerializationUtils.MessagePackDeserialize<SerializableAssetDatabase>(data.AsMemory(offset), out _);
 
                     if (database?.assets == null)
                     {

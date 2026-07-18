@@ -154,7 +154,7 @@ static partial class Program
                 {
                     var scene = new SerializableScene()
                     {
-                        objects = metadata,
+                        objects = [.. metadata],
                         guid = guid,
                     };
 

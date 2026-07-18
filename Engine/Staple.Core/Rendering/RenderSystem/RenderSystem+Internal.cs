@@ -124,7 +124,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// All transforms of each entity
     /// </summary>
-    internal Matrix4x4[] entityTransforms = new Matrix4x4[1024];
+    internal readonly ExpandableContainer<Matrix4x4> entityTransforms = new(1024);
 
     /// <summary>
     /// Spatial location of each entity
@@ -134,12 +134,12 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Keeps track of where an entity was located the previous frame
     /// </summary>
-    private HashSet<Vector3Int>[] lastSpatialEntities = new HashSet<Vector3Int>[1024];
+    private readonly ExpandableContainer<HashSet<Vector3Int>> lastSpatialEntities = new(1024);
 
     /// <summary>
     /// Keeps track of which entities we already processed
     /// </summary>
-    private bool[] processedSpatialEntities = new bool[1024];
+    private readonly ExpandableContainer<bool> processedSpatialEntities = new(1024);
 
     /// <summary>
     /// Tracker for each entity's transform
@@ -159,7 +159,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// All renderables
     /// </summary>
-    private Renderable[] renderables = new Renderable[1024];
+    private readonly ExpandableContainer<Renderable> renderables = new(1024);
 
     /// <summary>
     /// Frame counter for how many frames to wait before checking visibility
@@ -253,7 +253,7 @@ public sealed partial class RenderSystem
 
         if(world != null)
         {
-            foreach(var info in world.sortedCameras)
+            foreach(var info in world.sortedCameras.Contents)
             {
                 info.camera.OnStartFrame();
             }
@@ -370,11 +370,12 @@ public sealed partial class RenderSystem
     /// </summary>
     internal void ClearCullingStates()
     {
-        var l = renderables.Length;
+        var renderableSpan = renderables.Contents;
+        var l = renderableSpan.Length;
 
         for (var i = 0; i < l; i++)
         {
-            ref var renderable = ref renderables[i];
+            ref var renderable = ref renderableSpan[i];
 
             if(renderable == null)
             {
@@ -418,7 +419,7 @@ public sealed partial class RenderSystem
         SpatialPartitionSizeHalfVector = new(SpatialPartitionSize / 2.0f, SpatialPartitionSize / 2.0f,
             SpatialPartitionSize / 2.0f);
 
-        Array.Clear(Instance.processedSpatialEntities);
+        Instance.processedSpatialEntities.ClearValues();
 
         Instance.spatialEntities.Clear();
         Instance.entityRenderableTracker.Clear();
@@ -503,7 +504,7 @@ public sealed partial class RenderSystem
         return new AABB((Vector3)coordinate * SpatialPartitionSize + SpatialPartitionSizeHalfVector, SpatialPartitionSizeVector);
     }
 
-    internal void UpdateEntitySpatialData(int index, Transform transform, Renderable renderable)
+    internal void UpdateEntitySpatialData(int index, Transform transform, Renderable renderable, Span<bool> processed, Span<HashSet<Vector3Int>> spatials)
     {
         if(renderable == null)
         {
@@ -515,7 +516,7 @@ public sealed partial class RenderSystem
             return;
         }
 
-        ref var container = ref lastSpatialEntities[index];
+        ref var container = ref spatials[index];
 
         container ??= [];
 
@@ -533,9 +534,11 @@ public sealed partial class RenderSystem
 
         entitySpatialSet.Clear();
 
-        var shouldAddAnyway = !processedSpatialEntities[index];
+        ref var processedResult = ref processed[index];
 
-        processedSpatialEntities[index] = true;
+        var shouldAddAnyway = !processedResult;
+
+        processedResult = true;
 
         IterateEntitySpatialLocations(renderable.bounds, (coordinate) =>
         {
@@ -577,6 +580,8 @@ public sealed partial class RenderSystem
         var startIndex = -1;
         var length = 0;
 
+        var entities = world.entities.Contents;
+
         if (world.entities.Length > entityTransforms.Length)
         {
             var newSize = entityTransforms.Length * 2;
@@ -586,16 +591,25 @@ public sealed partial class RenderSystem
                 newSize *= 2;
             }
 
-            Array.Resize(ref entityTransforms, newSize);
+            entityTransforms.Resize(newSize, true);
+            lastSpatialEntities.Resize(newSize, true);
+            processedSpatialEntities.Resize(newSize, true);
+            renderables.Resize(newSize, true);
 
-            Array.Resize(ref lastSpatialEntities, newSize);
+            var renderableSpan = renderables.Contents;
 
-            Array.Resize(ref processedSpatialEntities, newSize);
+            for(var i = 0; i < entities.Length; i++)
+            {
+                renderableSpan[i] = entities[i].ToEntity().GetComponent<Renderable>();
+            }
         }
 
-        for (var i = 0; i < world.entities.Length; i++)
+        var renderablesContents = renderables.Contents;
+        var transforms = entityTransforms.Contents;
+
+        for (var i = 0; i < entities.Length; i++)
         {
-            ref var entity = ref world.entities[i];
+            ref var entity = ref entities[i];
 
             if(entity.alive == false || entity.transform == null)
             {
@@ -611,13 +625,13 @@ public sealed partial class RenderSystem
                 continue;
             }
 
-            var renderable = renderables[i];
+            var renderable = renderablesContents[i];
 
             if (!entityTransformTracker.ShouldUpdateComponent(entity.ToEntity(), in entity.transform))
             {
                 if (startIndex < 0)
                 {
-                    UpdateEntitySpatialData(i, entity.transform, renderable);
+                    UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
 
                     continue;
                 }
@@ -626,12 +640,12 @@ public sealed partial class RenderSystem
 
                 startIndex = -1;
 
-                UpdateEntitySpatialData(i, entity.transform, renderable);
+                UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
 
                 continue;
             }
 
-            entityTransforms[i] = entity.transform.Matrix;
+            transforms[i] = entity.transform.Matrix;
 
             if (startIndex < 0)
             {
@@ -643,7 +657,7 @@ public sealed partial class RenderSystem
                 length++;
             }
 
-            UpdateEntitySpatialData(i, entity.transform, renderable);
+            UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
         }
 
         if (startIndex >= 0)
@@ -674,13 +688,13 @@ public sealed partial class RenderSystem
                     newSize *= 2;
                 }
 
-                Array.Resize(ref renderables, newSize);
+                renderables.Resize(newSize, true);
             }
 
-            Array.Clear(processedSpatialEntities);
-            Array.Clear(renderables);
+            processedSpatialEntities.ClearValues();
+            renderables.ClearValues();
 
-            foreach (var set in lastSpatialEntities)
+            foreach (var set in lastSpatialEntities.Contents)
             {
                 set?.Clear();
             }
@@ -693,9 +707,11 @@ public sealed partial class RenderSystem
             SpatialPartitionSize = StartingSpatialPartitionSize;
 
             {
+                var renderableContents = renderables.Contents;
+
                 foreach (var entityInfo in entityQuery.Contents)
                 {
-                    renderables[entityInfo.Item1.Identifier.ID - 1] = entityInfo.Item1.GetComponent<Renderable>();
+                    renderableContents[entityInfo.Item1.Identifier.ID - 1] = entityInfo.Item1.GetComponent<Renderable>();
                 }
             }
 
@@ -767,16 +783,18 @@ public sealed partial class RenderSystem
                     newSize *= 2;
                 }
 
-                Array.Resize(ref renderables, newSize);
+                renderables.Resize(newSize, true);
             }
 
-            Array.Clear(processedSpatialEntities);
-            Array.Clear(renderables);
+            processedSpatialEntities.ClearValues();
+            renderables.ClearValues();
 
             {
+                var renderableContents = renderables.Contents;
+
                 foreach (var entityInfo in entityQuery.Contents)
                 {
-                    renderables[entityInfo.Item1.Identifier.ID - 1] = entityInfo.Item1.GetComponent<Renderable>();
+                    renderableContents[entityInfo.Item1.Identifier.ID - 1] = entityInfo.Item1.GetComponent<Renderable>();
                 }
             }
 

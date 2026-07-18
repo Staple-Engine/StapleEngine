@@ -279,7 +279,7 @@ static partial class Program
                         guid = guid,
                         sourceBlend = shader.sourceBlend,
                         destinationBlend = shader.destinationBlend,
-                        variants = shader.variants,
+                        variants = [.. shader.variants],
                     },
                 };
 
@@ -294,7 +294,7 @@ static partial class Program
                             attribute = x.attribute,
                             variant = x.variant,
                             defaultValue = x.defaultValue,
-                        }).ToList();
+                        }).ToArray();
                 }
 
                 if (shader.instancingParameters != null)
@@ -306,7 +306,7 @@ static partial class Program
                             name = x.name,
                             type = x.dataType,
                         })
-                        .ToList();
+                        .ToArray();
                 }
 
                 foreach (var renderer in renderers)

@@ -199,7 +199,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return vertices ?? [];
+            return VerticesInternal ?? [];
         }
 
         set
@@ -226,10 +226,6 @@ public sealed partial class Mesh : IGuidAsset
             colors2 = null;
             colors3 = null;
             colors4 = null;
-            colors32 = null;
-            colors322 = null;
-            colors323 = null;
-            colors323 = null;
             uv = null;
             uv2 = null;
             uv3 = null;
@@ -256,7 +252,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return normals ?? [];
+            return NormalsInternal ?? [];
         }
 
         set
@@ -290,7 +286,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return tangents ?? [];
+            return TangentsInternal ?? [];
         }
 
         set
@@ -324,7 +320,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return bitangents ?? [];
+            return BitangentsInternal ?? [];
         }
 
         set
@@ -358,7 +354,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return colors ?? [];
+            return ColorsInternal ?? [];
         }
 
         set
@@ -392,7 +388,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return colors2 ?? [];
+            return Colors2Internal ?? [];
         }
 
         set
@@ -426,7 +422,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return colors3 ?? [];
+            return Colors3Internal ?? [];
         }
 
         set
@@ -460,7 +456,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return colors4 ?? [];
+            return Colors4Internal ?? [];
         }
 
         set
@@ -481,142 +477,6 @@ public sealed partial class Mesh : IGuidAsset
     }
 
     /// <summary>
-    /// Sets or gets the current colors as Color32.
-    /// Getting depends on isReadable.
-    /// Note: When setting, must have the same size as the current vertices.
-    /// </summary>
-    public Color32[] Colors32
-    {
-        get
-        {
-            if (!isReadable || meshDataBlob != null)
-            {
-                return [];
-            }
-
-            return colors32 ?? [];
-        }
-
-        set
-        {
-            if (!isWritable || meshDataBlob != null)
-            {
-                return;
-            }
-
-            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
-            {
-                throw new ArgumentException("Array length should match vertices length");
-            }
-
-            colors32 = value;
-            changed = true;
-        }
-    }
-
-    /// <summary>
-    /// Sets or gets the current colors as Color32.
-    /// Getting depends on isReadable.
-    /// Note: When setting, must have the same size as the current vertices.
-    /// </summary>
-    public Color32[] Colors322
-    {
-        get
-        {
-            if (!isReadable || meshDataBlob != null)
-            {
-                return [];
-            }
-
-            return colors322 ?? [];
-        }
-
-        set
-        {
-            if (!isWritable || meshDataBlob != null)
-            {
-                return;
-            }
-
-            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
-            {
-                throw new ArgumentException("Array length should match vertices length");
-            }
-
-            colors322 = value;
-            changed = true;
-        }
-    }
-
-    /// <summary>
-    /// Sets or gets the current colors as Color32.
-    /// Getting depends on isReadable.
-    /// Note: When setting, must have the same size as the current vertices.
-    /// </summary>
-    public Color32[] Colors323
-    {
-        get
-        {
-            if (!isReadable || meshDataBlob != null)
-            {
-                return [];
-            }
-
-            return colors323 ?? [];
-        }
-
-        set
-        {
-            if (!isWritable || meshDataBlob != null)
-            {
-                return;
-            }
-
-            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
-            {
-                throw new ArgumentException("Array length should match vertices length");
-            }
-
-            colors323 = value;
-            changed = true;
-        }
-    }
-
-    /// <summary>
-    /// Sets or gets the current colors as Color32.
-    /// Getting depends on isReadable.
-    /// Note: When setting, must have the same size as the current vertices.
-    /// </summary>
-    public Color32[] Colors324
-    {
-        get
-        {
-            if (!isReadable || meshDataBlob != null)
-            {
-                return [];
-            }
-
-            return colors324 ?? [];
-        }
-
-        set
-        {
-            if (!isWritable || meshDataBlob != null)
-            {
-                return;
-            }
-
-            if (value == null || value.Length == 0 || value.Length != (vertices?.Length ?? 0))
-            {
-                throw new ArgumentException("Array length should match vertices length");
-            }
-
-            colors324 = value;
-            changed = true;
-        }
-    }
-
-    /// <summary>
     /// Sets or gets the current UVs for channel 1.
     /// Getting depends on isReadable.
     /// Note: When setting, must have the same size as the current vertices.
@@ -630,7 +490,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return uv ?? [];
+            return UVInternal ?? [];
         }
 
         set
@@ -664,7 +524,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return uv2 ?? [];
+            return UV2Internal ?? [];
         }
 
         set
@@ -698,7 +558,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return uv3 ?? [];
+            return UV3Internal ?? [];
         }
 
         set
@@ -732,7 +592,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return uv4 ?? [];
+            return UV4Internal ?? [];
         }
 
         set
@@ -766,7 +626,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return uv5 ?? [];
+            return UV5Internal ?? [];
         }
 
         set
@@ -800,7 +660,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return uv6 ?? [];
+            return UV6Internal ?? [];
         }
 
         set
@@ -834,7 +694,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return uv7 ?? [];
+            return UV7Internal ?? [];
         }
 
         set
@@ -868,7 +728,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return uv8 ?? [];
+            return UV8Internal ?? [];
         }
 
         set
@@ -901,7 +761,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return boneIndices ?? [];
+            return BoneIndicesInternal ?? [];
         }
 
         set
@@ -934,7 +794,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return boneWeights ?? [];
+            return BoneWeightsInternal ?? [];
         }
 
         set
@@ -967,7 +827,7 @@ public sealed partial class Mesh : IGuidAsset
                 return [];
             }
 
-            return indices ?? [];
+            return IndicesInternal ?? [];
         }
 
         set
@@ -994,14 +854,20 @@ public sealed partial class Mesh : IGuidAsset
                 return meshDataBlob.Length / meshDataVertexLayout.Stride;
             }
 
-            return vertices?.Length ?? 0;
+            return VerticesInternal?.Length ?? 0;
         }
     }
 
     /// <summary>
     /// Total amount of indices
     /// </summary>
-    public int IndexCount => indices?.Length ?? 0;
+    public int IndexCount
+    {
+        get
+        {
+            return IndicesInternal?.Length ?? 0;
+        }
+    }
 
     /// <summary>
     /// Gets the mesh components for this mesh
@@ -1123,10 +989,6 @@ public sealed partial class Mesh : IGuidAsset
         colors2 = null;
         colors3 = null;
         colors4 = null;
-        colors32 = null;
-        colors322 = null;
-        colors323 = null;
-        colors324 = null;
         uv = null;
         uv2 = null;
         uv3 = null;
@@ -1257,6 +1119,9 @@ public sealed partial class Mesh : IGuidAsset
 
         vertexBuffer = null;
         indexBuffer = null;
+
+        var vertices = VerticesInternal;
+        var indices = IndicesInternal;
 
         if (meshDataBlob == null && (vertices == null || vertices.Length == 0))
         {
@@ -1389,7 +1254,7 @@ public sealed partial class Mesh : IGuidAsset
     /// </summary>
     public void UpdateBounds()
     {
-        bounds = AABB.CreateFromPoints(vertices);
+        bounds = AABB.CreateFromPoints(VerticesInternal);
     }
 
     /// <summary>
@@ -1419,8 +1284,8 @@ public sealed partial class Mesh : IGuidAsset
     public void AddSubmesh(int startVertex, int vertexCount, int startIndex, int indexCount, MeshTopology topology)
     {
         if(startVertex < 0 ||
-            startVertex + vertexCount > vertices.Length ||
-            startIndex < 0 || startIndex + indexCount > indices.Length)
+            startVertex + vertexCount > Vertices.Length ||
+            startIndex < 0 || startIndex + indexCount > Indices.Length)
         {
             return;
         }

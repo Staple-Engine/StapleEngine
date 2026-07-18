@@ -45,7 +45,7 @@ public partial class World
                         pair.Value.Remove(key);
                     }
 
-                    foreach(var entity in entities)
+                    foreach(var entity in entities.Contents)
                     {
                         entity.components.Remove(key);
                     }
@@ -693,7 +693,7 @@ public partial class World
 
             foreach (var typeName in compatibility)
             {
-                foreach(var entity in entities)
+                foreach(var entity in entities.Contents)
                 {
                     if (entity.alive &&
                         entity.components.TryGetValue(typeName, out var c) &&

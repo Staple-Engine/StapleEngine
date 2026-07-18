@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
+using System.Runtime;
 
 namespace Staple;
 
@@ -20,12 +22,12 @@ public sealed class Scene
     /// <summary>
     /// All entities without a parent transform
     /// </summary>
-    public static (Entity, Transform)[] RootEntities => World.Current?.RootEntities;
+    public static Span<(Entity, Transform)> RootEntities => World.Current != null ? World.Current.RootEntities : default;
 
     /// <summary>
     /// Gets all available cameras sorted by depth
     /// </summary>
-    public static World.CameraInfo[] SortedCameras => World.Current?.SortedCameras ?? [];
+    public static Span<World.CameraInfo> SortedCameras => World.Current != null ? World.Current.SortedCameras : default;
 
     /// <summary>
     /// Requests a world update.
@@ -44,6 +46,8 @@ public sealed class Scene
     internal static void SetActiveScene(Scene scene)
     {
         current = scene;
+
+        MemoryUtils.GarbageCollect(Platform.IsEditor);
 
         World.EmitWorldChangedEvent(true);
     }

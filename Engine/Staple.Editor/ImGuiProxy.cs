@@ -22,8 +22,8 @@ internal class ImGuiProxy
     public VertexLayout layout;
     public VertexBuffer vertexBuffer;
     public IndexBuffer indexBuffer;
-    public ImDrawVert[] vertices = [];
-    public ushort[] indices = [];
+    public ExpandableContainer<ImDrawVert> vertices = new();
+    public ExpandableContainer<ushort> indices = new();
     public readonly Dictionary<int, (Texture, byte[], int)> textures = [];
     public readonly Dictionary<int, Texture> registeredTextures = [];
     public readonly Dictionary<Texture, int> registeredTexturesInverse = [];
@@ -523,30 +523,30 @@ internal class ImGuiProxy
 
             if (vertices.Length < drawData.TotalVtxCount)
             {
-                Array.Resize(ref vertices, drawData.TotalVtxCount);
+                vertices.Resize(drawData.TotalVtxCount, false);
             }
 
             if (indices.Length < drawData.TotalIdxCount)
             {
-                Array.Resize(ref indices, drawData.TotalIdxCount);
+                indices.Resize(drawData.TotalIdxCount, false);
             }
 
             var currentVertex = 0;
             var currentIndex = 0;
 
-            for (int i = 0; i < drawData.CmdListsCount; i++)
+            for (var i = 0; i < drawData.CmdListsCount; i++)
             {
                 var cmdList = drawData.CmdLists.Data[i];
 
                 var vertexData = new Span<ImDrawVert>(cmdList.VtxBuffer.Data, cmdList.VtxBuffer.Size);
-                var targetVertexData = new Span<ImDrawVert>(vertices, currentVertex, cmdList.VtxBuffer.Size);
+                var targetVertexData = vertices.Contents.Slice(currentVertex, cmdList.VtxBuffer.Size);
 
                 vertexData.CopyTo(targetVertexData);
 
                 currentVertex += cmdList.VtxBuffer.Size;
 
                 var indexData = new Span<ushort>(cmdList.IdxBuffer.Data, cmdList.IdxBuffer.Size);
-                var targetIndexData = new Span<ushort>(indices, currentIndex, cmdList.IdxBuffer.Size);
+                var targetIndexData = indices.Contents.Slice(currentIndex, cmdList.IdxBuffer.Size);
 
                 indexData.CopyTo(targetIndexData);
 
@@ -562,13 +562,13 @@ internal class ImGuiProxy
 
             if (!needsUpdate)
             {
-                vertexBuffer = RenderSystem.Backend.CreateVertexBuffer(vertices, layout, RenderBufferFlags.None);
-                indexBuffer = RenderSystem.Backend.CreateIndexBuffer(indices, RenderBufferFlags.None);
+                vertexBuffer = RenderSystem.Backend.CreateVertexBuffer(vertices.Contents, layout, RenderBufferFlags.None);
+                indexBuffer = RenderSystem.Backend.CreateIndexBuffer(indices.Contents, RenderBufferFlags.None);
             }
             else
             {
-                vertexBuffer.Update(vertices);
-                indexBuffer.Update(indices);
+                vertexBuffer.Update(vertices.Contents);
+                indexBuffer.Update(indices.Contents);
             }
 
             RenderSystem.Render(null, Scene.current == null ? CameraClearMode.SolidColor : CameraClearMode.None, StapleEditor.ClearColor,
@@ -578,7 +578,7 @@ internal class ImGuiProxy
                     currentVertex = 0;
                     currentIndex = 0;
 
-                    for (int i = 0; i < drawData.CmdListsCount; i++)
+                    for (var i = 0; i < drawData.CmdListsCount; i++)
                     {
                         var cmdList = drawData.CmdLists.Data[i];
 
@@ -589,7 +589,8 @@ internal class ImGuiProxy
                         {
                             var drawCmd = cmdList.CmdBuffer.Data[j];
 
-                            if (drawCmd.ElemCount == 0 || drawCmd.UserCallback != null ||
+                            if (drawCmd.ElemCount == 0 ||
+                                drawCmd.UserCallback != null ||
                                 (this.program?.Disposed ?? true))
                             {
                                 continue;

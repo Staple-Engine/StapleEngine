@@ -1,7 +1,7 @@
 ﻿namespace Staple.Internal;
 
 internal class PixelTextureCreateMethod(string path, byte[] data, ushort width, ushort height, TextureMetadata metadata, TextureFormat format,
-    TextureFlags flags) :ITextureCreateMethod
+    TextureFlags flags) : ITextureCreateMethod
 {
     public string path = path;
     public byte[] data = data;

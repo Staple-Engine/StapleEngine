@@ -1,5 +1,4 @@
-﻿using Staple.Utilities;
-using System;
+﻿using System;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -13,8 +12,6 @@ internal class BufferAttributeContainer
         Normal,
         Tangent,
         Bitangent,
-        BlendIndices,
-        BlendWeights,
         Color0,
         Color1,
         Color2,
@@ -36,8 +33,6 @@ internal class BufferAttributeContainer
         public ManagedFreeformAllocator<Vector3>.Entry normalEntry;
         public ManagedFreeformAllocator<Vector3>.Entry tangentEntry;
         public ManagedFreeformAllocator<Vector3>.Entry bitangentEntry;
-        public ManagedFreeformAllocator<Vector4>.Entry blendIndicesEntry;
-        public ManagedFreeformAllocator<Vector4>.Entry blendWeightsEntry;
         public ManagedFreeformAllocator<Color>.Entry color0Entry;
         public ManagedFreeformAllocator<Color>.Entry color1Entry;
         public ManagedFreeformAllocator<Color>.Entry color2Entry;
@@ -52,6 +47,8 @@ internal class BufferAttributeContainer
         public ManagedFreeformAllocator<Vector2>.Entry texCoord7Entry;
 
         public ManagedFreeformAllocator<int>.Entry indicesEntry;
+
+        public bool freed = false;
     }
 
     public readonly BufferAttributeSource<Vector3, VertexBuffer> Position = new(VertexAttribute.Position, BufferSlot.Position);
@@ -61,10 +58,6 @@ internal class BufferAttributeContainer
     public readonly BufferAttributeSource<Vector3, VertexBuffer> Tangent = new(VertexAttribute.Tangent, BufferSlot.Tangent, Vector3.Up);
 
     public readonly BufferAttributeSource<Vector3, VertexBuffer> Bitangent = new(VertexAttribute.Bitangent, BufferSlot.Bitangent, Vector3.Up);
-
-    public readonly BufferAttributeSource<Vector4, VertexBuffer> BlendIndices = new(VertexAttribute.BlendIndices, BufferSlot.BlendIndices);
-
-    public readonly BufferAttributeSource<Vector4, VertexBuffer> BlendWeights = new(VertexAttribute.BlendWeights, BufferSlot.BlendWeights);
 
     public readonly BufferAttributeSource<Color, VertexBuffer> Color0 = new(VertexAttribute.Color0, BufferSlot.Color0, Color.White);
 
@@ -91,6 +84,32 @@ internal class BufferAttributeContainer
     public readonly BufferAttributeSource<Vector2, VertexBuffer> TexCoord7 = new(VertexAttribute.TexCoord7, BufferSlot.TexCoord7);
 
     public readonly BufferAttributeSource<int, IndexBuffer> Indices = new(VertexAttribute.Position, BufferSlot.Count);
+
+    public int EntryCount { get; internal set; }
+
+    public int StorageSize
+    {
+        get
+        {
+            return Position.allocator.StorageSize +
+                Normal.allocator.StorageSize +
+                Tangent.allocator.StorageSize +
+                Bitangent.allocator.StorageSize +
+                Color0.allocator.StorageSize +
+                Color1.allocator.StorageSize +
+                Color2.allocator.StorageSize +
+                Color3.allocator.StorageSize +
+                TexCoord0.allocator.StorageSize +
+                TexCoord1.allocator.StorageSize +
+                TexCoord2.allocator.StorageSize +
+                TexCoord3.allocator.StorageSize +
+                TexCoord4.allocator.StorageSize +
+                TexCoord5.allocator.StorageSize +
+                TexCoord6.allocator.StorageSize +
+                TexCoord7.allocator.StorageSize +
+                Indices.allocator.StorageSize;
+        }
+    }
 
     private static void UpdateVertexBuffer<T>(BufferAttributeSource<T, VertexBuffer> buffer) where T: unmanaged
     {
@@ -122,8 +141,6 @@ internal class BufferAttributeContainer
         UpdateVertexBuffer(Normal);
         UpdateVertexBuffer(Tangent);
         UpdateVertexBuffer(Bitangent);
-        UpdateVertexBuffer(BlendIndices);
-        UpdateVertexBuffer(BlendWeights);
         UpdateVertexBuffer(Color0);
         UpdateVertexBuffer(Color1);
         UpdateVertexBuffer(Color2);
@@ -142,14 +159,14 @@ internal class BufferAttributeContainer
 
     public Entries Allocate(int elements, int indices)
     {
+        EntryCount++;
+
         return new Entries()
         {
             positionEntry = Position.Allocate(elements),
             normalEntry = Normal.Allocate(elements),
             tangentEntry = Tangent.Allocate(elements),
             bitangentEntry = Bitangent.Allocate(elements),
-            blendIndicesEntry = BlendIndices.Allocate(elements),
-            blendWeightsEntry = BlendWeights.Allocate(elements),
             color0Entry = Color0.Allocate(elements),
             color1Entry = Color1.Allocate(elements),
             color2Entry = Color2.Allocate(elements),
@@ -168,12 +185,19 @@ internal class BufferAttributeContainer
 
     public void Free(Entries entries)
     {
+        if(entries.freed)
+        {
+            return;
+        }
+
+        entries.freed = true;
+
+        EntryCount--;
+
         Position.Free(entries.positionEntry);
         Normal.Free(entries.normalEntry);
         Tangent.Free(entries.tangentEntry);
         Bitangent.Free(entries.bitangentEntry);
-        BlendIndices.Free(entries.blendIndicesEntry);
-        BlendWeights.Free(entries.blendWeightsEntry);
         Color0.Free(entries.color0Entry);
         Color1.Free(entries.color1Entry);
         Color2.Free(entries.color2Entry);
@@ -262,44 +286,6 @@ internal class BufferAttributeContainer
         bitangents = Bitangent.allocator.Get(entries.bitangentEntry);
 
         return bitangents.Length > 0;
-    }
-
-    public bool TryGetBlendIndices(Entries entries, out Span<Vector4> indices, bool markChanged = false)
-    {
-        if (entries == null)
-        {
-            indices = default;
-
-            return false;
-        }
-
-        if (markChanged)
-        {
-            BlendIndices.Changed = true;
-        }
-
-        indices = BlendIndices.allocator.Get(entries.blendIndicesEntry);
-
-        return indices.Length > 0;
-    }
-
-    public bool TryGetBlendWeights(Entries entries, out Span<Vector4> weights, bool markChanged = false)
-    {
-        if (entries == null)
-        {
-            weights = default;
-
-            return false;
-        }
-
-        if (markChanged)
-        {
-            BlendWeights.Changed = true;
-        }
-
-        weights = BlendWeights.allocator.Get(entries.blendWeightsEntry);
-
-        return weights.Length > 0;
     }
 
     public bool TryGetColor0(Entries entries, out Span<Color> colors, bool markChanged = false)
@@ -561,8 +547,6 @@ internal class BufferAttributeContainer
             VertexAttribute.Color1 => BufferSlot.Color1,
             VertexAttribute.Color2 => BufferSlot.Color2,
             VertexAttribute.Color3 => BufferSlot.Color3,
-            VertexAttribute.BlendIndices => BufferSlot.BlendIndices,
-            VertexAttribute.BlendWeights => BufferSlot.BlendWeights,
             VertexAttribute.TexCoord0 => BufferSlot.TexCoord0,
             VertexAttribute.TexCoord1 => BufferSlot.TexCoord1,
             VertexAttribute.TexCoord2 => BufferSlot.TexCoord2,
@@ -610,8 +594,7 @@ internal class BufferAttributeContainer
         return slot switch
         {
             BufferSlot.Position or BufferSlot.Normal or BufferSlot.Tangent or BufferSlot.Bitangent => Marshal.SizeOf<Vector3>(),
-            BufferSlot.Color0 or BufferSlot.Color1 or BufferSlot.Color2 or BufferSlot.Color3 or
-                BufferSlot.BlendIndices or BufferSlot.BlendWeights => Marshal.SizeOf<Vector4>(),
+            BufferSlot.Color0 or BufferSlot.Color1 or BufferSlot.Color2 or BufferSlot.Color3 => Marshal.SizeOf<Vector4>(),
             BufferSlot.TexCoord0 or BufferSlot.TexCoord1 or BufferSlot.TexCoord2 or
                 BufferSlot.TexCoord3 or BufferSlot.TexCoord4 or BufferSlot.TexCoord5 or
                 BufferSlot.TexCoord6 or BufferSlot.TexCoord7 => Marshal.SizeOf<Vector2>(),

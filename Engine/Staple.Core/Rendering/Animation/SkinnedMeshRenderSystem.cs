@@ -349,7 +349,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
                 renderer.mesh.SetActive(ref renderState, j);
 
-                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, lighting);
 
                 if(!lastDisableSkinning)
                 {

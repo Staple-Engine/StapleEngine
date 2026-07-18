@@ -34,7 +34,7 @@ public class SerializablePrefab
     public SceneObject mainObject;
 
     [Key(2)]
-    public List<SceneObject> children = new();
+    public SceneObject[] children = [];
 
     [Key(3)]
     public string typeName = typeof(Prefab).FullName;

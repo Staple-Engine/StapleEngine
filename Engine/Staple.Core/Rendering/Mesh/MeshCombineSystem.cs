@@ -156,18 +156,18 @@ public sealed class MeshCombineSystem : IRenderSystem
 
                         var matrix = t.Matrix * worldTransform;
 
-                        foreach (var position in mesh.vertices)
+                        foreach (var position in mesh.VerticesInternal)
                         {
                             vertices.Add(position.Transformed(matrix));
                         }
 
-                        if((mesh.normals?.Length ?? 0) > 0)
+                        if((mesh.NormalsInternal?.Length ?? 0) > 0)
                         {
                             Matrix4x4.Invert(matrix, out var normalMatrix);
 
                             normalMatrix = Matrix4x4.Transpose(normalMatrix);
 
-                            foreach(var normal in mesh.normals)
+                            foreach(var normal in mesh.NormalsInternal)
                             {
                                 normals.Add(Vector3.TransformNormal(normal, normalMatrix));
                             }
@@ -183,59 +183,41 @@ public sealed class MeshCombineSystem : IRenderSystem
                             target.AddRange(source);
                         }
 
-                        AddIfValid(tangents, mesh.tangents);
-                        AddIfValid(bitangents, mesh.bitangents);
-                        AddIfValid(color0, mesh.colors);
-                        AddIfValid(color1, mesh.colors2);
-                        AddIfValid(color2, mesh.colors3);
-                        AddIfValid(color3, mesh.colors4);
-                        AddIfValid(color32, mesh.colors32);
-                        AddIfValid(color322, mesh.colors322);
-                        AddIfValid(color323, mesh.colors323);
-                        AddIfValid(color324, mesh.colors324);
-                        AddIfValid(uv0, mesh.uv);
-                        AddIfValid(uv1, mesh.uv2);
-                        AddIfValid(uv2, mesh.uv3);
-                        AddIfValid(uv3, mesh.uv4);
-                        AddIfValid(uv4, mesh.uv5);
-                        AddIfValid(uv5, mesh.uv6);
-                        AddIfValid(uv6, mesh.uv7);
-                        AddIfValid(uv7, mesh.uv8);
+                        AddIfValid(tangents, mesh.TangentsInternal);
+                        AddIfValid(bitangents, mesh.BitangentsInternal);
+                        AddIfValid(color0, mesh.ColorsInternal);
+                        AddIfValid(color1, mesh.Colors2Internal);
+                        AddIfValid(color2, mesh.Colors3Internal);
+                        AddIfValid(color3, mesh.Colors4Internal);
+                        AddIfValid(uv0, mesh.UVInternal);
+                        AddIfValid(uv1, mesh.UV2Internal);
+                        AddIfValid(uv2, mesh.UV3Internal);
+                        AddIfValid(uv3, mesh.UV4Internal);
+                        AddIfValid(uv4, mesh.UV5Internal);
+                        AddIfValid(uv5, mesh.UV6Internal);
+                        AddIfValid(uv6, mesh.UV7Internal);
+                        AddIfValid(uv7, mesh.UV8Internal);
 
-                        indices.AddRange(mesh.indices.Select(x => x + startVertex));
+                        indices.AddRange(mesh.IndicesInternal.Select(x => x + startVertex));
                     }
 
-                    void ApplyIfValid<T>(ref T[] target, List<T> source)
-                    {
-                        if(source.Count == 0)
-                        {
-                            return;
-                        }
-
-                        target = source.ToArray();
-                    }
-
-                    ApplyIfValid(ref combinedMesh.vertices, vertices);
-                    ApplyIfValid(ref combinedMesh.normals, normals);
-                    ApplyIfValid(ref combinedMesh.tangents, tangents);
-                    ApplyIfValid(ref combinedMesh.bitangents, bitangents);
-                    ApplyIfValid(ref combinedMesh.colors, color0);
-                    ApplyIfValid(ref combinedMesh.colors2, color1);
-                    ApplyIfValid(ref combinedMesh.colors3, color2);
-                    ApplyIfValid(ref combinedMesh.colors4, color3);
-                    ApplyIfValid(ref combinedMesh.colors32, color32);
-                    ApplyIfValid(ref combinedMesh.colors322, color322);
-                    ApplyIfValid(ref combinedMesh.colors323, color323);
-                    ApplyIfValid(ref combinedMesh.colors324, color324);
-                    ApplyIfValid(ref combinedMesh.uv, uv0);
-                    ApplyIfValid(ref combinedMesh.uv2, uv1);
-                    ApplyIfValid(ref combinedMesh.uv3, uv2);
-                    ApplyIfValid(ref combinedMesh.uv4, uv3);
-                    ApplyIfValid(ref combinedMesh.uv5, uv4);
-                    ApplyIfValid(ref combinedMesh.uv6, uv5);
-                    ApplyIfValid(ref combinedMesh.uv7, uv6);
-                    ApplyIfValid(ref combinedMesh.uv8, uv7);
-                    ApplyIfValid(ref combinedMesh.indices, indices);
+                    combinedMesh.VerticesInternal = [..vertices];
+                    combinedMesh.NormalsInternal = [..normals];
+                    combinedMesh.TangentsInternal = [.. tangents];
+                    combinedMesh.BitangentsInternal = [.. bitangents];
+                    combinedMesh.ColorsInternal = [.. color0];
+                    combinedMesh.Colors2Internal = [.. color1];
+                    combinedMesh.Colors3Internal = [.. color2];
+                    combinedMesh.Colors4Internal = [.. color3];
+                    combinedMesh.UVInternal = [.. uv0];
+                    combinedMesh.UV2Internal = [.. uv1];
+                    combinedMesh.UV3Internal = [.. uv2];
+                    combinedMesh.UV4Internal = [.. uv3];
+                    combinedMesh.UV5Internal = [.. uv4];
+                    combinedMesh.UV6Internal = [.. uv5];
+                    combinedMesh.UV7Internal = [.. uv6];
+                    combinedMesh.UV8Internal = [.. uv7];
+                    combinedMesh.IndicesInternal = [.. indices];
 
                     combinedMesh.UpdateBounds();
 
@@ -383,7 +365,7 @@ public sealed class MeshCombineSystem : IRenderSystem
                     continue;
                 }
 
-                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.Item2.Position, lighting);
+                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, lighting);
 
                 RenderSystem.Submit(renderState, mesh.SubmeshTriangleCount(0), 1);
             }

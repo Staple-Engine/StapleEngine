@@ -5,7 +5,7 @@ namespace Staple.Utilities;
 
 public class MemoryAllocator
 {
-    public byte[] buffer = new byte[1024];
+    public readonly ExpandableContainer<byte> buffer = new(1024);
 
     private GCHandle pinHandle;
 
@@ -30,12 +30,12 @@ public class MemoryAllocator
 
             newSize *= 2;
 
-            Array.Resize(ref buffer, newSize);
+            buffer.Resize(newSize, true);
 
             needsRepin = true;
         }
 
-        var outValue = buffer.AsSpan(position, size);
+        var outValue = buffer.Contents.Slice(position, size);
 
         position += size;
 
@@ -49,7 +49,7 @@ public class MemoryAllocator
             pinHandle.Free();
         }
 
-        pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        pinHandle = GCHandle.Alloc(buffer.RawContents, GCHandleType.Pinned);
         pinAddress = pinHandle.AddrOfPinnedObject();
     }
 
@@ -69,7 +69,7 @@ public class MemoryAllocator
             return;
         }
 
-        pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        pinHandle = GCHandle.Alloc(buffer.RawContents, GCHandleType.Pinned);
         pinAddress = pinHandle.AddrOfPinnedObject();
     }
 
@@ -80,7 +80,7 @@ public class MemoryAllocator
 
     public Span<byte> GetSpan(int position, int size)
     {
-        return buffer.AsSpan(position, size);
+        return buffer.Contents.Slice(position, size);
     }
 
     public nint Get(int position)
@@ -93,7 +93,7 @@ public class MemoryAllocator
 
 public class MemoryAllocator<T> where T: unmanaged
 {
-    public T[] buffer = new T[1024];
+    public readonly ExpandableContainer<T> buffer = new(1024);
 
     private GCHandle pinHandle;
 
@@ -120,12 +120,12 @@ public class MemoryAllocator<T> where T: unmanaged
 
             newSize *= 2;
 
-            Array.Resize(ref buffer, newSize);
+            buffer.Resize(newSize, true);
 
             needsRepin = true;
         }
 
-        var outValue = buffer.AsSpan(position, size);
+        var outValue = buffer.Contents.Slice(position, size);
 
         position += size;
 
@@ -139,7 +139,7 @@ public class MemoryAllocator<T> where T: unmanaged
             pinHandle.Free();
         }
 
-        pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        pinHandle = GCHandle.Alloc(buffer.RawContents, GCHandleType.Pinned);
         pinAddress = pinHandle.AddrOfPinnedObject();
     }
 
@@ -159,7 +159,7 @@ public class MemoryAllocator<T> where T: unmanaged
             return;
         }
 
-        pinHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
+        pinHandle = GCHandle.Alloc(buffer.RawContents, GCHandleType.Pinned);
         pinAddress = pinHandle.AddrOfPinnedObject();
     }
 
@@ -170,7 +170,7 @@ public class MemoryAllocator<T> where T: unmanaged
 
     public Span<T> GetSpan(int position, int size)
     {
-        return buffer.AsSpan(position, size);
+        return buffer.Contents.Slice(position, size);
     }
 
     public nint Get(int position)

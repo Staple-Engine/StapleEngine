@@ -575,8 +575,8 @@ public class ShaderReflectionParserTests
         Assert.That(data.uniforms[0].name, Is.EqualTo("Uniforms"));
         Assert.That(data.uniforms[1].name, Is.EqualTo("StapleRenderData"));
 
-        Assert.That(data.uniforms[0].fields, Has.Count.EqualTo(6));
-        Assert.That(data.uniforms[1].fields, Has.Count.EqualTo(4));
+        Assert.That(data.uniforms[0].fields, Has.Length.EqualTo(6));
+        Assert.That(data.uniforms[1].fields, Has.Length.EqualTo(4));
 
         Assert.That(data.uniforms[0].size, Is.EqualTo(72));
         Assert.That(data.uniforms[1].size, Is.EqualTo(196));
@@ -586,7 +586,7 @@ public class ShaderReflectionParserTests
         Assert.That(data.storageBuffers[0].name, Is.EqualTo("StapleBoneMatrices"));
         Assert.That(data.storageBuffers[0].type, Is.EqualTo(ShaderUniformType.ReadOnlyBuffer));
         Assert.That(data.storageBuffers[0].binding, Is.EqualTo(1));
-        Assert.That(data.storageBuffers[0].fields, Has.Count.EqualTo(0));
+        Assert.That(data.storageBuffers[0].fields, Has.Length.EqualTo(0));
         Assert.That(data.storageBuffers[0].size, Is.Zero);
     }
 

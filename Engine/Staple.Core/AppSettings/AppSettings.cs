@@ -83,7 +83,7 @@ public class AppSettings
     /// Mask of collision layers
     /// </summary>
     [Key(11)]
-    public List<ColliderMask.Item> colliderMask = [];
+    public ColliderMask.Item[] colliderMask = [];
 
     /// <summary>
     /// The app's bundle ID
@@ -265,7 +265,7 @@ public class AppSettings
             appVersion = appVersion,
             appDisplayVersion = appDisplayVersion,
             appName = appName,
-            colliderMask = colliderMask.Select(x => x.Clone()).ToList(),
+            colliderMask = colliderMask.Select(x => x.Clone()).ToArray(),
             companyName = companyName,
             defaultWindowHeight = defaultWindowHeight,
             defaultWindowWidth = defaultWindowWidth,

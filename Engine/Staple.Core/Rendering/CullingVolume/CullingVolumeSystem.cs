@@ -84,10 +84,7 @@ public sealed class CullingVolumeSystem : IRenderSystem
                             validRenderers++;
                         }
 
-                        if (volume.boundsCoordinates.Length < validRenderers * 2)
-                        {
-                            Array.Resize(ref volume.boundsCoordinates, validRenderers * 2);
-                        }
+                        volume.boundsCoordinates.Clear();
 
                         for (int i = 0, index = 0; i < volume.renderers.Length; i++)
                         {
@@ -95,14 +92,14 @@ public sealed class CullingVolumeSystem : IRenderSystem
 
                             if (renderer.Item2.enabled && !renderer.Item2.forceRenderingOff)
                             {
-                                volume.boundsCoordinates[index] = renderer.Item2.bounds.min;
-                                volume.boundsCoordinates[index + 1] = renderer.Item2.bounds.max;
+                                volume.boundsCoordinates.Add(renderer.Item2.bounds.min);
+                                volume.boundsCoordinates.Add(renderer.Item2.bounds.max);
 
                                 index += 2;
                             }
                         }
 
-                        bounds = AABB.CreateFromPoints(volume.boundsCoordinates);
+                        bounds = AABB.CreateFromPoints(volume.boundsCoordinates.Contents);
                     }
 
                     break;

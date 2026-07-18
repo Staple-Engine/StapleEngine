@@ -312,7 +312,7 @@ internal partial class SDLGPURendererBackend
 
             unsafe
             {
-                var from = RenderSystem.Instance.entityTransforms.AsSpan();
+                var from = RenderSystem.Instance.entityTransforms.Contents;
                 var to = new Span<Matrix4x4>((void*)mapData, elementCount);
 
                 from.CopyTo(to);
@@ -359,7 +359,7 @@ internal partial class SDLGPURendererBackend
 
                 unsafe
                 {
-                    var from = RenderSystem.Instance.entityTransforms.AsSpan().Slice(start, length);
+                    var from = RenderSystem.Instance.entityTransforms.Contents.Slice(start, length);
                     var to = new Span<Matrix4x4>((void*)mapData, length);
 
                     from.CopyTo(to);
@@ -591,7 +591,7 @@ internal partial class SDLGPURendererBackend
 
             unsafe
             {
-                var from = indirectEntityIndices.AsSpan();
+                var from = indirectEntityIndices.Contents;
                 var to = new Span<uint>((void*)mapData, indirectEntityIndices.Length);
 
                 from.CopyTo(to);
@@ -680,7 +680,7 @@ internal partial class SDLGPURendererBackend
 
             unsafe
             {
-                var from = indirectCommands.AsSpan();
+                var from = indirectCommands.Contents;
                 var to = new Span<SDL_GPUIndexedIndirectDrawCommand>((void*)mapData, indirectCommands.Length);
 
                 from.CopyTo(to);

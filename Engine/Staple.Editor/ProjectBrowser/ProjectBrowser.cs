@@ -1307,6 +1307,8 @@ internal class ProjectBrowser
                                     StapleEditor.instance.dropTargetEntity = default;
                                     StapleEditor.instance.dropTargetObjectPickerAction = null;
                                     StapleEditor.instance.dropTargetObjectPickerType = null;
+
+                                    MemoryUtils.GarbageCollect(true);
                                 }
 
                                 break;

@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Staple;
@@ -176,12 +177,12 @@ public partial class World
     /// <summary>
     /// Gets all available cameras sorted by depth
     /// </summary>
-    public CameraInfo[] SortedCameras => sortedCameras;
+    public Span<CameraInfo> SortedCameras => sortedCameras.Contents;
 
     /// <summary>
     /// Gets all entities with a valid transform that don't have a parent
     /// </summary>
-    public (Entity, Transform)[] RootEntities => rootEntities;
+    public Span<(Entity, Transform)> RootEntities => rootEntities.Contents;
 
     private readonly Lock lockObject = new();
     private static readonly Lock globalLockObject = new();
@@ -197,11 +198,11 @@ public partial class World
     private readonly List<CameraInfo> sortedCamerasBacking = [];
     private readonly List<(Entity, Transform)> rootEntitiesBacking = [];
 
-    internal EntityInfo[] entities = [];
-    internal CameraInfo[] sortedCameras = [];
-    internal (Entity, Transform)[] rootEntities = [];
+    internal readonly ExpandableContainer<EntityInfo> entities = new();
+    internal readonly ExpandableContainer<CameraInfo> sortedCameras = new();
+    internal readonly ExpandableContainer<(Entity, Transform)> rootEntities = new();
 
-    private EntityInfo[] cachedEntityList = [];
+    private readonly ExpandableContainer<EntityInfo> cachedEntityList = new();
     private bool needsEmitWorldChange = false;
     private readonly SortedSet<int> deadEntities = [];
 
@@ -288,16 +289,14 @@ public partial class World
 
         if(world.cachedEntityList.Length != world.entities.Length)
         {
-            Array.Resize(ref world.cachedEntityList, world.entities.Length);
+            world.cachedEntityList.Resize(world.entities.Length, false);
 
-            for(var i = 0; i < world.entities.Length; i++)
-            {
-                world.cachedEntityList[i] = world.entities[i];
-            }
+            world.entities.Contents.CopyTo(world.cachedEntityList.Contents);
         }
 
         {
             world.sortedCamerasBacking.Clear();
+
             var cameras = Scene.Query<Camera, Transform>(false);
 
             foreach ((Entity e, Camera c, Transform t) in cameras)
@@ -314,13 +313,10 @@ public partial class World
 
             if(world.sortedCameras.Length != world.sortedCamerasBacking.Count)
             {
-                Array.Resize(ref world.sortedCameras, world.sortedCamerasBacking.Count);
+                world.sortedCameras.Resize(world.sortedCamerasBacking.Count, false);
             }
 
-            for(var i = 0; i < world.sortedCameras.Length; i++)
-            {
-                world.sortedCameras[i] = world.sortedCamerasBacking[i];
-            }
+            CollectionsMarshal.AsSpan(world.sortedCamerasBacking).CopyTo(world.sortedCameras.Contents);
 
             {
                 var transforms = Scene.Query<Transform>(true);
@@ -337,13 +333,10 @@ public partial class World
 
                 if(world.rootEntities.Length != world.rootEntitiesBacking.Count)
                 {
-                    Array.Resize(ref world.rootEntities, world.rootEntitiesBacking.Count);
+                    world.rootEntities.Resize(world.rootEntitiesBacking.Count, false);
                 }
 
-                for(var i = 0; i < world.rootEntities.Length; i++)
-                {
-                    world.rootEntities[i] = world.rootEntitiesBacking[i];
-                }
+                CollectionsMarshal.AsSpan(world.rootEntitiesBacking).CopyTo(world.rootEntities.Contents);
             }
         }
 
@@ -453,7 +446,7 @@ public partial class World
         {
             needsEmitWorldChange = true;
 
-            foreach (var entity in entities)
+            foreach (var entity in entities.Contents)
             {
                 var transform = GetComponent<Transform>(entity.ToEntity());
 
@@ -467,11 +460,10 @@ public partial class World
                 entity.components.Clear();
             }
 
-            entities = [];
+            entities.Clear();
+            cachedEntityList.Clear();
             destroyedEntities.Clear();
             removedComponents.Clear();
-
-            cachedEntityList = [];
 
             if (needsEmitWorldChange)
             {
