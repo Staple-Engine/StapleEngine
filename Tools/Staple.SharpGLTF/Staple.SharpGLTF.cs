@@ -83,13 +83,20 @@ public class SharpGLTFImporter : IMeshImporter
             metadata.frameRate = 30;
         }
 
+        var meshRotation = metadata.rotation switch
+        {
+            MeshAssetRotation.NinetyPositive => Quaternion.CreateFromAxisAngle(new(1, 0, 0), 90 * Staple.Math.Deg2Rad),
+            MeshAssetRotation.NinetyNegative => Quaternion.CreateFromAxisAngle(new(1, 0, 0), -90 * Staple.Math.Deg2Rad),
+            _ => Quaternion.Identity,
+        };
+
         var meshData = new SerializableMeshAsset
         {
             metadata = metadata,
             adjustmentTransform = new()
             {
-                rotation = new(Quaternion.Identity),
-                scale = new(1, 1, -1),
+                rotation = new(meshRotation),
+                scale = new((Vector3.One * metadata.scale) * new Vector3(1, 1, -1)),
             },
         };
 
@@ -904,30 +911,6 @@ public class SharpGLTFImporter : IMeshImporter
             {
                 RegisterNode(child, newNode);
             }
-        }
-
-        MeshAssetNode rootNode = null;
-
-        if (metadata.scale != 1 || metadata.rotation != MeshAssetRotation.None)
-        {
-            var rotation = metadata.rotation switch
-            {
-                MeshAssetRotation.NinetyPositive => Quaternion.CreateFromAxisAngle(new(1, 0, 0), 90 * Staple.Math.Deg2Rad),
-                MeshAssetRotation.NinetyNegative => Quaternion.CreateFromAxisAngle(new(1, 0, 0), -90 * Staple.Math.Deg2Rad),
-                _ => Quaternion.Identity,
-            };
-
-            var scale = Vector3.One * metadata.scale;
-
-            rootNode = new()
-            {
-                name = "StapleRoot",
-                position = new(),
-                rotation = new(rotation),
-                scale = new(scale),
-            };
-
-            nodes.Add(rootNode);
         }
 
         foreach (var root in model.DefaultScene.VisualChildren)

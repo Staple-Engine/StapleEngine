@@ -31,148 +31,154 @@ static partial class Program
             var sceneFileName = sceneFiles[i];
 
             //Console.WriteLine($"\t{sceneFileName}");
-
             try
             {
-                if (File.Exists(sceneFileName) == false)
+                try
+                {
+                    if (File.Exists(sceneFileName) == false)
+                    {
+                        LogMessage($"\t\tError: {sceneFileName} doesn't exist");
+
+                        continue;
+                    }
+                }
+                catch (Exception)
                 {
                     LogMessage($"\t\tError: {sceneFileName} doesn't exist");
 
                     continue;
                 }
-            }
-            catch (Exception)
-            {
-                LogMessage($"\t\tError: {sceneFileName} doesn't exist");
 
-                continue;
-            }
+                var guid = FindGuid<Scene>(sceneFileName);
 
-            var guid = FindGuid<Scene>(sceneFileName);
+                var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(sceneFileName));
+                var file = Path.GetFileName(sceneFileName);
+                var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
 
-            var directory = Path.GetRelativePath(inputPath, Path.GetDirectoryName(sceneFileName));
-            var file = Path.GetFileName(sceneFileName);
-            var outputFile = Path.Combine(outputPath == "." ? "" : outputPath, directory, file);
+                var index = outputFile.IndexOf(inputPath);
 
-            var index = outputFile.IndexOf(inputPath);
-
-            if (index >= 0 && index < outputFile.Length)
-            {
-                outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
-            }
-
-            if (ReportChangedAsset(sceneFileName, outputFile))
-            {
-                continue;
-            }
-
-            if (ShouldProcessFile(sceneFileName, outputFile) == false &&
-                ShouldProcessFile(sceneFileName.Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)
-            {
-                continue;
-            }
-
-            WorkScheduler.Main.Dispatch(Path.GetFileName(sceneFileName.Replace(".meta", "")), () =>
-            {
-                //Console.WriteLine($"\t\t -> {outputFile}");
-
-                string text;
-                List<SceneObject> metadata;
-
-                try
+                if (index >= 0 && index < outputFile.Length)
                 {
-                    text = File.ReadAllText(sceneFileName);
-                }
-                catch (Exception)
-                {
-                    Console.WriteLine($"\t\tError: Failed to read file");
-
-                    return;
+                    outputFile = outputFile.Substring(0, index) + outputFile.Substring(index + inputPath.Length + 1);
                 }
 
-                try
+                if (ReportChangedAsset(sceneFileName, outputFile))
                 {
-                    metadata = JsonSerializer.Deserialize(text, SceneObjectSerializationContext.Default.ListSceneObject);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"\t\tError: Metadata is corrupted");
-
-                    return;
+                    continue;
                 }
 
-                if (metadata == null)
+                if (ShouldProcessFile(sceneFileName, outputFile) == false &&
+                    ShouldProcessFile(sceneFileName.Replace(".meta", ""), outputFile.Replace(".meta", "")) == false)
                 {
-                    Console.WriteLine($"\t\tError: Metadata is corrupted");
-
-                    return;
+                    continue;
                 }
 
-                try
+                WorkScheduler.Main.Dispatch(Path.GetFileName(sceneFileName.Replace(".meta", "")), () =>
                 {
-                    Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
-                }
-                catch (Exception)
-                {
-                }
+                    //Console.WriteLine($"\t\t -> {outputFile}");
 
-                try
-                {
-                    Directory.CreateDirectory(outputPath);
-                }
-                catch (Exception)
-                {
-                }
+                    string text;
+                    List<SceneObject> metadata;
 
-                try
-                {
-                    File.Delete(outputFile);
-                }
-                catch (Exception)
-                {
-                }
-
-                foreach (var item in metadata)
-                {
-                    if (item == null || item.components == null)
+                    try
                     {
-                        continue;
+                        text = File.ReadAllText(sceneFileName);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine($"\t\tError: Failed to read file");
+
+                        return;
                     }
 
-                    foreach (var component in item.components)
+                    try
                     {
-                        if (component == null || component.data == null)
+                        metadata = JsonSerializer.Deserialize(text, SceneObjectSerializationContext.Default.ListSceneObject);
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"\t\tError: Metadata is corrupted");
+
+                        return;
+                    }
+
+                    if (metadata == null)
+                    {
+                        Console.WriteLine($"\t\tError: Metadata is corrupted");
+
+                        return;
+                    }
+
+                    try
+                    {
+                        Directory.CreateDirectory(Path.GetDirectoryName(outputFile));
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    try
+                    {
+                        Directory.CreateDirectory(outputPath);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    try
+                    {
+                        File.Delete(outputFile);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    foreach (var item in metadata)
+                    {
+                        if (item == null || item.components == null)
                         {
                             continue;
                         }
 
-                        ConvertComponentDataIntoParameters(component);
+                        foreach (var component in item.components)
+                        {
+                            if (component == null || component.data == null)
+                            {
+                                continue;
+                            }
+
+                            ConvertComponentDataIntoParameters(component);
+                        }
                     }
-                }
 
-                try
-                {
-                    var scene = new SerializableScene()
+                    try
                     {
-                        objects = [.. metadata],
-                        guid = guid,
-                    };
+                        var scene = new SerializableScene()
+                        {
+                            objects = [.. metadata],
+                            guid = guid,
+                        };
 
-                    var header = new SerializableSceneHeader();
+                        var header = new SerializableSceneHeader();
 
-                    using var stream = File.OpenWrite(outputFile);
-                    using var writer = new BinaryWriter(stream);
+                        using var stream = File.OpenWrite(outputFile);
+                        using var writer = new BinaryWriter(stream);
 
-                    var encoded = MessagePackSerializer.Serialize(header)
-                        .Concat(MessagePackSerializer.Serialize(scene));
+                        var encoded = MessagePackSerializer.Serialize(header)
+                            .Concat(MessagePackSerializer.Serialize(scene));
 
-                    writer.Write(encoded.ToArray());
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"\t\tError: Failed to save scene: {e}");
-                }
-            });
+                        writer.Write(encoded.ToArray());
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"\t\tError: Failed to save scene: {e}");
+                    }
+                });
+            }
+            catch(Exception e)
+            {
+                LogMessage($"\t\tError: Failed to save scene: {e}");
+            }
         }
 
         string sceneListText;
@@ -190,8 +196,6 @@ static partial class Program
         }
         catch(Exception)
         {
-            LogMessage($"\t\tError: Failed to read scene list");
-
             return;
         }
 
@@ -212,32 +216,39 @@ static partial class Program
 
             if(sceneList != null)
             {
-                var outputFile = Path.Combine(sceneListOutputPath, "SceneList");
-
                 try
                 {
-                    File.Delete(outputFile);
+                    var outputFile = Path.Combine(sceneListOutputPath, "SceneList");
+
+                    try
+                    {
+                        File.Delete(outputFile);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    var header = new SceneListHeader();
+
+                    var sceneListObject = new SceneList()
+                    {
+                        scenes = sceneList,
+                    };
+
+                    using var stream = File.OpenWrite(outputFile);
+                    using var writer = new BinaryWriter(stream);
+
+                    var encoded = MessagePackSerializer.Serialize(header)
+                        .Concat(MessagePackSerializer.Serialize(sceneListObject));
+
+                    writer.Write(encoded.ToArray());
+
+                    LogMessage($"\tProcessed scene list");
                 }
-                catch (Exception)
+                catch(Exception e)
                 {
+                    LogMessage($"\t\tError: Failed to save scene list: {e}");
                 }
-
-                var header = new SceneListHeader();
-
-                var sceneListObject = new SceneList()
-                {
-                    scenes = sceneList,
-                };
-
-                using var stream = File.OpenWrite(outputFile);
-                using var writer = new BinaryWriter(stream);
-
-                var encoded = MessagePackSerializer.Serialize(header)
-                    .Concat(MessagePackSerializer.Serialize(sceneListObject));
-
-                writer.Write(encoded.ToArray());
-
-                LogMessage($"\tProcessed scene list");
             }
         }
     }

@@ -49,34 +49,41 @@ static partial class Program
             }
             catch (Exception e)
             {
-                LogMessage($"\t\tError: Failed to load app settings: {e.Message}");
+                LogMessage($"\t\tError: Failed to load app settings: {e}");
 
                 return;
             }
 
             if (settings != null)
             {
-                var outputFile = Path.Combine(outputPath, "AppSettings");
-
                 try
                 {
-                    File.Delete(outputFile);
+                    var outputFile = Path.Combine(outputPath, "AppSettings");
+
+                    try
+                    {
+                        File.Delete(outputFile);
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    var header = new AppSettingsHeader();
+
+                    using var stream = File.OpenWrite(outputFile);
+                    using var writer = new BinaryWriter(stream);
+
+                    var encoded = MessagePackSerializer.Serialize(header)
+                        .Concat(MessagePackSerializer.Serialize(settings));
+
+                    writer.Write(encoded.ToArray());
+
+                    LogMessage($"\tProcessed app settings");
                 }
-                catch (Exception)
+                catch(Exception e)
                 {
+                    LogMessage($"\t\tError: Failed to save app settings: {e}");
                 }
-
-                var header = new AppSettingsHeader();
-
-                using var stream = File.OpenWrite(outputFile);
-                using var writer = new BinaryWriter(stream);
-
-                var encoded = MessagePackSerializer.Serialize(header)
-                    .Concat(MessagePackSerializer.Serialize(settings));
-
-                writer.Write(encoded.ToArray());
-
-                LogMessage($"\tProcessed app settings");
             }
         }
     }

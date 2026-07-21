@@ -38,14 +38,23 @@ public class UFXImporter : IMeshImporter
 
             var isOBJ = meshFileName.ToLowerInvariant().EndsWith(".obj");
 
+            var meshRotation = metadata.rotation switch
+            {
+                MeshAssetRotation.NinetyPositive => Quaternion.CreateFromAxisAngle(new(1, 0, 0), 90 * Staple.Math.Deg2Rad),
+                MeshAssetRotation.NinetyNegative => Quaternion.CreateFromAxisAngle(new(1, 0, 0), -90 * Staple.Math.Deg2Rad),
+                _ => Quaternion.Identity,
+            };
+
+            var meshScale = isOBJ ? (Vector3.One * metadata.scale) * new Vector3(1, 1, -1) : Vector3.One * metadata.scale;
+
             var meshData = new SerializableMeshAsset
             {
                 metadata = metadata,
-                adjustmentTransform = isOBJ ? new()
+                adjustmentTransform = new()
                 {
-                     rotation = new(Quaternion.Identity),
-                     scale = new(0, 0, -1),
-                } : null,
+                    rotation = new(meshRotation),
+                    scale = new(meshScale),
+                },
             };
 
             #region Materials
