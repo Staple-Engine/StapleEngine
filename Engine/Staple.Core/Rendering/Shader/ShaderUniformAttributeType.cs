@@ -4,4 +4,5 @@ public enum ShaderUniformAttributeType
 {
     None,
     Toggle,
+    HideInInspector,
 }

@@ -218,6 +218,14 @@ internal class MaterialEditor : AssetEditor
                 {
                     var label = parameter.Key.ExpandCamelCaseName();
 
+                    var attribute = ShaderUniformAttributeType.None;
+
+                    if (activeShader.TryGetUniformAttributeType(parameter.Key, out attribute) &&
+                        attribute == ShaderUniformAttributeType.HideInInspector)
+                    {
+                        continue;
+                    }
+
                     switch (parameter.Value.type)
                     {
                         case MaterialParameterType.Texture:
@@ -367,26 +375,19 @@ internal class MaterialEditor : AssetEditor
                             {
                                 var previous = parameter.Value.floatValue;
 
-                                if (activeShader.TryGetUniformAttributeType(parameter.Key, out var attribute))
+                                switch (attribute)
                                 {
-                                    switch (attribute)
-                                    {
-                                        case ShaderUniformAttributeType.None:
+                                    case ShaderUniformAttributeType.None:
 
-                                            parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Key, parameter.Value.floatValue);
+                                        parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Key, parameter.Value.floatValue);
 
-                                            break;
+                                        break;
 
-                                        case ShaderUniformAttributeType.Toggle:
+                                    case ShaderUniformAttributeType.Toggle:
 
-                                            parameter.Value.floatValue = EditorGUI.Toggle(label, parameter.Key, parameter.Value.floatValue == 1) ? 1 : 0;
+                                        parameter.Value.floatValue = EditorGUI.Toggle(label, parameter.Key, parameter.Value.floatValue == 1) ? 1 : 0;
 
-                                            break;
-                                    }
-                                }
-                                else
-                                {
-                                    parameter.Value.floatValue = EditorGUI.FloatField(label, parameter.Key, parameter.Value.floatValue);
+                                        break;
                                 }
 
                                 var newValue = parameter.Value.floatValue;
@@ -405,26 +406,19 @@ internal class MaterialEditor : AssetEditor
                             {
                                 var previous = parameter.Value.intValue;
 
-                                if (activeShader.TryGetUniformAttributeType(parameter.Key, out var attribute))
+                                switch (attribute)
                                 {
-                                    switch (attribute)
-                                    {
-                                        case ShaderUniformAttributeType.None:
+                                    case ShaderUniformAttributeType.None:
 
-                                            parameter.Value.intValue = EditorGUI.IntField(label, parameter.Key, parameter.Value.intValue);
+                                        parameter.Value.intValue = EditorGUI.IntField(label, parameter.Key, parameter.Value.intValue);
 
-                                            break;
+                                        break;
 
-                                        case ShaderUniformAttributeType.Toggle:
+                                    case ShaderUniformAttributeType.Toggle:
 
-                                            parameter.Value.intValue = EditorGUI.Toggle(label, parameter.Key, parameter.Value.intValue == 1) ? 1 : 0;
+                                        parameter.Value.intValue = EditorGUI.Toggle(label, parameter.Key, parameter.Value.intValue == 1) ? 1 : 0;
 
-                                            break;
-                                    }
-                                }
-                                else
-                                {
-                                    parameter.Value.intValue = EditorGUI.IntField(label, parameter.Key, parameter.Value.intValue);
+                                        break;
                                 }
 
                                 var newValue = parameter.Value.intValue;
@@ -644,7 +638,7 @@ internal class MaterialEditor : AssetEditor
 
                         if(ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
                         {
-                            materialInstance.CullingMode = newValue;
+                            materialInstance.materialResource.metadata.cullingMode = newValue;
                         }
                     }
                 }

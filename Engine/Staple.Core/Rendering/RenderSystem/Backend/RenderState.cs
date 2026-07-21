@@ -15,6 +15,8 @@ internal struct RenderState
     public bool depthWrite;
     public BlendMode sourceBlend;
     public BlendMode destinationBlend;
+    public MaterialRenderQueue renderQueue;
+    public int renderQueueIndex;
 
     public Shader shader;
     public ShaderResource.ShaderInstance shaderInstance;
@@ -77,6 +79,8 @@ internal struct RenderState
             world = world,
             instanceOffset = instanceOffset,
             instanceCount = instanceCount,
+            renderQueue = renderQueue,
+            renderQueueIndex = renderQueueIndex,
         };
     }
 

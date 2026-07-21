@@ -189,7 +189,13 @@ public class ShaderMetadata
     [Key(6)]
     public BlendMode destinationBlend = BlendMode.Off;
 
-    [HideInInspector]
     [Key(7)]
+    public MaterialRenderQueue renderQueue;
+
+    [Key(8)]
+    public int renderQueueOffset;
+
+    [HideInInspector]
+    [Key(9)]
     public string typeName = typeof(Shader).FullName;
 }

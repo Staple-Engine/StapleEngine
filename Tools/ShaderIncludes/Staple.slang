@@ -4,6 +4,17 @@ __include StapleMath;
 __include StapleInternal;
 __include StapleLighting;
 
+public enum RenderQueue
+{
+    Opaque = 0,
+
+    AlphaTest = 1000,
+
+    Transparent = 2000,
+
+    Overlay = 3000,
+};
+
 [[vk::binding(0, StapleUniformBufferSet)]]
 public cbuffer StapleRenderData
 {
@@ -11,6 +22,7 @@ public cbuffer StapleRenderData
     public float4x4 view;
     public float4x4 projection;
     public bool useWorldMatrix;
+	public RenderQueue renderQueue;
 };
 
 [[vk::binding(1, StapleUniformBufferSet)]]

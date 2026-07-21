@@ -202,6 +202,7 @@
 		<Compile Include="Rendering\Lighting\LightSystem.cs" />
 		<Compile Include="Rendering\Lighting\LightType.cs" />
 		<Compile Include="Rendering\Materials\MaterialLighting.cs" />
+		<Compile Include="Rendering\Materials\MaterialRenderQueue.cs" />
 		<Compile Include="Rendering\Materials\MaterialResourceParameter.cs" />
 		<Compile Include="Rendering\Materials\MaterialResource.cs" />
 		<Compile Include="Rendering\Mesh\MeshAssetResource.cs" />

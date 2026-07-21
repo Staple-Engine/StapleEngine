@@ -2,7 +2,7 @@ Type VertexFragment
 
 Blend SrcAlpha OneMinusSrcAlpha
 
-Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING, NORMALMAP, CUTOUT
+Variants VERTEX_COLORS, LIT, HALF_LAMBERT, PER_VERTEX_LIGHTING, NORMALMAP
 
 VariantDependency HALF_LAMBERT LIT
 VariantDependency PER_VERTEX_LIGHTING LIT
@@ -21,7 +21,6 @@ color diffuseColor = #FFFFFFFF
 color emissiveColor
 color specularColor
 float alphaThreshold = 0.25
-[Toggle] variant: CUTOUT float cutout
 
 End Parameters
 
@@ -47,7 +46,6 @@ cbuffer Uniforms
 	float4 diffuseColor;
 	float4 emissiveColor;
 	float4 specularColor;
-	float cutout;
 	float alphaThreshold;
 };
 
@@ -170,12 +168,10 @@ float4 FragmentMain(VertexOutput input) : SV_Target
 	float4 diffuse = diffuseTexture.Sample(input.coords) * diffuseColor;
 #endif
 
-#ifdef CUTOUT
-	if(diffuse.a < alphaThreshold)
+	if(renderQueue != RenderQueue::Opaque && diffuse.a < alphaThreshold)
 	{
 		discard;
 	}
-#endif
 	
 #if defined(LIT) && defined(PER_VERTEX_LIGHTING)
 	return diffuse;

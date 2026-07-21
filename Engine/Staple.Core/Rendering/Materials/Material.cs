@@ -76,7 +76,24 @@ public sealed class Material : IGuidAsset
     /// <summary>
     /// Culling mode for this material
     /// </summary>
-    public CullingMode CullingMode { get; set; } = CullingMode.Back;
+    internal CullingMode CullingMode => materialResource?.metadata?.cullingMode ?? CullingMode.Back;
+
+    /// <summary>
+    /// Render Queue for this material
+    /// </summary>
+    internal MaterialRenderQueue RenderQueue => (materialResource?.metadata?.overrideShaderRenderQueue ?? false) ?
+        materialResource.metadata.renderQueue : materialResource?.shader?.shaderResource?.metadata?.renderQueue ?? MaterialRenderQueue.Opaque;
+
+    /// <summary>
+    /// Render Queue Offset for this material
+    /// </summary>
+    internal int RenderQueueOffset => (materialResource?.metadata?.overrideShaderRenderQueue ?? false) ? materialResource.metadata.renderQueueOffset :
+        materialResource?.shader?.shaderResource?.metadata?.renderQueueOffset ?? 0;
+
+    /// <summary>
+    /// The render Queue Index for this material. Used to sort the rendering of each object
+    /// </summary>
+    internal int RenderQueueIndex => (int)RenderQueue + RenderQueueOffset;
 
     internal bool needsHashUpdate = true;
     internal int stateHash;
@@ -240,7 +257,6 @@ public sealed class Material : IGuidAsset
 
         materialResource = sourceMaterial.materialResource?.Clone();
         shaderHandles = new(sourceMaterial.shaderHandles);
-        CullingMode = sourceMaterial.CullingMode;
 
         MainColor = sourceMaterial.MainColor;
         MainTexture = sourceMaterial.MainTexture;
@@ -649,6 +665,8 @@ public sealed class Material : IGuidAsset
         state.sourceBlend = sourceBlend;
         state.destinationBlend = destinationBlend;
         state.cull = CullingMode;
+        state.renderQueue = RenderQueue;
+        state.renderQueueIndex = RenderQueueIndex;
 
         foreach (var parameter in parameters.Values)
         {

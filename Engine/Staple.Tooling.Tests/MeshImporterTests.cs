@@ -32,8 +32,8 @@ End Compute
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var vertex,
-            out var fragment, out var compute), Is.True);
+            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(blend, Is.Null);
         Assert.That(instanceParameters, Is.Null);

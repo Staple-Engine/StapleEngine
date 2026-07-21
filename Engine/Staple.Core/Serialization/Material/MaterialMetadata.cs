@@ -529,8 +529,17 @@ public class MaterialMetadata
     [Key(4)]
     public CullingMode cullingMode = CullingMode.Back;
 
-    [HideInInspector]
     [Key(5)]
+    public MaterialRenderQueue renderQueue;
+
+    [Key(6)]
+    public int renderQueueOffset;
+
+    [Key(7)]
+    public bool overrideShaderRenderQueue;
+
+    [HideInInspector]
+    [Key(8)]
     public string typeName = typeof(Material).FullName;
 
     public bool ShouldSerializeguid() => false;

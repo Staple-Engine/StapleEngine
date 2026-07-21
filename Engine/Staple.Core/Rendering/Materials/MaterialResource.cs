@@ -6,19 +6,19 @@ namespace Staple.Internal;
 
 internal class MaterialResource
 {
-    internal Shader shader;
-    internal MaterialMetadata metadata;
+    public Shader shader;
+    public MaterialMetadata metadata;
 
-    internal readonly Dictionary<MaterialResourceParameter, int> vertexTextureBindings = [];
-    internal readonly Dictionary<MaterialResourceParameter, int> fragmentTextureBindings = [];
+    public readonly Dictionary<MaterialResourceParameter, int> vertexTextureBindings = [];
+    public readonly Dictionary<MaterialResourceParameter, int> fragmentTextureBindings = [];
 
-    internal Texture[] vertexSamplers;
+    public Texture[] vertexSamplers;
 
-    internal Texture[] fragmentSamplers;
+    public Texture[] fragmentSamplers;
 
-    internal Dictionary<StringID, MaterialResourceParameter> parameters = [];
+    public Dictionary<StringID, MaterialResourceParameter> parameters = [];
 
-    internal Dictionary<StringID, MaterialResourceParameter> instanceParameters = [];
+    public Dictionary<StringID, MaterialResourceParameter> instanceParameters = [];
 
     public GuidHasher Guid = new();
 

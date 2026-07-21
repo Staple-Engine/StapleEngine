@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -44,6 +45,7 @@ public static partial class ShaderParser
     private static readonly Regex bufferRegex = BufferRegex();
     private static readonly Regex instancingRegex = InstancingRegex();
     private static readonly Regex instancingParameterRegex = InstancingParameterRegex();
+    private static readonly Regex renderQueueRegex = RenderQueueRegex();
 
     [GeneratedRegex("(\\[\\w+\\] )?(variant\\: \\w+ )?([ ]*)(\\w+) (\\w+)(([ ]*)\\:([ ]*)(\\w+))?(([ ]*)\\=([ ]*)(.*))?")]
     private static partial Regex ParameterRegex();
@@ -87,9 +89,13 @@ public static partial class ShaderParser
     [GeneratedRegex("VariantDependency (\\w+) (\\w+)")]
     private static partial Regex VariantDependencyRegex();
 
+    [GeneratedRegex("RenderQueue (.*) (.*)")]
+    private static partial Regex RenderQueueRegex();
+
     public static bool Parse(string source, ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
         out List<string> variants, out List<KeyValuePair<string, string>> variantDependencies, out List<InstanceParameter> instanceParameters,
-        out Dictionary<string, List<VertexAttribute>> vertexInputs, out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
+        out Dictionary<string, List<VertexAttribute>> vertexInputs, out MaterialRenderQueue renderQueue,
+        out int renderQueueOffset, out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
     {
         vertexInputs = [];
 
@@ -131,12 +137,29 @@ public static partial class ShaderParser
             {
                 blendMode = (from, to);
             }
+
+            var renderQueueMatch = renderQueueRegex.Match(source);
+
+            if (!renderQueueMatch.Success ||
+                !Enum.TryParse(renderQueueMatch.Groups[1].Value, true, out renderQueue) ||
+                !int.TryParse(renderQueueMatch.Groups[2].Value, CultureInfo.InvariantCulture, out renderQueueOffset))
+            {
+                renderQueue = default;
+                renderQueueOffset = default;
+            }
         }
         else
         {
             variants = [];
             variantDependencies = [];
             blendMode = default;
+            renderQueue = default;
+            renderQueueOffset = default;
+        }
+
+        if (renderQueueOffset < 0)
+        {
+            renderQueueOffset = 0;
         }
 
         var parametersMatch = parametersRegex.Match(source);

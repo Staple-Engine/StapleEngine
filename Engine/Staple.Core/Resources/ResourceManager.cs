@@ -1632,7 +1632,6 @@ internal class ResourceManager
         material = new Material
         {
             materialResource = resource,
-            CullingMode = resource.metadata.cullingMode,
         };
 
         foreach (var variant in resource.metadata.enabledShaderVariants)
@@ -3035,7 +3034,6 @@ internal class ResourceManager
         if(resource != null)
         {
             material.materialResource = resource;
-            material.CullingMode = resource.metadata.cullingMode;
 
             material.shaderKeywords.Clear();
 

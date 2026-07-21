@@ -120,8 +120,8 @@ static partial class Program
                 }
 
                 if (ShaderParser.Parse(text, shader.type, out var blendMode, out var shaderParameters, out shader.variants,
-                    out var variantDependencies, out var instancingParameters, out var vertexInputs, out var vertex,
-                    out var fragment, out var compute) == false)
+                    out var variantDependencies, out var instancingParameters, out var vertexInputs, out var renderQueue,
+                    out var renderQueueOffset, out var vertex, out var fragment, out var compute) == false)
                 {
                     Console.WriteLine("\t\tError: File has invalid format");
 
@@ -280,6 +280,8 @@ static partial class Program
                         sourceBlend = shader.sourceBlend,
                         destinationBlend = shader.destinationBlend,
                         variants = [.. shader.variants],
+                        renderQueue = renderQueue,
+                        renderQueueOffset = renderQueueOffset,
                     },
                 };
 

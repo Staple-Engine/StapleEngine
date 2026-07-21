@@ -40,6 +40,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         public Matrix4x4 view;
         public Matrix4x4 projection;
         public bool useWorldMatrix;
+        public MaterialRenderQueue renderQueue;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
@@ -1955,6 +1956,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
             viewData.renderData.world = state.world;
             viewData.renderData.useWorldMatrix = useWorldMatrix;
+            viewData.renderData.renderQueue = state.renderQueue;
 
             unsafe
             {
