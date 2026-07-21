@@ -535,6 +535,19 @@ public struct MeshAssetAnimation
 }
 
 [MessagePackObject]
+public class MeshAdjustmentTransform
+{
+    [Key(0)]
+    public Vector3Holder position;
+
+    [Key(1)]
+    public Vector4Holder rotation;
+
+    [Key(2)]
+    public Vector3Holder scale;
+}
+
+[MessagePackObject]
 public class SerializableMeshAsset
 {
     [Key(0)]
@@ -548,4 +561,7 @@ public class SerializableMeshAsset
 
     [Key(3)]
     public MeshAssetAnimation[] animations = [];
+
+    [Key(4)]
+    public MeshAdjustmentTransform adjustmentTransform;
 }

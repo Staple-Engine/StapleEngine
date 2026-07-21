@@ -2339,6 +2339,13 @@ internal class ResourceManager
             }
 
             resource.BoneCount = startBoneIndex;
+            resource.AdjustmentTransform = meshAssetData.adjustmentTransform;
+
+            resource.AdjustmentTransformMatrix = resource.AdjustmentTransform != null ? new(Matrix4x4.TRS(
+                resource.AdjustmentTransform.position.ToVector3(),
+                resource.AdjustmentTransform.scale.ToVector3(),
+                resource.AdjustmentTransform.rotation.ToQuaternion())
+            ) : null;
 
             if (resource.meshes.Length == 1)
             {

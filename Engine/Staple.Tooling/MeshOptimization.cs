@@ -440,6 +440,7 @@ public static class MeshOptimization
                 animations = meshAsset.animations,
                 metadata = meshAsset.metadata,
                 nodes = meshAsset.nodes,
+                adjustmentTransform = meshAsset.adjustmentTransform,
             };
 
             var meshes = new List<MeshAssetMeshInfo>();

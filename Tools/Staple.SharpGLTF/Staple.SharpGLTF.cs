@@ -86,6 +86,11 @@ public class SharpGLTFImporter : IMeshImporter
         var meshData = new SerializableMeshAsset
         {
             metadata = metadata,
+            adjustmentTransform = new()
+            {
+                rotation = new(Quaternion.Identity),
+                scale = new(1, 1, -1),
+            },
         };
 
         #region Materials
@@ -723,7 +728,8 @@ public class SharpGLTFImporter : IMeshImporter
 
                     indices.AddRange(primitive.GetIndices().Select(x => (int)x));
 
-                    if (metadata.flipWindingOrder)
+                    //Invert the flip winding order because we're inverting the Z axis for the adjustment transform
+                    if (!metadata.flipWindingOrder)
                     {
                         switch (primitive.DrawPrimitiveType)
                         {

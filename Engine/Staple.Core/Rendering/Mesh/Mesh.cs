@@ -1641,7 +1641,7 @@ public sealed partial class Mesh : IGuidAsset
     /// <param name="name">The new entity name</param>
     /// <param name="mesh">The mesh to instantiate</param>
     /// <param name="parentEntity">The parent entity</param>
-    /// <param name="options">Optional options</param>
+    /// <param name="options">Instancing options</param>
     /// <returns>The new entity</returns>
     public static Entity InstanceMesh(string name, Mesh mesh, Entity parentEntity = default, MeshInstanceOptions options = MeshInstanceOptions.None)
     {
@@ -1661,6 +1661,24 @@ public sealed partial class Mesh : IGuidAsset
         var meshTransform = meshEntity.GetComponent<Transform>();
 
         meshTransform.SetParent(parent);
+
+        if (!options.HasFlag(MeshInstanceOptions.DontAdjust) &&
+            mesh.meshAsset?.AdjustmentTransform is MeshAdjustmentTransform adjustment)
+        {
+            var adjustmentEntity = Entity.Create("StapleAdjustment", typeof(Transform));
+
+            var adjustmentTransform = adjustmentEntity.GetComponent<Transform>();
+
+            adjustmentTransform.SetParent(parent);
+
+            adjustmentTransform.LocalPosition = adjustment.position.ToVector3();
+            adjustmentTransform.LocalRotation = adjustment.rotation.ToQuaternion();
+            adjustmentTransform.LocalScale = adjustment.scale.ToVector3();
+
+            adjustmentTransform.SetParent(meshTransform);
+
+            meshTransform = adjustmentTransform;
+        }
 
         var outMaterials = mesh.meshAsset != null ? mesh.meshAsset.Meshes[mesh.meshAssetIndex].submeshMaterialGuids
             .Select(x => ResourceManager.instance.LoadMaterial(x)).ToList() :
@@ -1694,7 +1712,7 @@ public sealed partial class Mesh : IGuidAsset
     /// <param name="name">The new entity name</param>
     /// <param name="asset">The mesh asset</param>
     /// <param name="parentEntity">The parent entity</param>
-    /// <param name="options">Optional options</param>
+    /// <param name="options">Instancing options</param>
     /// <returns>The new entity</returns>
     public static Entity InstanceMesh(string name, MeshAsset asset, Entity parentEntity = default, MeshInstanceOptions options = MeshInstanceOptions.None)
     {
@@ -1714,6 +1732,24 @@ public sealed partial class Mesh : IGuidAsset
         var baseTransform = baseEntity.GetComponent<Transform>();
 
         baseTransform.SetParent(parent);
+
+        if (!options.HasFlag(MeshInstanceOptions.DontAdjust) &&
+            asset.AdjustmentTransform is MeshAdjustmentTransform adjustment)
+        {
+            var adjustmentEntity = Entity.Create("StapleAdjustment", typeof(Transform));
+
+            var adjustmentTransform = adjustmentEntity.GetComponent<Transform>();
+
+            adjustmentTransform.SetParent(parent);
+
+            adjustmentTransform.LocalPosition = adjustment.position.ToVector3();
+            adjustmentTransform.LocalRotation = adjustment.rotation.ToQuaternion();
+            adjustmentTransform.LocalScale = adjustment.scale.ToVector3();
+
+            adjustmentTransform.SetParent(baseTransform);
+
+            baseTransform = adjustmentTransform;
+        }
 
         if(asset.BoneCount > 0)
         {

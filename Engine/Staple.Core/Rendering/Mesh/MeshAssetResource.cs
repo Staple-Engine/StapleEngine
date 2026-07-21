@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -43,6 +44,16 @@ internal class MeshAssetResource
     /// The amount of bones in the meshes within this MeshAsset
     /// </summary>
     public int BoneCount { get; internal set; }
+
+    /// <summary>
+    /// The adjustment transform for all meshes, if any
+    /// </summary>
+    public MeshAdjustmentTransform AdjustmentTransform { get; internal set; }
+
+    /// <summary>
+    /// Matrix for adjusting the transformation of all meshes
+    /// </summary>
+    public OptionalContainer<Matrix4x4> AdjustmentTransformMatrix { get; internal set; }
 
     public GuidHasher Guid = new();
 }

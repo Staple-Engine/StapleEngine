@@ -36,9 +36,16 @@ public class UFXImporter : IMeshImporter
                 metadata.frameRate = 30;
             }
 
+            var isOBJ = meshFileName.ToLowerInvariant().EndsWith(".obj");
+
             var meshData = new SerializableMeshAsset
             {
                 metadata = metadata,
+                adjustmentTransform = isOBJ ? new()
+                {
+                     rotation = new(Quaternion.Identity),
+                     scale = new(0, 0, -1),
+                } : null,
             };
 
             #region Materials
@@ -427,7 +434,9 @@ public class UFXImporter : IMeshImporter
 
                 m.bitangents = [.. bitangents];
 
-                if (metadata.flipWindingOrder && indices.Count % 3 == 0)
+                var shouldFlip = isOBJ ? !metadata.flipWindingOrder : metadata.flipWindingOrder;
+
+                if (shouldFlip && indices.Count % 3 == 0)
                 {
                     for (var k = 0; k < indices.Count; k += 3)
                     {

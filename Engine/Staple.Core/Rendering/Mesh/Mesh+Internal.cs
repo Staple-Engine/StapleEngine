@@ -781,6 +781,21 @@ public sealed partial class Mesh
     }
 
     /// <summary>
+    /// Applies this mesh's adjustment transform to another transform, if any is available
+    /// </summary>
+    /// <param name="transform">The transform that needs to be adjusted</param>
+    /// <returns>The adjusted transform, or the original</returns>
+    internal Matrix4x4 ApplyAdjustmentTransform(Matrix4x4 transform)
+    {
+        if (meshAsset?.AdjustmentTransformMatrix?.value is not Matrix4x4 adjustment)
+        {
+            return transform;
+        }
+
+        return adjustment * transform;
+    }
+
+    /// <summary>
     /// Generates a vertex layout for a mesh
     /// </summary>
     /// <param name="mesh">The mesh to generate the layout for</param>

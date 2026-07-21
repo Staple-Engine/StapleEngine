@@ -373,7 +373,9 @@ public sealed class MeshRenderSystem : IRenderSystem
 
                     needsUpdate = true;
 
-                    transformContents[instanceOffset++] = item.transform.Matrix;
+                    var matrix = item.transform.Matrix;
+
+                    transformContents[instanceOffset++] = matrix;
                 }
             }
 

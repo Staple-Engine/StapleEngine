@@ -707,6 +707,16 @@ public sealed class MeshAsset : IGuidAsset
     /// </summary>
     public int BoneCount => meshResource?.BoneCount ?? 0;
 
+    /// <summary>
+    /// Transform adjustments for all meshes
+    /// </summary>
+    public MeshAdjustmentTransform AdjustmentTransform => meshResource?.AdjustmentTransform;
+
+    /// <summary>
+    /// Matrix for adjusting the transformation of all meshes
+    /// </summary>
+    public OptionalContainer<Matrix4x4> AdjustmentTransformMatrix => meshResource?.AdjustmentTransformMatrix;
+
     public int StorageSize
     {
         get
