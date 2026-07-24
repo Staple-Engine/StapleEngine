@@ -1935,9 +1935,9 @@ namespace MessagePack.Formatters.Staple.Internal
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, global::Staple.Internal.MaterialParameter>>().Serialize(ref writer, value.parameters, options);
             formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.List<string>>().Serialize(ref writer, value.enabledShaderVariants, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.CullingMode>().Serialize(ref writer, value.cullingMode, options);
+            writer.Write(value.overrideShaderRenderQueue);
             formatterResolver.GetFormatterWithVerify<global::Staple.MaterialRenderQueue>().Serialize(ref writer, value.renderQueue, options);
             writer.Write(value.renderQueueOffset);
-            writer.Write(value.overrideShaderRenderQueue);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
         }
 
@@ -1973,13 +1973,13 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.cullingMode = formatterResolver.GetFormatterWithVerify<global::Staple.CullingMode>().Deserialize(ref reader, options);
                         break;
                     case 5:
-                        ____result.renderQueue = formatterResolver.GetFormatterWithVerify<global::Staple.MaterialRenderQueue>().Deserialize(ref reader, options);
+                        ____result.overrideShaderRenderQueue = reader.ReadBoolean();
                         break;
                     case 6:
-                        ____result.renderQueueOffset = reader.ReadInt32();
+                        ____result.renderQueue = formatterResolver.GetFormatterWithVerify<global::Staple.MaterialRenderQueue>().Deserialize(ref reader, options);
                         break;
                     case 7:
-                        ____result.overrideShaderRenderQueue = reader.ReadBoolean();
+                        ____result.renderQueueOffset = reader.ReadInt32();
                         break;
                     case 8:
                         ____result.typeName = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);

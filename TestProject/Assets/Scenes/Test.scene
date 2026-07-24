@@ -53,7 +53,8 @@
     "layer": "Default",
     "enabled": false,
     "prefabGuid": null,
-    "prefabLocalID": 0
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
   },
   {
     "kind": "Entity",
@@ -81,7 +82,6 @@
       {
         "type": "Staple.SpriteRenderer",
         "data": {
-          "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
           "color": "#FFFFFFFF",
           "flipX": false,
           "flipY": false,
@@ -93,7 +93,10 @@
           "sortingLayer": 0,
           "sortingOrder": 0,
           "overrideLighting": false,
-          "lighting": "Unlit"
+          "lighting": "Unlit",
+          "materials": [
+            "1953e365-8dc0-409d-b9f6-33966f2c6963"
+          ]
         }
       },
       {
@@ -164,7 +167,8 @@
     "layer": "Default",
     "enabled": true,
     "prefabGuid": null,
-    "prefabLocalID": 0
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
   },
   {
     "kind": "Entity",
@@ -192,7 +196,6 @@
       {
         "type": "Staple.SpriteRenderer",
         "data": {
-          "material": "1953e365-8dc0-409d-b9f6-33966f2c6963",
           "color": "#FFFFFFFF",
           "flipX": false,
           "flipY": false,
@@ -204,7 +207,10 @@
           "sortingLayer": 0,
           "sortingOrder": 0,
           "overrideLighting": false,
-          "lighting": "Unlit"
+          "lighting": "Unlit",
+          "materials": [
+            "1953e365-8dc0-409d-b9f6-33966f2c6963"
+          ]
         }
       },
       {
@@ -262,7 +268,8 @@
     "layer": "Default",
     "enabled": true,
     "prefabGuid": null,
-    "prefabLocalID": 0
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
   },
   {
     "kind": "Entity",
@@ -312,7 +319,8 @@
     "layer": "Default",
     "enabled": true,
     "prefabGuid": null,
-    "prefabLocalID": 0
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
   },
   {
     "kind": "Entity",
@@ -352,7 +360,8 @@
     "layer": "Default",
     "enabled": true,
     "prefabGuid": null,
-    "prefabLocalID": 0
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
   },
   {
     "kind": "Entity",
@@ -387,6 +396,7 @@
     "layer": "Default",
     "enabled": true,
     "prefabGuid": null,
-    "prefabLocalID": 0
+    "prefabLocalID": 0,
+    "hierarchyVisibility": "None"
   }
 ]

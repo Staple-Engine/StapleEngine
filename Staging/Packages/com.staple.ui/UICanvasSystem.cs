@@ -7,43 +7,43 @@ namespace Staple.Internal;
 /// <summary>
 /// Canvas Render System. Used to render UI.
 /// </summary>
-public class UICanvasSystem : IRenderSystem
+public class UICanvasSystem : RenderSystemBase
 {
     private static readonly MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
 
     private readonly SceneQuery<UICanvas> canvases = new();
 
-    public bool UsesOwnRenderProcess => true;
-
-    public Type RelatedComponent => typeof(UICanvas);
-
     public bool IsPointerOverUI { get; private set; }
 
-    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<UICanvas>();
+    public UICanvasSystem() : base(true, typeof(UICanvas), typeof(GenericRenderQueue<UICanvas>))
+    {
+    }
+
+    public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<UICanvas>();
 
     #region Lifecycle
-    public void Startup()
+    public override void Startup()
     {
     }
 
-    public void Shutdown()
+    public override void Shutdown()
     {
     }
 
-    public void Prepare()
+    public override void Prepare()
     {
     }
 
-    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Preprocess(IRenderQueue renderQueue)
     {
     }
 
-    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
     {
     }
     #endregion
 
-    public void Submit()
+    public override void Submit()
     {
         var projection = Matrix4x4.CreateOrthographicOffCenter(0, Screen.Width, Screen.Height, 0, -1, 1);
 

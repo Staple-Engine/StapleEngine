@@ -190,8 +190,8 @@ internal class AppPlayer
                     }
                 }
 
-                HandleTypes<IRenderSystem>("render system",
-                    (x => typeof(IRenderSystem).IsAssignableFrom(x) && x != typeof(IRenderSystem)),
+                HandleTypes<RenderSystemBase>("render system",
+                    (x => typeof(RenderSystemBase).IsAssignableFrom(x) && x != typeof(RenderSystemBase)),
                     (instance => RenderSystem.Instance.RegisterSystem(instance)));
 
                 HandleTypes<object>("entity system",

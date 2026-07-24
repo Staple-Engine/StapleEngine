@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -9,7 +8,7 @@ namespace Staple.Internal;
 /// <summary>
 /// Mesh Combine system that merges child mesh renderers inside it
 /// </summary>
-public sealed class MeshCombineSystem : IRenderSystem
+public sealed class MeshCombineSystem : RenderSystemBase
 {
     /// <summary>
     /// Info for rendering
@@ -27,31 +26,32 @@ public sealed class MeshCombineSystem : IRenderSystem
         public Transform transform;
     }
 
-    public bool UsesOwnRenderProcess => false;
-
-    public Type RelatedComponent => typeof(MeshCombine);
-
     private readonly ExpandableContainer<RenderInfo> renderers = new();
 
     private readonly ComponentVersionTracker<Transform> transformVersions = new();
 
-    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<MeshCombine>();
+    public MeshCombineSystem() : base(false, typeof(MeshCombine), typeof(GenericRenderQueue<MeshCombine>))
+    {
+    }
+
+    public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<MeshCombine>();
 
     #region Lifecycle
-    public void Prepare()
+    public override void Startup()
     {
     }
 
-    public void Startup()
-    {
-    }
-
-    public void Shutdown()
+    public override void Shutdown()
     {
     }
     #endregion
 
-    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Prepare()
+    {
+        renderers.Clear();
+    }
+
+    public override void Preprocess(IRenderQueue renderQueue)
     {
         if (renderQueue is not GenericRenderQueue<MeshCombine> queue)
         {
@@ -227,8 +227,8 @@ public sealed class MeshCombineSystem : IRenderSystem
                         combinedMeshBounds.Add(combinedMesh.bounds.max);
                     }
 
-                    combine.meshes.Add((combinedMesh, pair.Key.Item3));
-                    combine.materials.Add(material);
+                    combine.combinedMeshes.Add((combinedMesh, pair.Key.Item3));
+                    combine.combinedMaterials.Add(material);
                 }
 
                 if (combinedMeshBounds.Count > 0)
@@ -271,10 +271,8 @@ public sealed class MeshCombineSystem : IRenderSystem
         }
     }
 
-    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
     {
-        renderers.Clear();
-
         if (renderQueue is not GenericRenderQueue<MeshCombine> queue)
         {
             return;
@@ -286,8 +284,8 @@ public sealed class MeshCombineSystem : IRenderSystem
         {
             var combine = entry.component;
 
-            if (combine.meshes.Count == 0 ||
-                combine.materials.Count != combine.meshes.Count)
+            if (combine.combinedMeshes.Count == 0 ||
+                combine.combinedMaterials.Count != combine.combinedMeshes.Count)
             {
                 continue;
             }
@@ -300,7 +298,7 @@ public sealed class MeshCombineSystem : IRenderSystem
         }
     }
 
-    public void Submit()
+    public override void Submit()
     {
         Material lastMaterial = null;
 
@@ -315,12 +313,12 @@ public sealed class MeshCombineSystem : IRenderSystem
 
             var renderer = item.renderer;
 
-            var meshCount = renderer.meshes.Count;
+            var meshCount = renderer.combinedMeshes.Count;
 
             for(var j = 0; j < meshCount; j++)
             {
-                var (mesh, lighting) = renderer.meshes[j];
-                var material = renderer.materials[j];
+                var (mesh, lighting) = renderer.combinedMeshes[j];
+                var material = renderer.combinedMaterials[j];
 
                 var needsChange = material.StateHash != (lastMaterial?.StateHash ?? 0) ||
                     lastLighting != lighting ||

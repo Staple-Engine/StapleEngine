@@ -41,7 +41,7 @@ public class AssetEditor : Editor
         }
     }
 
-    public void ShowAssetUI(Action refreshed)
+    public void ShowAssetUI(Action refreshed, Action reverted = null)
     {
         var hasChanges = !original.Equals(target);
 
@@ -63,6 +63,15 @@ public class AssetEditor : Editor
                 target = RecreateOriginal() ?? target;
 
                 EditorGUI.pendingObjectPickers.Clear();
+
+                try
+                {
+                    reverted?.Invoke();
+                }
+                catch(Exception e)
+                {
+                    Log.Error($"Revert callback exception for {GetType().FullName}: {e}", "Asset Editor");
+                }
             });
         }
         else

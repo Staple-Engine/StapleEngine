@@ -1,41 +1,39 @@
-﻿using System;
-
-namespace Staple.Internal;
+﻿namespace Staple.Internal;
 
 /// <summary>
 /// Culling Volume system that culls large amounts of objects by checking if its bounds are invisible
 /// </summary>
-public sealed class CullingVolumeSystem : IRenderSystem
+public sealed class CullingVolumeSystem : RenderSystemBase
 {
-    public bool UsesOwnRenderProcess => false;
+    public CullingVolumeSystem() : base(false, typeof(CullingVolume), typeof(GenericRenderQueue<CullingVolume>))
+    {
+    }
 
-    public Type RelatedComponent => typeof(CullingVolume);
-
-    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<CullingVolume>();
+    public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<CullingVolume>();
 
     #region Lifecycle
-    public void Prepare()
+    public override void Prepare()
     {
     }
 
-    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Preprocess(IRenderQueue renderQueue)
     {
     }
 
-    public void Shutdown()
+    public override void Shutdown()
     {
     }
 
-    public void Startup()
+    public override void Startup()
     {
     }
 
-    public void Submit()
+    public override void Submit()
     {
     }
     #endregion
 
-    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
     {
         if (renderQueue is not GenericRenderQueue<CullingVolume> queue)
         {

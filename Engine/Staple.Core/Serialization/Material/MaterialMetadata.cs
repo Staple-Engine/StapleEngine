@@ -530,13 +530,13 @@ public class MaterialMetadata
     public CullingMode cullingMode = CullingMode.Back;
 
     [Key(5)]
-    public MaterialRenderQueue renderQueue;
+    public bool overrideShaderRenderQueue;
 
     [Key(6)]
-    public int renderQueueOffset;
+    public MaterialRenderQueue renderQueue;
 
     [Key(7)]
-    public bool overrideShaderRenderQueue;
+    public int renderQueueOffset;
 
     [HideInInspector]
     [Key(8)]
@@ -565,6 +565,9 @@ public class MaterialMetadata
             lhs.enabledShaderVariants.Count == rhs.enabledShaderVariants.Count &&
             lhs.enabledShaderVariants.SequenceEqual(rhs.enabledShaderVariants) &&
             lhs.cullingMode == rhs.cullingMode &&
+            lhs.overrideShaderRenderQueue == rhs.overrideShaderRenderQueue &&
+            lhs.renderQueue == rhs.renderQueue &&
+            lhs.renderQueueOffset == rhs.renderQueueOffset &&
             lhs.typeName == rhs.typeName;
     }
 
@@ -587,6 +590,9 @@ public class MaterialMetadata
             lhs.enabledShaderVariants.Count != rhs.enabledShaderVariants.Count ||
             !lhs.enabledShaderVariants.SequenceEqual(rhs.enabledShaderVariants) ||
             lhs.cullingMode != rhs.cullingMode ||
+            lhs.overrideShaderRenderQueue != rhs.overrideShaderRenderQueue ||
+            lhs.renderQueue != rhs.renderQueue ||
+            lhs.renderQueueOffset != rhs.renderQueueOffset ||
             lhs.typeName != rhs.typeName;
     }
 
@@ -607,7 +613,19 @@ public class MaterialMetadata
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(guid, shader, parameters, enabledShaderVariants, cullingMode, typeName);
+        var hashCode = new HashCode();
+
+        hashCode.Add(guid);
+        hashCode.Add(shader);
+        hashCode.Add(parameters);
+        hashCode.Add(enabledShaderVariants);
+        hashCode.Add(cullingMode);
+        hashCode.Add(overrideShaderRenderQueue);
+        hashCode.Add(renderQueue);
+        hashCode.Add(renderQueueOffset);
+        hashCode.Add(typeName);
+
+        return hashCode.ToHashCode();
     }
 }
 

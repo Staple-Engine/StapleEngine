@@ -84,7 +84,7 @@ static partial class Program
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"\t\tError: Failed to read file");
+                    Console.WriteLine($"\t\tError: Failed to read file: {materialFileName}");
 
                     return;
                 }
@@ -97,7 +97,7 @@ static partial class Program
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"\t\tError: Metadata is corrupted");
+                    Console.WriteLine($"\t\tError: Metadata is corrupted: {materialFileName}");
 
                     return;
                 }
@@ -145,7 +145,7 @@ static partial class Program
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"\t\tError: Failed to save material: {e}");
+                    Console.WriteLine($"\t\tError: Failed to save material at {materialFileName}: {e}");
                 }
             });
         }

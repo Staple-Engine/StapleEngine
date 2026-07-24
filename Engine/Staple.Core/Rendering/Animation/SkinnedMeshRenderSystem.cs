@@ -7,7 +7,7 @@ namespace Staple.Internal;
 /// <summary>
 /// Skinned mesh render system
 /// </summary>
-public class SkinnedMeshRenderSystem : IRenderSystem
+public class SkinnedMeshRenderSystem : RenderSystemBase
 {
     /// <summary>
     /// Info for rendering
@@ -31,13 +31,18 @@ public class SkinnedMeshRenderSystem : IRenderSystem
 
     private readonly ComponentVersionTracker<Transform> transformVersions = new();
 
-    public bool UsesOwnRenderProcess => false;
+    public SkinnedMeshRenderSystem() : base(false, typeof(SkinnedMeshRenderer), typeof(GenericRenderQueue<SkinnedMeshRenderer>))
+    {
+    }
 
-    public Type RelatedComponent => typeof(SkinnedMeshRenderer);
+    public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshRenderer>();
 
-    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshRenderer>();
+    public override void Prepare()
+    {
+        renderers.Clear();
+    }
 
-    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Preprocess(IRenderQueue renderQueue)
     {
         if (renderQueue is not GenericRenderQueue<SkinnedMeshRenderer> queue)
         {
@@ -93,10 +98,8 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
     {
-        renderers.Clear();
-
         var needsInstanceUpdate = false;
 
         if (renderQueue is not GenericRenderQueue<SkinnedMeshRenderer> queue)
@@ -262,7 +265,7 @@ public class SkinnedMeshRenderSystem : IRenderSystem
         }
     }
 
-    public void Submit()
+    public override void Submit()
     {
         Material lastMaterial = null;
 
@@ -555,15 +558,11 @@ public class SkinnedMeshRenderSystem : IRenderSystem
     }
 
     #region Lifecycle
-    public void Startup()
+    public override void Startup()
     {
     }
 
-    public void Shutdown()
-    {
-    }
-
-    public void Prepare()
+    public override void Shutdown()
     {
     }
     #endregion

@@ -6,31 +6,31 @@ namespace Staple.Internal;
 /// Skinned mesh attachment system.
 /// Automatically syncs entity transforms with the skinned mesh's
 /// </summary>
-public class SkinnedMeshAttachmentSystem : IRenderSystem
+public class SkinnedMeshAttachmentSystem : RenderSystemBase
 {
-    public bool UsesOwnRenderProcess => false;
-
-    public Type RelatedComponent => typeof(SkinnedMeshAttachment);
-
-    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshAttachment>();
-
-    public void Startup()
+    public SkinnedMeshAttachmentSystem() : base(false, typeof(SkinnedMeshAttachment), typeof(GenericRenderQueue<SkinnedMeshAttachment>))
     {
     }
 
-    public void Shutdown()
+    public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshAttachment>();
+
+    public override void Startup()
     {
     }
 
-    public void Prepare()
+    public override void Shutdown()
     {
     }
 
-    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Prepare()
     {
     }
 
-    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Preprocess(IRenderQueue renderQueue)
+    {
+    }
+
+    public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
     {
         if (renderQueue is not GenericRenderQueue<SkinnedMeshAttachment> queue)
         {
@@ -90,7 +90,7 @@ public class SkinnedMeshAttachmentSystem : IRenderSystem
         }
     }
 
-    public void Submit()
+    public override void Submit()
     {
     }
 }

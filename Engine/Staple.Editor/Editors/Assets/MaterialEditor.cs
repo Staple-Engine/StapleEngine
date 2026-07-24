@@ -644,6 +644,73 @@ internal class MaterialEditor : AssetEditor
                 }
 
                 return true;
+
+            case nameof(MaterialMetadata.overrideShaderRenderQueue):
+
+                if (getter() is bool value)
+                {
+                    var newValue = EditorGUI.Toggle(name.ExpandCamelCaseName(), "MaterialOverrideRenderQueue", value);
+
+                    if (newValue != value)
+                    {
+                        material.overrideShaderRenderQueue = newValue;
+
+                        if (ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                        {
+                            materialInstance.materialResource.metadata.overrideShaderRenderQueue = newValue;
+                        }
+                    }
+                }
+
+                return true;
+
+            case nameof(MaterialMetadata.renderQueue):
+
+                if (!material.overrideShaderRenderQueue)
+                {
+                    return true;
+                }
+
+                if(getter() is MaterialRenderQueue renderQueue)
+                {
+                    var newValue = EditorGUI.EnumDropdown(name.ExpandCamelCaseName(), "MaterialRenderQueue", renderQueue);
+
+                    if (newValue != renderQueue)
+                    {
+                        material.renderQueue = newValue;
+
+                        if (ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                        {
+                            materialInstance.materialResource.metadata.renderQueue = newValue;
+                        }
+                    }
+                }
+
+                return true;
+
+            case nameof(MaterialMetadata.renderQueueOffset):
+
+                if(!material.overrideShaderRenderQueue)
+                {
+                    return true;
+                }
+
+                if (getter() is int offset)
+                {
+                    var newValue = EditorGUI.IntField(name.ExpandCamelCaseName(), "MaterialRenderOffset", offset);
+
+                    if (newValue != offset)
+                    {
+                        material.renderQueueOffset = newValue;
+
+                        if (ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+                        {
+                            materialInstance.materialResource.metadata.renderQueueOffset = newValue;
+                        }
+                    }
+                }
+
+                return true;
         }
 
         return false;
@@ -653,6 +720,12 @@ internal class MaterialEditor : AssetEditor
     {
         base.OnInspectorGUI();
 
-        ShowAssetUI(null);
+        ShowAssetUI(null, () =>
+        {
+            if(target is MaterialMetadata material)
+            {
+                ResourceManager.instance.ReloadMaterial(material.guid);
+            }
+        });
     }
 }

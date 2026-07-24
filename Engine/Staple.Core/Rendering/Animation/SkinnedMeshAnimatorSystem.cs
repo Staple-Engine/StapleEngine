@@ -6,37 +6,37 @@ namespace Staple.Internal;
 /// Skinned mesh animator system.
 /// Animates skinned meshes.
 /// </summary>
-public sealed class SkinnedMeshAnimatorSystem : IRenderSystem
+public sealed class SkinnedMeshAnimatorSystem : RenderSystemBase
 {
-    public bool UsesOwnRenderProcess => false;
+    public SkinnedMeshAnimatorSystem() : base(false, typeof(SkinnedMeshAnimator), typeof(GenericRenderQueue<SkinnedMeshAnimator>))
+    {
+    }
 
-    public Type RelatedComponent => typeof(SkinnedMeshAnimator);
-
-    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshAnimator>();
+    public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshAnimator>();
 
     #region Lifecycle
-    public void Startup()
+    public override void Startup()
     {
     }
 
-    public void Shutdown()
+    public override void Shutdown()
     {
     }
 
-    public void Prepare()
+    public override void Prepare()
     {
     }
 
-    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Preprocess(IRenderQueue renderQueue)
     {
     }
 
-    public void Submit()
+    public override void Submit()
     {
     }
     #endregion
 
-    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
     {
         if (renderQueue is not GenericRenderQueue<SkinnedMeshAnimator> queue)
         {

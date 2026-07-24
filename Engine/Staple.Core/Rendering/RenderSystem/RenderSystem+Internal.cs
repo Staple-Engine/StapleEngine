@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Staple.Internal;
@@ -53,48 +54,28 @@ public sealed partial class RenderSystem
     internal static Vector3 SpatialPartitionSizeHalfVector = new(SpatialPartitionSize / 2.0f, SpatialPartitionSize / 2.0f,
         SpatialPartitionSize / 2.0f);
 
-    /// <summary>
-    /// Contains information on a draw call
-    /// </summary>
-    internal class DrawCall
+    public class RenderSystemRenderQueue
     {
-        public Vector3 position;
-        public Quaternion rotation;
-        public Vector3 scale;
-        public Entity entity;
-        public Renderable renderable;
-        public IComponent relatedComponent;
+        public RenderSystemInfo renderSystem;
+
+        public readonly Dictionary<int, IRenderQueue> queue = [];
     }
 
-    /// <summary>
-    /// Contains lists of drawcalls for the drawcall interpolator
-    /// </summary>
-    internal class DrawBucket
+    public class RenderSystemCameraSet
     {
-        public readonly List<DrawCall> drawCalls = [];
+        public Camera camera;
+
+        public Transform transform;
+
+        public readonly ExpandableContainer<RenderSystemRenderQueue> renderSystems = new(false);
     }
 
     internal static byte Priority = 1;
 
     /// <summary>
-    /// Keep the current and previous draw buckets to interpolate around
-    /// </summary>
-    private DrawBucket previousDrawBucket = new(), currentDrawBucket = new();
-
-    /// <summary>
     /// Render thread lock
     /// </summary>
     private readonly Lock lockObject = new();
-
-    /// <summary>
-    /// Whether we need to generate draw calls (interpolator only)
-    /// </summary>
-    private bool needsDrawCalls;
-
-    /// <summary>
-    /// Time accumulator (interpolator only)
-    /// </summary>
-    private float accumulator;
 
     /// <summary>
     /// All registered render systems
@@ -114,7 +95,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// The render queue
     /// </summary>
-    private readonly List<((Camera, Transform), List<(RenderSystemInfo, IRenderQueue)>)> renderQueue = [];
+    private readonly ExpandableContainer<RenderSystemCameraSet> renderQueue = new(false);
 
     /// <summary>
     /// The entity query for every entity with a transform
@@ -160,6 +141,11 @@ public sealed partial class RenderSystem
     /// All renderables
     /// </summary>
     private readonly ExpandableContainer<Renderable> renderables = new(1024);
+
+    /// <summary>
+    /// The material hashes of all renderables
+    /// </summary>
+    private readonly ExpandableContainer<int> renderableMaterialHashes = new(1024);
 
     /// <summary>
     /// Frame counter for how many frames to wait before checking visibility
@@ -309,11 +295,6 @@ public sealed partial class RenderSystem
         RegisterSystem(new TextRenderSystem());
 
         LightSystem.Enabled = AppSettings.Active.enableLighting;
-
-        Time.onAccumulatorFinished += () =>
-        {
-            needsDrawCalls = true;
-        };
     }
 
     public void Shutdown()
@@ -345,14 +326,7 @@ public sealed partial class RenderSystem
             systemInfo.system.Prepare();
         }
 
-        if (UseDrawcallInterpolator)
-        {
-            UpdateAccumulator();
-        }
-        else
-        {
-            UpdateStandard();
-        }
+        UpdateStandard();
 
         foreach (var systemInfo in renderSystems)
         {
@@ -363,6 +337,33 @@ public sealed partial class RenderSystem
 
             systemInfo.system.Submit();
         }
+
+        if(CheckMaterialChanges())
+        {
+            World.Current?.RequestWorldUpdate();
+        }
+    }
+
+    /// <summary>
+    /// Verifies for any changed materials and requests a world update if that happens
+    /// </summary>
+    internal bool CheckMaterialChanges()
+    {
+        var renderablesContents = renderables.Contents;
+        var renderablesHashContents = renderableMaterialHashes.Contents;
+
+        for(var i = 0; i < renderablesContents.Length; i++)
+        {
+            if (renderablesContents[i] == null ||
+                renderablesContents[i].MaterialState == renderablesHashContents[i])
+            {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -594,13 +595,16 @@ public sealed partial class RenderSystem
             entityTransforms.Resize(newSize, true);
             lastSpatialEntities.Resize(newSize, true);
             processedSpatialEntities.Resize(newSize, true);
-            renderables.Resize(newSize, true);
+            renderables.Resize(newSize, false);
+            renderableMaterialHashes.Resize(newSize, false);
 
             var renderableSpan = renderables.Contents;
+            var renderableMaterialHashesContents = renderableMaterialHashes.Contents;
 
             for(var i = 0; i < entities.Length; i++)
             {
                 renderableSpan[i] = entities[i].ToEntity().GetComponent<Renderable>();
+                renderableMaterialHashesContents[i] = renderableSpan[i]?.MaterialState ?? 0;
             }
         }
 
@@ -688,11 +692,11 @@ public sealed partial class RenderSystem
                     newSize *= 2;
                 }
 
-                renderables.Resize(newSize, true);
+                renderables.Resize(newSize, false);
+                renderableMaterialHashes.Resize(newSize, false);
             }
 
             processedSpatialEntities.ClearValues();
-            renderables.ClearValues();
 
             foreach (var set in lastSpatialEntities.Contents)
             {
@@ -708,10 +712,14 @@ public sealed partial class RenderSystem
 
             {
                 var renderableContents = renderables.Contents;
+                var renderableMaterialHashesContents = renderableMaterialHashes.Contents;
 
                 foreach (var entityInfo in entityQuery.Contents)
                 {
-                    renderableContents[entityInfo.Item1.Identifier.ID - 1] = entityInfo.Item1.GetComponent<Renderable>();
+                    var renderable = entityInfo.Item1.GetComponent<Renderable>();
+
+                    renderableContents[entityInfo.Item1.Identifier.ID - 1] = renderable;
+                    renderableMaterialHashesContents[entityInfo.Item1.Identifier.ID - 1] = renderable?.MaterialState ?? 0;
                 }
             }
 
@@ -722,9 +730,33 @@ public sealed partial class RenderSystem
                 return;
             }
 
+            var renderSystemContent = CollectionsMarshal.AsSpan(renderSystems);
+
             foreach (var cameraInfo in cameras)
             {
-                var collected = new Dictionary<RenderSystemInfo, IRenderQueue>();
+                renderQueue.AddDefault();
+
+                ref var collected = ref renderQueue.Contents[renderQueue.Length - 1];
+
+                collected ??= new();
+
+                collected.camera = cameraInfo.camera;
+                collected.transform = cameraInfo.transform;
+                collected.renderSystems.Resize(renderSystems.Count, true);
+
+                for(var i = 0; i < renderSystemContent.Length; i++)
+                {
+                    ref var system = ref collected.renderSystems.Contents[i];
+
+                    system ??= new();
+
+                    system.renderSystem = renderSystemContent[i];
+
+                    foreach (var pair in system.queue)
+                    {
+                        pair.Value.Clear();
+                    }
+                }
 
                 foreach (var entityInfo in entityQuery.Contents)
                 {
@@ -735,35 +767,58 @@ public sealed partial class RenderSystem
                         continue;
                     }
 
-                    foreach (var systemInfo in renderSystems)
+                    for(var i = 0; i < renderSystemContent.Length; i++)
                     {
-                        if (systemInfo.system.UsesOwnRenderProcess)
+                        var systemInfo = renderSystemContent[i];
+
+                        if (systemInfo.system.UsesOwnRenderProcess ||
+                            !entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                         {
                             continue;
                         }
 
-                        if (!collected.TryGetValue(systemInfo, out var content))
-                        {
-                            content = systemInfo.system.CreateRenderQueue();
+                        ref var content = ref collected.renderSystems.Contents[i];
 
-                            collected.Add(systemInfo, content);
+                        if (systemInfo.isRenderable)
+                        {
+                            var renderable = (Renderable)component;
+
+                            foreach (var material in renderable.materials)
+                            {
+                                if (!(material?.IsValid ?? false))
+                                {
+                                    continue;
+                                }
+
+                                var priority = material.RenderQueueIndex;
+
+                                if (!content.queue.TryGetValue(priority, out var queue) ||
+                                    queue == null ||
+                                    queue.GetType() != systemInfo.system.QueueType)
+                                {
+                                    queue = systemInfo.system.CreateRenderQueue();
+
+                                    content.queue.AddOrSetKey(priority, queue);
+                                }
+
+                                queue.Add(entityInfo.Item1, entityInfo.Item2, renderable);
+                            }
                         }
-
-                        if (entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                        else
                         {
-                            content.Add(entityInfo.Item1, entityInfo.Item2, component);
+                            if (!content.queue.TryGetValue(0, out var queue) ||
+                                queue == null ||
+                                queue.GetType() != systemInfo.system.QueueType)
+                            {
+                                queue = systemInfo.system.CreateRenderQueue();
+
+                                content.queue.AddOrSetKey(0, queue);
+                            }
+
+                            queue.Add(entityInfo.Item1, entityInfo.Item2, component);
                         }
                     }
                 }
-
-                var final = new List<(RenderSystemInfo, IRenderQueue)>();
-
-                foreach (var pair in collected)
-                {
-                    final.Add((pair.Key, pair.Value));
-                }
-
-                renderQueue.Add(((cameraInfo.camera, cameraInfo.transform), final));
             }
         }
     }
@@ -783,18 +838,22 @@ public sealed partial class RenderSystem
                     newSize *= 2;
                 }
 
-                renderables.Resize(newSize, true);
+                renderables.Resize(newSize, false);
+                renderableMaterialHashes.Resize(newSize, false);
             }
 
             processedSpatialEntities.ClearValues();
-            renderables.ClearValues();
 
             {
                 var renderableContents = renderables.Contents;
+                var renderableMaterialHashesContents = renderableMaterialHashes.Contents;
 
                 foreach (var entityInfo in entityQuery.Contents)
                 {
-                    renderableContents[entityInfo.Item1.Identifier.ID - 1] = entityInfo.Item1.GetComponent<Renderable>();
+                    var renderable = entityInfo.Item1.GetComponent<Renderable>();
+
+                    renderableContents[entityInfo.Item1.Identifier.ID - 1] = renderable;
+                    renderableMaterialHashesContents[entityInfo.Item1.Identifier.ID - 1] = renderable?.MaterialState ?? 0;
                 }
             }
 
@@ -809,10 +868,36 @@ public sealed partial class RenderSystem
             {
                 return;
             }
-        
+
+            var renderSystemContent = CollectionsMarshal.AsSpan(renderSystems);
+
             foreach (var cameraInfo in cameras)
             {
-                var collected = new Dictionary<RenderSystemInfo, IRenderQueue>();
+                renderQueue.AddDefault();
+
+                ref var collected = ref renderQueue.Contents[renderQueue.Length - 1];
+
+                collected ??= new();
+
+                collected.camera = cameraInfo.camera;
+                collected.transform = cameraInfo.transform;
+                collected.renderSystems.Resize(renderSystems.Count, true);
+
+                for (var i = 0; i < renderSystemContent.Length; i++)
+                {
+                    ref var system = ref collected.renderSystems.Contents[i];
+
+                    system ??= new();
+
+                    system.renderSystem = renderSystemContent[i];
+
+                    system.queue.Clear();
+
+                    foreach (var pair in system.queue)
+                    {
+                        pair.Value.Clear();
+                    }
+                }
 
                 foreach (var entityInfo in entityQuery.Contents)
                 {
@@ -823,35 +908,58 @@ public sealed partial class RenderSystem
                         continue;
                     }
 
-                    foreach (var systemInfo in renderSystems)
+                    for (var i = 0; i < renderSystemContent.Length; i++)
                     {
-                        if(systemInfo.system.UsesOwnRenderProcess)
+                        var systemInfo = renderSystemContent[i];
+
+                        if (systemInfo.system.UsesOwnRenderProcess ||
+                            !entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                         {
                             continue;
                         }
 
-                        if (!collected.TryGetValue(systemInfo, out var content))
-                        {
-                            content = systemInfo.system.CreateRenderQueue();
+                        ref var content = ref collected.renderSystems.Contents[i];
 
-                            collected.Add(systemInfo, content);
+                        if (systemInfo.isRenderable)
+                        {
+                            var renderable = (Renderable)component;
+
+                            foreach (var material in renderable.materials)
+                            {
+                                if (!(material?.IsValid ?? false))
+                                {
+                                    continue;
+                                }
+
+                                var priority = material.RenderQueueIndex;
+
+                                if (!content.queue.TryGetValue(priority, out var queue) ||
+                                    queue == null ||
+                                    queue.GetType() != systemInfo.system.QueueType)
+                                {
+                                    queue = systemInfo.system.CreateRenderQueue();
+
+                                    content.queue.AddOrSetKey(priority, queue);
+                                }
+
+                                queue.Add(entityInfo.Item1, entityInfo.Item2, renderable);
+                            }
                         }
-
-                        if (entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                        else
                         {
-                            content.Add(entityInfo.Item1, entityInfo.Item2, component);
+                            if (!content.queue.TryGetValue(0, out var queue) ||
+                                queue == null ||
+                                queue.GetType() != systemInfo.system.QueueType)
+                            {
+                                queue = systemInfo.system.CreateRenderQueue();
+
+                                content.queue.AddOrSetKey(0, queue);
+                            }
+
+                            queue.Add(entityInfo.Item1, entityInfo.Item2, component);
                         }
                     }
                 }
-
-                var final = new List<(RenderSystemInfo, IRenderQueue)>();
-
-                foreach(var pair in collected)
-                {
-                    final.Add((pair.Key, pair.Value));
-                }
-
-                renderQueue.Add(((cameraInfo.camera, cameraInfo.transform), final));
             }
         }
     }
@@ -865,98 +973,10 @@ public sealed partial class RenderSystem
     {
         using var profiler = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
-        foreach (var pair in renderQueue)
+        foreach (var set in renderQueue.Contents)
         {
-            RenderStandard(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2, pair.Item2, true);
+            RenderStandard(set, true);
         }
-    }
-
-    /// <summary>
-    /// Update process for interpolator rendering
-    /// </summary>
-    private void UpdateAccumulator()
-    {
-        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Rendering);
-
-        foreach (var pair in renderQueue)
-        {
-            RenderAccumulator(pair.Item1.Item2.Entity, pair.Item1.Item1, pair.Item1.Item2);
-        }
-
-        if (needsDrawCalls)
-        {
-            lock (lockObject)
-            {
-                (currentDrawBucket, previousDrawBucket) = (previousDrawBucket, currentDrawBucket);
-
-                currentDrawBucket.drawCalls.Clear();
-            }
-
-            foreach (var pair in renderQueue)
-            {
-                var camera = pair.Item1.Item1;
-                var cameraTransform = pair.Item1.Item2;
-
-                var projection = Camera.Projection(cameraTransform.Entity, camera);
-                var view = cameraTransform.Matrix;
-
-                Matrix4x4.Invert(view, out view);
-
-                camera.UpdateFrustum(view, projection);
-
-                foreach (var (systemInfo, contents) in pair.Item2)
-                {
-                    if(contents.Empty)
-                    {
-                        continue;
-                    }
-
-                    systemInfo.system.Preprocess(contents, camera, cameraTransform);
-
-                    if (!systemInfo.isRenderable)
-                    {
-                        continue;
-                    }
-
-                    contents.IterateRenderables((entity, transform, renderable) =>
-                    {
-                        if(renderable.cullingState == CullingState.Invisible)
-                        {
-                            RenderStats.culledDrawCalls++;
-
-                            return;
-                        }
-
-                        renderable.isVisible = renderable.enabled &&
-                            !renderable.forceRenderingOff &&
-                            renderable.cullingState != CullingState.Invisible;
-
-                        if (renderable.cullingState == CullingState.None)
-                        {
-                            renderable.isVisible = camera.IsVisible(renderable.bounds);
-
-                            renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
-                        }
-
-                        if (renderable.isVisible)
-                        {
-                            AddDrawCall(entity, transform, renderable, renderable);
-                        }
-                        else
-                        {
-                            RenderStats.culledDrawCalls++;
-                        }
-                    });
-                }
-            }
-        }
-
-        if (needsDrawCalls)
-        {
-            needsDrawCalls = false;
-        }
-
-        accumulator = Time.accumulator;
     }
     #endregion
 
@@ -967,7 +987,7 @@ public sealed partial class RenderSystem
     /// <param name="entity">The camera's entity</param>
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
-    private void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform)
+    private static void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform)
     {
         var projection = Camera.Projection(entity, camera);
         var view = cameraTransform.Matrix;
@@ -995,47 +1015,6 @@ public sealed partial class RenderSystem
         Matrix4x4.Invert(cameraTransform, out var view);
 
         Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection);
-    }
-
-    /// <summary>
-    /// Adds a drawcall to the drawcall list
-    /// </summary>
-    /// <param name="entity">The entity to draw</param>
-    /// <param name="transform">The entity's transform</param>
-    /// <param name="relatedComponent">The entity's related component</param>
-    /// <param name="renderable">The entity's Renderable</param>
-    private void AddDrawCall(Entity entity, Transform transform, IComponent relatedComponent, Renderable renderable)
-    {
-        lock (lockObject)
-        {
-            currentDrawBucket.drawCalls.Add(new()
-            {
-                entity = entity,
-                renderable = renderable,
-                position = transform.Position,
-                rotation = transform.Rotation,
-                scale = transform.Scale,
-                relatedComponent = relatedComponent,
-            });
-        }
-    }
-
-    /// <summary>
-    /// Create a render queue with a single item
-    /// </summary>
-    /// <param name="system">The render system to use</param>
-    /// <param name="entity">The entity to add</param>
-    /// <param name="transform">The transform to add</param>
-    /// <param name="component">The component to add</param>
-    /// <returns>The render queue</returns>
-    /// <remarks>This sort of thing is quite low performance, needs to be optimized eventually. Currently only used for accumulator rendering</remarks>
-    private static IRenderQueue SingleItemRenderQueue(IRenderSystem system, Entity entity, Transform transform, IComponent component)
-    {
-        var queue = system.CreateRenderQueue();
-
-        queue.Add(entity, transform, component);
-
-        return queue;
     }
 
     /// <summary>

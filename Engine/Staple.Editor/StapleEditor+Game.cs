@@ -216,22 +216,24 @@ internal partial class StapleEditor
                     {
                         try
                         {
-                            var instance = (IEntityTemplate)Activator.CreateInstance(v);
-
-                            registeredEntityTemplates.Add(instance);
+                            if(ObjectCreation.CreateObject(v) is IEntityTemplate template)
+                            {
+                                registeredEntityTemplates.Add(template);
+                            }
                         }
                         catch (Exception)
                         {
                         }
                     }
-                    else if (typeof(IRenderSystem).IsAssignableFrom(v) &&
-                        v != typeof(IRenderSystem))
+                    else if (typeof(RenderSystemBase).IsAssignableFrom(v) &&
+                        v != typeof(RenderSystemBase))
                     {
                         try
                         {
-                            var instance = (IRenderSystem)Activator.CreateInstance(v);
-
-                            RenderSystem.Instance.RegisterSystem(instance);
+                            if (ObjectCreation.CreateObject(v) is RenderSystemBase instance)
+                            {
+                                RenderSystem.Instance.RegisterSystem(instance);
+                            }
                         }
                         catch (Exception)
                         {
@@ -244,9 +246,10 @@ internal partial class StapleEditor
                     {
                         try
                         {
-                            var instance = Activator.CreateInstance(v);
-
-                            EntitySystemManager.Instance.RegisterSystem(instance);
+                            if(ObjectCreation.CreateObject(v) is object o)
+                            {
+                                EntitySystemManager.Instance.RegisterSystem(o);
+                            }
                         }
                         catch (Exception)
                         {

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Staple;
+﻿namespace Staple;
 
 /// <summary>
 /// Skinned Mesh Renderer component
@@ -11,11 +9,6 @@ public sealed class SkinnedMeshRenderer : Renderable
     /// The mesh used for this
     /// </summary>
     public Mesh mesh;
-
-    /// <summary>
-    /// The materials for each mesh
-    /// </summary>
-    public List<Material> materials = [];
 
     /// <summary>
     /// Whether to disable skinning entirely for this renderer

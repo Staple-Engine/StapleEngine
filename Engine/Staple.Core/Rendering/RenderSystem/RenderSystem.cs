@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -14,9 +13,9 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <summary>
     /// Contains information on a render system and its capabilities
     /// </summary>
-    public readonly struct RenderSystemInfo(IRenderSystem system, bool isRenderable)
+    public readonly struct RenderSystemInfo(RenderSystemBase system, bool isRenderable)
     {
-        public readonly IRenderSystem system = system;
+        public readonly RenderSystemBase system = system;
         public readonly bool isRenderable = isRenderable;
 
         public override int GetHashCode()
@@ -43,12 +42,6 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     public SubsystemType type { get; } = SubsystemType.Update;
 
     /// <summary>
-    /// Whether to use a drawcall interpolator. Can allow for small ticks of updates causing smooth rendering.
-    /// </summary>
-    /// <remarks>Currently not efficient at all and likely buggy. Needs to be reviewed and revamped, do not use this!</remarks>
-    public static bool UseDrawcallInterpolator = false;
-
-    /// <summary>
     /// Rendering statistics
     /// </summary>
     public static readonly RenderStats RenderStats = new();
@@ -72,7 +65,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// Registers a render system into this subsystem
     /// </summary>
     /// <param name="system">The system to add</param>
-    public void RegisterSystem(IRenderSystem system)
+    public void RegisterSystem(RenderSystemBase system)
     {
         lock (lockObject)
         {
@@ -111,7 +104,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// </summary>
     /// <typeparam name="T">The render system type</typeparam>
     /// <returns>The system, or default</returns>
-    public T Get<T>() where T: IRenderSystem
+    public T Get<T>() where T: RenderSystemBase
     {
         lock(lockObject)
         {
@@ -154,17 +147,16 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <summary>
     /// Renders in the standard mode (no interpolator)
     /// </summary>
-    /// <param name="cameraEntity">The camera's entity</param>
+    /// <param name="set">The camera's entity</param>
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
     /// <param name="queue">The render queue for this camera</param>
     /// <param name="cull">Whether to cull invisible elements</param>
-    public void RenderStandard(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        List<(RenderSystemInfo, IRenderQueue)> queue, bool cull)
+    public void RenderStandard(RenderSystemCameraSet set, bool cull)
     {
-        CurrentCamera = (camera, cameraTransform);
+        CurrentCamera = (set.camera, set.transform);
 
-        PrepareCamera(cameraEntity, camera, cameraTransform);
+        PrepareCamera(set.transform.Entity, set.camera, set.transform);
 
         if(visibilityCheckCounter > 0)
         {
@@ -183,7 +175,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
             foreach (var pair in spatialEntities)
             {
-                var result = camera.IsSpatialNodeVisible(pair.Key, false);
+                var result = set.camera.IsSpatialNodeVisible(pair.Key, false);
 
                 var span = CollectionsMarshal.AsSpan(pair.Value);
 
@@ -242,68 +234,62 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             }
         }
 
-        var queueLength = queue.Count;
-
-        for (var i = 0; i < queueLength; i++)
+        foreach(var system in set.renderSystems.Contents)
         {
-            var (systemInfo, content) = queue[i];
-
-            if (content.Empty)
+            if(system.queue.Count == 0)
             {
                 continue;
             }
 
-            systemInfo.system.Prepare();
+            system.renderSystem.system.Prepare();
 
-            systemInfo.system.Preprocess(content, camera, cameraTransform);
-
-            if(systemInfo.isRenderable)
+            foreach (var (renderIndex, queue) in system.queue)
             {
-                content.IterateRenderables((entity, transform, renderable) =>
+                if(queue.Empty)
                 {
-                    if(renderable.cullingState == CullingState.Invisible)
+                    continue;
+                }
+
+                system.renderSystem.system.Preprocess(queue);
+
+                if(system.renderSystem.isRenderable)
+                {
+                    queue.IterateRenderables((entity, transform, renderable) =>
                     {
-                        RenderStats.culledDrawCalls++;
-
-                        return;
-                    }
-
-                    if(shouldCheckVisibility)
-                    {
-                        renderable.isVisible = renderable.enabled &&
-                            !renderable.forceRenderingOff;
-
-                        if (renderable.isVisible && cull)
+                        if (renderable.cullingState == CullingState.Invisible)
                         {
-                            if (renderable.cullingState == CullingState.None)
-                            {
-                                renderable.isVisible = camera.IsVisible(renderable.bounds);
+                            RenderStats.culledDrawCalls++;
 
-                                renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                            return;
+                        }
+
+                        if (shouldCheckVisibility)
+                        {
+                            renderable.isVisible = renderable.enabled &&
+                                !renderable.forceRenderingOff;
+
+                            if (renderable.isVisible && cull)
+                            {
+                                if (renderable.cullingState == CullingState.None)
+                                {
+                                    renderable.isVisible = set.camera.IsVisible(renderable.bounds);
+
+                                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                                }
                             }
                         }
-                    }
 
-                    if (!renderable.isVisible)
-                    {
-                        RenderStats.culledDrawCalls++;
-                    }
-                });
+                        if (!renderable.isVisible)
+                        {
+                            RenderStats.culledDrawCalls++;
+                        }
+                    });
+                }
+
+                system.renderSystem.system.Process(queue, set.camera, set.transform, renderIndex);
             }
 
-            systemInfo.system.Process(content, camera, cameraTransform);
-        }
-
-        for (var i = 0; i < queueLength; i++)
-        {
-            var (systemInfo, content) = queue[i];
-
-            if (content.Empty)
-            {
-                continue;
-            }
-
-            systemInfo.system.Submit();
+            system.renderSystem.system.Submit();
         }
     }
 
@@ -319,6 +305,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     public void RenderEntity(Entity cameraEntity, Camera camera, Transform cameraTransform,
         Entity entity, Transform entityTransform, bool cull)
     {
+        /*
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
         var c = CurrentCamera;
@@ -422,85 +409,6 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
         }
 
         CurrentCamera = c;
-    }
-
-    /// <summary>
-    /// Render with the drawcall accumulator (interpolator)
-    /// </summary>
-    /// <param name="cameraEntity">The camera's entity</param>
-    /// <param name="camera">The camera</param>
-    /// <param name="cameraTransform">The camera's transform</param>
-    public void RenderAccumulator(Entity cameraEntity, Camera camera, Transform cameraTransform)
-    {
-        CurrentCamera = (camera, cameraTransform);
-
-        PrepareCamera(cameraEntity, camera, cameraTransform);
-
-        var systems = new List<RenderSystemInfo>();
-
-        lock (lockObject)
-        {
-            systems.AddRange(renderSystems);
-        }
-
-        foreach (var systemInfo in systems)
-        {
-            if (systemInfo.system.UsesOwnRenderProcess)
-            {
-                continue;
-            }
-
-            systemInfo.system.Prepare();
-        }
-
-        var alpha = accumulator / Time.fixedDeltaTime;
-
-        lock (lockObject)
-        {
-            foreach (var call in currentDrawBucket.drawCalls)
-            {
-                var previous = previousDrawBucket.drawCalls.Find(x => x.entity.Identifier == call.entity.Identifier);
-
-                if (!call.renderable.isVisible)
-                {
-                    continue;
-                }
-                
-                var currentPosition = call.position;
-                var currentRotation = call.rotation;
-                var currentScale = call.scale;
-
-                if (previous == null)
-                {
-                    stagingTransform.LocalPosition = currentPosition;
-                    stagingTransform.LocalRotation = currentRotation;
-                    stagingTransform.LocalScale = currentScale;
-                }
-                else
-                {
-                    var previousPosition = previous.position;
-                    var previousRotation = previous.rotation;
-                    var previousScale = previous.scale;
-
-                    stagingTransform.LocalPosition = Vector3.Lerp(previousPosition, currentPosition, alpha);
-                    stagingTransform.LocalRotation = Quaternion.Lerp(previousRotation, currentRotation, alpha);
-                    stagingTransform.LocalScale = Vector3.Lerp(previousScale, currentScale, alpha);
-                }
-
-                foreach (var systemInfo in systems)
-                {
-                    if (call.relatedComponent.GetType() == systemInfo.system.RelatedComponent)
-                    {
-                        systemInfo.system.Process(SingleItemRenderQueue(systemInfo.system, call.entity, stagingTransform, call.relatedComponent),
-                            camera, cameraTransform);
-                    }
-                }
-            }
-        }
-
-        foreach (var systemInfo in systems)
-        {
-            systemInfo.system.Submit();
-        }
+        */
     }
 }

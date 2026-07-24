@@ -1188,8 +1188,6 @@ public class JoltPhysics3D : IPhysics3D
 
     public bool RayCast(Ray ray, out IBody3D body, out float fraction, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance)
     {
-        var hit = RayCastResult.Default;
-
         var broadPhaseFilter = new JoltPhysicsBroadPhaseLayerFilter();
 
         var objectLayerFilter = new JoltPhysicsObjectLayerFilter()
@@ -1208,27 +1206,56 @@ public class JoltPhysics3D : IPhysics3D
         var result = false;
 
         var r = new JoltPhysicsSharp.Ray(ray.position, ray.direction * maxDistance);
+        var results = new List<RayCastResult>();
 
         lock (threadLock)
         {
             if(locked)
             {
-                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay(r, out hit, broadPhaseFilter, objectLayerFilter, bodyFilter);
+                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay(r, new RayCastSettings(), CollisionCollectorType.ClosestHit, results,
+                    broadPhaseFilter, objectLayerFilter, bodyFilter);
             }
             else
             {
-                result = physicsSystem.NarrowPhaseQuery.CastRay(r, out hit, broadPhaseFilter, objectLayerFilter, bodyFilter);
+                result = physicsSystem.NarrowPhaseQuery.CastRay(r, new RayCastSettings(), CollisionCollectorType.ClosestHit, results,
+                    broadPhaseFilter, objectLayerFilter, bodyFilter);
             }
         }
 
         if (result)
         {
-            if (TryFindBody(hit.BodyID, out body))
-            {
-                fraction = hit.Fraction;
+            var closestDistance = 99999.0f;
+            var lastBody = default(IBody3D);
 
-                return true;
+            fraction = default;
+
+            foreach(var hit in results)
+            {
+                if (TryFindBody(hit.BodyID, out body))
+                {
+                    var distance = Vector3.DistanceSquared(body.Position, ray.position);
+
+                    if (lastBody != null)
+                    {
+                        if(distance < closestDistance)
+                        {
+                            fraction = hit.Fraction;
+                            closestDistance = distance;
+                            lastBody = body;
+                        }
+                    }
+                    else
+                    {
+                        fraction = hit.Fraction;
+                        closestDistance = distance;
+                        lastBody = body;
+                    }
+                }
             }
+
+            body = lastBody;
+
+            return true;
         }
 
         body = default;

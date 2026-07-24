@@ -148,54 +148,64 @@ internal partial class StapleEditor
 
             RenderSystem.Instance.ClearCullingStates();
 
-            foreach (var pair in renderQueue.renderQueue)
+            foreach (var system in renderQueue.renderQueue.Contents)
             {
-                try
+                system.renderSystem.system.Prepare();
+
+                foreach (var (renderIndex, queue) in system.queue)
                 {
-                    pair.Key.Preprocess(pair.Value, camera, cameraTransform);
-
-                    if(!pair.Value.Empty)
+                    try
                     {
-                        pair.Value.IterateRenderables((entity, transform, renderable) =>
+                        if (queue.Empty)
                         {
-                            if (renderable.enabled)
+                            continue;
+                        }
+
+                        system.renderSystem.system.Preprocess(queue);
+
+                        if(system.renderSystem.isRenderable)
+                        {
+                            queue.IterateRenderables((entity, transform, renderable) =>
                             {
-                                renderable.isVisible = renderable.enabled &&
-                                    !renderable.forceRenderingOff &&
-                                    renderable.cullingState != CullingState.Invisible;
-
-                                if (renderable.isVisible)
+                                if (renderable.enabled)
                                 {
-                                    if (renderable.cullingState == CullingState.None)
-                                    {
-                                        renderable.isVisible = camera.IsVisible(renderable.bounds);
+                                    renderable.isVisible = renderable.enabled &&
+                                        !renderable.forceRenderingOff &&
+                                        renderable.cullingState != CullingState.Invisible;
 
-                                        renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                                    if (renderable.isVisible)
+                                    {
+                                        if (renderable.cullingState == CullingState.None)
+                                        {
+                                            renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                                            renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                                        }
+                                    }
+
+                                    if (!renderable.isVisible)
+                                    {
+                                        RenderSystem.RenderStats.culledDrawCalls++;
+                                    }
+
+                                    if (sceneTransformTracker.ShouldUpdateComponent(entity, in transform))
+                                    {
+                                        ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
                                     }
                                 }
-
-                                if (!renderable.isVisible)
+                                else
                                 {
-                                    RenderSystem.RenderStats.culledDrawCalls++;
+                                    ClearEntityBody(entity);
                                 }
+                            });
+                        }
 
-                                if (sceneTransformTracker.ShouldUpdateComponent(entity, in transform))
-                                {
-                                    ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
-                                }
-                            }
-                            else
-                            {
-                                ClearEntityBody(entity);
-                            }
-                        });
+                        system.renderSystem.system.Process(queue, camera, cameraTransform, renderIndex);
                     }
-
-                    pair.Key.Process(pair.Value, camera, cameraTransform);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"[{pair.Key.GetType()}] {e}");
+                    catch (Exception e)
+                    {
+                        Log.Error($"[{system.renderSystem.system.GetType()}] {e}");
+                    }
                 }
             }
         }
@@ -205,20 +215,20 @@ internal partial class StapleEditor
             {
                 wireframeMaterial?.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
 
-                foreach (var pair in renderQueue.renderQueue)
+                foreach (var system in renderQueue.renderQueue.Contents)
                 {
-                    if (pair.Value.Empty)
+                    if(system.renderSystem.system.UsesOwnRenderProcess)
                     {
                         continue;
                     }
 
                     try
                     {
-                        pair.Key.Submit();
+                        system.renderSystem.system.Submit();
                     }
                     catch (Exception e)
                     {
-                        Log.Error($"[{pair.Key.GetType()}] {e}");
+                        Log.Error($"[{system.renderSystem.system.GetType()}] {e}");
                     }
                 }
 
@@ -252,5 +262,10 @@ internal partial class StapleEditor
                     }
                 }
             });
+
+        if(RenderSystem.Instance.CheckMaterialChanges())
+        {
+            renderQueue.WorldChanged(World.Current);
+        }
     }
 }

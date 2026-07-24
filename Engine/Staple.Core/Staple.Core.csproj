@@ -447,7 +447,7 @@
 		<Compile Include="System\StapleSupport.cs" />
 		<Compile Include="Math\AABB.cs" />
 		<Compile Include="Rendering\FrustumCuller.cs" />
-		<Compile Include="Rendering\RenderSystem\IRenderSystem.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderSystemBase.cs" />
 		<Compile Include="Rendering\Vertex\IndexBuffer.cs" />
 		<Compile Include="Rendering\LayerMask.cs" />
 		<Compile Include="Rendering\Materials\Material.cs" />

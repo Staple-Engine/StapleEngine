@@ -95,7 +95,7 @@ public class SharpGLTFImporter : IMeshImporter
             metadata = metadata,
             adjustmentTransform = new()
             {
-                rotation = new(meshRotation),
+                rotation = new(Quaternion.Euler(0, 180, 0) * meshRotation),
                 scale = new((Vector3.One * metadata.scale) * new Vector3(1, 1, -1)),
             },
         };

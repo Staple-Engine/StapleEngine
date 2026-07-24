@@ -176,9 +176,8 @@ internal partial class StapleEditor
     class RenderQueue : IWorldChangeReceiver
     {
         public readonly SceneQuery<Transform> transforms = new(true);
-        public readonly Dictionary<IRenderSystem, IRenderQueue> renderQueue = [];
+        public readonly ExpandableContainer<RenderSystem.RenderSystemRenderQueue> renderQueue = new(false);
         public readonly List<Entity> disabledEntities = [];
-        private readonly Dictionary<IRenderSystem, bool> componentIsRenderable = [];
 
         public void WorldReplaced(World world)
         {
@@ -188,16 +187,23 @@ internal partial class StapleEditor
         {
             renderQueue.Clear();
             disabledEntities.Clear();
-            componentIsRenderable.Clear();
 
-            foreach (var systemInfo in RenderSystem.Instance.renderSystems)
+            var renderSystemContent = CollectionsMarshal.AsSpan(RenderSystem.Instance.renderSystems);
+            
+            renderQueue.Resize(renderSystemContent.Length, true);
+
+            for(var i = 0; i < renderSystemContent.Length; i++)
             {
-                if(systemInfo.system.UsesOwnRenderProcess)
-                {
-                    continue;
-                }
+                ref var system = ref renderQueue.Contents[i];
 
-                componentIsRenderable.Add(systemInfo.system, systemInfo.isRenderable);
+                system ??= new();
+
+                system.renderSystem = renderSystemContent[i];
+
+                foreach (var pair in system.queue)
+                {
+                    pair.Value.Clear();
+                }
             }
 
             foreach (var (entity, transform) in transforms.Contents)
@@ -216,23 +222,55 @@ internal partial class StapleEditor
                     continue;
                 }
 
-                foreach (var systemInfo in RenderSystem.Instance.renderSystems)
+                for (var i = 0; i < renderSystemContent.Length; i++)
                 {
-                    if (systemInfo.system.UsesOwnRenderProcess)
+                    var systemInfo = renderSystemContent[i];
+
+                    if (systemInfo.system.UsesOwnRenderProcess ||
+                        !entity.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                     {
                         continue;
                     }
 
-                    if (!renderQueue.TryGetValue(systemInfo.system, out var content))
-                    {
-                        content = systemInfo.system.CreateRenderQueue();
+                    ref var content = ref renderQueue.Contents[i];
 
-                        renderQueue.Add(systemInfo.system, content);
+                    if (systemInfo.isRenderable)
+                    {
+                        var renderable = (Renderable)component;
+
+                        foreach (var material in renderable.materials)
+                        {
+                            if (!(material?.IsValid ?? false))
+                            {
+                                continue;
+                            }
+
+                            var priority = material.RenderQueueIndex;
+
+                            if (!content.queue.TryGetValue(priority, out var queue) ||
+                                queue == null ||
+                                queue.GetType() != systemInfo.system.QueueType)
+                            {
+                                queue = systemInfo.system.CreateRenderQueue();
+
+                                content.queue.AddOrSetKey(priority, queue);
+                            }
+
+                            queue.Add(entity, transform, renderable);
+                        }
                     }
-
-                    if (entity.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                    else
                     {
-                        content.Add(entity, transform, component);
+                        if (!content.queue.TryGetValue(0, out var queue) ||
+                            queue == null ||
+                            queue.GetType() != systemInfo.system.QueueType)
+                        {
+                            queue = systemInfo.system.CreateRenderQueue();
+
+                            content.queue.AddOrSetKey(0, queue);
+                        }
+
+                        queue.Add(entity, transform, component);
                     }
                 }
             }

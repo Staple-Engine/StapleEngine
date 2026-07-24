@@ -15,7 +15,15 @@ public class ExpandableContainer<T>
 {
     private T[] contents;
 
+    /// <summary>
+    /// Whether to reset the array on clear, to ensure GC can get references
+    /// </summary>
     private readonly bool ShouldResetOnClear = typeof(T).IsClass;
+
+    /// <summary>
+    /// Whether we want to reset on clear
+    /// </summary>
+    private readonly bool EnableResetOnClear;
 
     /// <summary>
     /// The amount of elements contained
@@ -37,34 +45,63 @@ public class ExpandableContainer<T>
     /// </summary>
     public T[] RawContents => contents;
 
-    public ExpandableContainer()
+    /// <summary>
+    /// Default constructor. The contents array will default to 1024 elements internally.
+    /// </summary>
+    /// <param name="enableResetOnClear">Whether to reset elements when clearing the contents</param>
+    public ExpandableContainer(bool enableResetOnClear = true)
     {
         contents = new T[1024];
+        EnableResetOnClear = enableResetOnClear;
     }
 
-    public ExpandableContainer(int length)
+    /// <summary>
+    /// Length constructor
+    /// </summary>
+    /// <param name="length">Sets the internal array length to a specific length</param>
+    /// <param name="enableResetOnClear">Whether to reset elements when clearing the contents</param>
+    public ExpandableContainer(int length, bool enableResetOnClear = true)
     {
         contents = new T[length];
 
         Length = length;
+        EnableResetOnClear = enableResetOnClear;
     }
 
     /// <summary>
     /// Clears the contents
     /// </summary>
     /// <remarks>This doesn't actually deallocate memory, just sets the length to 0.
-    /// If the type is a class, the contents will be marked as null to allow them to be collected by GC</remarks>
+    /// If the type is a class and <see cref="EnableResetOnClear"/> is true,
+    /// the contents will be marked as null to allow them to be collected by GC</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Clear()
     {
         Length = 0;
 
-        if (!ShouldResetOnClear)
+        if (!ShouldResetOnClear || !EnableResetOnClear)
         {
             return;
         }
 
         ClearValues();
+    }
+
+    /// <summary>
+    /// Adds a default item to the container. If there's already an existing item, it won't replace it.
+    /// </summary>
+    public void AddDefault()
+    {
+        if (Length + 1 >= contents.Length)
+        {
+            Resize(Length + 1, true);
+
+            contents[Length - 1] = default;
+
+            return;
+        }
+
+        Length++;
     }
 
     /// <summary>
@@ -113,6 +150,7 @@ public class ExpandableContainer<T>
     /// <param name="newSize">The new size</param>
     /// <param name="copyElements">Whether to copy the previous elements over</param>
     /// <remarks>May not resize if the requested size is less or equal to the <see cref="Capacity"/></remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void Resize(int newSize, bool copyElements)
     {
         Length = newSize;
@@ -142,6 +180,7 @@ public class ExpandableContainer<T>
     /// <summary>
     /// Clears all values in this container to their default value
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public void ClearValues()
     {
         var defaultValue = default(T);

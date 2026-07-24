@@ -1,4 +1,6 @@
 ﻿using Staple.Internal;
+using System;
+using System.Collections.Generic;
 
 namespace Staple;
 
@@ -65,9 +67,56 @@ public class Renderable : IComponent, IComponentVersion
     public MaterialLighting lighting = MaterialLighting.Unlit;
 
     /// <summary>
+    /// The materials for this renderable
+    /// </summary>
+    public List<Material> materials = [];
+
+    /// <summary>
     /// Whether this has been culled by another system
     /// </summary>
     internal CullingState cullingState = CullingState.None;
+
+    /// <summary>
+    /// Gets the current state of all materials contained in this renderable,
+    /// to verify whether the render queue requires recalculation
+    /// </summary>
+    internal int MaterialState
+    {
+        get
+        {
+            var hashCode = new HashCode();
+
+            hashCode.Add(materials.Count);
+
+            foreach(var material in materials)
+            {
+                if(!(material?.IsValid ?? false))
+                {
+                    hashCode.Add(false);
+
+                    continue;
+                }
+
+                var metadata = material.materialResource.metadata;
+
+                hashCode.Add(metadata.guid);
+                hashCode.Add(metadata.cullingMode);
+                hashCode.Add(metadata.enabledShaderVariants.Count);
+
+                foreach(var variant in metadata.enabledShaderVariants)
+                {
+                    hashCode.Add(variant);
+                }
+
+                hashCode.Add(metadata.overrideShaderRenderQueue);
+                hashCode.Add(metadata.renderQueue);
+                hashCode.Add(metadata.renderQueueOffset);
+                hashCode.Add(metadata.shader);
+            }
+
+            return hashCode.ToHashCode();
+        }
+    }
 
     /// <summary>
     /// Updates the <see cref="bounds"/> of this renderable if they changed

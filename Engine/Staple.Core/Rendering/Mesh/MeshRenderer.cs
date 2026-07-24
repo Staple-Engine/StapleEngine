@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Staple;
+﻿namespace Staple;
 
 /// <summary>
 /// Mesh Renderer component.
@@ -12,9 +10,4 @@ public sealed class MeshRenderer : Renderable
     /// The mesh used for this
     /// </summary>
     public Mesh mesh;
-
-    /// <summary>
-    /// The materials for each mesh
-    /// </summary>
-    public List<Material> materials = [];
 }

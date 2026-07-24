@@ -1,9 +1,8 @@
-using System;
 using System.Collections.Generic;
 
 namespace Staple.Internal;
 
-public class TextRenderSystem : IRenderSystem
+public class TextRenderSystem : RenderSystemBase
 {
     private struct TextInfo
     {
@@ -15,51 +14,38 @@ public class TextRenderSystem : IRenderSystem
 
         public FontAsset fontAsset;
 
+        public Material material;
+
         public float scale;
     }
 
-    private Material material;
-
     private readonly List<TextInfo> texts = [];
 
-    public bool UsesOwnRenderProcess => false;
-
-    public Type RelatedComponent => typeof(Text);
-
-    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<Text>();
-
-    public void Startup()
+    public TextRenderSystem() : base(false, typeof(Text), typeof(GenericRenderQueue<Text>))
     {
     }
 
-    public void Shutdown()
+    public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<Text>();
+
+    public override void Startup()
     {
-        material?.Destroy();
     }
 
-    public void Prepare()
+    public override void Shutdown()
+    {
+    }
+
+    public override void Prepare()
     {
         texts.Clear();
-
-        if(material == null)
-        {
-            var resource = SpriteUtils.DefaultMaterial.Value;
-
-            if(resource != null)
-            {
-                material = new Material(resource);
-            }
-        }
     }
 
-    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Preprocess(IRenderQueue renderQueue)
     {
     }
 
-    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
     {
-        texts.Clear();
-
         if(renderQueue is not GenericRenderQueue<Text> queue)
         {
             return;
@@ -71,6 +57,11 @@ public class TextRenderSystem : IRenderSystem
         {
             var text = entry.component;
 
+            if ((text.materials?.Count ?? 0) == 0)
+            {
+                continue;
+            }
+
             text.text ??= "";
 
             if (text.fontSize < 4)
@@ -78,28 +69,27 @@ public class TextRenderSystem : IRenderSystem
                 text.fontSize = 4;
             }
 
-            texts.Add(new TextInfo()
+            IterateValidMaterials(text, renderIndex, (index) =>
             {
-                text = text.text,
-                fontSize = text.fontSize,
-                transform = entry.transform,
-                fontAsset = text.font,
-                scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (Screen.Height / (float)(activeCamera.orthographicSize * 2)) : 1,
+                texts.Add(new TextInfo()
+                {
+                    text = text.text,
+                    fontSize = text.fontSize,
+                    transform = entry.transform,
+                    fontAsset = text.font,
+                    scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (Screen.Height / (float)(activeCamera.orthographicSize * 2)) : 1,
+                    material = text.materials[index],
+                });
             });
         }
     }
 
-    public void Submit()
+    public override void Submit()
     {
-        if (material == null)
-        {
-            return;
-        }
-
         foreach (var text in texts)
         {
             TextRenderer.instance.DrawText(text.text, text.transform.Matrix, new TextParameters().Font(text.fontAsset).FontSize(text.fontSize),
-                material, text.scale, false);
+                text.material, text.scale, false);
         }
     }
 }
