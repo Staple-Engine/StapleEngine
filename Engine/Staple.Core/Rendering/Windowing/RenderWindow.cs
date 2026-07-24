@@ -11,6 +11,8 @@ internal class RenderWindow
 {
     public const int ClearView = 0;
 
+    internal const float TimeBetweenGCChecks = 30.0f;
+
     internal static readonly string LogTag = "RenderWindow";
 
     //In case we have more than one window in the future
@@ -121,6 +123,7 @@ internal class RenderWindow
         var last = DateTime.UtcNow;
 
         var fixedTimer = 0.0f;
+        var GCTimer = 0.0f;
 
         while (!window.ShouldClose && !shouldStop)
         {
@@ -204,6 +207,14 @@ internal class RenderWindow
                 var current = DateTime.UtcNow;
 
                 fixedTimer += (float)(current - last).TotalSeconds;
+                GCTimer += (float)(current - last).TotalSeconds;
+
+                if(GCTimer >= TimeBetweenGCChecks)
+                {
+                    GCTimer -= TimeBetweenGCChecks;
+
+                    MemoryUtils.GarbageCollect(false);
+                }
 
                 //Prevent hard stuck
                 var currentFixedTime = 0.0f;
@@ -308,6 +319,7 @@ internal class RenderWindow
         var last = DateTime.UtcNow;
 
         var fixedTimer = 0.0f;
+        var GCTimer = 0.0f;
 
         while (!window.ShouldClose && !shouldStop)
         {
@@ -372,6 +384,14 @@ internal class RenderWindow
                 var current = DateTime.UtcNow;
 
                 fixedTimer += (float)(current - last).TotalSeconds;
+                GCTimer += (float)(current - last).TotalSeconds;
+
+                if (GCTimer >= TimeBetweenGCChecks)
+                {
+                    GCTimer -= TimeBetweenGCChecks;
+
+                    MemoryUtils.GarbageCollect(false);
+                }
 
                 //Prevent hard stuck
                 var currentFixedTime = 0.0f;
