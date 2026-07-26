@@ -1,8 +1,8 @@
-Variants BITANGENT_COLOR
+Type VertexFragment
 
 Begin Parameters
 
-variant: BITANGENT_COLOR float tangentOrBitangent
+[Toggle] float tangentOrBitangent
 
 End Parameters
 
@@ -18,10 +18,17 @@ End Instancing
 
 Begin Common
 
+[[vk::binding(StapleUniformBufferStart, StapleUniformBufferSet)]]
+cbuffer Uniforms
+{
+	float tangentOrBitangent;
+};
+
 struct VertexOutput
 {
     float4 position : SV_Position;
     float3 tangent;
+	float3 bitangent;
 };
 
 End Common
@@ -32,11 +39,8 @@ struct Input
 {
     float3 position : POSITION;
 
-#ifdef BITANGENT
-	float3 tangent : BITANGENT;
-#else
 	float3 tangent : TANGENT;
-#endif
+	float3 bitangent : BITANGENT;
 
 #ifdef SKINNING
 	float4 indices : BLENDINDICES;
@@ -63,6 +67,7 @@ VertexOutput VertexMain(Input input)
     float3 position = input.position;
 
     output.tangent = input.tangent;
+	output.bitangent = input.bitangent;
     output.position = mul(projectionViewWorld, float4(position, 1.0));
 
     return output;
@@ -75,7 +80,12 @@ Begin Fragment
 [shader("fragment")]
 float4 FragmentMain(VertexOutput input) : SV_Target
 {
-    return float4(normalize(input.tangent) * 0.5 + 0.5, 1);
+	if(tangentOrBitangent == 1.0)
+	{
+		return float4(normalize(input.bitangent) * 0.5 + 0.5, 1);
+	}
+
+	return float4(normalize(input.tangent) * 0.5 + 0.5, 1);
 }
 
 End Fragment

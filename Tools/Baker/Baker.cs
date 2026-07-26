@@ -180,12 +180,51 @@ static partial class Program
                 "\t-report-changed: outputs a list of changed assets, then quits\n" +
                 $"\t-platform [platform]: specify the platform to build for ({string.Join(", ", Enum.GetValues<AppPlatform>().Select(x => x.ToString()))}\n" +
                 "\t-r [name]: set the renderer to compile for (can be repeated for multiple exports)\n" +
+                "\t-list-shader-variants [variants separated by \",\"] [variant dependencies in the format of \"A:B\" separated by \",\"]: " +
+                "lists all shader variant combinations (including default variants mixed in)" +
                 "\t\tValid values are:\n" +
                 "\t\t\td3d12\n" +
                 "\t\t\tmetal\n" +
                 "\t\t\tspirv\n");
 
             Environment.Exit(1);
+
+            return;
+        }
+
+        if(args.Length == 3 && args[0] == "-list-shader-variants")
+        {
+            var variantList = args[1].Split(',').ToList();
+            var dependencyList = args[2].Split(',');
+
+            var dependencies = new List<KeyValuePair<string, string>>();
+
+            foreach(var pair in dependencyList)
+            {
+                var pieces = pair.Split(':');
+
+                if(pieces.Length != 2)
+                {
+                    continue;
+                }
+
+                dependencies.Add(new(pieces[0], pieces[1]));
+            }
+
+            var variants = Staple.Tooling.ShaderParser.ProcessVariants(variantList
+                .Concat(Shader.DefaultVariants)
+                .ToList(), dependencies);
+
+            Console.WriteLine($"{variants.Count} variants");
+
+            Console.WriteLine();
+
+            for(var i = 0; i < variants.Count; i++)
+            {
+                var key = string.Join(' ', variants[i]);
+
+                Console.WriteLine($"Variant {i + 1}: \"{key}\"");
+            }
 
             return;
         }

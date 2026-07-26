@@ -68,6 +68,8 @@ public sealed partial class RenderSystem
         public Transform transform;
 
         public readonly ExpandableContainer<RenderSystemRenderQueue> renderSystems = new(false);
+
+        public readonly HashSet<int> renderIndices = [];
     }
 
     internal static byte Priority = 1;
@@ -743,6 +745,7 @@ public sealed partial class RenderSystem
                 collected.camera = cameraInfo.camera;
                 collected.transform = cameraInfo.transform;
                 collected.renderSystems.Resize(renderSystems.Count, true);
+                collected.renderIndices.Clear();
 
                 for(var i = 0; i < renderSystemContent.Length; i++)
                 {
@@ -801,6 +804,8 @@ public sealed partial class RenderSystem
                                     content.queue.AddOrSetKey(priority, queue);
                                 }
 
+                                collected.renderIndices.Add(priority);
+
                                 queue.Add(entityInfo.Item1, entityInfo.Item2, renderable);
                             }
                         }
@@ -814,6 +819,8 @@ public sealed partial class RenderSystem
 
                                 content.queue.AddOrSetKey(0, queue);
                             }
+
+                            collected.renderIndices.Add(0);
 
                             queue.Add(entityInfo.Item1, entityInfo.Item2, component);
                         }
@@ -882,6 +889,7 @@ public sealed partial class RenderSystem
                 collected.camera = cameraInfo.camera;
                 collected.transform = cameraInfo.transform;
                 collected.renderSystems.Resize(renderSystems.Count, true);
+                collected.renderIndices.Clear();
 
                 for (var i = 0; i < renderSystemContent.Length; i++)
                 {
@@ -942,6 +950,8 @@ public sealed partial class RenderSystem
                                     content.queue.AddOrSetKey(priority, queue);
                                 }
 
+                                collected.renderIndices.Add(priority);
+
                                 queue.Add(entityInfo.Item1, entityInfo.Item2, renderable);
                             }
                         }
@@ -955,6 +965,8 @@ public sealed partial class RenderSystem
 
                                 content.queue.AddOrSetKey(0, queue);
                             }
+
+                            collected.renderIndices.Add(0);
 
                             queue.Add(entityInfo.Item1, entityInfo.Item2, component);
                         }

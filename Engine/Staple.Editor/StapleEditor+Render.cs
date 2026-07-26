@@ -137,98 +137,87 @@ internal partial class StapleEditor
 
         RenderSystem.CurrentCamera = (camera, cameraTransform);
 
-        if (World.Current != null)
-        {
-            foreach (var entity in renderQueue.disabledEntities)
-            {
-                ClearEntityBody(entity);
-            }
-
-            renderQueue.disabledEntities.Clear();
-
-            RenderSystem.Instance.ClearCullingStates();
-
-            foreach (var system in renderQueue.renderQueue.Contents)
-            {
-                system.renderSystem.system.Prepare();
-
-                foreach (var (renderIndex, queue) in system.queue)
-                {
-                    try
-                    {
-                        if (queue.Empty)
-                        {
-                            continue;
-                        }
-
-                        system.renderSystem.system.Preprocess(queue);
-
-                        if(system.renderSystem.isRenderable)
-                        {
-                            queue.IterateRenderables((entity, transform, renderable) =>
-                            {
-                                if (renderable.enabled)
-                                {
-                                    renderable.isVisible = renderable.enabled &&
-                                        !renderable.forceRenderingOff &&
-                                        renderable.cullingState != CullingState.Invisible;
-
-                                    if (renderable.isVisible)
-                                    {
-                                        if (renderable.cullingState == CullingState.None)
-                                        {
-                                            renderable.isVisible = camera.IsVisible(renderable.bounds);
-
-                                            renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
-                                        }
-                                    }
-
-                                    if (!renderable.isVisible)
-                                    {
-                                        RenderSystem.RenderStats.culledDrawCalls++;
-                                    }
-
-                                    if (sceneTransformTracker.ShouldUpdateComponent(entity, in transform))
-                                    {
-                                        ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
-                                    }
-                                }
-                                else
-                                {
-                                    ClearEntityBody(entity);
-                                }
-                            });
-                        }
-
-                        system.renderSystem.system.Process(queue, camera, cameraTransform, renderIndex);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error($"[{system.renderSystem.system.GetType()}] {e}");
-                    }
-                }
-            }
-        }
-
         RenderSystem.Render(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
             cameraTransform.Matrix, projection, () =>
             {
                 wireframeMaterial?.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
 
-                foreach (var system in renderQueue.renderQueue.Contents)
+                if (World.Current != null)
                 {
-                    if(system.renderSystem.system.UsesOwnRenderProcess)
+                    foreach (var entity in renderQueue.disabledEntities)
                     {
-                        continue;
+                        ClearEntityBody(entity);
                     }
 
-                    try
+                    renderQueue.disabledEntities.Clear();
+
+                    RenderSystem.Instance.ClearCullingStates();
+                }
+
+                foreach (var system in renderQueue.renderQueue.Contents)
+                {
+                    system.renderSystem.system.Prepare();
+                }
+
+                foreach (var renderIndex in renderQueue.renderIndices)
+                {
+                    foreach (var system in renderQueue.renderQueue.Contents)
                     {
-                        system.renderSystem.system.Submit();
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error($"[{system.renderSystem.system.GetType()}] {e}");
+                        if (!system.queue.TryGetValue(renderIndex, out var queue) ||
+                            queue.Empty)
+                        {
+                            continue;
+                        }
+
+                        try
+                        {
+                            system.renderSystem.system.Preprocess(queue);
+
+                            if (system.renderSystem.isRenderable)
+                            {
+                                queue.IterateRenderables((entity, transform, renderable) =>
+                                {
+                                    if (renderable.enabled)
+                                    {
+                                        renderable.isVisible = renderable.enabled &&
+                                            !renderable.forceRenderingOff &&
+                                            renderable.cullingState != CullingState.Invisible;
+
+                                        if (renderable.isVisible)
+                                        {
+                                            if (renderable.cullingState == CullingState.None)
+                                            {
+                                                renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                                                renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                                            }
+                                        }
+
+                                        if (!renderable.isVisible)
+                                        {
+                                            RenderSystem.RenderStats.culledDrawCalls++;
+                                        }
+
+                                        if (sceneTransformTracker.ShouldUpdateComponent(entity, in transform))
+                                        {
+                                            ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        ClearEntityBody(entity);
+                                    }
+                                });
+
+                                system.renderSystem.system.Process(queue, camera, cameraTransform, renderIndex);
+
+                                system.renderSystem.system.Submit();
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error($"[{system.renderSystem.system.GetType()}] {e}");
+                        }
                     }
                 }
 

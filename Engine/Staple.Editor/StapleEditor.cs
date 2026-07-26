@@ -178,6 +178,7 @@ internal partial class StapleEditor
         public readonly SceneQuery<Transform> transforms = new(true);
         public readonly ExpandableContainer<RenderSystem.RenderSystemRenderQueue> renderQueue = new(false);
         public readonly List<Entity> disabledEntities = [];
+        public readonly HashSet<int> renderIndices = [];
 
         public void WorldReplaced(World world)
         {
@@ -186,6 +187,7 @@ internal partial class StapleEditor
         public void WorldChanged(World world)
         {
             renderQueue.Clear();
+            renderIndices.Clear();
             disabledEntities.Clear();
 
             var renderSystemContent = CollectionsMarshal.AsSpan(RenderSystem.Instance.renderSystems);
@@ -256,6 +258,8 @@ internal partial class StapleEditor
                                 content.queue.AddOrSetKey(priority, queue);
                             }
 
+                            renderIndices.Add(priority);
+
                             queue.Add(entity, transform, renderable);
                         }
                     }
@@ -269,6 +273,8 @@ internal partial class StapleEditor
 
                             content.queue.AddOrSetKey(0, queue);
                         }
+
+                        renderIndices.Add(0);
 
                         queue.Add(entity, transform, component);
                     }

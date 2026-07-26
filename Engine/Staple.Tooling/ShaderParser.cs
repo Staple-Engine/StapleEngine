@@ -86,7 +86,7 @@ public static partial class ShaderParser
     [GeneratedRegex("Variants (.*)")]
     private static partial Regex VariantsRegex();
 
-    [GeneratedRegex("VariantDependency (\\w+) (\\w+)")]
+    [GeneratedRegex("VariantDependency (\\w+) (\\-*\\w+)")]
     private static partial Regex VariantDependencyRegex();
 
     [GeneratedRegex("RenderQueue (.*) (.*)")]
@@ -389,11 +389,23 @@ public static partial class ShaderParser
 
             foreach (var dependency in variantDependencies)
             {
-                if(combination.Contains(dependency.Key) && !combination.Contains(dependency.Value))
+                if(combination.Contains(dependency.Key))
                 {
-                    found = true;
+                    if(dependency.Value.StartsWith("-", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if (combination.Contains(dependency.Value[1..]))
+                        {
+                            found = true;
 
-                    break;
+                            break;
+                        }
+                    }
+                    else if(!combination.Contains(dependency.Value))
+                    {
+                        found = true;
+
+                        break;
+                    }
                 }
             }
 
