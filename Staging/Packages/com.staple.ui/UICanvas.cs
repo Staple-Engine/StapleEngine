@@ -26,6 +26,23 @@ public class UICanvas : CallbackComponent, IComponentDisposable
     }
 
     /// <summary>
+    /// Forces a reload of this canvas
+    /// </summary>
+    internal void Reload()
+    {
+        manager.CanvasSize = new(Screen.Width, Screen.Height);
+
+        manager.Clear();
+
+        lastLayout = layout;
+
+        if (!string.IsNullOrEmpty(layout?.Text))
+        {
+            manager.LoadLayouts(layout.Text);
+        }
+    }
+
+    /// <summary>
     /// Checks for layout asset changes
     /// </summary>
     internal void CheckLayoutChanges()
@@ -34,14 +51,7 @@ public class UICanvas : CallbackComponent, IComponentDisposable
 
         if (layout != lastLayout)
         {
-            manager.Clear();
-
-            lastLayout = layout;
-
-            if (!string.IsNullOrEmpty(layout?.Text))
-            {
-                manager.LoadLayouts(layout.Text);
-            }
+            Reload();
         }
     }
 

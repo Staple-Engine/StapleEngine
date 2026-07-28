@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Staple.UI;
 
 namespace Staple.Internal;
@@ -9,8 +8,6 @@ namespace Staple.Internal;
 /// </summary>
 public class UICanvasSystem : RenderSystemBase
 {
-    private static readonly MouseButton[] MouseButtons = Enum.GetValues<MouseButton>();
-
     private readonly SceneQuery<UICanvas> canvases = new();
 
     public bool IsPointerOverUI { get; private set; }
@@ -20,6 +17,17 @@ public class UICanvasSystem : RenderSystemBase
     }
 
     public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<UICanvas>();
+
+    [OnAssetsReimported]
+    internal static void OnAssetsReloaded()
+    {
+        var query = Scene.Query<UICanvas>(true);
+
+        foreach(var (_, canvas) in query)
+        {
+            canvas.Reload();
+        }
+    }
 
     #region Lifecycle
     public override void Startup()
