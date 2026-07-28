@@ -107,6 +107,7 @@
 		<Compile Include="Attributes\HeaderAttribute.cs" />
 		<Compile Include="Attributes\MinAttribute.cs" />
 		<Compile Include="Attributes\MultilineAttribute.cs" />
+		<Compile Include="Attributes\OnAssetsReimportedAttribute.cs" />
 		<Compile Include="Attributes\PropertyAttribute.cs" />
 		<Compile Include="Attributes\RangeAttribute.cs" />
 		<Compile Include="Attributes\SerializeAsHexAttribute.cs" />

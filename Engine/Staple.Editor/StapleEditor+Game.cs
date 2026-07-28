@@ -188,6 +188,7 @@ internal partial class StapleEditor
             menuItems.Clear();
             cachedEditors.Clear();
             cachedGizmoEditors.Clear();
+            registeredAssetReloadMethods.Clear();
             ResourceManager.instance.cachedAssets.Clear();
 
             StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
@@ -278,6 +279,25 @@ internal partial class StapleEditor
                                 {
                                 }
                             });
+                        }
+                    }
+                    
+                    if(v.IsClass)
+                    {
+                        foreach(var method in v.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic))
+                        {
+                            if (method.GetCustomAttribute<OnAssetsReimportedAttribute>() == null)
+                            {
+                                continue;
+                            }
+                            
+                            if(method.GetParameters().Length != 0 ||
+                                method.ReturnType != typeof(void))
+                            {
+                                continue;
+                            }
+
+                            registeredAssetReloadMethods.Add(method);
                         }
                     }
                 }

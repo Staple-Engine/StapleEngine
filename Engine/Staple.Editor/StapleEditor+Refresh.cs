@@ -298,6 +298,22 @@ internal partial class StapleEditor
                     break;
             }
         }
+
+        if(changedAssets.Length > 0)
+        {
+            foreach (var method in registeredAssetReloadMethods)
+            {
+                try
+                {
+                    method.Invoke(null, []);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"Failed to execute {typeof(OnAssetsReimportedAttribute).Name} method " +
+                        $"{method.DeclaringType.FullName}.{method.Name}: {e}");
+                }
+            }
+        }
     }
 
 

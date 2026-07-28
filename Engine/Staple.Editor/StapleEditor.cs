@@ -397,6 +397,8 @@ internal partial class StapleEditor
 
     private readonly Dictionary<string, Type> registeredAssetTypes = [];
 
+    private readonly List<MethodInfo> registeredAssetReloadMethods = [];
+
     private List<IEntityTemplate> registeredEntityTemplates = [];
 
     private List<Type> registeredComponents = [];
@@ -1260,6 +1262,8 @@ internal partial class StapleEditor
                     }
                     else if (needsRefreshStaging)
                     {
+                        needsRefreshStaging = false;
+
                         QueryChangedAssets(currentPlatform, (assets) =>
                         {
                             RefreshStaging(currentPlatform, () =>
