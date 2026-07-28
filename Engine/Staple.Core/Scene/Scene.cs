@@ -47,8 +47,6 @@ public sealed class Scene
     {
         current = scene;
 
-        MemoryUtils.GarbageCollect(Platform.IsEditor);
-
         World.EmitWorldChangedEvent(true);
     }
 
