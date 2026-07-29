@@ -8,11 +8,9 @@ internal static class MemoryUtils
 {
     public static void GarbageCollect(bool force)
     {
-        GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-
         MessagePackSerializer.DefaultOptions.SequencePool.Clear();
 
-        GC.Collect(2, force ? GCCollectionMode.Forced : GCCollectionMode.Default, force, force);
+        GC.Collect(2, GCCollectionMode.Default, force, force);
     }
 
     public static T[] SafeCloneArray<T>(T[] source)
