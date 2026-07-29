@@ -9,7 +9,7 @@ namespace Staple.Internal;
 /// <summary>
 /// Sprite Render System
 /// </summary>
-public class SpriteRenderSystem : IRenderSystem
+public class SpriteRenderSystem : RenderSystemBase
 {
     public const int NinePatchVertexCount = 54;
 
@@ -85,7 +85,7 @@ public class SpriteRenderSystem : IRenderSystem
     /// <summary>
     /// Contains a list of all sprites queued for rendering
     /// </summary>
-    private readonly List<SpriteRenderInfo> sprites = [];
+    private readonly Dictionary<int, ExpandableContainer<SpriteRenderInfo>> sprites = [];
 
     /// <summary>
     /// Contains a list of all nine patch sprites' geometry data
@@ -103,11 +103,11 @@ public class SpriteRenderSystem : IRenderSystem
     /// </summary>
     private readonly Dictionary<int, Material> mutableMaterials = [];
 
-    public bool UsesOwnRenderProcess => false;
+    public SpriteRenderSystem() : base(false, typeof(SpriteRenderer), typeof(GenericRenderQueue<SpriteRenderer>))
+    {
+    }
 
-    public Type RelatedComponent => typeof(SpriteRenderer);
-
-    public IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SpriteRenderer>();
+    public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SpriteRenderer>();
 
     /// <summary>
     /// Calculates nine patch geometry for a part of the sprite 
@@ -241,21 +241,24 @@ public class SpriteRenderSystem : IRenderSystem
         }
     }
 
-    public void Startup()
+    public override void Startup()
     {
     }
 
-    public void Shutdown()
+    public override void Shutdown()
     {
         cachedNinePatchGeometries.Clear();
     }
 
-    public void Prepare()
+    public override void Prepare()
     {
-        sprites.Clear();
+        foreach(var pair in sprites)
+        {
+            pair.Value.Clear();
+        }
     }
 
-    public void Preprocess(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Preprocess(IRenderQueue renderQueue)
     {
         if (renderQueue is not GenericRenderQueue<SpriteRenderer> queue)
         {
@@ -344,11 +347,18 @@ public class SpriteRenderSystem : IRenderSystem
         }
     }
 
-    public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform)
+    public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
     {
         if (renderQueue is not GenericRenderQueue<SpriteRenderer> queue)
         {
             return;
+        }
+
+        if(!sprites.TryGetValue(renderIndex, out var container))
+        {
+            container = new();
+
+            sprites.Add(renderIndex, container);
         }
 
         var items = queue.Items;
@@ -371,7 +381,7 @@ public class SpriteRenderSystem : IRenderSystem
                 hasValidAnimation;
 
             if (hasValidTexture == false ||
-                (r.material?.IsValid ?? false) == false)
+                !IsValidMaterial(r.material, renderIndex))
             {
                 continue;
             }
@@ -458,7 +468,7 @@ public class SpriteRenderSystem : IRenderSystem
                 mutableMaterials.Add(r.material.Guid.GuidHash, mutableMaterial);
             }
 
-            sprites.Add(new SpriteRenderInfo()
+            container.Add(new SpriteRenderInfo()
             {
                 color = r.color,
                 material = mutableMaterial,
@@ -475,99 +485,109 @@ public class SpriteRenderSystem : IRenderSystem
         }
     }
 
-    public void Submit()
+    public override void Submit()
     {
-        var orderedSprites = sprites
-            .OrderBy(x => x.layer)
-            .ThenBy(x => x.sortingOrder)
-            .ToList();
-
-        foreach(var pair in cachedNinePatchGeometries)
+        foreach(var (_, container) in sprites)
         {
-            if(pair.Value is NinePatchCacheItem item)
+            if(container.Length == 0)
             {
-                item.framesSinceUse++;
+                continue;
+            }
 
-                if(item.framesSinceUse >= MaxNinePatchCacheFrames)
+            //TODO: Improve this to not use more memory every frame
+            var orderedSprites = container.Contents
+                .ToArray()
+                .OrderBy(x => x.layer)
+                .ThenBy(x => x.sortingOrder)
+                .ToList();
+
+            foreach (var pair in cachedNinePatchGeometries)
+            {
+                if (pair.Value is NinePatchCacheItem item)
                 {
-                    ninePatchItemsToRemove.Add(pair.Key);
+                    item.framesSinceUse++;
+
+                    if (item.framesSinceUse >= MaxNinePatchCacheFrames)
+                    {
+                        ninePatchItemsToRemove.Add(pair.Key);
+                    }
                 }
             }
-        }
 
-        if(ninePatchItemsToRemove.Count > 0)
-        {
-            foreach(var key in ninePatchItemsToRemove)
+            if (ninePatchItemsToRemove.Count > 0)
             {
-                cachedNinePatchGeometries.Remove(key);
+                foreach (var key in ninePatchItemsToRemove)
+                {
+                    cachedNinePatchGeometries.Remove(key);
+                }
+
+                ninePatchItemsToRemove.Clear();
             }
 
-            ninePatchItemsToRemove.Clear();
-        }
-
-        for (var i = 0; i < orderedSprites.Count; i++)
-        {
-            var s = orderedSprites[i];
-
-            var vertexCount = 4;
-            var indexCount = 6;
-            var vertices = spriteVertices;
-            var indices = SpriteRenderSystem.indices;
-
-            switch(s.renderMode)
+            for (var i = 0; i < orderedSprites.Count; i++)
             {
-                case SpriteRenderMode.Sliced:
+                var s = orderedSprites[i];
 
-                    {
-                        var key = HashCode.Combine(s.texture.Guid.GuidHash, s.border, s.localScale);
+                var vertexCount = 4;
+                var indexCount = 6;
+                var vertices = spriteVertices;
+                var indices = SpriteRenderSystem.indices;
 
-                        if (cachedNinePatchGeometries.TryGetValue(key, out var cache) == false)
+                switch (s.renderMode)
+                {
+                    case SpriteRenderMode.Sliced:
+
                         {
-                            cache = new()
+                            var key = HashCode.Combine(s.texture.Guid.GuidHash, s.border, s.localScale);
+
+                            if (cachedNinePatchGeometries.TryGetValue(key, out var cache) == false)
                             {
-                                vertices = new SpriteVertex[NinePatchVertexCount],
-                                indices = new ushort[NinePatchVertexCount],
-                            };
+                                cache = new()
+                                {
+                                    vertices = new SpriteVertex[NinePatchVertexCount],
+                                    indices = new ushort[NinePatchVertexCount],
+                                };
 
-                            MakeNinePatchGeometry(cache.vertices, cache.indices, s.texture, s.localScale.ToVector2(), s.border, false);
+                                MakeNinePatchGeometry(cache.vertices, cache.indices, s.texture, s.localScale.ToVector2(), s.border, false);
 
-                            cachedNinePatchGeometries.Add(key, cache);
+                                cachedNinePatchGeometries.Add(key, cache);
+                            }
+
+                            cache.framesSinceUse = 0;
+
+                            vertices = cache.vertices;
+                            indices = cache.indices;
+                            vertexCount = cache.vertices.Length;
+                            indexCount = cache.indices.Length;
                         }
 
-                        cache.framesSinceUse = 0;
+                        break;
 
-                        vertices = cache.vertices;
-                        indices = cache.indices;
-                        vertexCount = cache.vertices.Length;
-                        indexCount = cache.indices.Length;
-                    }
+                    case SpriteRenderMode.Normal:
 
-                    break;
+                        {
+                            spriteVertices[0].uv.X = s.textureRect.left / (float)s.texture.Width;
+                            spriteVertices[0].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
 
-                case SpriteRenderMode.Normal:
+                            spriteVertices[1].uv.X = s.textureRect.left / (float)s.texture.Width;
+                            spriteVertices[1].uv.Y = s.textureRect.top / (float)s.texture.Height;
 
-                    {
-                        spriteVertices[0].uv.X = s.textureRect.left / (float)s.texture.Width;
-                        spriteVertices[0].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
+                            spriteVertices[2].uv.X = s.textureRect.right / (float)s.texture.Width;
+                            spriteVertices[2].uv.Y = s.textureRect.top / (float)s.texture.Height;
 
-                        spriteVertices[1].uv.X = s.textureRect.left / (float)s.texture.Width;
-                        spriteVertices[1].uv.Y = s.textureRect.top / (float)s.texture.Height;
+                            spriteVertices[3].uv.X = s.textureRect.right / (float)s.texture.Width;
+                            spriteVertices[3].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
+                        }
 
-                        spriteVertices[2].uv.X = s.textureRect.right / (float)s.texture.Width;
-                        spriteVertices[2].uv.Y = s.textureRect.top / (float)s.texture.Height;
+                        break;
+                }
 
-                        spriteVertices[3].uv.X = s.textureRect.right / (float)s.texture.Width;
-                        spriteVertices[3].uv.Y = s.textureRect.bottom / (float)s.texture.Height;
-                    }
+                s.material.MainColor = s.color;
+                s.material.MainTexture = s.texture;
 
-                    break;
+                Graphics.RenderSimple(vertices, vertexLayout.Value, indices, s.material, Vector3.Zero,
+                    Matrix4x4.CreateScale(s.scale) * s.transform.Matrix, MeshTopology.Triangles, MaterialLighting.Unlit);
             }
-
-            s.material.MainColor = s.color;
-            s.material.MainTexture = s.texture;
-
-            Graphics.RenderSimple(vertices, vertexLayout.Value, indices, s.material, Vector3.Zero,
-                Matrix4x4.CreateScale(s.scale) * s.transform.Matrix, MeshTopology.Triangles, MaterialLighting.Unlit);
         }
     }
 }
