@@ -485,6 +485,31 @@ public partial class ProjectManager
 
         var target = Path.Combine(projectDirectory, fileName);
 
+        var registration = Path.Combine(projectDirectory, mainProjectName, "GameRegistration.cs");
+
+        if(!flags.HasFlag(ProjectGenerationFlags.IsSandbox))
+        {
+            try
+            {
+                File.WriteAllText(registration, $$"""
+                    namespace Staple.Internal;
+
+                    public sealed class GameRegistration
+                    {
+                        public void RegisterAll()
+                        {
+                            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+
+                            Staple.Internal.TypeCache.Freeze();
+                        }
+                    }
+                    """);
+            }
+            catch (Exception)
+            {
+            }
+        }
+
         if (!flags.HasFlag(ProjectGenerationFlags.ForceRegenerateProjects))
         {
             try
@@ -835,29 +860,7 @@ public partial class ProjectManager
                     new("ReferenceOutputAssembly", "false"),
                 ]);
 
-            var registration = Path.Combine(projectDirectory, mainProjectName, "GameRegistration.cs");
-
             p.AddItem("Compile", registration);
-
-            try
-            {
-                File.WriteAllText(registration, $$"""
-                    namespace Staple.Internal;
-
-                    public sealed class GameRegistration
-                    {
-                        public void RegisterAll()
-                        {
-                            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
-
-                            Staple.Internal.TypeCache.Freeze();
-                        }
-                    }
-                    """);
-            }
-            catch (Exception)
-            {
-            }
         }
 
         try
