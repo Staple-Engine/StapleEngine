@@ -408,23 +408,23 @@ public class UFXImporter : IMeshImporter
                 var tangents = new List<Vector3Holder>();
                 var bitangents = new List<Vector3Holder>();
                 var indices = new List<int>();
-                var normals = new Vector3[vertexCount];
+                var normals = metadata.normalsMode != MeshNormalsMode.None ? new Vector3[vertexCount] : null;
 
                 for (var j = 0; j < vertexCount; j++)
                 {
                     vertices.Add(ApplyTransform(new Vector3Holder(mesh.Vertices[j])));
 
-                    if (mesh.Tangents.Length > 0)
+                    if (mesh.Tangents.Length > 0 && normals != null && metadata.tangentsMode == MeshTangentsMode.Import)
                     {
                         tangents.Add(ApplyNormalTransform(new Vector3Holder(mesh.Tangents[j])));
                     }
 
-                    if (mesh.Bitangents.Length > 0)
+                    if (mesh.Bitangents.Length > 0 && normals != null && metadata.tangentsMode == MeshTangentsMode.Import)
                     {
                         bitangents.Add(ApplyNormalTransform(new Vector3Holder(mesh.Bitangents[j])));
                     }
 
-                    if (mesh.Normals.Length > 0)
+                    if (mesh.Normals.Length > 0 && normals != null)
                     {
                         normals[j] = mesh.Normals[j];
                     }
@@ -432,16 +432,25 @@ public class UFXImporter : IMeshImporter
 
                 indices.AddRange([.. mesh.Indices.ToArray().Select(x => (int)x)]);
 
-                m.colors = mesh.Color0.Length > 0 ? [.. mesh.Color0.ToArray().Select(x => new Vector4Holder(x))] : [];
-                m.colors2 = mesh.Color1.Length > 0 ? [.. mesh.Color1.ToArray().Select(x => new Vector4Holder(x))] : [];
-                m.colors3 = mesh.Color2.Length > 0 ? [.. mesh.Color2.ToArray().Select(x => new Vector4Holder(x))] : [];
-                m.colors4 = mesh.Color3.Length > 0 ? [.. mesh.Color3.ToArray().Select(x => new Vector4Holder(x))] : [];
+                if(metadata.importVertexColors)
+                {
+                    m.colors = mesh.Color0.Length > 0 ? [.. mesh.Color0.ToArray().Select(x => new Vector4Holder(x))] : [];
+                    m.colors2 = mesh.Color1.Length > 0 ? [.. mesh.Color1.ToArray().Select(x => new Vector4Holder(x))] : [];
+                    m.colors3 = mesh.Color2.Length > 0 ? [.. mesh.Color2.ToArray().Select(x => new Vector4Holder(x))] : [];
+                    m.colors4 = mesh.Color3.Length > 0 ? [.. mesh.Color3.ToArray().Select(x => new Vector4Holder(x))] : [];
+                }
 
                 m.vertices = [.. vertices];
 
-                m.tangents = [.. tangents];
+                if(tangents.Count > 0)
+                {
+                    m.tangents = [.. tangents];
+                }
 
-                m.bitangents = [.. bitangents];
+                if(bitangents.Count > 0)
+                {
+                    m.bitangents = [.. bitangents];
+                }
 
                 var shouldFlip = isOBJ ? !metadata.flipWindingOrder : metadata.flipWindingOrder;
 
@@ -455,16 +464,37 @@ public class UFXImporter : IMeshImporter
 
                 m.indices = [.. indices];
 
-                if (metadata.regenerateNormals)
+                switch(metadata.normalsMode)
                 {
-                    var v = m.vertices
-                        .Select(x => x.ToVector3())
-                        .ToArray();
+                    case MeshNormalsMode.Generate:
 
-                    normals = Mesh.GenerateNormals(v, m.indices.AsSpan(), metadata.useSmoothNormals);
+                        {
+                            var v = m.vertices
+                                .Select(x => x.ToVector3())
+                                .ToArray();
+
+                            normals = Mesh.GenerateNormals(v, m.indices.AsSpan(), false);
+                        }
+
+                        break;
+
+                    case MeshNormalsMode.GenerateSmooth:
+
+                        {
+                            var v = m.vertices
+                                .Select(x => x.ToVector3())
+                                .ToArray();
+
+                            normals = Mesh.GenerateNormals(v, m.indices.AsSpan(), true);
+                        }
+
+                        break;
                 }
 
-                m.normals = [.. normals.Select(x => ApplyNormalTransform(new Vector3Holder(x)))];
+                if(normals != null)
+                {
+                    m.normals = [.. normals.Select(x => ApplyNormalTransform(new Vector3Holder(x)))];
+                }
 
                 Vector2 FlipUV(Vector2 uv)
                 {

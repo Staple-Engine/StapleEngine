@@ -1,8 +1,6 @@
 ﻿using Staple.Internal;
-using Staple.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -778,6 +776,13 @@ public sealed partial class Mesh
 
         vertexBuffer = null;
         indexBuffer = null;
+
+        if (IsStaticMesh)
+        {
+            RenderSystem.Backend.StaticMeshData.Free(staticMeshEntries);
+
+            staticMeshEntries = null;
+        }
     }
 
     /// <summary>

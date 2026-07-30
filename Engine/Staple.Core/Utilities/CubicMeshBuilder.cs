@@ -321,9 +321,8 @@ public class CubicMeshBuilder
             Indices = [.. indices],
             meshTopology = MeshTopology.Triangles,
             changed = true,
+            bounds = AABB.CreateFromPoints(CollectionsMarshal.AsSpan(vertices)),
         };
-
-        mesh.bounds = AABB.CreateFromPoints(CollectionsMarshal.AsSpan(vertices));
 
         if (addUVs)
         {

@@ -2155,6 +2155,7 @@ internal class ResourceManager
                 lighting = meshAssetData.metadata.lighting,
                 frameRate = meshAssetData.metadata.frameRate,
                 syncAnimationToRefreshRate = meshAssetData.metadata.syncAnimationToRefreshRate,
+                generateColliders = meshAssetData.metadata.generateColliders,
             };
 
             resource.Guid.Guid = guid ?? path;
@@ -3127,6 +3128,19 @@ internal class ResourceManager
         return TryGetMaterial(guid, out var material) ? material : null;
     }
 
+    public void UnloadMaterial(Material material)
+    {
+        var guid = material?.Guid?.Guid;
+
+        if (string.IsNullOrEmpty(guid) ||
+            lockedAssets.Contains(guid.GetHashCode()))
+        {
+            return;
+        }
+
+        cachedMaterials.Remove(guid);
+    }
+
     public void ReloadShader(string guid)
     {
         if (!cachedShaders.TryGetValue(guid, out var shader))
@@ -3155,6 +3169,24 @@ internal class ResourceManager
     public Shader GetShader(string guid)
     {
         return TryGetShader(guid, out var shader) ? shader : null;
+    }
+
+    public void UnloadShader(Shader shader)
+    {
+        var guid = shader?.Guid?.Guid;
+
+        if (string.IsNullOrEmpty(guid) ||
+            lockedAssets.Contains(guid.GetHashCode()))
+        {
+            return;
+        }
+
+        if (TryGetShader(guid, out var s))
+        {
+            s.Destroy();
+        }
+
+        cachedShaders.Remove(guid);
     }
 
     public void ReloadComputeShader(string guid)
@@ -3187,6 +3219,24 @@ internal class ResourceManager
         return TryGetComputeShader(guid, out var shader) ? shader : null;
     }
 
+    public void UnloadComputeShader(ComputeShader shader)
+    {
+        var guid = shader?.Guid?.Guid;
+
+        if (string.IsNullOrEmpty(guid) ||
+            lockedAssets.Contains(guid.GetHashCode()))
+        {
+            return;
+        }
+
+        if (TryGetComputeShader(guid, out var s))
+        {
+            s.Destroy();
+        }
+
+        cachedComputeShaders.Remove(guid);
+    }
+
     public void ReloadMeshAsset(string guid)
     {
         if (!cachedMeshAssets.TryGetValue(guid, out var mesh))
@@ -3211,6 +3261,65 @@ internal class ResourceManager
         return TryGetMeshAsset(guid, out var meshAsset) ? meshAsset : null;
     }
 
+    public void UnloadMeshAsset(MeshAsset meshAsset)
+    {
+        var guid = meshAsset?.Guid?.Guid;
+
+        if (string.IsNullOrEmpty(guid) ||
+            lockedAssets.Contains(guid.GetHashCode()))
+        {
+            return;
+        }
+
+        if (TryGetMeshAsset(guid, out var m))
+        {
+            var removedMeshes = new HashSet<StringID>();
+
+            foreach (var pair in cachedMeshes)
+            {
+                if (pair.Value.meshAsset == m)
+                {
+                    pair.Value.Destroy();
+
+                    pair.Value.meshAsset = null;
+                    pair.Value.meshAssetIndex = 0;
+
+                    removedMeshes.Add(pair.Key);
+                }
+            }
+
+            foreach(var key in removedMeshes)
+            {
+                cachedMeshes.Remove(key);
+            }
+
+            m.meshResource = null;
+        }
+
+        cachedMeshAssets.Remove(guid);
+    }
+
+    public void UnloadMesh(Mesh mesh)
+    {
+        var guid = mesh?.Guid?.Guid;
+
+        if (string.IsNullOrEmpty(guid) ||
+            lockedAssets.Contains(guid.GetHashCode()))
+        {
+            return;
+        }
+
+        if (cachedMeshes.TryGetValue(guid, out var m))
+        {
+            m.Destroy();
+
+            m.meshAsset = null;
+            m.meshAssetIndex = 0;
+        }
+
+        cachedMeshes.Remove(guid);
+    }
+
     public void ReloadTextAsset(string guid)
     {
         if (!cachedTextAssets.TryGetValue(guid, out var textAsset))
@@ -3231,6 +3340,24 @@ internal class ResourceManager
     public TextAsset GetTextAsset(string guid)
     {
         return TryGetTextAsset(guid, out var textAsset) ? textAsset : null;
+    }
+
+    public void UnloadTextAsset(TextAsset asset)
+    {
+        var guid = asset?.Guid?.Guid;
+
+        if (string.IsNullOrEmpty(guid) ||
+            lockedAssets.Contains(guid.GetHashCode()))
+        {
+            return;
+        }
+
+        if (TryGetTextAsset(guid, out var t))
+        {
+            t.textResource = null;
+        }
+
+        cachedTextAssets.Remove(guid);
     }
 
     public void ReloadAudioClip(string guid)
@@ -3255,6 +3382,24 @@ internal class ResourceManager
         return TryGetAudioClip(guid, out var audioClip) ? audioClip : null;
     }
 
+    public void UnloadAudioClip(AudioClip clip)
+    {
+        var guid = clip?.Guid?.Guid;
+
+        if (string.IsNullOrEmpty(guid) ||
+            lockedAssets.Contains(guid.GetHashCode()))
+        {
+            return;
+        }
+
+        if (TryGetAudioClip(guid, out var c))
+        {
+            c.audioResource = null;
+        }
+
+        cachedAudioClips.Remove(guid);
+    }
+
     public void ReloadFont(string guid)
     {
         if (!cachedFonts.TryGetValue(guid, out var font))
@@ -3275,6 +3420,25 @@ internal class ResourceManager
     public FontAsset GetFont(string guid)
     {
         return TryGetFont(guid, out var font) ? font : null;
+    }
+
+    public void UnloadFont(FontAsset font)
+    {
+        var guid = font?.Guid?.Guid;
+
+        if(string.IsNullOrEmpty(guid) || lockedAssets.Contains(guid.GetHashCode()))
+        {
+            return;
+        }
+
+        if (TryGetFont(guid, out var f))
+        {
+            f.fontResource?.font?.Dispose();
+
+            f.fontResource = null;
+        }
+
+        cachedFonts.Remove(guid);
     }
 
     public void ReloadTexture(string guid)
@@ -3299,5 +3463,24 @@ internal class ResourceManager
     public Texture GetTexture(string guid)
     {
         return TryGetTexture(guid, out var texture) ? texture : null;
+    }
+
+    public void UnloadTexture(Texture texture)
+    {
+        var guid = texture?.Guid?.Guid;
+
+        if (string.IsNullOrEmpty(guid) || lockedAssets.Contains(guid.GetHashCode()))
+        {
+            return;
+        }
+
+        if (TryGetTexture(guid, out var t))
+        {
+            t.Destroy();
+
+            t.textureResource = null;
+        }
+
+        cachedTextures.Remove(guid);
     }
 }

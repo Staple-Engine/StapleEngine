@@ -20,7 +20,7 @@ internal class MeshAssetEditor : AssetEditor
     {
         var t = target as MeshAssetMetadata;
 
-        if(name == nameof(MeshAssetMetadata.useSmoothNormals) && !t.regenerateNormals)
+        if(name == nameof(MeshAssetMetadata.discardOddLODLevels) && !t.generateLODs)
         {
             return true;
         }

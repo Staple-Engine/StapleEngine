@@ -700,7 +700,7 @@ public class SharpGLTFImporter : IMeshImporter
                     var tangents = new List<Vector3Holder>();
                     var bitangents = new List<Vector3Holder>();
                     var indices = new List<int>();
-                    var normals = new Vector3[vertexCount];
+                    var normals = metadata.normalsMode != MeshNormalsMode.None ? new Vector3[vertexCount] : null;
 
                     var vl = vert.ToArray();
 
@@ -713,7 +713,7 @@ public class SharpGLTFImporter : IMeshImporter
                     {
                         vertices.Add(ApplyTransform(new Vector3Holder(vert[j])));
 
-                        if (tan != null)
+                        if (tan != null && metadata.normalsMode != MeshNormalsMode.None && metadata.tangentsMode != MeshTangentsMode.None)
                         {
                             var tangent = tan[j].ToVector3();
 
@@ -727,7 +727,7 @@ public class SharpGLTFImporter : IMeshImporter
                             }
                         }
 
-                        if (nor != null)
+                        if (nor != null && normals != null)
                         {
                             normals[j] = nor[j];
                         }
@@ -813,29 +813,59 @@ public class SharpGLTFImporter : IMeshImporter
                         m.topology = MeshTopology.Triangles;
                     }
 
-                    m.colors = colors[0] != null ? [.. colors[0].Select(x => new Vector4Holder(x))] : [];
-                    m.colors2 = colors[1] != null ? [.. colors[1].Select(x => new Vector4Holder(x))] : [];
-                    m.colors3 = colors[2] != null ? [.. colors[2].Select(x => new Vector4Holder(x))] : [];
-                    m.colors4 = colors[3] != null ? [.. colors[3].Select(x => new Vector4Holder(x))] : [];
+                    if(metadata.importVertexColors)
+                    {
+                        m.colors = colors[0] != null ? [.. colors[0].Select(x => new Vector4Holder(x))] : [];
+                        m.colors2 = colors[1] != null ? [.. colors[1].Select(x => new Vector4Holder(x))] : [];
+                        m.colors3 = colors[2] != null ? [.. colors[2].Select(x => new Vector4Holder(x))] : [];
+                        m.colors4 = colors[3] != null ? [.. colors[3].Select(x => new Vector4Holder(x))] : [];
+                    }
 
                     m.vertices = [.. vertices];
 
-                    m.tangents = [.. tangents];
+                    if(tangents.Count > 0)
+                    {
+                        m.tangents = [.. tangents];
+                    }
 
-                    m.bitangents = [.. bitangents];
+                    if(bitangents.Count > 0)
+                    {
+                        m.bitangents = [.. bitangents];
+                    }
 
                     m.indices = [.. indices];
 
-                    if (metadata.regenerateNormals)
+                    switch (metadata.normalsMode)
                     {
-                        var v = m.vertices
-                            .Select(x => x.ToVector3())
-                            .ToArray();
+                        case MeshNormalsMode.Generate:
 
-                        normals = Mesh.GenerateNormals(v, m.indices.AsSpan(), metadata.useSmoothNormals);
+                            {
+                                var v = m.vertices
+                                    .Select(x => x.ToVector3())
+                                    .ToArray();
+
+                                normals = Mesh.GenerateNormals(v, m.indices.AsSpan(), false);
+                            }
+
+                            break;
+
+                        case MeshNormalsMode.GenerateSmooth:
+
+                            {
+                                var v = m.vertices
+                                    .Select(x => x.ToVector3())
+                                    .ToArray();
+
+                                normals = Mesh.GenerateNormals(v, m.indices.AsSpan(), true);
+                            }
+
+                            break;
                     }
 
-                    m.normals = [.. normals.Select(x => ApplyNormalTransform(new Vector3Holder(x)))];
+                    if (normals != null)
+                    {
+                        m.normals = [.. normals.Select(x => ApplyNormalTransform(new Vector3Holder(x)))];
+                    }
 
                     m.UV1 = texcoords[0] != null ? [.. texcoords[0].Select(x => new Vector2Holder(x))] : [];
                     m.UV2 = texcoords[1] != null ? [.. texcoords[1].Select(x => new Vector2Holder(x))] : [];

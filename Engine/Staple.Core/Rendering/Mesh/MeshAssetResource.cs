@@ -36,6 +36,11 @@ internal class MeshAssetResource
     public bool syncAnimationToRefreshRate = false;
 
     /// <summary>
+    /// Whether to add a mesh collider when instancing this mesh
+    /// </summary>
+    public bool generateColliders = false;
+
+    /// <summary>
     /// 3D bounds of the mesh
     /// </summary>
     public AABB Bounds { get; internal set; }

@@ -568,7 +568,7 @@ internal partial class StapleEditor
                     {
                         HideBackgroundProcess();
 
-                        UpdateCSProj(platform, flags.HasFlag(StagingRefreshFlags.CheckBuild), false, Finish);
+                        UpdateCSProj(platform, flags.HasFlag(StagingRefreshFlags.CheckBuild), true, Finish);
                     });
             }
             else

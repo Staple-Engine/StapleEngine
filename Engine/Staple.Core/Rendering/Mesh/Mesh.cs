@@ -1696,11 +1696,22 @@ public sealed partial class Mesh : IGuidAsset
         }
         else
         {
-            var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+            var meshRenderer = meshTransform.Entity.AddComponent<MeshRenderer>();
 
             meshRenderer.mesh = mesh;
             meshRenderer.materials = outMaterials;
             meshRenderer.lighting = mesh.meshAsset?.Lighting ?? MaterialLighting.Lit;
+
+            if(mesh.meshAsset?.meshResource?.generateColliders ?? false)
+            {
+                var meshCollider = meshTransform.Entity.AddComponent<MeshCollider3D>();
+
+                meshCollider.mesh = mesh;
+
+                var body = meshTransform.Entity.AddComponent<RigidBody3D>();
+
+                body.motionType = BodyMotionType.Static;
+            }
         }
 
         return meshEntity;
@@ -1827,6 +1838,17 @@ public sealed partial class Mesh : IGuidAsset
                         meshRenderer.mesh = outMesh;
                         meshRenderer.materials = outMaterials;
                         meshRenderer.lighting = mesh.lighting;
+
+                        if (outMesh.meshAsset?.meshResource?.generateColliders ?? false)
+                        {
+                            var meshCollider = meshEntity.AddComponent<MeshCollider3D>();
+
+                            meshCollider.mesh = outMesh;
+
+                            var body = meshEntity.AddComponent<RigidBody3D>();
+
+                            body.motionType = BodyMotionType.Static;
+                        }
                     }
                 }
             }
@@ -1868,6 +1890,17 @@ public sealed partial class Mesh : IGuidAsset
                     meshRenderer.mesh = outMesh;
                     meshRenderer.materials = outMaterials;
                     meshRenderer.lighting = mesh.lighting;
+
+                    if (outMesh.meshAsset?.meshResource?.generateColliders ?? false)
+                    {
+                        var meshCollider = meshEntity.AddComponent<MeshCollider3D>();
+
+                        meshCollider.mesh = outMesh;
+
+                        var body = meshEntity.AddComponent<RigidBody3D>();
+
+                        body.motionType = BodyMotionType.Static;
+                    }
                 }
             }
         }

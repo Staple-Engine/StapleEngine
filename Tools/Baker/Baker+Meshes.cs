@@ -428,7 +428,9 @@ static partial class Program
 
                 foreach (var mesh in meshData.meshes)
                 {
-                    if ((mesh.tangents?.Length ?? 0) == 0 &&
+                    if (metadata.normalsMode != MeshNormalsMode.None &&
+                        metadata.tangentsMode != MeshTangentsMode.None &&
+                        (mesh.tangents?.Length ?? 0) == 0 &&
                         mesh.topology == MeshTopology.Triangles &&
                         (mesh.UV1?.Length ?? 0) > 0 &&
                         (mesh.normals?.Length ?? 0) > 0)

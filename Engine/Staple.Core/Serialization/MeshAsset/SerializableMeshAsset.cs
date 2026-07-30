@@ -27,6 +27,21 @@ public enum MeshSimplifyTarget
     CustomPolyCount,
 }
 
+public enum MeshNormalsMode
+{
+    Import,
+    Generate,
+    GenerateSmooth,
+    None,
+}
+
+public enum MeshTangentsMode
+{
+    Import,
+    Generate,
+    None,
+}
+
 [Flags]
 public enum MeshAssetComponent
 {
@@ -83,10 +98,10 @@ public class MeshAssetMetadata
     public bool flipWindingOrder = false;
 
     [Key(3)]
-    public bool regenerateNormals;
+    public MeshNormalsMode normalsMode = MeshNormalsMode.Import;
 
     [Key(4)]
-    public bool useSmoothNormals;
+    public MeshTangentsMode tangentsMode = MeshTangentsMode.Import;
 
     [Key(5)]
     public MaterialLighting lighting = MaterialLighting.Lit;
@@ -114,8 +129,20 @@ public class MeshAssetMetadata
     [Key(12)]
     public int targetPolyCount = 1000;
 
-    [HideInInspector]
     [Key(13)]
+    public bool generateColliders = false;
+
+    [Key(14)]
+    public bool generateLODs = false;
+
+    [Key(15)]
+    public bool discardOddLODLevels = false;
+
+    [Key(16)]
+    public bool importVertexColors = false;
+
+    [HideInInspector]
+    [Key(17)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -134,8 +161,8 @@ public class MeshAssetMetadata
             lhs.flipUVs == rhs.flipUVs &&
             lhs.flipWindingOrder == rhs.flipWindingOrder &&
             lhs.typeName == rhs.typeName &&
-            lhs.regenerateNormals == rhs.regenerateNormals &&
-            lhs.useSmoothNormals == rhs.useSmoothNormals &&
+            lhs.normalsMode == rhs.normalsMode &&
+            lhs.tangentsMode == rhs.tangentsMode &&
             lhs.lighting == rhs.lighting &&
             lhs.rotation == rhs.rotation &&
             lhs.scale == rhs.scale &&
@@ -143,7 +170,11 @@ public class MeshAssetMetadata
             lhs.syncAnimationToRefreshRate == rhs.syncAnimationToRefreshRate &&
             lhs.simplify == rhs.simplify &&
             lhs.targetPolyCount == rhs.targetPolyCount &&
-            lhs.combineSimilarMeshes == rhs.combineSimilarMeshes;
+            lhs.combineSimilarMeshes == rhs.combineSimilarMeshes &&
+            lhs.generateColliders == rhs.generateColliders &&
+            lhs.generateLODs == rhs.generateLODs &&
+            lhs.discardOddLODLevels == rhs.discardOddLODLevels &&
+            lhs.importVertexColors == rhs.importVertexColors;
     }
 
     public static bool operator!=(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -162,8 +193,8 @@ public class MeshAssetMetadata
             lhs.flipUVs != rhs.flipUVs ||
             lhs.flipWindingOrder != rhs.flipWindingOrder ||
             lhs.typeName != rhs.typeName ||
-            lhs.regenerateNormals != rhs.regenerateNormals ||
-            lhs.useSmoothNormals != rhs.useSmoothNormals ||
+            lhs.normalsMode != rhs.normalsMode ||
+            lhs.tangentsMode != rhs.tangentsMode ||
             lhs.lighting != rhs.lighting ||
             lhs.rotation != rhs.rotation ||
             lhs.scale != rhs.scale ||
@@ -171,7 +202,11 @@ public class MeshAssetMetadata
             lhs.syncAnimationToRefreshRate != rhs.syncAnimationToRefreshRate ||
             lhs.simplify != rhs.simplify ||
             lhs.targetPolyCount != rhs.targetPolyCount ||
-            lhs.combineSimilarMeshes != rhs.combineSimilarMeshes;
+            lhs.combineSimilarMeshes != rhs.combineSimilarMeshes ||
+            lhs.generateColliders != rhs.generateColliders ||
+            lhs.generateLODs != rhs.generateLODs ||
+            lhs.discardOddLODLevels != rhs.discardOddLODLevels ||
+            lhs.importVertexColors != rhs.importVertexColors;
     }
 
     public override bool Equals(object obj)
@@ -196,8 +231,8 @@ public class MeshAssetMetadata
         hash.Add(guid);
         hash.Add(flipUVs);
         hash.Add(flipWindingOrder);
-        hash.Add(regenerateNormals);
-        hash.Add(useSmoothNormals);
+        hash.Add(normalsMode);
+        hash.Add(tangentsMode);
         hash.Add(lighting);
         hash.Add(rotation);
         hash.Add(scale);
@@ -207,6 +242,10 @@ public class MeshAssetMetadata
         hash.Add(simplify);
         hash.Add(targetPolyCount);
         hash.Add(combineSimilarMeshes);
+        hash.Add(generateColliders);
+        hash.Add(generateLODs);
+        hash.Add(discardOddLODLevels);
+        hash.Add(importVertexColors);
 
         return hash.ToHashCode();
     }
