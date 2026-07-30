@@ -91,12 +91,12 @@ public sealed class Camera : IComponent
     /// <summary>
     /// Actual width of this camera viewport
     /// </summary>
-    internal float Width => viewport.Z * Screen.Width;
+    internal float Width => viewport.Z * Screen.RenderTargetWidth;
 
     /// <summary>
     /// Actual height of this camera viewport
     /// </summary>
-    internal float Height => viewport.W * Screen.Height;
+    internal float Height => viewport.W * Screen.RenderTargetHeight;
 
     /// <summary>
     /// The frustum culler for this camera
@@ -122,7 +122,7 @@ public sealed class Camera : IComponent
                 {
                     var orthographicSize = this.orthographicSize < 1 ? 1 : this.orthographicSize;
 
-                    var scale = Screen.Height / (orthographicSize * 2);
+                    var scale = Screen.RenderTargetHeight / (orthographicSize * 2);
 
                     var width = Width / scale;
                     var height = Height / scale;
@@ -235,7 +235,7 @@ public sealed class Camera : IComponent
                     return Matrix4x4.Identity;
                 }
 
-                var scale = Screen.Height / (camera.orthographicSize * 2);
+                var scale = Screen.RenderTargetHeight / (camera.orthographicSize * 2);
 
                 var width = camera.Width / scale;
                 var height = camera.Height / scale;
@@ -258,8 +258,8 @@ public sealed class Camera : IComponent
     /// <returns>A world-space point</returns>
     public static Vector3 ScreenPointToWorld(Vector2 point, Entity entity, Camera camera, Transform transform)
     {
-        var clipSpace = new Vector4(((point.X * 2.0f) / Screen.Width) - 1,
-            (1.0f - (point.Y * 2.0f) / Screen.Height),
+        var clipSpace = new Vector4(((point.X * 2.0f) / Screen.RenderTargetWidth) - 1,
+            (1.0f - (point.Y * 2.0f) / Screen.RenderTargetHeight),
             0.0f, 1.0f);
 
         var p = Projection(entity, camera);
@@ -287,8 +287,8 @@ public sealed class Camera : IComponent
     /// <returns>The ray</returns>
     public static Ray ScreenPointToRay(Vector2 point, Entity entity, Camera camera, Transform transform)
     {
-        var clipSpace = new Vector4(((point.X * 2.0f) / Screen.Width) - 1,
-            (1.0f - (point.Y * 2.0f) / Screen.Height),
+        var clipSpace = new Vector4(((point.X * 2.0f) / Screen.RenderTargetWidth) - 1,
+            (1.0f - (point.Y * 2.0f) / Screen.RenderTargetHeight),
             0.0f, 1.0f);
 
         var p = Projection(entity, camera);

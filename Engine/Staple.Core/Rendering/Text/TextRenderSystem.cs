@@ -77,7 +77,8 @@ public class TextRenderSystem : RenderSystemBase
                     fontSize = text.fontSize,
                     transform = entry.transform,
                     fontAsset = text.font,
-                    scale = activeCamera.cameraType == CameraType.Orthographic ? 1 / (Screen.Height / (float)(activeCamera.orthographicSize * 2)) : 1,
+                    scale = activeCamera.cameraType == CameraType.Orthographic ?
+                        1 / (Screen.RenderTargetHeight / (float)(activeCamera.orthographicSize * 2)) : 1,
                     material = text.materials[index],
                 });
             });

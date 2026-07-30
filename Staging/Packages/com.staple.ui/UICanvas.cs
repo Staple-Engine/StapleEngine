@@ -30,7 +30,7 @@ public class UICanvas : CallbackComponent, IComponentDisposable
     /// </summary>
     internal void Reload()
     {
-        manager.CanvasSize = new(Screen.Width, Screen.Height);
+        manager.CanvasSize = Screen.RenderTargetSize;
 
         manager.Clear();
 
@@ -47,7 +47,7 @@ public class UICanvas : CallbackComponent, IComponentDisposable
     /// </summary>
     internal void CheckLayoutChanges()
     {
-        manager.CanvasSize = new(Screen.Width, Screen.Height);
+        manager.CanvasSize = Screen.RenderTargetSize;
 
         if (layout != lastLayout)
         {
