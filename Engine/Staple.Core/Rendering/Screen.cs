@@ -16,6 +16,26 @@ public static class Screen
     public static int Height { get; internal set; }
 
     /// <summary>
+    /// The screen size in pixels as a <see cref="Vector2Int"/>>
+    /// </summary>
+    public static Vector2Int Size => new(Width, Height);
+
+    /// <summary>
+    /// The current render target width in pixels. If there's no active render target, defaults to <see cref="Width"/>
+    /// </summary>
+    public static int RenderTargetWidth => RenderTarget.Current?.width ?? Width;
+
+    /// <summary>
+    /// The current render target height in pixels. If there's no active render target, defaults to <see cref="Height"/>
+    /// </summary>
+    public static int RenderTargetHeight => RenderTarget.Current?.height ?? Height;
+
+    /// <summary>
+    /// The current render target size in pixels. If there's no active render target, defaults to <see cref="Size"/>
+    /// </summary>
+    public static Vector2Int RenderTargetSize => new(RenderTargetWidth, RenderTargetHeight);
+
+    /// <summary>
     /// The current window mode for the game/app.
     /// </summary>
     public static WindowMode WindowMode => AppPlayer.instance?.playerSettings?.windowMode ?? WindowMode.Windowed;

@@ -111,12 +111,12 @@ public partial struct Entity
     /// Sets this entity's layer
     /// </summary>
     /// <param name="layer">The layer</param>
-    /// <param name="recursive">Whether to apply to children</param>
-    public void SetLayer(uint layer, bool recursive = false)
+    /// <param name="includeChildren">Whether to apply to children</param>
+    public void SetLayer(uint layer, bool includeChildren = false)
     {
         Layer = layer;
 
-        if(recursive && TryGetComponent<Transform>(out var transform))
+        if(includeChildren && TryGetComponent<Transform>(out var transform))
         {
             foreach (var child in transform.Children)
             {

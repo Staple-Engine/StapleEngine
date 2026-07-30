@@ -1194,17 +1194,6 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         viewData.renderData.view = view;
         viewData.renderData.projection = projection;
 
-        if(target != null)
-        {
-            Screen.Width = target.width;
-            Screen.Height = target.height;
-        }
-        else
-        {
-            Screen.Width = window.Size.X;
-            Screen.Height = window.Size.Y;
-        }
-
         AddCommand(new SDLGPUBeginRenderPassCommand(this, target, clear, clearColor, viewport, view, projection));
     }
 

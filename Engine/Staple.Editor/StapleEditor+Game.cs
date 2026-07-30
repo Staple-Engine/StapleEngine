@@ -373,6 +373,9 @@ internal partial class StapleEditor
 
         Input.MousePosition = newMousePosition;
 
+        Screen.Width = window.width;
+        Screen.Height = window.height;
+
         var previous = RenderTarget.Current;
 
         RenderTarget.Current = gameRenderTarget;
@@ -382,8 +385,5 @@ internal partial class StapleEditor
         RenderTarget.Current = previous;
 
         Input.MousePosition = currentMousePosition;
-
-        Screen.Width = window.width;
-        Screen.Height = window.height;
     }
 }
