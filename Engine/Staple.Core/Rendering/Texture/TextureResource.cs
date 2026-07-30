@@ -3,7 +3,6 @@
 internal class TextureResource(ITextureCreateMethod createMethod)
 {
     internal TextureMetadata metadata;
-    internal bool renderTarget = false;
     internal ITexture impl;
 
     internal RawTextureData readbackData;
@@ -20,7 +19,7 @@ internal class TextureResource(ITextureCreateMethod createMethod)
     {
         var ok = false;
 
-        if (renderTarget || (createMethod != null && createMethod.Create(this)))
+        if (createMethod != null && createMethod.Create(this))
         {
             ok = true;
         }

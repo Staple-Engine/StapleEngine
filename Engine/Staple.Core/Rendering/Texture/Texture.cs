@@ -42,7 +42,7 @@ public class Texture : IGuidAsset
     /// <summary>
     /// The texture's sprite scale
     /// </summary>
-    public float SpriteScale => 1.0f / (textureResource?.metadata.spritePixelsPerUnit ?? 1);
+    public float SpriteScale => 1.0f / (textureResource?.metadata?.spritePixelsPerUnit ?? 1);
 
     /// <summary>
     /// The contained sprites of this texture
@@ -205,6 +205,8 @@ public class Texture : IGuidAsset
         }
         catch (System.Exception e)
         {
+            Log.Error($"While attempting to load a standard texture: {e}", LogTag);
+
             return null;
         }
     }

@@ -38,5 +38,6 @@ public sealed class Sprite
     public TextureSpriteRotation Rotation => IsValid ? texture.textureResource.metadata.sprites[spriteIndex].rotation : TextureSpriteRotation.None;
 
     [JsonIgnore]
-    public bool IsValid => texture != null && !texture.Disposed && spriteIndex >= 0 && spriteIndex < texture.textureResource.metadata.sprites.Count;
+    public bool IsValid => texture != null && !texture.Disposed && texture.textureResource?.metadata != null &&
+        spriteIndex >= 0 && spriteIndex < texture.textureResource.metadata.sprites.Count;
 }

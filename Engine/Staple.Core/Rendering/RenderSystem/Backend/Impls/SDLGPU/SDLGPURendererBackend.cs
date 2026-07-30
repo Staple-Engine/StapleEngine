@@ -2093,15 +2093,15 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
     public void RenderStatic(RenderState state, Span<MultidrawEntry> entries)
     {
-        if(entries.Length == 0 ||
+        state.renderTarget = currentRenderTarget;
+
+        if (entries.Length == 0 ||
             state.shader == null ||
             state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader ||
             !TryGetStaticMeshRenderPipeline(state, out var pipeline))
         {
             return;
         }
-
-        state.renderTarget = currentRenderTarget;
 
         CheckQueuedGraphicsPipeline(pipeline);
 
