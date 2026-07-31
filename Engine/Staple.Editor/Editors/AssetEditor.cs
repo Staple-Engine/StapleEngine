@@ -8,6 +8,8 @@ public class AssetEditor : Editor
 {
     public bool isMetaEditor = false;
 
+    public bool HasChanges => !original.Equals(target);
+
     internal Func<object> recreateOriginal;
 
     internal object RecreateOriginal()
@@ -43,9 +45,7 @@ public class AssetEditor : Editor
 
     public void ShowAssetUI(Action refreshed, Action reverted = null)
     {
-        var hasChanges = !original.Equals(target);
-
-        if(hasChanges)
+        if(HasChanges)
         {
             EditorGUI.Button("Apply", "AssetApply", () =>
             {

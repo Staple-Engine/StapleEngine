@@ -249,6 +249,8 @@ public class Editor
                     }
                     catch(Exception e)
                     {
+                        Log.Error($"Failed to create PropertyDrawer for {type.FullName}: {e}");
+
                         continue;
                     }
                 }
@@ -588,16 +590,13 @@ public class Editor
 
                     var newValue = (uint)value;
 
-                    var min = attributes(typeof(MinAttribute)) as MinAttribute;
-                    var range = attributes(typeof(RangeAttribute)) as RangeAttribute;
-
                     if (attributes(typeof(SortingLayerAttribute)) != null)
                     {
-                        newValue = (uint)EditorGUI.Dropdown(name, $"{name}SortingLayer{IDSuffix}", LayerMask.AllSortingLayers.ToArray(), value);
+                        newValue = (uint)EditorGUI.Dropdown(name, $"{name}SortingLayer{IDSuffix}", [.. LayerMask.AllSortingLayers], value);
                     }
                     else
                     {
-                        if (range != null)
+                        if (attributes(typeof(RangeAttribute)) is RangeAttribute range)
                         {
                             newValue = (uint)EditorGUI.IntSlider(name, $"{name}IntSlider{IDSuffix}", value, (int)range.minValue, (int)range.maxValue);
                         }
@@ -607,7 +606,7 @@ public class Editor
                         }
                     }
 
-                    if (min != null && newValue < min.minValue)
+                    if (attributes(typeof(MinAttribute)) is MinAttribute min && newValue < min.minValue)
                     {
                         newValue = (uint)min.minValue;
                     }
@@ -625,12 +624,9 @@ public class Editor
                 {
                     var value = (int)getter();
 
-                    var min = attributes(typeof(MinAttribute)) as MinAttribute;
-                    var range = attributes(typeof(RangeAttribute)) as RangeAttribute;
-
                     var newValue = value;
 
-                    if (range != null)
+                    if (attributes(typeof(RangeAttribute)) is RangeAttribute range)
                     {
                         newValue = EditorGUI.IntSlider(name, $"{name}IntSlider{IDSuffix}", value, (int)range.minValue, (int)range.maxValue);
                     }
@@ -639,7 +635,7 @@ public class Editor
                         newValue = EditorGUI.IntField(name, $"{name}IntField{IDSuffix}", value);
                     }
 
-                    if (min != null && newValue < min.minValue)
+                    if (attributes(typeof(MinAttribute)) is MinAttribute min && newValue < min.minValue)
                     {
                         newValue = (int)min.minValue;
                     }
@@ -672,12 +668,9 @@ public class Editor
                 {
                     var value = (float)getter();
 
-                    var min = attributes(typeof(MinAttribute)) as MinAttribute;
-                    var range = attributes(typeof(RangeAttribute)) as RangeAttribute;
-
                     var newValue = value;
 
-                    if (range != null)
+                    if (attributes(typeof(RangeAttribute)) is RangeAttribute range)
                     {
                         newValue = EditorGUI.FloatSlider(name, $"{name}FloatSlider{IDSuffix}", value, range.minValue, range.maxValue);
                     }
@@ -686,7 +679,7 @@ public class Editor
                         newValue = EditorGUI.FloatField(name, $"{name}FloatField{IDSuffix}", value);
                     }
 
-                    if (min != null && newValue < min.minValue)
+                    if (attributes(typeof(MinAttribute)) is MinAttribute min && newValue < min.minValue)
                     {
                         newValue = min.minValue;
                     }
@@ -706,9 +699,7 @@ public class Editor
 
                     if (ImGui.InputDouble($"{name}##{name}Double{IDSuffix}", ref value))
                     {
-                        var min = attributes(typeof(MinAttribute)) as MinAttribute;
-
-                        if (min != null && value < min.minValue)
+                        if (attributes(typeof(MinAttribute)) is MinAttribute min && value < min.minValue)
                         {
                             value = min.minValue;
                         }
@@ -737,9 +728,7 @@ public class Editor
                             value = byte.MaxValue;
                         }
 
-                        var min = attributes(typeof(MinAttribute)) as MinAttribute;
-
-                        if (min != null && value < min.minValue)
+                        if (attributes(typeof(MinAttribute)) is MinAttribute min && value < min.minValue)
                         {
                             value = (byte)min.minValue;
                         }
@@ -768,9 +757,7 @@ public class Editor
                             value = short.MaxValue;
                         }
 
-                        var min = attributes(typeof(MinAttribute)) as MinAttribute;
-
-                        if (min != null && value < min.minValue)
+                        if (attributes(typeof(MinAttribute)) is MinAttribute min && value < min.minValue)
                         {
                             value = (short)min.minValue;
                         }
@@ -799,9 +786,7 @@ public class Editor
                             value = ushort.MaxValue;
                         }
 
-                        var min = attributes(typeof(MinAttribute)) as MinAttribute;
-
-                        if (min != null && value < min.minValue)
+                        if (attributes(typeof(MinAttribute)) is MinAttribute min && value < min.minValue)
                         {
                             value = (ushort)min.minValue;
                         }
@@ -899,9 +884,7 @@ public class Editor
                     }
                     else
                     {
-                        layers = LayerMask.AllLayers
-                            .Where(x => x != StapleEditor.RenderTargetLayerName)
-                            .ToList();
+                        layers = [.. LayerMask.AllLayers.Where(x => x != StapleEditor.RenderTargetLayerName)];
                     }
 
                     var previewValue = "";
@@ -1010,19 +993,17 @@ public class Editor
 
     internal static void UpdateEditorTypes()
     {
-        editorTypes = Assembly.GetCallingAssembly().GetTypes()
+        editorTypes = [.. Assembly.GetCallingAssembly().GetTypes()
                 .Concat(Assembly.GetExecutingAssembly().GetTypes())
                 .Concat(TypeCache.types.Select(x => x.Value))
                 .Where(x => x.IsSubclassOf(typeof(Editor)))
-                .Distinct()
-                .ToArray();
+                .Distinct()];
 
-        propertyDrawerTypes = Assembly.GetCallingAssembly().GetTypes()
+        propertyDrawerTypes = [.. Assembly.GetCallingAssembly().GetTypes()
                 .Concat(Assembly.GetExecutingAssembly().GetTypes())
                 .Concat(TypeCache.types.Select(x => x.Value))
                 .Where(x => x.IsSubclassOf(typeof(PropertyDrawer)))
-                .Distinct()
-                .ToArray();
+                .Distinct()];
     }
 
     public static Editor CreateEditor(object target, Type editorType = null)

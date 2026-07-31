@@ -728,4 +728,16 @@ internal class MaterialEditor : AssetEditor
             }
         });
     }
+
+    public override void Destroy()
+    {
+        base.Destroy();
+
+        if(HasChanges &&
+            target is MaterialMetadata material &&
+            ResourceManager.instance.TryGetMaterial(material.guid, out var materialInstance))
+        {
+            ResourceManager.instance.ReloadMaterial(material.guid);
+        }
+    }
 }

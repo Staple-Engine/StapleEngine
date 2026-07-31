@@ -11,7 +11,7 @@ internal class FontAssetEditor : AssetEditor
     private bool isValid = false;
     private bool needsUpdate = true;
 
-    private string[] textureMaxSizes = Array.Empty<string>();
+    private string[] textureMaxSizes = [];
 
     public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
     {
@@ -28,7 +28,7 @@ internal class FontAssetEditor : AssetEditor
 
                     if (textureMaxSizes.Length == 0)
                     {
-                        textureMaxSizes = TextureMetadata.TextureMaxSizes.Select(x => x.ToString()).ToArray();
+                        textureMaxSizes = [.. TextureMetadata.TextureMaxSizes.Select(x => x.ToString())];
                     }
 
                     var newIndex = EditorGUI.Dropdown(name.ExpandCamelCaseName(), "FontAssetTextureSize", textureMaxSizes, index);
