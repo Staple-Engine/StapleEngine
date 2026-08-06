@@ -169,6 +169,11 @@ public partial class UIPanel
     /// <param name="parameters">Text parameters for the text</param>
     protected void RenderText(string str, TextParameters parameters)
     {
+        if(string.IsNullOrEmpty(str))
+        {
+            return;
+        }
+
         material ??= new(SpriteUtils.DefaultMaterial.Value);
 
         parameters.Position(parameters.position + new Vector2(0, parameters.fontSize));
