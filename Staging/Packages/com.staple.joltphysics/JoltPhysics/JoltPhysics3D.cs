@@ -37,6 +37,7 @@ public class JoltPhysics3D : IPhysics3D
     private readonly Dictionary<Entity, JoltCharacterPair> entityCharacters = [];
     private readonly Lock threadLock = new();
     private readonly CallbackGatherer callbackGatherer = new();
+    private readonly ExpandableContainer<Entity> pendingRecreationBodies = new();
 
     private bool destroyed = false;
     private bool locked = false;
@@ -432,6 +433,13 @@ public class JoltPhysics3D : IPhysics3D
 
         lock (threadLock)
         {
+            foreach(var p in pendingRecreationBodies.Contents)
+            {
+                Physics3D.Instance.RecreateBody(p);
+            }
+
+            pendingRecreationBodies.Clear();
+
             foreach (var pair in bodies)
             {
                 var p = pair.Value;
@@ -452,6 +460,11 @@ public class JoltPhysics3D : IPhysics3D
                 else if (!p.body.IsActive)
                 {
                     physicsSystem.BodyInterface.ActivateBody(p.body.ID);
+                }
+
+                if(p.NeedsReset())
+                {
+                    pendingRecreationBodies.Add(p.entity);
                 }
             }
 
@@ -479,6 +492,11 @@ public class JoltPhysics3D : IPhysics3D
                     p.enabled = true;
 
                     p.character.AddToPhysicsSystem();
+                }
+
+                if (p.NeedsReset())
+                {
+                    pendingRecreationBodies.Add(p.entity);
                 }
             }
         }
@@ -565,6 +583,7 @@ public class JoltPhysics3D : IPhysics3D
                     character = character,
                     entity = entity,
                     transform = entity.GetComponent<Transform>(),
+                    rigidBody = entity.GetComponent<RigidBody3D>(),
                     gravityFactor = gravityFactor,
                     friction = friction,
                     Position = position,
@@ -575,6 +594,8 @@ public class JoltPhysics3D : IPhysics3D
                     previousPosition = position,
                     previousRotation = rotation.SafeNormalize(),
                 };
+
+                pair.rigidBodyHash = pair.GetRigidBodyHash();
 
                 characters.Add(character.BodyID, pair);
 
@@ -672,11 +693,14 @@ public class JoltPhysics3D : IPhysics3D
                     body = b,
                     entity = entity,
                     transform = entity.GetComponent<Transform>(),
+                    rigidBody = entity.GetComponent<RigidBody3D>(),
                     currentPosition = position,
                     currentRotation = rotation.SafeNormalize(),
                     previousPosition = position,
                     previousRotation = rotation.SafeNormalize(),
                 };
+
+                pair.rigidBodyHash = pair.GetRigidBodyHash();
 
                 bodies.Add(b.ID, pair);
                 entityBodies.Add(entity, pair);
@@ -1188,8 +1212,6 @@ public class JoltPhysics3D : IPhysics3D
 
     public bool RayCast(Ray ray, out IBody3D body, out float fraction, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance)
     {
-        var hit = RayCastResult.Default;
-
         var broadPhaseFilter = new JoltPhysicsBroadPhaseLayerFilter();
 
         var objectLayerFilter = new JoltPhysicsObjectLayerFilter()
@@ -1208,27 +1230,56 @@ public class JoltPhysics3D : IPhysics3D
         var result = false;
 
         var r = new JoltPhysicsSharp.Ray(ray.position, ray.direction * maxDistance);
+        var results = new List<RayCastResult>();
 
         lock (threadLock)
         {
             if(locked)
             {
-                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay(r, out hit, broadPhaseFilter, objectLayerFilter, bodyFilter);
+                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay(r, new RayCastSettings(), CollisionCollectorType.ClosestHit, results,
+                    broadPhaseFilter, objectLayerFilter, bodyFilter);
             }
             else
             {
-                result = physicsSystem.NarrowPhaseQuery.CastRay(r, out hit, broadPhaseFilter, objectLayerFilter, bodyFilter);
+                result = physicsSystem.NarrowPhaseQuery.CastRay(r, new RayCastSettings(), CollisionCollectorType.ClosestHit, results,
+                    broadPhaseFilter, objectLayerFilter, bodyFilter);
             }
         }
 
         if (result)
         {
-            if (TryFindBody(hit.BodyID, out body))
-            {
-                fraction = hit.Fraction;
+            var closestDistance = 99999.0f;
+            var lastBody = default(IBody3D);
 
-                return true;
+            fraction = default;
+
+            foreach(var hit in results)
+            {
+                if (TryFindBody(hit.BodyID, out body))
+                {
+                    var distance = Vector3.DistanceSquared(body.Position, ray.position);
+
+                    if (lastBody != null)
+                    {
+                        if(distance < closestDistance)
+                        {
+                            fraction = hit.Fraction;
+                            closestDistance = distance;
+                            lastBody = body;
+                        }
+                    }
+                    else
+                    {
+                        fraction = hit.Fraction;
+                        closestDistance = distance;
+                        lastBody = body;
+                    }
+                }
             }
+
+            body = lastBody;
+
+            return true;
         }
 
         body = default;

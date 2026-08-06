@@ -30,6 +30,8 @@ public static class TypeCache
 
     internal static FrozenDictionary<string, HashSet<string>> frozenInheritance;
 
+    internal static FrozenDictionary<string, Func<IComponent, int>> frozenComponentHashers;
+
     internal static Type[] frozenTypesArray;
 
     internal static readonly Dictionary<string, Type> types = [];
@@ -44,6 +46,8 @@ public static class TypeCache
 
     internal static readonly Dictionary<string, HashSet<string>> inheritance = [];
 
+    internal static readonly Dictionary<string, Func<IComponent, int>> componentHashers = [];
+
     /// <summary>
     /// Clears the type cache
     /// </summary>
@@ -55,6 +59,7 @@ public static class TypeCache
         componentCallbacks.Clear();
         subclassCaches.Clear();
         inheritance.Clear();
+        componentHashers.Clear();
 
         frozenArrayConstructors = null;
         frozenComponentCallbacks = null;
@@ -62,6 +67,7 @@ public static class TypeCache
         frozenSizeOfs = null;
         frozenTypes = null;
         frozenTypesArray = null;
+        frozenComponentHashers = null;
 
         useFrozenCollections = false;
     }
@@ -78,6 +84,7 @@ public static class TypeCache
         frozenInheritance = inheritance.ToFrozenDictionary();
         frozenSizeOfs = sizeOfs.ToFrozenDictionary();
         frozenTypes = types.ToFrozenDictionary();
+        frozenComponentHashers = componentHashers.ToFrozenDictionary();
 
         frozenTypesArray = types.Values.ToArray();
     }
@@ -303,6 +310,35 @@ public static class TypeCache
 
             return default;
         }
+    }
+
+    /// <summary>
+    /// Registers a hasher function for a component to identify when a component changed
+    /// </summary>
+    /// <param name="typeName">The name of the component type</param>
+    /// <param name="hasher">A hasher function that would receive the component instance and generate the hash</param>
+    public static void RegisterComponentHasher(string typeName, Func<IComponent, int> hasher)
+    {
+        componentHashers.AddOrSetKey(typeName, hasher);
+    }
+
+    /// <summary>
+    /// Gets a component's hash
+    /// </summary>
+    /// <param name="component">The component to hash</param>
+    /// <returns>The hash, or 0</returns>
+    public static int GetComponentHash(IComponent component)
+    {
+        if(component is null ||
+            (useFrozenCollections ?
+                !frozenComponentHashers.TryGetValue(component.GetType().FullName, out var hasher) :
+                !componentHashers.TryGetValue(component.GetType().FullName, out hasher)
+            ))
+        {
+            return 0;
+        }
+
+        return hasher(component);
     }
 
     /// <summary>

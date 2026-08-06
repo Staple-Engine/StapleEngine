@@ -13,6 +13,9 @@ internal class JoltBodyPair : IBody3D
     public Entity entity;
     public Transform transform;
     public Body body;
+    public RigidBody3D rigidBody;
+
+    public int rigidBodyHash;
 
     public Entity Entity => entity;
 
@@ -150,5 +153,29 @@ internal class JoltBodyPair : IBody3D
     public void AddImpulse(Vector3 impulse)
     {
         Physics3D.Instance.AddImpulse(this, impulse);
+    }
+
+    internal int GetRigidBodyHash()
+    {
+        if(rigidBody is null)
+        {
+            return 0;
+        }
+
+        return TypeCache.GetComponentHash(rigidBody);
+    }
+
+    internal bool NeedsReset()
+    {
+        var hash = GetRigidBodyHash();
+
+        if (hash == 0 || hash == rigidBodyHash)
+        {
+            return false;
+        }
+
+        rigidBodyHash = hash;
+
+        return true;
     }
 }

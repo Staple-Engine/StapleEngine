@@ -90,6 +90,7 @@ namespace StapleCodeGeneration
             var constructibleTypes = new HashSet<string>();
             var sizableTypes = new HashSet<string>();
             var componentTypes = new HashSet<string>();
+            var componentHashers = new Dictionary<string, string>();
             var typeSizes = new Dictionary<string, int>();
 
             void Perform(IAssemblySymbol symbol, bool isSelf)
@@ -163,6 +164,39 @@ namespace StapleCodeGeneration
                     if (t.AllInterfaces.Any(x => x.ContainingNamespace?.Name == "Staple" && x.Name == "IComponent"))
                     {
                         componentTypes.Add(typeName);
+
+                        if(!componentHashers.TryGetValue(typeName, out var hasher))
+                        {
+                            hasher = $@"(c) =>
+    {{
+        if(c is not {typeName} component)
+        {{
+            return 0;
+        }}
+
+        var hashCode = new HashCode();
+
+";
+
+                            foreach(var member in t.GetMembers())
+                            {
+                                if(member.Kind != SymbolKind.Field ||
+                                    member.DeclaredAccessibility != Accessibility.Public ||
+                                    member.IsStatic)
+                                {
+                                    continue;
+                                }
+
+                                hasher += $"hashCode.Add(component.{member.Name});\n";
+                            }
+
+                            hasher += $@"
+
+        return hashCode.ToHashCode();
+    }}";
+
+                            componentHashers.Add(typeName, hasher);
+                        }
                     }
 
                     foreach (var member in t.GetMembers().Where(x => x.Kind == SymbolKind.Field))
@@ -417,6 +451,16 @@ namespace StapleCodeGeneration
                 }});
 
 ";
+
+                        if(componentHashers.TryGetValue(type, out var hasher))
+                        {
+                            source += $@"
+            Staple.Internal.TypeCache.RegisterComponentHasher(typeof({type}).FullName,
+                {hasher}
+            );
+
+";
+                        }
                     }
                     else
                     {

@@ -1704,11 +1704,11 @@ public sealed partial class Mesh : IGuidAsset
 
             if(mesh.meshAsset?.meshResource?.generateColliders ?? false)
             {
-                var meshCollider = meshTransform.Entity.AddComponent<MeshCollider3D>();
+                var meshCollider = meshEntity.AddComponent<MeshCollider3D>();
 
                 meshCollider.mesh = mesh;
 
-                var body = meshTransform.Entity.AddComponent<RigidBody3D>();
+                var body = meshEntity.AddComponent<RigidBody3D>();
 
                 body.motionType = BodyMotionType.Static;
             }

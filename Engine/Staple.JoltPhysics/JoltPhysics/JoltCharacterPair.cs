@@ -1,4 +1,5 @@
 ﻿using JoltPhysicsSharp;
+using Staple.Internal;
 using System.Numerics;
 
 namespace Staple.JoltPhysics;
@@ -11,9 +12,12 @@ internal class JoltCharacterPair : IBody3D
     public Entity entity;
     public Character character;
     public Transform transform;
+    public RigidBody3D rigidBody;
     public float friction;
     public float gravityFactor;
     public bool enabled;
+
+    public int rigidBodyHash;
 
     public Vector3 previousPosition;
     public Vector3 currentPosition;
@@ -125,5 +129,29 @@ internal class JoltCharacterPair : IBody3D
     public void AddImpulse(Vector3 impulse)
     {
         character.AddImpulse(impulse);
+    }
+
+    internal int GetRigidBodyHash()
+    {
+        if (rigidBody is null)
+        {
+            return 0;
+        }
+
+        return TypeCache.GetComponentHash(rigidBody);
+    }
+
+    internal bool NeedsReset()
+    {
+        var hash = GetRigidBodyHash();
+
+        if (hash == 0 || hash == rigidBodyHash)
+        {
+            return false;
+        }
+
+        rigidBodyHash = hash;
+
+        return true;
     }
 }
