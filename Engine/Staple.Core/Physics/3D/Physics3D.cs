@@ -636,65 +636,95 @@ public sealed class Physics3D : ISubsystem
             return;
         }
 
-        World.AddComponentAddedCallback(typeof(RigidBody3D), (World world, Entity entity, ref IComponent component) =>
-        {
-            if(!Platform.IsPlaying)
+        World.AddComponentAddedCallback(typeof(RigidBody3D),
+            (World world, Entity entity, ref IComponent component) =>
             {
-                return;
-            }
+                if(!Platform.IsPlaying)
+                {
+                    return;
+                }
 
-            using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+                using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
-            var rigidBody = (RigidBody3D)component;
+                var rigidBody = (RigidBody3D)component;
 
-            rigidBody.body = CreateBody(entity, world);
-        });
+                rigidBody.body = CreateBody(entity, world);
+            });
 
-        World.AddComponentAddedCallback(typeof(Character3D), (World world, Entity entity, ref IComponent component) =>
-        {
-            if (!Platform.IsPlaying)
+        World.AddComponentChangedCallback(typeof(RigidBody3D),
+            (World world, Entity entity, ref IComponent component) =>
             {
-                return;
-            }
+                if (!Platform.IsPlaying)
+                {
+                    return;
+                }
 
-            using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+                using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
-            var character = (Character3D)component;
+                RecreateBody(entity);
+            });
 
-            character.body = CreateBody(entity, world);
-        });
-
-        World.AddComponentRemovedCallback(typeof(RigidBody3D), (World world, Entity entity, ref IComponent component) =>
-        {
-            if (!Platform.IsPlaying)
+        World.AddComponentAddedCallback(typeof(Character3D),
+            (World world, Entity entity, ref IComponent component) =>
             {
-                return;
-            }
+                if (!Platform.IsPlaying)
+                {
+                    return;
+                }
 
-            using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+                using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
-            var rigidBody = (RigidBody3D)component;
+                var character = (Character3D)component;
 
-            DestroyBody(rigidBody.body);
+                character.body = CreateBody(entity, world);
+            });
 
-            rigidBody.body = null;
-        });
-
-        World.AddComponentRemovedCallback(typeof(Character3D), (World world, Entity entity, ref IComponent component) =>
-        {
-            if (!Platform.IsPlaying)
+        World.AddComponentChangedCallback(typeof(Character3D),
+            (World world, Entity entity, ref IComponent component) =>
             {
-                return;
-            }
+                if (!Platform.IsPlaying)
+                {
+                    return;
+                }
 
-            using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+                using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
-            var character = (Character3D)component;
+                RecreateBody(entity);
+            });
 
-            DestroyBody(character.body);
+        World.AddComponentRemovedCallback(typeof(RigidBody3D),
+            (World world, Entity entity, ref IComponent component) =>
+            {
+                if (!Platform.IsPlaying)
+                {
+                    return;
+                }
 
-            character.body = null;
-        });
+                using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
+                var rigidBody = (RigidBody3D)component;
+
+                DestroyBody(rigidBody.body);
+
+                rigidBody.body = null;
+            });
+
+        World.AddComponentRemovedCallback(typeof(Character3D),
+            (World world, Entity entity, ref IComponent component) =>
+            {
+                if (!Platform.IsPlaying)
+                {
+                    return;
+                }
+
+                using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
+                var character = (Character3D)component;
+
+                DestroyBody(character.body);
+
+                character.body = null;
+            });
 
         Impl.Startup();
 

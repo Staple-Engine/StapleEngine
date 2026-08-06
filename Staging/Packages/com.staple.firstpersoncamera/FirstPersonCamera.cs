@@ -40,6 +40,11 @@ public class FirstPersonCamera : CallbackComponent
         Cursor.Visible = false;
 
         body = Physics.GetBody3D(focus);
+
+        if(body == null && Physics.GetBody3D(entity) != null)
+        {
+            Log.Error($"First Person Camera: Warning: There's no body in the Focus entity, but the camera entity has it. Please use a focus entity.");
+        }
     }
 
     public override void Update()
@@ -55,15 +60,15 @@ public class FirstPersonCamera : CallbackComponent
 
             angles.Y = Math.Repeat(angles.Y, 360);
 
-            if (body == null)
-            {
-                transform.Rotation = Quaternion.Euler(angles.X, angles.Y, 0);
-            }
-            else
+            if (body != null)
             {
                 body.Rotation = Quaternion.Euler(0, angles.Y, 0);
 
                 transform.LocalRotation = Quaternion.Euler(angles.X, 0, 0);
+            }
+            else
+            {
+                transform.Rotation = Quaternion.Euler(angles.X, angles.Y, 0);
             }
         }
 

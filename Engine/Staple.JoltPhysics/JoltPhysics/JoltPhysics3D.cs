@@ -37,7 +37,6 @@ public class JoltPhysics3D : IPhysics3D
     private readonly Dictionary<Entity, JoltCharacterPair> entityCharacters = [];
     private readonly Lock threadLock = new();
     private readonly CallbackGatherer callbackGatherer = new();
-    private readonly ExpandableContainer<Entity> pendingRecreationBodies = new();
 
     private bool destroyed = false;
     private bool locked = false;
@@ -433,13 +432,6 @@ public class JoltPhysics3D : IPhysics3D
 
         lock (threadLock)
         {
-            foreach(var p in pendingRecreationBodies.Contents)
-            {
-                Physics3D.Instance.RecreateBody(p);
-            }
-
-            pendingRecreationBodies.Clear();
-
             foreach (var pair in bodies)
             {
                 var p = pair.Value;
@@ -460,11 +452,6 @@ public class JoltPhysics3D : IPhysics3D
                 else if (!p.body.IsActive)
                 {
                     physicsSystem.BodyInterface.ActivateBody(p.body.ID);
-                }
-
-                if(p.NeedsReset())
-                {
-                    pendingRecreationBodies.Add(p.entity);
                 }
             }
 
@@ -492,11 +479,6 @@ public class JoltPhysics3D : IPhysics3D
                     p.enabled = true;
 
                     p.character.AddToPhysicsSystem();
-                }
-
-                if (p.NeedsReset())
-                {
-                    pendingRecreationBodies.Add(p.entity);
                 }
             }
         }
@@ -583,7 +565,6 @@ public class JoltPhysics3D : IPhysics3D
                     character = character,
                     entity = entity,
                     transform = entity.GetComponent<Transform>(),
-                    rigidBody = entity.GetComponent<RigidBody3D>(),
                     gravityFactor = gravityFactor,
                     friction = friction,
                     Position = position,
@@ -594,8 +575,6 @@ public class JoltPhysics3D : IPhysics3D
                     previousPosition = position,
                     previousRotation = rotation.SafeNormalize(),
                 };
-
-                pair.rigidBodyHash = pair.GetRigidBodyHash();
 
                 characters.Add(character.BodyID, pair);
 
@@ -693,14 +672,11 @@ public class JoltPhysics3D : IPhysics3D
                     body = b,
                     entity = entity,
                     transform = entity.GetComponent<Transform>(),
-                    rigidBody = entity.GetComponent<RigidBody3D>(),
                     currentPosition = position,
                     currentRotation = rotation.SafeNormalize(),
                     previousPosition = position,
                     previousRotation = rotation.SafeNormalize(),
                 };
-
-                pair.rigidBodyHash = pair.GetRigidBodyHash();
 
                 bodies.Add(b.ID, pair);
                 entityBodies.Add(entity, pair);

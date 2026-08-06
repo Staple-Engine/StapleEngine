@@ -57,6 +57,11 @@ public partial class World
         public Dictionary<int, IComponent> components = [];
 
         /// <summary>
+        /// Stores component state hashes
+        /// </summary>
+        public Dictionary<int, int> componentStateHashes = [];
+
+        /// <summary>
         /// The entity's name
         /// </summary>
         public string name;
@@ -90,6 +95,11 @@ public partial class World
         /// List of emitted component add events
         /// </summary>
         public readonly HashSet<int> emittedAddComponents = [];
+
+        /// <summary>
+        /// List of emitted component change events
+        /// </summary>
+        public readonly HashSet<int> emittedChangeComponents = [];
 
         public Entity ToEntity()
         {
@@ -209,6 +219,7 @@ public partial class World
     private static readonly WorldChangeBox worldChangeReceivers = new();
     private static readonly SceneQueryBox sceneQueries = new();
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentAddedCallbacks = [];
+    private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentChangedCallbacks = [];
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentRemovedCallbacks = [];
 
     internal static void AddSceneQuery(ISceneQuery receiver)
@@ -373,6 +384,7 @@ public partial class World
                     if(TryGetEntity(item.Item1, out var entityInfo))
                     {
                         entityInfo.components.Remove(item.Item2);
+                        entityInfo.componentStateHashes.Remove(item.Item2);
 
                         needsEmitWorldChange = true;
                     }
@@ -411,6 +423,7 @@ public partial class World
                     }
 
                     info.components.Clear();
+                    info.componentStateHashes.Clear();
 
                     removedComponents.RemoveWhere(x => x.Item1 == e);
 
@@ -437,6 +450,31 @@ public partial class World
 
                 EmitWorldChangedEvent(false);
             }
+            else
+            {
+                foreach(var entity in cachedEntityList.Contents)
+                {
+                    if(!entity.alive)
+                    {
+                        continue;
+                    }
+
+                    foreach(var pair in entity.components)
+                    {
+                        var hash = TypeCache.GetComponentHash(pair.Value);
+
+                        if(!entity.componentStateHashes.TryGetValue(pair.Key, out var componentHash) ||
+                            componentHash != hash)
+                        {
+                            entity.componentStateHashes.AddOrSetKey(pair.Key, hash);
+
+                            var component = pair.Value;
+
+                            EmitChangedComponentEvent(entity.ToEntity(), ref component);
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -458,6 +496,7 @@ public partial class World
                 }
 
                 entity.components.Clear();
+                entity.componentStateHashes.Clear();
             }
 
             entities.Clear();

@@ -48,6 +48,7 @@ public partial class World
                     foreach(var entity in entities.Contents)
                     {
                         entity.components.Remove(key);
+                        entity.componentStateHashes.Remove(key);
                     }
                 }
             }
@@ -110,6 +111,7 @@ public partial class World
                 needsEmitWorldChange = true;
 
                 entityInfo.components.Add(hash, component);
+                entityInfo.componentStateHashes.Add(hash, TypeCache.GetComponentHash(component));
 
                 if (!Scene.InstancingComponent)
                 {
@@ -142,6 +144,7 @@ public partial class World
                     if(t.IsValueType)
                     {
                         entityInfo.components.AddOrSetKey(hash, component);
+                        entityInfo.componentStateHashes.AddOrSetKey(hash, TypeCache.GetComponentHash(component));
                     }
                 }
                 catch(Exception e)
@@ -307,6 +310,8 @@ public partial class World
                     }
 
                     entityInfo.components[typeName] = component;
+
+                    entityInfo.componentStateHashes[typeName] = TypeCache.GetComponentHash(component);
                 }
             }
         }
@@ -532,6 +537,37 @@ public partial class World
     }
 
     /// <summary>
+    /// Adds a callback for when a component is changed
+    /// </summary>
+    /// <param name="componentType">The component type</param>
+    /// <param name="callback">The callback to call</param>
+    public static void AddComponentChangedCallback([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type componentType,
+        OnComponentChangedCallback callback)
+    {
+        if (componentType.GetInterface(typeof(IComponent).FullName) == null)
+        {
+            return;
+        }
+
+        lock (globalLockObject)
+        {
+            if (!componentChangedCallbacks.TryGetValue(componentType.FullName.GetHashCode(), out var c))
+            {
+                c = [];
+
+                componentChangedCallbacks.Add(componentType.FullName.GetHashCode(), c);
+            }
+
+            if (c.Contains(callback))
+            {
+                return;
+            }
+
+            c.Add(callback);
+        }
+    }
+
+    /// <summary>
     /// Adds a callback for when a component is removed from an entity
     /// </summary>
     /// <param name="componentType">The component type</param>
@@ -605,6 +641,58 @@ public partial class World
                     }
 
                     entityInfo.emittedAddComponents.Add(hash);
+                }
+
+                while (removedCallbacks.Count > 0)
+                {
+                    var item = removedCallbacks.Pop();
+
+                    callbacks.RemoveAt(item);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Emits a component changed event
+    /// </summary>
+    /// <param name="entity">The entity to emit for</param>
+    /// <param name="component">The component that was added</param>
+    internal void EmitChangedComponentEvent(Entity entity, ref IComponent component)
+    {
+        var hash = component?.GetType().FullName.GetHashCode() ?? 0;
+
+        if (component == null ||
+            !TryGetEntity(entity, out var entityInfo))
+        {
+            return;
+        }
+
+        lock (globalLockObject)
+        {
+            if (componentChangedCallbacks.TryGetValue(hash, out var callbacks))
+            {
+                var removedCallbacks = new Stack<int>();
+
+                for (var i = 0; i < callbacks.Count; i++)
+                {
+                    var callback = callbacks[i];
+
+                    if (callback == null)
+                    {
+                        removedCallbacks.Push(i);
+
+                        continue;
+                    }
+
+                    try
+                    {
+                        callback?.Invoke(this, entity, ref component);
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Debug($"[World] ChangeComponent: Failed to handle a component change callback: {ex}");
+                    }
                 }
 
                 while (removedCallbacks.Count > 0)
