@@ -1351,7 +1351,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             return false;
         }
 
-        var hash = state.StateKey;
+        var hash = HashCode.Combine(state.StateKey, vertexLayout.StateKey);
 
         if (!graphicsPipelines.TryGetValue(hash, out var p))
         {

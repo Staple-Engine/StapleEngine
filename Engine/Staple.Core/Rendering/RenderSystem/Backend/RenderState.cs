@@ -95,7 +95,7 @@ internal struct RenderState
             hashCode.Add(wireframe);
             hashCode.Add(enableDepth);
             hashCode.Add(depthWrite);
-            hashCode.Add(vertexBuffer?.layout);
+            hashCode.Add(vertexBuffer?.layout?.StateKey ?? 0);
             hashCode.Add(sourceBlend);
             hashCode.Add(destinationBlend);
             hashCode.Add(shaderInstance?.program?.StateKey ?? 0);

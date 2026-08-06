@@ -1,6 +1,7 @@
 {
 	"shader": "2773f708-3dc3-40da-a025-2c04862fd46a",
 	"enabledShaderVariants": [],
+	"cullingMode": "None",
 	"parameters": {
 		"mainColor":  {
 			"type": "Color",

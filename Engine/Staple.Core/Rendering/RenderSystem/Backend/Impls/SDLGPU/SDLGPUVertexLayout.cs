@@ -17,5 +17,17 @@ internal class SDLGPUVertexLayout : VertexLayout
 
         this.attributes = attributes.ToArray();
         this.vertexAttributes = vertexAttributes;
+
+        var hashCode = new HashCode();
+
+        foreach(var attribute in attributes)
+        {
+            hashCode.Add(attribute.buffer_slot);
+            hashCode.Add(attribute.format);
+            hashCode.Add(attribute.location);
+            hashCode.Add(attribute.offset);
+        }
+
+        StateKey = hashCode.ToHashCode();
     }
 }

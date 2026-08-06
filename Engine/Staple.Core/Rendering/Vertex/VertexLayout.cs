@@ -16,4 +16,9 @@ public abstract class VertexLayout
     /// The byte count of a vertex
     /// </summary>
     public int Stride { get; protected set; }
+
+    /// <summary>
+    /// Used for render state hashing
+    /// </summary>
+    public int StateKey { get; protected set; }
 }
