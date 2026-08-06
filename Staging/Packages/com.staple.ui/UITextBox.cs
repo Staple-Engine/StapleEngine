@@ -77,7 +77,7 @@ public class UITextBox(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void Draw(Vector2Int parentPosition)
     {
-        var position = parentPosition + Position;
+        var position = parentPosition + PositionInParent;
 
         var size = Size + new Vector2Int(padding * 2, 0);
 

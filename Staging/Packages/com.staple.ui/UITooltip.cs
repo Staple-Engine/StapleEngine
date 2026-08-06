@@ -52,7 +52,7 @@ public class UITooltip(UIManager manager, string ID) : UIPanel(manager, ID)
         var actualFontSize = MeasureTextSimple(text, new TextParameters()
             .FontSize(fontSize)).AbsoluteSize;
 
-        var position = parentPosition + Position;
+        var position = parentPosition + PositionInParent;
 
         position.Y -= Size.Y;
 

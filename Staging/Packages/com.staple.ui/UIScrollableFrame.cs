@@ -42,7 +42,7 @@ public class UIScrollableFrame(UIManager manager, string ID) : UIPanel(manager, 
             horizontalScrollbar.parent = this;
         }
 
-        var position = parentPosition + Position;
+        var position = parentPosition + PositionInParent;
 
         var childrenSize = ChildrenSize;
 
@@ -126,7 +126,7 @@ public class UIScrollableFrame(UIManager manager, string ID) : UIPanel(manager, 
             MakeScrolls();
         }
 
-        var position = parentPosition + Position;
+        var position = parentPosition + PositionInParent;
 
         if(IsCulled(position))
         {

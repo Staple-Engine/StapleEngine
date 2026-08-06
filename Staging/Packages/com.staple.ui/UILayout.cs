@@ -16,6 +16,7 @@ public class UILayout
         public string wide;
         public string tall;
         public bool visible = true;
+        public string alignment;
 
         public Dictionary<string, object> properties = [];
 

@@ -51,7 +51,7 @@ public class UIMenuBar(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void Draw(Vector2Int parentPosition)
     {
-        var position = parentPosition + Position;
+        var position = parentPosition + PositionInParent;
 
         if(IsCulled(position))
         {

@@ -126,7 +126,7 @@ public sealed class UIManager
             return;
         }
 
-        var min = parentPosition + parent.Position;
+        var min = parentPosition + parent.PositionInParent;
         var max = min + parent.Size;
 
         var aabb = AABB.CreateFromMinMax(new Vector3(min, 0), new Vector3(max, 0));
@@ -137,7 +137,7 @@ public sealed class UIManager
 
             foreach (var child in parent.Children)
             {
-                RecursiveFindFocusedElement(parentPosition + parent.Position - parent.Translation + parent.ChildOffset, child, ref foundElement);
+                RecursiveFindFocusedElement(parentPosition + parent.PositionInParent - parent.Translation + parent.ChildOffset, child, ref foundElement);
             }
         }
     }
@@ -594,6 +594,13 @@ public sealed class UIManager
                         }
                     }
 
+                    {
+                        if (panelData.alignment != null && Enum.TryParse<UIPanelAlignment>(panelData.alignment, true, out var alignment))
+                        {
+                            element.Alignment = alignment;
+                        }
+                    }
+
                     element.Position = position;
                     element.Size = size;
 
@@ -647,10 +654,7 @@ public sealed class UIManager
 
         CurrentMenu = CreateElement<UIMenu>("UIManager.CurrentMenu");
 
-        if(CurrentMenu != null)
-        {
-            CurrentMenu.Position = position;
-        }
+        CurrentMenu?.Position = position;
 
         return CurrentMenu;
     }

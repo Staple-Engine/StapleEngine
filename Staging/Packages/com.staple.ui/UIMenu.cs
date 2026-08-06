@@ -76,7 +76,7 @@ public class UIMenu(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void Draw(Vector2Int parentPosition)
     {
-        var position = parentPosition + Position - new Vector2Int(padding.X, 0);
+        var position = parentPosition + PositionInParent - new Vector2Int(padding.X, 0);
 
         if(IsCulled(position))
         {

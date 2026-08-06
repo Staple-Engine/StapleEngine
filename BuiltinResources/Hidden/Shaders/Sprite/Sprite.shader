@@ -1,5 +1,7 @@
 Type VertexFragment
 
+RenderQueue AlphaTest 0
+
 Blend SrcAlpha OneMinusSrcAlpha
 
 Begin Parameters

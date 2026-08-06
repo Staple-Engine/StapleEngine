@@ -44,7 +44,7 @@ public class UIList(UIManager manager, string ID) : UIPanel(manager, ID)
 
     protected void OnItemClickCheck(UIPanel self)
     {
-        var position = GlobalPosition + Position;
+        var position = GlobalPosition + PositionInParent;
 
         var height = 0.0f;
 
@@ -95,7 +95,7 @@ public class UIList(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void Update(Vector2Int parentPosition)
     {
-        var position = GlobalPosition + Position;
+        var position = GlobalPosition + PositionInParent;
 
         var height = 0.0f;
 
@@ -132,7 +132,7 @@ public class UIList(UIManager manager, string ID) : UIPanel(manager, ID)
             return;
         }
 
-        var position = parentPosition + Position;
+        var position = parentPosition + PositionInParent;
 
         if(IsCulled(position))
         {

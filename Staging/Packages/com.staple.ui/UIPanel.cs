@@ -64,6 +64,11 @@ public abstract partial class UIPanel
     public Vector2Int ChildOffset { get; protected set; }
 
     /// <summary>
+    /// Alignment based on parent
+    /// </summary>
+    public UIPanelAlignment Alignment { get; set; }
+
+    /// <summary>
     /// The alpha transparency of this element
     /// </summary>
     public float LocalAlpha { get; set; } = 1;
@@ -242,6 +247,27 @@ public abstract partial class UIPanel
             }
 
             return outValue;
+        }
+    }
+
+    public Vector2Int PositionInParent
+    {
+        get
+        {
+            var parentSize = parent?.Size ?? Manager.CanvasSize;
+
+            return Alignment switch
+            {
+                UIPanelAlignment.TopLeft => Position,
+                UIPanelAlignment.Top => new((parentSize.X - Size.X) / 2 - Position.X, Position.Y),
+                UIPanelAlignment.TopRight => new((parentSize.X - Size.X) - Position.X, Position.Y),
+                UIPanelAlignment.Left => new(Position.X, (parentSize.Y - Size.Y) / 2 - Position.Y),
+                UIPanelAlignment.Center => new((parentSize.X - Size.X) / 2 - Position.X, (parentSize.Y - Size.Y) / 2 - Position.Y),
+                UIPanelAlignment.Right => new((parentSize.X - Size.X) - Position.X, (parentSize.Y - Size.Y) / 2 - Position.Y),
+                UIPanelAlignment.BottomLeft => new(Position.X, (parentSize.Y - Size.Y) + Position.Y),
+                UIPanelAlignment.Bottom => new((parentSize.X - Size.X) / 2 - Position.X, (parentSize.Y - Size.Y) + Position.Y),
+                _ => new((parentSize.X - Size.X) - Position.X, (parentSize.Y - Size.Y) + Position.Y),
+            };
         }
     }
 

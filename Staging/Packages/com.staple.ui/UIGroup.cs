@@ -18,13 +18,13 @@ public class UIGroup(UIManager manager, string ID) : UIPanel(manager, ID)
 
         foreach(var child in Children)
         {
-            child.Update(parentPosition + Position);
+            child.Update(parentPosition + PositionInParent);
         }
     }
 
     public override void Draw(Vector2Int parentPosition)
     {
-        var position = parentPosition + Position;
+        var position = parentPosition + PositionInParent;
 
         if (IsCulled(position))
         {

@@ -46,7 +46,7 @@ public class UISprite(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void Update(Vector2Int parentPosition)
     {
-        var position = parentPosition + Position;
+        var position = parentPosition + PositionInParent;
 
         foreach (var child in Children)
         {
@@ -56,7 +56,7 @@ public class UISprite(UIManager manager, string ID) : UIPanel(manager, ID)
 
     public override void Draw(Vector2Int parentPosition)
     {
-        var position = GlobalPosition + Position;
+        var position = GlobalPosition + PositionInParent;
 
         if(sprite == null || IsCulled(position))
         {
