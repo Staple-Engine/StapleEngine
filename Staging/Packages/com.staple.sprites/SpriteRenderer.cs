@@ -6,11 +6,6 @@ namespace Staple;
 public sealed class SpriteRenderer : Renderable
 {
     /// <summary>
-    /// The renderer's material
-    /// </summary>
-    public Material material;
-
-    /// <summary>
     /// The sprite to use
     /// </summary>
     public Sprite sprite;

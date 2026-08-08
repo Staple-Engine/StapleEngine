@@ -16,12 +16,6 @@ public class SpriteRendererEditor : Editor
                 setter(EditorGUI.SpritePicker(name, getter() as Sprite, $"{name}.SpritePicker"));
 
                 return true;
-
-            case nameof(SpriteRenderer.material):
-
-                renderer.material ??= SpriteUtils.DefaultMaterial.Value;
-
-                return false;
         }
 
         return false;

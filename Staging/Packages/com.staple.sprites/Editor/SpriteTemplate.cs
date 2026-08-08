@@ -14,7 +14,7 @@ public class SpriteTemplate : IEntityTemplate
 
         renderer.sprite = texture != null && texture.Sprites.Length > 0 ? texture.Sprites[0] : null;
 
-        renderer.material = SpriteUtils.DefaultMaterial.Value;
+        renderer.materials = [SpriteUtils.DefaultMaterial.Value];
 
         return entity;
     }

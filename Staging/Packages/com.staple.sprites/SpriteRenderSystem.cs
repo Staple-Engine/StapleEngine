@@ -280,7 +280,24 @@ public class SpriteRenderSystem : RenderSystemBase
                 hasValidAnimation;
 
             if (hasValidTexture == false ||
-                (r.material?.IsValid ?? false) == false)
+                r.materials?.Count != 1)
+            {
+                continue;
+            }
+
+            var skip = false;
+
+            foreach(var material in r.materials)
+            {
+                if(!(material?.IsValid ?? false))
+                {
+                    skip = true;
+
+                    break;
+                }
+            }
+
+            if(skip)
             {
                 continue;
             }
@@ -380,8 +397,7 @@ public class SpriteRenderSystem : RenderSystemBase
             var hasValidTexture = (r.sprite?.IsValid ?? false) ||
                 hasValidAnimation;
 
-            if (hasValidTexture == false ||
-                !IsValidMaterial(r.material, renderIndex))
+            if (hasValidTexture == false)
             {
                 continue;
             }
@@ -459,28 +475,33 @@ public class SpriteRenderSystem : RenderSystemBase
                 scale.Y *= -1;
             }
 
-            if(mutableMaterials.TryGetValue(r.material.Guid.GuidHash, out var mutableMaterial) == false)
+            IterateValidMaterials(r, renderIndex, (index) =>
             {
-                mutableMaterial = new(r.material);
+                var material = r.materials[index];
 
-                mutableMaterial.DisableShaderKeyword(Shader.SkinningKeyword);
+                if (mutableMaterials.TryGetValue(material.Guid.GuidHash, out var mutableMaterial) == false)
+                {
+                    mutableMaterial = new(material);
 
-                mutableMaterials.Add(r.material.Guid.GuidHash, mutableMaterial);
-            }
+                    mutableMaterial.DisableShaderKeyword(Shader.SkinningKeyword);
 
-            container.Add(new SpriteRenderInfo()
-            {
-                color = r.color,
-                material = mutableMaterial,
-                texture = sprite.texture,
-                textureRect = sprite.Rect,
-                transform = entry.transform,
-                scale = scale,
-                sortingOrder = r.sortingOrder,
-                layer = r.sortingLayer,
-                border = sprite.Border,
-                renderMode = r.renderMode,
-                localScale = localScale,
+                    mutableMaterials.Add(material.Guid.GuidHash, mutableMaterial);
+                }
+
+                container.Add(new SpriteRenderInfo()
+                {
+                    color = r.color,
+                    material = mutableMaterial,
+                    texture = sprite.texture,
+                    textureRect = sprite.Rect,
+                    transform = entry.transform,
+                    scale = scale,
+                    sortingOrder = r.sortingOrder,
+                    layer = r.sortingLayer,
+                    border = sprite.Border,
+                    renderMode = r.renderMode,
+                    localScale = localScale,
+                });
             });
         }
     }
