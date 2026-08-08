@@ -105,19 +105,33 @@ internal class ProjectBrowser
     public ProjectBrowserNode currentContentNode;
 
     /// <summary>
-    /// The currently browsable project browser nodes
+    /// The currently browseable project browser nodes
     /// </summary>
     private readonly List<ImGuiUtils.ContentGridItem> currentContentBrowserNodes = [];
 
     /// <summary>
+    /// The currently browseable project browser nodes that were filtered through a search query
+    /// </summary>
+    private readonly List<ImGuiUtils.ContentGridItem> searchContentBrowserNodes = [];
+
+    /// <summary>
     /// All nodes in the project
     /// </summary>
-    private List<ProjectBrowserNode> allNodes = [];
+    private readonly List<ProjectBrowserNode> allNodes = [];
 
     /// <summary>
     /// Local editor resources for rendering
     /// </summary>
     internal Dictionary<string, Texture> editorResources = [];
+
+    /// <summary>
+    /// The search query for assets
+    /// </summary>
+    internal string assetSearchQuery = "";
+
+    private string lastAssetSearch = "";
+
+    private float lastAssetSearchTimer;
 
     /// <summary>
     /// Gets an editor resource if able
@@ -1163,7 +1177,70 @@ internal class ProjectBrowser
             });
         });
 
-        ImGuiUtils.ContentGrid(currentContentBrowserNodes, contentPanelPadding, contentPanelThumbnailSize,
+        EditorGUI.SameLine();
+
+        var previousSearch = assetSearchQuery;
+
+        assetSearchQuery = EditorGUI.TextField("Search:", "ProjectBrowser.Search", assetSearchQuery);
+
+        if (assetSearchQuery != previousSearch)
+        {
+            lastAssetSearchTimer = 0;
+        }
+        else if(lastAssetSearch != assetSearchQuery)
+        {
+            lastAssetSearchTimer += Time.deltaTime;
+
+            if(lastAssetSearchTimer >= 0.6f)
+            {
+                lastAssetSearch = assetSearchQuery;
+
+                searchContentBrowserNodes.Clear();
+
+                var assets = AssetDatabase.SearchAssets(null, assetSearchQuery);
+
+                foreach (var asset in assets)
+                {
+                    var assetName = AssetDatabase.GetAssetName(asset);
+
+                    var extension = "";
+
+                    var path = AssetDatabase.GetAssetPath(asset);
+
+                    if (path != null)
+                    {
+                        extension = Path.GetExtension(path);
+                    }
+
+                    var item = new ImGuiUtils.ContentGridItem()
+                    {
+                        name = assetName,
+                        ID = $"{assetName}.{extension}",
+                        notVisible = () => ThumbnailCache.RemoveRenderRequest(path),
+                    };
+
+                    item.ensureValidTexture = (texture) =>
+                    {
+                        if (StapleEditor.instance.RefreshingAssets)
+                        {
+                            return GetResourceIcon(ResourceTypeForExtension(extension));
+                        }
+
+                        if ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(path))
+                        {
+                            return ThumbnailCache.GetThumbnail(path) ??
+                                GetResourceIcon(ResourceTypeForExtension(extension));
+                        }
+
+                        return texture;
+                    };
+
+                    searchContentBrowserNodes.Add(item);
+                }
+            }
+        }
+
+        ImGuiUtils.ContentGrid(string.IsNullOrEmpty(assetSearchQuery) ? currentContentBrowserNodes : searchContentBrowserNodes, contentPanelPadding, contentPanelThumbnailSize,
             "ASSET", true,
             (index, _) =>
             {

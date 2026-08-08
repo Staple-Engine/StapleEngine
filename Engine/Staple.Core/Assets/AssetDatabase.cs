@@ -43,7 +43,7 @@ public static class AssetDatabase
     /// <summary>
     /// Callback to resolve asset paths, if needed.
     /// </summary>
-    public static Func<string, string> assetPathResolver;
+    internal static Func<string, string> assetPathResolver;
 
     /// <summary>
     /// Reloads the asset database. This will scan all files in resource paks and any additional directories in `assetDirectories`.
@@ -435,6 +435,139 @@ public static class AssetDatabase
         {
             Counter("Finished");
         }
+    }
+
+    /// <summary>
+    /// Searches the asset database for a list of assets
+    /// </summary>
+    /// <param name="basePath">The base path to search for, or empty/null if unused</param>
+    /// <param name="query">The search query</param>
+    /// <returns>A list of valid asset guids</returns>
+    public static List<string> SearchAssets(string basePath, string query)
+    {
+        basePath = basePath?.Replace('\\', '/');
+
+        var outValue = new List<string>();
+
+        var queryPieces = query.Split(' ');
+
+        var queryTypes = new HashSet<string>();
+        var partialQueryPieces = new List<string>();
+
+        foreach(var piece in queryPieces)
+        {
+            if(piece.StartsWith("t:", StringComparison.OrdinalIgnoreCase))
+            {
+                var type = piece["t:".Length..];
+
+                switch(type)
+                {
+                    case string s when s.Equals(nameof(Mesh), StringComparison.OrdinalIgnoreCase):
+
+                        queryTypes.Add(typeof(Mesh).FullName);
+
+                        break;
+
+                    case string s when s.Equals(nameof(Material), StringComparison.OrdinalIgnoreCase):
+
+                        queryTypes.Add(typeof(Material).FullName);
+
+                        break;
+
+                    case string s when s.Equals(nameof(Texture), StringComparison.OrdinalIgnoreCase):
+
+                        queryTypes.Add(typeof(Texture).FullName);
+
+                        break;
+
+                    case string s when s.Equals(nameof(Shader), StringComparison.OrdinalIgnoreCase):
+
+                        queryTypes.Add(typeof(Shader).FullName);
+
+                        break;
+
+                    case string s when s.Equals(nameof(Text), StringComparison.OrdinalIgnoreCase):
+
+                        queryTypes.Add(typeof(TextAsset).FullName);
+
+                        break;
+                }
+            }
+            else
+            {
+                partialQueryPieces.Add(piece);
+            }
+        }
+
+        var validAssets = new List<string>();
+
+        bool MatchesPartialQuery(string name)
+        {
+            if(partialQueryPieces.Count == 0)
+            {
+                return true;
+            }
+
+            foreach(var query in partialQueryPieces)
+            {
+                if(!name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        bool MatchesBasePath(string path)
+        {
+            if(string.IsNullOrEmpty(basePath) || path.StartsWith(basePath, StringComparison.InvariantCultureIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        if (queryTypes.Count > 0)
+        {
+            foreach (var type in queryTypes)
+            {
+                if (!assetsByType.TryGetValue(type, out var items))
+                {
+                    continue;
+                }
+
+                foreach(var item in items)
+                {
+                    var name = GetAssetName(item);
+
+                    if(string.IsNullOrEmpty(name) || !MatchesPartialQuery(name) || !MatchesBasePath(GetAssetPath(item)))
+                    {
+                        continue;
+                    }
+
+                    outValue.Add(item);
+                }
+            }
+        }
+        else
+        {
+            foreach(var pair in database.assets)
+            {
+                foreach(var item in pair.Value)
+                {
+                    if (string.IsNullOrEmpty(item.name) || !MatchesPartialQuery(item.name) || !MatchesBasePath(item.path))
+                    {
+                        continue;
+                    }
+
+                    outValue.Add(item.guid);
+                }
+            }
+        }
+
+        return outValue;
     }
 
     /// <summary>
