@@ -172,7 +172,7 @@ public class UFXImporter : IMeshImporter
                         }
                     }
 
-                    void AddColor(string name, bool has, Vector4 color)
+                    void AddColor(string name, UFBXTexture texture)
                     {
                         if (ShaderHasParameter(name) == false)
                         {
@@ -181,12 +181,12 @@ public class UFXImporter : IMeshImporter
 
                         var c = Color.White;
 
-                        if (has)
+                        if (texture.color != Vector4.Zero)
                         {
-                            c.r = color.X;
-                            c.g = color.Y;
-                            c.b = color.Z;
-                            c.a = color.W;
+                            c.r = texture.color.X;
+                            c.g = texture.color.Y;
+                            c.b = texture.color.Z;
+                            c.a = texture.color.W;
                         }
 
                         materialMetadata.parameters.Add(name, new MaterialParameter()
@@ -197,16 +197,16 @@ public class UFXImporter : IMeshImporter
                         });
                     }
 
-                    AddColor("ambientColor", material.ambientColor != Vector4.Zero, material.ambientColor);
-                    AddColor("diffuseColor", material.diffuseColor != Vector4.Zero, material.diffuseColor);
-                    AddColor("emissiveColor", material.emissionColor != Vector4.Zero, material.emissionColor);
-                    AddColor("reflectiveColor", material.reflectionColor != Vector4.Zero, material.reflectionColor);
-                    AddColor("specularColor", material.specularColor != Vector4.Zero, material.specularColor);
-                    AddColor("transparentColor", material.transparencyColor != Vector4.Zero, material.transparencyColor);
+                    AddColor("ambientColor", material.ambient);
+                    AddColor("diffuseColor", material.diffuse);
+                    AddColor("emissiveColor", material.emission);
+                    AddColor("reflectiveColor", material.reflection);
+                    AddColor("specularColor", material.specular);
+                    AddColor("transparentColor", material.transparency);
 
                     var hadCount = 0;
 
-                    void AddTexture(string name, bool has, UFBXString fileName, TextureWrap wrapU, TextureWrap wrapV)
+                    void AddTexture(string name, UFBXTexture texture)
                     {
                         if (ShaderHasParameter(name) == false)
                         {
@@ -218,17 +218,79 @@ public class UFXImporter : IMeshImporter
                         var mappingU = TextureWrap.Clamp;
                         var mappingV = TextureWrap.Clamp;
 
-                        if (has)
+                        if (texture.Has)
                         {
-                            texturePath = resolveTexturePath(fileName.ToString(), meshFileName);
+                            var fileName = texture.fileName.ToString();
 
-                            hadCount++;
+                            texturePath = resolveTexturePath(fileName, meshFileName);
+
+                            if(string.IsNullOrEmpty(texturePath) && texture.contentSize > 0)
+                            {
+                                var textureData = new Span<byte>((void *)texture.content, (int)texture.contentSize);
+
+                                var innerFileName = string.IsNullOrEmpty(fileName) ? $"{baseName}_{name}.png" :
+                                    Path.GetFileName(texture.fileName.ToString());
+
+                                var guid = GuidGenerator.Generate().ToString();
+
+                                var extension = Path.GetExtension(innerFileName);
+
+                                var path = Path.Combine(Path.GetDirectoryName(meshFileName), innerFileName).Replace('\\', '/');
+
+                                if (materialEmbeddedTextures.TryGetValue(path, out texturePath) == false)
+                                {
+                                    materialEmbeddedTextures.AddOrSetKey(path, guid.ToString());
+
+                                    try
+                                    {
+                                        if (File.Exists(path) == false)
+                                        {
+                                            File.WriteAllBytes(path, textureData);
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+
+                                    try
+                                    {
+                                        var t = $"{path}.meta";
+
+                                        if (File.Exists(t) == false)
+                                        {
+                                            var metadata = new TextureMetadata()
+                                            {
+                                                guid = guid,
+                                            };
+
+                                            var json = JsonConvert.SerializeObject(metadata, Formatting.Indented,
+                                                Staple.Tooling.Utilities.JsonSettings);
+
+                                            File.WriteAllText(t, json);
+                                        }
+                                        else
+                                        {
+                                            guid = Utilities.FindGuid<Texture>(t);
+                                        }
+                                    }
+                                    catch (Exception)
+                                    {
+                                    }
+
+                                    texturePath = guid;
+                                }
+                            }
+
+                            if(!string.IsNullOrEmpty(texturePath))
+                            {
+                                hadCount++;
+                            }
                         }
 
                         if (texturePath.Length > 0)
                         {
-                            mappingU = wrapU;
-                            mappingV = wrapV;
+                            mappingU = (TextureWrap)texture.wrapU;
+                            mappingV = (TextureWrap)texture.wrapV;
                         }
 
                         if (ShaderHasParameter($"{name}_UMapping") && ShaderHasParameter($"{name}_VMapping"))
@@ -256,23 +318,17 @@ public class UFXImporter : IMeshImporter
                         });
                     }
 
-                    AddTexture("ambientTexture", material.ambientTexture.length > 0, material.ambientTexture,
-                        (TextureWrap)material.ambientWrapU, (TextureWrap)material.ambientWrapV);
+                    AddTexture("ambientTexture", material.ambient);
 
-                    AddTexture("diffuseTexture", material.diffuseTexture.length > 0, material.diffuseTexture,
-                        (TextureWrap)material.diffuseWrapU, (TextureWrap)material.diffuseWrapV);
+                    AddTexture("diffuseTexture", material.diffuse);
 
-                    AddTexture("emissiveTexture", material.emissionTexture.length > 0, material.emissionTexture,
-                        (TextureWrap)material.emissionWrapU, (TextureWrap)material.emissionWrapV);
+                    AddTexture("emissiveTexture", material.emission);
 
-                    AddTexture("reflectiveTexture", material.reflectionTexture.length > 0, material.reflectionTexture,
-                        (TextureWrap)material.reflectionWrapU, (TextureWrap)material.reflectionWrapV);
+                    AddTexture("reflectiveTexture", material.reflection);
 
-                    AddTexture("specularTexture", material.specularTexture.length > 0, material.specularTexture,
-                        (TextureWrap)material.specularWrapU, (TextureWrap)material.specularWrapV);
+                    AddTexture("specularTexture", material.specular);
 
-                    AddTexture("transparentTexture", material.transparencyTexture.length > 0, material.transparencyTexture,
-                        (TextureWrap)material.transparencyWrapU, (TextureWrap)material.transparencyWrapV);
+                    AddTexture("transparentTexture", material.transparency);
 
                     MeshImporterContext.FillMaterialParameters(materialMetadata, standardShader);
 

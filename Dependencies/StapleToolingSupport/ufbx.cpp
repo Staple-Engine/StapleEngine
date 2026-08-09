@@ -726,56 +726,64 @@ static TextureWrap UFBXWrapToStapleWrap(ufbx_wrap_mode mode)
 	}
 }
 
+class Texture
+{
+public:
+	Vector4 color;
+	String fileName;
+	TextureWrap wrapU;
+	TextureWrap wrapV;
+	void* content;
+	size_t contentSize;
+
+	Texture() : wrapU(STAPLE_TEXTURE_WRAP_REPEAT), wrapV(STAPLE_TEXTURE_WRAP_REPEAT), content(nullptr), contentSize(0) {}
+	Texture(Vector4 color, String fileName, TextureWrap wrapU, TextureWrap wrapV, void* content, size_t contentSize) :
+		color(color), fileName(fileName), wrapU(wrapU), wrapV(wrapV), content(content), contentSize(contentSize) {}
+	Texture(const Texture& o) : color(o.color), fileName(o.fileName), wrapU(o.wrapU), wrapV(o.wrapV), content(nullptr), contentSize(o.contentSize)
+	{
+		if (contentSize > 0)
+		{
+			content = new uint8_t[contentSize];
+
+			memcpy(content, o.content, contentSize);
+		}
+	}
+
+	~Texture()
+	{
+		if (content != nullptr)
+		{
+			delete[] (uint8_t *)content;
+
+			content = nullptr;
+		}
+	}
+};
+
 class Material
 {
 public:
 
 	String name;
 
-#define MATERIALPROP(name) \
-	Vector4 name ## Color;\
-	String name ## Texture;\
-	TextureWrap name ## WrapU; \
-	TextureWrap name ## WrapV;
+	Texture diffuse;
+	Texture specular;
+	Texture reflection;
+	Texture transparency;
+	Texture emission;
+	Texture ambient;
+	Texture normalMap;
+	Texture bump;
+	Texture displacement;
+	Texture vectorDisplacement;
 
-	MATERIALPROP(diffuse);
-	MATERIALPROP(specular);
-	MATERIALPROP(reflection);
-	MATERIALPROP(transparency);
-	MATERIALPROP(emission);
-	MATERIALPROP(ambient);
-	MATERIALPROP(normalMap);
-	MATERIALPROP(bump);
-	MATERIALPROP(displacement);
-	MATERIALPROP(vectorDisplacement);
-
-#undef MATERIALPROP
-
-	Material() : diffuseWrapU(STAPLE_TEXTURE_WRAP_CLAMP), diffuseWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		specularWrapU(STAPLE_TEXTURE_WRAP_CLAMP), specularWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		reflectionWrapU(STAPLE_TEXTURE_WRAP_CLAMP), reflectionWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		transparencyWrapU(STAPLE_TEXTURE_WRAP_CLAMP), transparencyWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		emissionWrapU(STAPLE_TEXTURE_WRAP_CLAMP), emissionWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		ambientWrapU(STAPLE_TEXTURE_WRAP_CLAMP), ambientWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		normalMapWrapU(STAPLE_TEXTURE_WRAP_CLAMP), normalMapWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		bumpWrapU(STAPLE_TEXTURE_WRAP_CLAMP), bumpWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		displacementWrapU(STAPLE_TEXTURE_WRAP_CLAMP), displacementWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		vectorDisplacementWrapU(STAPLE_TEXTURE_WRAP_CLAMP), vectorDisplacementWrapV(STAPLE_TEXTURE_WRAP_CLAMP)
+	Material()
 	{
 	}
 
-	Material(const Material& o) : name(o.name),
-		diffuseTexture(o.diffuseTexture), diffuseWrapU(STAPLE_TEXTURE_WRAP_CLAMP), diffuseWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		specularTexture(o.specularTexture), specularWrapU(STAPLE_TEXTURE_WRAP_CLAMP), specularWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		reflectionTexture(o.reflectionTexture), reflectionWrapU(STAPLE_TEXTURE_WRAP_CLAMP), reflectionWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		transparencyTexture(o.transparencyTexture), transparencyWrapU(STAPLE_TEXTURE_WRAP_CLAMP), transparencyWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		emissionTexture(o.emissionTexture), emissionWrapU(STAPLE_TEXTURE_WRAP_CLAMP), emissionWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		ambientTexture(o.ambientTexture), ambientWrapU(STAPLE_TEXTURE_WRAP_CLAMP), ambientWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		normalMapTexture(o.normalMapTexture), normalMapWrapU(STAPLE_TEXTURE_WRAP_CLAMP), normalMapWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		bumpTexture(o.bumpTexture), bumpWrapU(STAPLE_TEXTURE_WRAP_CLAMP), bumpWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		displacementTexture(o.displacementTexture), displacementWrapU(STAPLE_TEXTURE_WRAP_CLAMP), displacementWrapV(STAPLE_TEXTURE_WRAP_CLAMP),
-		vectorDisplacementTexture(o.vectorDisplacementTexture), vectorDisplacementWrapU(STAPLE_TEXTURE_WRAP_CLAMP),
-		vectorDisplacementWrapV(STAPLE_TEXTURE_WRAP_CLAMP)
+	Material(const Material& o) : name(o.name), diffuse(o.diffuse), specular(o.specular), reflection(o.reflection),
+		transparency(o.transparency), emission(o.emission), ambient(o.ambient), normalMap(o.normalMap), bump(o.bump),
+		displacement(o.displacement), vectorDisplacement(o.vectorDisplacement)
 	{
 	}
 
@@ -789,11 +797,11 @@ public:
 #define MATERIALCOLOR(to, map)\
 		if (material->fbx.maps[map].has_value && material->fbx.maps[map].value_components > 0)\
 		{\
-			to ## Color = material->fbx.maps[map].value_vec4;\
+			(to).color = material->fbx.maps[map].value_vec4;\
 		}\
 		else\
 		{\
-			to ## Color = Vector4(1, 1, 1, 1);\
+			(to).color = Vector4(1, 1, 1, 1);\
 		}
 
 #define MATERIALTEXTURE(to, map)\
@@ -804,21 +812,28 @@ public:
 			\
 			if(fileName.length > 0)\
 			{\
-				to ## Texture = String(fileName.data, fileName.length); \
+				(to).fileName = String(fileName.data, fileName.length); \
 			}\
 			\
-			to ## WrapU = UFBXWrapToStapleWrap(texture->wrap_u); \
-			to ## WrapV = UFBXWrapToStapleWrap(texture->wrap_v); \
+			(to).wrapU = UFBXWrapToStapleWrap(texture->wrap_u); \
+			(to).wrapV = UFBXWrapToStapleWrap(texture->wrap_v); \
+			(to).contentSize = texture->content.size;\
+			\
+			if(texture->content.size != 0) \
+			{\
+				(to).content = new uint8_t[texture->content.size];\
+				memcpy((to).content, texture->content.data, texture->content.size);\
+			}\
 		}
 
 #define MATERIALPBRCOLOR(to, map)\
 		if (material->pbr.maps[map].has_value && material->pbr.maps[map].value_components > 0)\
 		{\
-			to ## Color = material->pbr.maps[map].value_vec4; \
+			(to).color = material->pbr.maps[map].value_vec4; \
 		}\
 		else\
 		{\
-			to ## Color = Vector4(1, 1, 1, 1);\
+			(to).color = Vector4(1, 1, 1, 1);\
 		}
 
 #define MATERIALPBRTEXTURE(to, map)\
@@ -829,11 +844,18 @@ public:
 			\
 			if(fileName.length > 0)\
 			{\
-				to ## Texture = String(fileName.data, fileName.length); \
+				(to).fileName = String(fileName.data, fileName.length); \
 			}\
 			\
-			to ## WrapU = UFBXWrapToStapleWrap(texture->wrap_u); \
-			to ## WrapV = UFBXWrapToStapleWrap(texture->wrap_v); \
+			(to).wrapU = UFBXWrapToStapleWrap(texture->wrap_u); \
+			(to).wrapV = UFBXWrapToStapleWrap(texture->wrap_v); \
+			(to).contentSize = texture->content.size;\
+			\
+			if(texture->content.size != 0) \
+			{\
+				(to).content = new uint8_t[texture->content.size];\
+				memcpy((to).content, texture->content.data, texture->content.size);\
+			}\
 		}
 
 #define DOMATERIAL(to, map)\

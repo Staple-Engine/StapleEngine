@@ -123,59 +123,33 @@ public unsafe struct UFBXString
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
-public unsafe struct UFBXMaterial
+public struct UFBXTexture
+{
+    public Vector4 color;
+    public UFBXString fileName;
+    public int wrapU;
+    public int wrapV;
+    public nint content;
+    public long contentSize;
+
+    public readonly bool Has => fileName.length > 0;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
+public struct UFBXMaterial
 {
     public UFBXString name;
 
-    public Vector4 diffuseColor;
-    public UFBXString diffuseTexture;
-    public int diffuseWrapU;
-    public int diffuseWrapV;
-
-    public Vector4 specularColor;
-    public UFBXString specularTexture;
-    public int specularWrapU;
-    public int specularWrapV;
-
-    public Vector4 reflectionColor;
-    public UFBXString reflectionTexture;
-    public int reflectionWrapU;
-    public int reflectionWrapV;
-
-    public Vector4 transparencyColor;
-    public UFBXString transparencyTexture;
-    public int transparencyWrapU;
-    public int transparencyWrapV;
-
-    public Vector4 emissionColor;
-    public UFBXString emissionTexture;
-    public int emissionWrapU;
-    public int emissionWrapV;
-
-    public Vector4 ambientColor;
-    public UFBXString ambientTexture;
-    public int ambientWrapU;
-    public int ambientWrapV;
-
-    public Vector4 normalMapColor;
-    public UFBXString normalMapTexture;
-    public int normalMapWrapU;
-    public int normalMapWrapV;
-
-    public Vector4 bumpColor;
-    public UFBXString bumpTexture;
-    public int bumpWrapU;
-    public int bumpWrapV;
-
-    public Vector4 displacementColor;
-    public UFBXString displacementTexture;
-    public int displacementWrapU;
-    public int displacementWrapV;
-
-    public Vector4 vectorDisplacementColor;
-    public UFBXString vectorDisplacementTexture;
-    public int vectorDisplacementWrapU;
-    public int vectorDisplacementWrapV;
+    public UFBXTexture diffuse;
+    public UFBXTexture specular;
+    public UFBXTexture reflection;
+    public UFBXTexture transparency;
+    public UFBXTexture emission;
+    public UFBXTexture ambient;
+    public UFBXTexture normalMap;
+    public UFBXTexture bump;
+    public UFBXTexture displacement;
+    public UFBXTexture vectorDisplacement;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]

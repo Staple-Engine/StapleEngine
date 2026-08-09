@@ -269,17 +269,26 @@ static partial class Program
 
                 var extension = Path.GetExtension(meshFileName.Replace(".meta", "")).ToLowerInvariant();
 
-                foreach(var importer in importers)
+                try
                 {
-                    if(importer.HandlesExtension(extension))
+                    foreach (var importer in importers)
                     {
-                        meshData = importer.ImportMesh(context);
+                        if (importer.HandlesExtension(extension))
+                        {
+                            meshData = importer.ImportMesh(context);
 
-                        break;
+                            break;
+                        }
                     }
                 }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"\t\tError: Failed to import {meshFileName}: {e}");
 
-                if(meshData == null)
+                    return;
+                }
+
+                if (meshData == null)
                 {
                     return;
                 }

@@ -169,7 +169,7 @@ static partial class Program
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"\t\tFailed to load image data");
+                        Console.WriteLine($"\t\tFailed to load image data: {e}");
 
                         return;
                     }
