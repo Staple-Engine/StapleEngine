@@ -287,35 +287,34 @@ public struct Matrix4x4Holder
     [Key(15)]
     public float M44;
 
-    public Matrix4x4 ToMatrix()
+    public Matrix4x4Holder() { }
+
+    public Matrix4x4Holder(Matrix4x4 matrix)
+    {
+        M11 = matrix.M11;
+        M12 = matrix.M12;
+        M13 = matrix.M13;
+        M14 = matrix.M14;
+        M21 = matrix.M21;
+        M22 = matrix.M22;
+        M23 = matrix.M23;
+        M24 = matrix.M24;
+        M31 = matrix.M31;
+        M32 = matrix.M32;
+        M33 = matrix.M33;
+        M34 = matrix.M34;
+        M41 = matrix.M41;
+        M42 = matrix.M42;
+        M43 = matrix.M43;
+        M44 = matrix.M44;
+    }
+
+    public readonly Matrix4x4 ToMatrix()
     {
         return new(M11, M12, M13, M14,
             M21, M22, M23, M24,
             M31, M32, M33, M34,
             M41, M42, M43, M44);
-    }
-
-    public static Matrix4x4Holder FromMatrix(Matrix4x4 matrix)
-    {
-        return new()
-        {
-            M11 = matrix.M11,
-            M12 = matrix.M12,
-            M13 = matrix.M13,
-            M14 = matrix.M14,
-            M21 = matrix.M21,
-            M22 = matrix.M22,
-            M23 = matrix.M23,
-            M24 = matrix.M24,
-            M31 = matrix.M31,
-            M32 = matrix.M32,
-            M33 = matrix.M33,
-            M34 = matrix.M34,
-            M41 = matrix.M41,
-            M42 = matrix.M42,
-            M43 = matrix.M43,
-            M44 = matrix.M44,
-        };
     }
 }
 
@@ -327,6 +326,35 @@ public struct MeshAssetBone
 
     [Key(1)]
     public Matrix4x4Holder offsetMatrix;
+}
+
+[MessagePackObject]
+public struct MeshAssetBlendShapeChannel
+{
+    [Key(0)]
+    public float weight;
+
+    [Key(1)]
+    public string name;
+
+    [Key(2)]
+    public int[] vertexIndices;
+
+    [Key(3)]
+    public Vector3Holder[] positionOffsets;
+
+    [Key(4)]
+    public Vector3Holder[] normalOffsets;
+}
+
+[MessagePackObject]
+public class MeshAssetBlendShape
+{
+    [Key(0)]
+    public string name;
+
+    [Key(1)]
+    public MeshAssetBlendShapeChannel[] channels = [];
 }
 
 [MessagePackObject]
@@ -409,6 +437,9 @@ public class MeshAssetMeshInfo
 
     [Key(25)]
     public Vector4Holder[] colors4 = [];
+
+    [Key(26)]
+    public MeshAssetBlendShape blendShape;
 
     [IgnoreMember]
     public MeshAssetComponent Components

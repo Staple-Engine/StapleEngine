@@ -584,7 +584,7 @@ public class UFXImporter : IMeshImporter
                         m.bones[j] = new()
                         {
                             nodeIndex = bone.nodeIndex,
-                            offsetMatrix = Matrix4x4Holder.FromMatrix(Matrix4x4.Transpose(bone.offsetMatrix)),
+                            offsetMatrix = new(Matrix4x4.Transpose(bone.offsetMatrix)),
                         };
                     }
 
@@ -595,6 +595,33 @@ public class UFXImporter : IMeshImporter
                     m.boneWeights = [.. mesh.BoneWeights
                         .ToArray()
                         .Select(x => new Vector4Holder(x))];
+
+                    if(mesh.blendShape != null)
+                    {
+                        m.blendShape = new()
+                        {
+                            name = mesh.blendShape->name.ToString(),
+                            channels = new MeshAssetBlendShapeChannel[mesh.blendShape->channelCount],
+                        };
+
+                        var channels = mesh.blendShape->Channels;
+
+                        for(var j = 0; j < m.blendShape.channels.Length; j++)
+                        {
+                            ref var channel = ref channels[j];
+                            ref var targetChannel = ref m.blendShape.channels[j];
+
+                            targetChannel.weight = channel.weight;
+                            targetChannel.name = channel.name.ToString();
+                            targetChannel.vertexIndices = channel.VertexIndices.ToArray();
+                            targetChannel.positionOffsets = [.. channel.VertexOffsets.ToArray().Select(x => new Vector3Holder(x))];
+
+                            if(channel.normalOffsets != null)
+                            {
+                                targetChannel.normalOffsets = [.. channel.NormalOffsets.ToArray().Select(x => new Vector3Holder(x))];
+                            }
+                        }
+                    }
                 }
 
                 meshes.Add(m);

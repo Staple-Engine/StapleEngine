@@ -15,10 +15,37 @@ public struct UFBXTransform
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
-public unsafe struct UFBXMeshBone
+public struct UFBXMeshBone
 {
     public int nodeIndex;
     public Matrix4x4 offsetMatrix;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
+public unsafe struct UFBXMeshBlendShapeChannel
+{
+    public float weight;
+    public UFBXString name;
+    public int vertexCount;
+    public int* vertexIndices;
+    public Vector3* vertexOffsets;
+    public Vector3* normalOffsets;
+
+    public readonly Span<int> VertexIndices => vertexCount > 0 ? new(vertexIndices, vertexCount) : default;
+
+    public readonly Span<Vector3> VertexOffsets => vertexCount > 0 ? new(vertexOffsets, vertexCount) : default;
+
+    public readonly Span<Vector3> NormalOffsets => vertexCount > 0 && normalOffsets != null ? new(vertexOffsets, vertexCount) : default;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
+public unsafe struct UFBXMeshBlendShape
+{
+    public UFBXString name;
+    public int channelCount;
+    public UFBXMeshBlendShapeChannel* channels;
+
+    public readonly Span<UFBXMeshBlendShapeChannel> Channels => channelCount > 0 ? new(channels, channelCount) : default;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
@@ -57,6 +84,8 @@ public unsafe struct UFBXMesh
     public UFBXMeshBone* bones;
 
     public int boneCount;
+
+    public UFBXMeshBlendShape* blendShape;
 
     public readonly Span<Vector3> Vertices => vertexCount > 0 ? new(vertices, vertexCount) : default;
 

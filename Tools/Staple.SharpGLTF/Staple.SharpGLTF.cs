@@ -921,7 +921,7 @@ public class SharpGLTFImporter : IMeshImporter
                             m.bones[target] = new()
                             {
                                 nodeIndex = localBone.LogicalIndex,
-                                offsetMatrix = Matrix4x4Holder.FromMatrix(offsetMatrix),
+                                offsetMatrix = new(offsetMatrix),
                             };
                         }
 

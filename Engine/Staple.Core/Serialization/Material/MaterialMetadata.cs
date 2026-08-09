@@ -61,17 +61,17 @@ public struct Vector2Holder
         y = v.Y;
     }
 
-    public Vector2 ToVector2()
+    public readonly Vector2 ToVector2()
     {
         return new Vector2(x, y);
     }
 
-    public Vector3 ToVector3()
+    public readonly Vector3 ToVector3()
     {
         return new Vector3(x, y, 0);
     }
 
-    public Vector4 ToVector4()
+    public readonly Vector4 ToVector4()
     {
         return new Vector4(x, y, 0, 0);
     }
@@ -88,7 +88,7 @@ public struct Vector2Holder
             lhs.y != rhs.y;
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj is null)
         {
@@ -103,12 +103,12 @@ public struct Vector2Holder
         return false;
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return HashCode.Combine(x, y);
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"({x}, {y})";
     }
@@ -163,12 +163,12 @@ public struct Vector3Holder
     {
     }
 
-    public Vector3 ToVector3()
+    public readonly Vector3 ToVector3()
     {
         return new Vector3(x, y, z);
     }
 
-    public Vector4 ToVector4()
+    public readonly Vector4 ToVector4()
     {
         return new Vector4(x, y, z, 0);
     }
@@ -192,7 +192,7 @@ public struct Vector3Holder
             lhs.z != rhs.z;
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj is null)
         {
@@ -207,12 +207,12 @@ public struct Vector3Holder
         return false;
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return HashCode.Combine(x, y, z);
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"({x}, {y}, {z})";
     }
@@ -284,12 +284,12 @@ public struct Vector4Holder
         w = q.W;
     }
 
-    public Vector4 ToVector4()
+    public readonly Vector4 ToVector4()
     {
         return new Vector4(x, y, z, w);
     }
 
-    public Quaternion ToQuaternion()
+    public readonly Quaternion ToQuaternion()
     {
         return new Quaternion(x, y, z, w);
     }
@@ -310,7 +310,7 @@ public struct Vector4Holder
             lhs.w == rhs.w;
     }
 
-    public override bool Equals(object obj)
+    public override readonly bool Equals(object obj)
     {
         if (obj is null)
         {
@@ -325,12 +325,12 @@ public struct Vector4Holder
         return false;
     }
 
-    public override int GetHashCode()
+    public override readonly int GetHashCode()
     {
         return HashCode.Combine(x, y, z, w);
     }
 
-    public override string ToString()
+    public override readonly string ToString()
     {
         return $"({x}, {y}, {z}, {w})";
     }

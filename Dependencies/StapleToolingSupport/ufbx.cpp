@@ -165,6 +165,99 @@ public:
 	}
 };
 
+class MeshBlendShapeChannel
+{
+public:
+	float weight;
+	String name;
+	int vertexCount;
+	int* vertexIndices;
+	Vector3* vertexOffsets;
+	Vector3* normalOffsets;
+
+	MeshBlendShapeChannel() : weight(0), vertexCount(0), vertexIndices(nullptr), vertexOffsets(nullptr), normalOffsets(nullptr) {}
+
+	MeshBlendShapeChannel(const MeshBlendShapeChannel& o) : weight(o.weight), name(o.name), vertexCount(o.vertexCount), vertexIndices(nullptr),
+		vertexOffsets(nullptr), normalOffsets(nullptr)
+	{
+		COPY(vertexIndices, o.vertexIndices, int, vertexCount);
+		COPY(vertexOffsets, o.vertexOffsets, Vector3, vertexCount);
+		COPY(normalOffsets, o.normalOffsets, Vector3, vertexCount);
+	}
+
+	~MeshBlendShapeChannel()
+	{
+		DELETE(vertexIndices);
+		DELETE(vertexOffsets);
+		DELETE(normalOffsets);
+	}
+
+	MeshBlendShapeChannel& operator=(const MeshBlendShapeChannel& o)
+	{
+		DELETE(vertexIndices);
+		DELETE(vertexOffsets);
+		DELETE(normalOffsets);
+
+		weight = o.weight;
+		name = o.name;
+		vertexCount = o.vertexCount;
+
+		COPY(vertexIndices, o.vertexIndices, int, vertexCount);
+		COPY(vertexOffsets, o.vertexOffsets, Vector3, vertexCount);
+		COPY(normalOffsets, o.normalOffsets, Vector3, vertexCount);
+
+		return *this;
+	}
+};
+
+class MeshBlendShape
+{
+public:
+	String name;
+	int channelCount;
+	MeshBlendShapeChannel* channels;
+
+	MeshBlendShape() : channelCount(0), channels(nullptr) {}
+
+	MeshBlendShape(const MeshBlendShape& o) : name(o.name), channelCount(o.channelCount), channels(nullptr)
+	{
+		if (channelCount > 0)
+		{
+			channels = new MeshBlendShapeChannel[channelCount];
+
+			for (size_t i = 0; i < channelCount; i++)
+			{
+				channels[i] = o.channels[i];
+			}
+		}
+	}
+
+	~MeshBlendShape()
+	{
+		DELETE(channels);
+	}
+
+	MeshBlendShape& operator=(const MeshBlendShape& o)
+	{
+		DELETE(channels);
+
+		name = o.name;
+		channelCount = o.channelCount;
+
+		if (channelCount > 0)
+		{
+			channels = new MeshBlendShapeChannel[channelCount];
+
+			for (size_t i = 0; i < channelCount; i++)
+			{
+				channels[i] = o.channels[i];
+			}
+		}
+
+		return *this;
+	}
+};
+
 class Mesh
 {
 public:
@@ -202,13 +295,15 @@ public:
 
 	int32_t boneCount;
 
+	MeshBlendShape* blendShape;
+
 	Mesh() : vertices(nullptr), normals(nullptr), tangents(nullptr), bitangents(nullptr),
 		uv0(nullptr), uv1(nullptr), uv2(nullptr), uv3(nullptr),
 		uv4(nullptr), uv5(nullptr), uv6(nullptr), uv7(nullptr),
 		color0(nullptr), color1(nullptr), color2(nullptr), color3(nullptr),
 		boneIndices(nullptr), boneWeights(nullptr), vertexCount(0),
 		indices(nullptr), indexCount(0), materialIndex(-1), isSkinned(false),
-		bones(nullptr), boneCount(0) {
+		bones(nullptr), boneCount(0), blendShape(nullptr) {
 	}
 
 	Mesh(const Mesh& o) : name(o.name), vertices(nullptr), normals(nullptr), tangents(nullptr), bitangents(nullptr),
@@ -217,7 +312,7 @@ public:
 		color0(nullptr), color1(nullptr), color2(nullptr), color3(nullptr),
 		boneIndices(nullptr), boneWeights(nullptr), vertexCount(o.vertexCount),
 		indices(nullptr), indexCount(o.indexCount), materialIndex(o.materialIndex), isSkinned(o.isSkinned),
-		bones(nullptr), boneCount(o.boneCount)
+		bones(nullptr), boneCount(o.boneCount), blendShape(nullptr)
 	{
 		COPY(vertices, o.vertices, Vector3, vertexCount);
 		COPY(normals, o.normals, Vector3, vertexCount);
@@ -239,6 +334,8 @@ public:
 		COPY(boneWeights, o.boneWeights, Vector4, vertexCount);
 		COPY(bones, o.bones, MeshBone, boneCount);
 		COPY(indices, o.indices, uint32_t, indexCount);
+
+		CopyBlendShape(o.blendShape);
 	}
 
 	~Mesh()
@@ -261,6 +358,10 @@ public:
 		DELETE(color3);
 		DELETE(indices);
 		DELETE(bones);
+
+		delete blendShape;
+
+		blendShape = nullptr;
 	}
 
 	Mesh& operator=(const Mesh& o)
@@ -283,6 +384,10 @@ public:
 		DELETE(color3);
 		DELETE(indices);
 		DELETE(bones);
+
+		delete blendShape;
+
+		blendShape = nullptr;
 
 		name = o.name;
 		vertexCount = o.vertexCount;
@@ -312,7 +417,21 @@ public:
 		COPY(bones, o.bones, MeshBone, boneCount);
 		COPY(indices, o.indices, uint32_t, indexCount);
 
+		CopyBlendShape(o.blendShape);
+
 		return *this;
+	}
+
+	void CopyBlendShape(MeshBlendShape* other)
+	{
+		if (other == nullptr || other->channels == nullptr)
+		{
+			return;
+		}
+
+		blendShape = new MeshBlendShape();
+
+		*blendShape = *other;
 	}
 };
 
@@ -340,9 +459,9 @@ public:
 
 		std::vector<int32_t> meshIndices;
 
-		for (size_t j = 0; j < mesh->material_parts.count; j++)
+		for (size_t i = 0; i < mesh->material_parts.count; i++)
 		{
-			const ufbx_mesh_part& part = mesh->material_parts[j];
+			const ufbx_mesh_part& part = mesh->material_parts[i];
 
 			if (part.num_triangles == 0)
 			{
@@ -351,10 +470,75 @@ public:
 
 			Mesh ownMesh;
 
-			ownMesh.name = String(node->name.data, node->name.length);
+			ownMesh.name = String(mesh->name.data, mesh->name.length);
 			ownMesh.isSkinned = mesh->skin_deformers.count > 0;
 
-			ufbx_material* material = j < node->materials.count ? node->materials[j] : nullptr;
+			ufbx_material* material = i < node->materials.count ? node->materials[i] : nullptr;
+
+			ufbx_blend_deformer* blend = mesh->blend_deformers.count > 0 ? mesh->blend_deformers[0] : nullptr;
+
+			if (blend != nullptr)
+			{
+				ownMesh.blendShape = new MeshBlendShape();
+
+				ownMesh.blendShape->name = String(blend->name.data, blend->name.length);
+
+				ownMesh.blendShape->channelCount = blend->channels.count;
+
+				ownMesh.blendShape->channels = new MeshBlendShapeChannel[blend->channels.count];
+
+				for (size_t j = 0; j < blend->channels.count; j++)
+				{
+					auto sourceChannel = blend->channels[j];
+					auto targetChannel = &ownMesh.blendShape->channels[j];
+
+					targetChannel->name = String(sourceChannel->name.data, sourceChannel->name.length);
+					targetChannel->weight = sourceChannel->weight;
+
+					size_t validVerticesCount = 0;
+
+					for (size_t k = 0; k < sourceChannel->target_shape->offset_vertices.count; k++)
+					{
+						auto index = sourceChannel->target_shape->offset_vertices[k];
+
+						if (index >= mesh->num_vertices)
+						{
+							continue;
+						}
+
+						validVerticesCount++;
+					}
+
+					targetChannel->vertexCount = validVerticesCount;
+					targetChannel->vertexIndices = new int[validVerticesCount];
+					targetChannel->vertexOffsets = new Vector3[validVerticesCount];
+
+					if (sourceChannel->target_shape->normal_offsets.count > 0)
+					{
+						targetChannel->normalOffsets = new Vector3[validVerticesCount];
+					}
+
+					for (size_t k = 0, counter = 0; k < sourceChannel->target_shape->offset_vertices.count; k++)
+					{
+						auto index = sourceChannel->target_shape->offset_vertices[k];
+
+						if (index >= mesh->num_vertices)
+						{
+							continue;
+						}
+
+						targetChannel->vertexIndices[counter] = index;
+						targetChannel->vertexOffsets[counter] = sourceChannel->target_shape->position_offsets[k];
+
+						if (targetChannel->normalOffsets != nullptr)
+						{
+							targetChannel->normalOffsets[counter] = sourceChannel->target_shape->normal_offsets[k];
+						}
+
+						counter++;
+					}
+				}
+			}
 
 			ufbx_skin_deformer* skin = mesh->skin_deformers.count > 0 ? mesh->skin_deformers[0] : nullptr;
 
