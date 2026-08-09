@@ -208,11 +208,11 @@ internal partial class StapleEditor
                                         ClearEntityBody(entity);
                                     }
                                 });
-
-                                system.renderSystem.system.Process(queue, camera, cameraTransform, renderIndex);
-
-                                system.renderSystem.system.Submit();
                             }
+
+                            system.renderSystem.system.Process(queue, camera, cameraTransform, renderIndex);
+
+                            system.renderSystem.system.Submit();
                         }
                         catch (Exception e)
                         {
