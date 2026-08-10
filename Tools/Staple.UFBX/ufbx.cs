@@ -49,6 +49,15 @@ public unsafe struct UFBXMeshBlendShape
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]
+public struct UFBXMeshSubmesh
+{
+    public int startVertex;
+    public int startIndex;
+    public int indexCount;
+    public int materialIndex;
+}
+
+[StructLayout(LayoutKind.Sequential, Pack = 0)]
 public unsafe struct UFBXMesh
 {
     public UFBXString name;
@@ -76,8 +85,6 @@ public unsafe struct UFBXMesh
     public uint* indices;
     public int indexCount;
 
-    public int materialIndex;
-
     [MarshalAs(UnmanagedType.I1)]
     public bool isSkinned;
 
@@ -86,6 +93,10 @@ public unsafe struct UFBXMesh
     public int boneCount;
 
     public UFBXMeshBlendShape* blendShape;
+
+    public int submeshCount;
+
+    public UFBXMeshSubmesh* submeshes;
 
     public readonly Span<Vector3> Vertices => vertexCount > 0 ? new(vertices, vertexCount) : default;
 
@@ -126,6 +137,8 @@ public unsafe struct UFBXMesh
     public readonly Span<uint> Indices => indexCount > 0 ? new(indices, indexCount) : default;
 
     public readonly Span<UFBXMeshBone> Bones => boneCount > 0 ? new(bones, boneCount) : default;
+
+    public readonly Span<UFBXMeshSubmesh> Submeshes => submeshCount > 0 ? new(submeshes, submeshCount) : default;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]

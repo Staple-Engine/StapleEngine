@@ -35,12 +35,96 @@ public static class MeshOptimization
         public Vector4 boneWeights;
     }
 
+    private static unsafe void SimplifyMeshEntry(Span<PlaceholderVertex> vertices, Span<int> indices, int startVertex, int currentVertexCount,
+        MeshSimplifyTarget target, int customPolyCount, out PlaceholderVertex[] outVertices, out int[] outIndices)
+    {
+        var originalIndices = indices.ToArray().Select(x => (uint)(x - startVertex)).ToArray();
+        var remap = new uint[indices.Length];
+
+        var newIndexCount = target switch
+        {
+            MeshSimplifyTarget.Lowpoly => TargetTriangleCountLow * 3,
+            MeshSimplifyTarget.Normal => TargetTriangleCountNormal * 3,
+            MeshSimplifyTarget.Highpoly => TargetTriangleCountHigh * 3,
+            MeshSimplifyTarget.CustomPolyCount => customPolyCount * 3,
+            _ => originalIndices.Length,
+        };
+
+        if (newIndexCount > originalIndices.Length)
+        {
+            newIndexCount = originalIndices.Length;
+        }
+
+        if (newIndexCount > 0 && newIndexCount != originalIndices.Length)
+        {
+            var error = 1e-2f;
+
+            var resultError = 0.0f;
+
+            var simplifiedIndices = new uint[indices.Length];
+
+            fixed (float* vptr = &vertices[0].position.X)
+            {
+                fixed (uint* si = simplifiedIndices)
+                {
+                    fixed (uint* ni = originalIndices)
+                    {
+                        var simplifiedIndexCount = Meshopt.Simplify(si, ni, (nuint)originalIndices.Length,
+                            vptr, (nuint)vertices.Length, (nuint)sizeof(PlaceholderVertex), (nuint)newIndexCount, error,
+                            SimplificationOptions.None, &resultError);
+
+                        originalIndices = simplifiedIndices.Take((int)simplifiedIndexCount).ToArray();
+                    }
+                }
+            }
+        }
+
+        var newVertexCount = Meshopt.GenerateVertexRemap(remap.AsSpan(), new ReadOnlySpan<uint>(originalIndices), vertices);
+
+        var newVertices = new PlaceholderVertex[newVertexCount];
+
+        var newIndices = new uint[originalIndices.Length];
+
+        Meshopt.RemapIndexBuffer(newIndices.AsSpan(), new ReadOnlySpan<uint>(originalIndices), new ReadOnlySpan<uint>(remap));
+
+        Meshopt.RemapVertexBuffer(newVertices.AsSpan(), vertices, remap);
+
+        Meshopt.OptimizeVertexCache(newIndices.AsSpan(), new ReadOnlySpan<uint>(newIndices), newVertexCount);
+
+        fixed (float* vptr = &newVertices[0].position.X)
+        {
+            fixed (uint* ni = newIndices)
+            {
+                Meshopt.OptimizeOverdraw(ni, ni, (nuint)newIndices.Length, vptr, newVertexCount, (nuint)sizeof(PlaceholderVertex), 1.05f);
+            }
+        }
+
+        fixed (void* nv = newVertices)
+        {
+            fixed (uint* ni = newIndices)
+            {
+                newVertexCount = Meshopt.OptimizeVertexFetch(nv, ni, (nuint)newIndices.Length, nv, newVertexCount,
+                    (nuint)sizeof(PlaceholderVertex));
+
+                outVertices = newVertices.Take((int)newVertexCount).ToArray();
+            }
+        }
+
+        outIndices = new int[newIndices.Length];
+
+        for (var i = 0; i < newIndices.Length; i++)
+        {
+            outIndices[i] = (int)newIndices[i] + currentVertexCount;
+        }
+    }
+
     public static MeshAssetMeshInfo SimplifyMesh(MeshAssetMeshInfo mesh, MeshSimplifyTarget target, int customPolyCount)
     {
         unsafe
         {
             if(mesh.topology != MeshTopology.Triangles ||
-                mesh.vertices.Length == 0)
+                mesh.vertices.Length == 0 ||
+                mesh.blendShape != null) //TODO: Handle blendshape simplifications
             {
                 return mesh;
             }
@@ -50,7 +134,6 @@ public static class MeshOptimization
                 bones = mesh.bones,
                 boundsCenter = mesh.boundsCenter,
                 boundsExtents = mesh.boundsExtents,
-                materialGuid = mesh.materialGuid,
                 name = mesh.name,
                 topology = mesh.topology,
                 type = mesh.type,
@@ -166,89 +249,34 @@ public static class MeshOptimization
                 }
             }
 
-            var remap = new uint[mesh.indices.Length];
+            var outVertices = new List<PlaceholderVertex>();
+            var outIndices = new List<int>();
+            var outSubmeshes = new List<MeshAssetSubmesh>();
 
-            var originalIndices = mesh.indices.Select(x => (uint)x).ToArray();
-
-            var newIndexCount = target switch
+            foreach(var submesh in mesh.submeshes)
             {
-                MeshSimplifyTarget.Lowpoly => TargetTriangleCountLow * 3,
-                MeshSimplifyTarget.Normal => TargetTriangleCountNormal * 3,
-                MeshSimplifyTarget.Highpoly => TargetTriangleCountHigh * 3,
-                MeshSimplifyTarget.CustomPolyCount => customPolyCount * 3,
-                _ => originalIndices.Length,
-            };
+                var indices = mesh.indices.AsSpan().Slice(submesh.startIndex, submesh.indexCount);
 
-            if (newIndexCount > originalIndices.Length)
-            {
-                newIndexCount = originalIndices.Length;
-            }
+                SimplifyMeshEntry(tempVertices.AsSpan().Slice(submesh.startVertex, indices.ToArray().Distinct().Count()), indices, submesh.startVertex,
+                    outVertices.Count, target, customPolyCount, out var subVertices, out var subIndices);
 
-            if (newIndexCount > 0 && newIndexCount != originalIndices.Length)
-            {
-                var error = 1e-2f;
-
-                var resultError = 0.0f;
-
-                var simplifiedIndices = new uint[mesh.indices.Length];
-
-                fixed (float* vptr = &tempVertices[0].position.X)
+                outSubmeshes.Add(new()
                 {
-                    fixed (uint* si = simplifiedIndices)
-                    {
-                        fixed (uint* ni = originalIndices)
-                        {
-                            var simplifiedIndexCount = Meshopt.Simplify(si, ni, (nuint)originalIndices.Length,
-                                vptr, (nuint)mesh.vertices.Length, (nuint)sizeof(PlaceholderVertex), (nuint)newIndexCount, error,
-                                SimplificationOptions.None, &resultError);
+                    startVertex = outVertices.Count,
+                    startIndex = outIndices.Count,
+                    indexCount = subIndices.Length,
+                    materialGuid = submesh.materialGuid,
+                });
 
-                            originalIndices = simplifiedIndices.Take((int)simplifiedIndexCount).ToArray();
-                        }
-                    }
-                }
+                outVertices.AddRange(subVertices);
+                outIndices.AddRange(subIndices);
             }
 
-            var vertexCount = Meshopt.GenerateVertexRemap(remap.AsSpan(),
-                new ReadOnlySpan<uint>(originalIndices),
-                new ReadOnlySpan<PlaceholderVertex>(tempVertices));
-
-            var newVertices = new PlaceholderVertex[vertexCount];
-
-            var newIndices = new uint[originalIndices.Length];
-
-            Meshopt.RemapIndexBuffer(newIndices.AsSpan(), new ReadOnlySpan<uint>(originalIndices), new ReadOnlySpan<uint>(remap));
-
-            Meshopt.RemapVertexBuffer(newVertices.AsSpan(), tempVertices, remap);
-
-            Meshopt.OptimizeVertexCache(newIndices.AsSpan(), new ReadOnlySpan<uint>(newIndices), vertexCount);
-
-            fixed (float* vptr = &newVertices[0].position.X)
-            {
-                fixed (uint* ni = newIndices)
-                {
-                    Meshopt.OptimizeOverdraw(ni, ni, (nuint)newIndices.Length, vptr, vertexCount, (nuint)sizeof(PlaceholderVertex), 1.05f);
-                }
-            }
-
-            fixed (void* nv = newVertices)
-            {
-                fixed (uint* ni = newIndices)
-                {
-                    vertexCount = Meshopt.OptimizeVertexFetch(nv, ni, (nuint)newIndices.Length, nv, vertexCount,
-                        (nuint)sizeof(PlaceholderVertex));
-
-                    newVertices = newVertices.Take((int)vertexCount).ToArray();
-                }
-            }
-
-            newMesh.indices = new int[newIndices.Length];
-
-            for(var i = 0; i < newIndices.Length; i++)
-            {
-                newMesh.indices[i] = (int)newIndices[i];
-            }
+            var vertexCount = outVertices.Count;
 
             newMesh.vertices = new Vector3Holder[vertexCount];
+            newMesh.indices = [.. outIndices];
+            newMesh.submeshes = [.. outSubmeshes];
 
             if (hasNormals)
             {
@@ -335,9 +363,9 @@ public static class MeshOptimization
                 newMesh.boneWeights = new Vector4Holder[vertexCount];
             }
 
-            for (var i = 0; i < (int)vertexCount; i++)
+            for (var i = 0; i < vertexCount; i++)
             {
-                var v = newVertices[i];
+                var v = outVertices[i];
 
                 newMesh.vertices[i] = new(v.position);
 
@@ -431,6 +459,89 @@ public static class MeshOptimization
         }
     }
 
+    private static unsafe void OptimizeMeshAssetEntry(Span<PlaceholderVertex> vertices, Span<int> indices, int startVertex, int currentVertexCount,
+        MeshSimplifyTarget target, int customPolyCount, out PlaceholderVertex[] outVertices, out int[] outIndices)
+    {
+        var originalIndices = indices.ToArray().Select(x => (uint)(x - startVertex)).ToArray();
+        var remap = new uint[indices.Length];
+
+        var newIndexCount = target switch
+        {
+            MeshSimplifyTarget.Lowpoly => TargetTriangleCountLow * 3,
+            MeshSimplifyTarget.Normal => TargetTriangleCountNormal * 3,
+            MeshSimplifyTarget.Highpoly => TargetTriangleCountHigh * 3,
+            MeshSimplifyTarget.CustomPolyCount => customPolyCount * 3,
+            _ => originalIndices.Length,
+        };
+
+        if (newIndexCount > originalIndices.Length)
+        {
+            newIndexCount = originalIndices.Length;
+        }
+
+        if (newIndexCount > 0 && newIndexCount != originalIndices.Length)
+        {
+            var error = 1e-2f;
+
+            var resultError = 0.0f;
+
+            var simplifiedIndices = new uint[indices.Length];
+
+            fixed (float* vptr = &vertices[0].position.X)
+            {
+                fixed (uint* si = simplifiedIndices)
+                {
+                    fixed (uint* ni = originalIndices)
+                    {
+                        var simplifiedIndexCount = Meshopt.Simplify(si, ni, (nuint)originalIndices.Length,
+                            vptr, (nuint)vertices.Length, (nuint)sizeof(PlaceholderVertex), (nuint)newIndexCount, error,
+                            SimplificationOptions.None, &resultError);
+
+                        originalIndices = simplifiedIndices.Take((int)simplifiedIndexCount).ToArray();
+                    }
+                }
+            }
+        }
+
+        var vertexCount = Meshopt.GenerateVertexRemap(remap.AsSpan(), new ReadOnlySpan<uint>(originalIndices), vertices);
+
+        var newVertices = new PlaceholderVertex[vertexCount];
+
+        var newIndices = new uint[originalIndices.Length];
+
+        Meshopt.RemapIndexBuffer(newIndices.AsSpan(), new ReadOnlySpan<uint>(originalIndices), new ReadOnlySpan<uint>(remap));
+
+        Meshopt.RemapVertexBuffer(newVertices.AsSpan(), vertices, remap);
+
+        Meshopt.OptimizeVertexCache(newIndices.AsSpan(), new ReadOnlySpan<uint>(newIndices), vertexCount);
+
+        fixed (float* vptr = &newVertices[0].position.X)
+        {
+            fixed (uint* ni = newIndices)
+            {
+                Meshopt.OptimizeOverdraw(ni, ni, (nuint)newIndices.Length, vptr, vertexCount, (nuint)sizeof(PlaceholderVertex), 1.05f);
+            }
+        }
+
+        fixed (void* nv = newVertices)
+        {
+            fixed (uint* ni = newIndices)
+            {
+                vertexCount = Meshopt.OptimizeVertexFetch(nv, ni, (nuint)newIndices.Length, nv, vertexCount,
+                    (nuint)sizeof(PlaceholderVertex));
+
+                outVertices = newVertices.Take((int)vertexCount).ToArray();
+            }
+        }
+
+        outIndices = new int[newIndices.Length];
+
+        for (var i = 0; i < newIndices.Length; i++)
+        {
+            outIndices[i] = (int)newIndices[i] + currentVertexCount;
+        }
+    }
+
     public static SerializableMeshAsset OptimizeMeshAsset(SerializableMeshAsset meshAsset)
     {
         unsafe
@@ -448,7 +559,8 @@ public static class MeshOptimization
             foreach (var mesh in meshAsset.meshes)
             {
                 if(mesh.topology != MeshTopology.Triangles ||
-                    mesh.vertices.Length == 0)
+                    mesh.vertices.Length == 0 ||
+                    mesh.blendShape != null)
                 {
                     meshes.Add(mesh);
 
@@ -460,7 +572,6 @@ public static class MeshOptimization
                     bones = mesh.bones,
                     boundsCenter = mesh.boundsCenter,
                     boundsExtents = mesh.boundsExtents,
-                    materialGuid = mesh.materialGuid,
                     name = mesh.name,
                     topology = mesh.topology,
                     type = mesh.type,
@@ -578,89 +689,34 @@ public static class MeshOptimization
                     }
                 }
 
-                var remap = new uint[mesh.indices.Length];
+                var outVertices = new List<PlaceholderVertex>();
+                var outIndices = new List<int>();
+                var outSubmeshes = new List<MeshAssetSubmesh>();
 
-                var originalIndices = mesh.indices.Select(x => (uint)x).ToArray();
-
-                var newIndexCount = meshAsset.metadata.simplify switch
+                foreach (var submesh in mesh.submeshes)
                 {
-                    MeshSimplifyTarget.Lowpoly => TargetTriangleCountLow * 3,
-                    MeshSimplifyTarget.Normal => TargetTriangleCountNormal * 3,
-                    MeshSimplifyTarget.Highpoly => TargetTriangleCountHigh * 3,
-                    MeshSimplifyTarget.CustomPolyCount => meshAsset.metadata.targetPolyCount * 3,
-                    _ => originalIndices.Length,
-                };
+                    var indices = mesh.indices.AsSpan().Slice(submesh.startIndex, submesh.indexCount);
 
-                if(newIndexCount > originalIndices.Length)
-                {
-                    newIndexCount = originalIndices.Length;
-                }
+                    OptimizeMeshAssetEntry(tempVertices.AsSpan().Slice(submesh.startVertex, indices.ToArray().Distinct().Count()), indices, submesh.startVertex,
+                        outVertices.Count, meshAsset.metadata.simplify, meshAsset.metadata.targetPolyCount, out var subVertices, out var subIndices);
 
-                if (newIndexCount > 0 && newIndexCount != originalIndices.Length)
-                {
-                    var error = 1e-2f;
-
-                    var resultError = 0.0f;
-
-                    var simplifiedIndices = new uint[mesh.indices.Length];
-
-                    fixed (float* vptr = &tempVertices[0].position.X)
+                    outSubmeshes.Add(new()
                     {
-                        fixed (uint* si = simplifiedIndices)
-                        {
-                            fixed (uint* ni = originalIndices)
-                            {
-                                var simplifiedIndexCount = Meshopt.Simplify(si, ni, (nuint)originalIndices.Length,
-                                    vptr, (nuint)mesh.vertices.Length, (nuint)sizeof(PlaceholderVertex), (nuint)newIndexCount, error,
-                                    SimplificationOptions.None, &resultError);
+                        startVertex = outVertices.Count,
+                        startIndex = outIndices.Count,
+                        indexCount = subIndices.Length,
+                        materialGuid = submesh.materialGuid,
+                    });
 
-                                originalIndices = simplifiedIndices.Take((int)simplifiedIndexCount).ToArray();
-                            }
-                        }
-                    }
+                    outVertices.AddRange(subVertices);
+                    outIndices.AddRange(subIndices);
                 }
 
-                var vertexCount = Meshopt.GenerateVertexRemap(remap.AsSpan(),
-                    new ReadOnlySpan<uint>(originalIndices),
-                    new ReadOnlySpan<PlaceholderVertex>(tempVertices));
-
-                var newVertices = new PlaceholderVertex[vertexCount];
-
-                var newIndices = new uint[originalIndices.Length];
-
-                Meshopt.RemapIndexBuffer(newIndices.AsSpan(), new ReadOnlySpan<uint>(originalIndices), new ReadOnlySpan<uint>(remap));
-
-                Meshopt.RemapVertexBuffer(newVertices.AsSpan(), tempVertices, remap);
-
-                Meshopt.OptimizeVertexCache(newIndices.AsSpan(), new ReadOnlySpan<uint>(newIndices), vertexCount);
-
-                fixed (float* vptr = &newVertices[0].position.X)
-                {
-                    fixed (uint* ni = newIndices)
-                    {
-                        Meshopt.OptimizeOverdraw(ni, ni, (nuint)newIndices.Length, vptr, vertexCount, (nuint)sizeof(PlaceholderVertex), 1.05f);
-                    }
-                }
-
-                fixed (void* nv = newVertices)
-                {
-                    fixed (uint* ni = newIndices)
-                    {
-                        vertexCount = Meshopt.OptimizeVertexFetch(nv, ni, (nuint)newIndices.Length, nv, vertexCount,
-                            (nuint)sizeof(PlaceholderVertex));
-
-                        newVertices = newVertices.Take((int)vertexCount).ToArray();
-                    }
-                }
-
-                newMesh.indices = new int[newIndices.Length];
-
-                for (var i = 0; i < newIndices.Length; i++)
-                {
-                    newMesh.indices[i] = (int)newIndices[i];
-                }
+                var vertexCount = outVertices.Count;
 
                 newMesh.vertices = new Vector3Holder[vertexCount];
+                newMesh.indices = [.. outIndices];
+                newMesh.submeshes = [.. outSubmeshes];
 
                 if (hasNormals)
                 {
@@ -747,9 +803,9 @@ public static class MeshOptimization
                     newMesh.boneWeights = new Vector4Holder[vertexCount];
                 }
 
-                for (var i = 0; i < (int)vertexCount; i++)
+                for (var i = 0; i < vertexCount; i++)
                 {
-                    var v = newVertices[i];
+                    var v = outVertices[i];
 
                     newMesh.vertices[i] = new(v.position);
 

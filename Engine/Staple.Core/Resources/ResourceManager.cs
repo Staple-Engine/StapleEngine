@@ -2072,7 +2072,7 @@ internal class ResourceManager
 
         foreach (var submesh in m.submeshes)
         {
-            mesh.AddSubmesh(submesh.startVertex, submesh.vertexCount, submesh.startIndex, submesh.indexCount, m.topology);
+            mesh.AddSubmesh(submesh.startVertex, submesh.startIndex, submesh.indexCount);
         }
 
         mesh.changed = true;
@@ -2201,6 +2201,7 @@ internal class ResourceManager
                     lighting = resource.lighting,
                     type = m.type,
                     components = m.Components,
+                    blendShape = m.blendShape,
 
                     bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
 
@@ -2304,15 +2305,13 @@ internal class ResourceManager
 
                 startBoneIndex += newMesh.bones.Length;
 
-                newMesh.submeshes = [new()
+                newMesh.submeshes = [.. m.submeshes.Select(x => new MeshAsset.SubmeshInfo()
                 {
-                    startVertex = 0,
-                    startIndex = 0,
-                    vertexCount = m.vertices.Length,
-                    indexCount = m.indices.Length,
-                }];
-
-                newMesh.submeshMaterialGuids = [m.materialGuid];
+                    indexCount = x.indexCount,
+                    startIndex = x.startIndex,
+                    startVertex = x.startVertex,
+                    materialGuid = x.materialGuid,
+                })];
 
                 newMesh.transformedBounds = newMesh.bounds;
 

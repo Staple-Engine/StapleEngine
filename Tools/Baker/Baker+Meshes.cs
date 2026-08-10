@@ -295,34 +295,44 @@ static partial class Program
 
                 foreach (var mesh in meshData.meshes)
                 {
-                    if (string.IsNullOrEmpty(mesh.materialGuid))
+                    for(var i = 0; i < mesh.submeshes.Length; i++)
                     {
-                        mesh.materialGuid = AssetDatabase.GetAssetGuid("Hidden/Materials/Standard.material") ?? mesh.materialGuid;
+                        ref var submesh = ref mesh.submeshes[i];
+
+                        if (string.IsNullOrEmpty(submesh.materialGuid))
+                        {
+                            submesh.materialGuid = AssetDatabase.GetAssetGuid("Hidden/Materials/Standard.material") ?? submesh.materialGuid;
+                        }
                     }
                 }
 
                 //Do this for OBJ only right now
                 if (metadata.combineSimilarMeshes && extension == ".obj")
                 {
-                    var combinableMeshes = new Dictionary<string, Dictionary<MeshAssetComponent, List<MeshAssetMeshInfo>>>();
+                    var combinableMeshes = new Dictionary<string, Dictionary<(MeshAssetComponent, MeshTopology), List<(MeshAssetMeshInfo, int)>>>();
 
                     foreach (var mesh in meshData.meshes)
                     {
-                        if (combinableMeshes.TryGetValue(mesh.materialGuid, out var contents) == false)
+                        for(var i = 0; i < mesh.submeshes.Length; i++)
                         {
-                            contents = [];
+                            ref var submesh = ref mesh.submeshes[i];
 
-                            combinableMeshes.Add(mesh.materialGuid, contents);
+                            if (combinableMeshes.TryGetValue(submesh.materialGuid, out var contents) == false)
+                            {
+                                contents = [];
+
+                                combinableMeshes.Add(submesh.materialGuid, contents);
+                            }
+
+                            if (contents.TryGetValue((mesh.Components, mesh.topology), out var meshes) == false)
+                            {
+                                meshes = [];
+
+                                contents.Add((mesh.Components, mesh.topology), meshes);
+                            }
+
+                            meshes.Add((mesh, i));
                         }
-
-                        if (contents.TryGetValue(mesh.Components, out var meshes) == false)
-                        {
-                            meshes = [];
-
-                            contents.Add(mesh.Components, meshes);
-                        }
-
-                        meshes.Add(mesh);
                     }
 
                     var newMeshes = new List<MeshAssetMeshInfo>();
@@ -333,41 +343,51 @@ static partial class Program
                         {
                             if (meshPair.Value.Count == 1)
                             {
-                                newMeshes.Add(meshPair.Value[0]);
+                                newMeshes.Add(meshPair.Value[0].Item1);
 
                                 continue;
                             }
 
-                            var first = meshPair.Value[0];
+                            var first = meshPair.Value[0].Item1;
 
                             var newMesh = new MeshAssetMeshInfo()
                             {
                                 name = first.name,
                                 topology = first.topology,
                                 type = first.type,
-                                materialGuid = first.materialGuid,
                             };
 
-                            var vertexCount = meshPair.Value.Select(x => x.vertices.Length).Sum();
+                            var vertexCount = 0;
+                            var indexCount = 0;
+
+                            foreach(var (meshItem, submeshIndex) in meshPair.Value)
+                            {
+                                ref var submesh = ref meshItem.submeshes[submeshIndex];
+
+                                vertexCount += meshItem.indices.AsSpan().Slice(submesh.startIndex, submesh.indexCount).ToArray().Distinct().Count();
+                                indexCount += meshItem.submeshes[submeshIndex].indexCount;
+                            }
 
                             newMesh.vertices = new Vector3Holder[vertexCount];
-                            newMesh.indices = new int[meshPair.Value.Select(x => x.indices.Length).Sum()];
+                            newMesh.indices = new int[indexCount];
 
-                            newMesh.normals = meshPair.Key.HasFlag(MeshAssetComponent.Normal) ? new Vector3Holder[vertexCount] : [];
-                            newMesh.tangents = meshPair.Key.HasFlag(MeshAssetComponent.Tangent) ? new Vector3Holder[vertexCount] : [];
-                            newMesh.bitangents = meshPair.Key.HasFlag(MeshAssetComponent.Bitangent) ? new Vector3Holder[vertexCount] : [];
-                            newMesh.colors = meshPair.Key.HasFlag(MeshAssetComponent.Color1) ? new Vector4Holder[vertexCount] : [];
-                            newMesh.colors2 = meshPair.Key.HasFlag(MeshAssetComponent.Color2) ? new Vector4Holder[vertexCount] : [];
-                            newMesh.colors3 = meshPair.Key.HasFlag(MeshAssetComponent.Color3) ? new Vector4Holder[vertexCount] : [];
-                            newMesh.colors4 = meshPair.Key.HasFlag(MeshAssetComponent.Color4) ? new Vector4Holder[vertexCount] : [];
-                            newMesh.UV1 = meshPair.Key.HasFlag(MeshAssetComponent.UV1) ? new Vector2Holder[vertexCount] : [];
-                            newMesh.UV2 = meshPair.Key.HasFlag(MeshAssetComponent.UV2) ? new Vector2Holder[vertexCount] : [];
-                            newMesh.UV3 = meshPair.Key.HasFlag(MeshAssetComponent.UV3) ? new Vector2Holder[vertexCount] : [];
-                            newMesh.UV4 = meshPair.Key.HasFlag(MeshAssetComponent.UV4) ? new Vector2Holder[vertexCount] : [];
-                            newMesh.UV5 = meshPair.Key.HasFlag(MeshAssetComponent.UV5) ? new Vector2Holder[vertexCount] : [];
-                            newMesh.UV6 = meshPair.Key.HasFlag(MeshAssetComponent.UV6) ? new Vector2Holder[vertexCount] : [];
-                            newMesh.UV7 = meshPair.Key.HasFlag(MeshAssetComponent.UV7) ? new Vector2Holder[vertexCount] : [];
-                            newMesh.UV8 = meshPair.Key.HasFlag(MeshAssetComponent.UV8) ? new Vector2Holder[vertexCount] : [];
+                            var meshComponents = meshPair.Key.Item1;
+
+                            newMesh.normals = meshComponents.HasFlag(MeshAssetComponent.Normal) ? new Vector3Holder[vertexCount] : [];
+                            newMesh.tangents = meshComponents.HasFlag(MeshAssetComponent.Tangent) ? new Vector3Holder[vertexCount] : [];
+                            newMesh.bitangents = meshComponents.HasFlag(MeshAssetComponent.Bitangent) ? new Vector3Holder[vertexCount] : [];
+                            newMesh.colors = meshComponents.HasFlag(MeshAssetComponent.Color1) ? new Vector4Holder[vertexCount] : [];
+                            newMesh.colors2 = meshComponents.HasFlag(MeshAssetComponent.Color2) ? new Vector4Holder[vertexCount] : [];
+                            newMesh.colors3 = meshComponents.HasFlag(MeshAssetComponent.Color3) ? new Vector4Holder[vertexCount] : [];
+                            newMesh.colors4 = meshComponents.HasFlag(MeshAssetComponent.Color4) ? new Vector4Holder[vertexCount] : [];
+                            newMesh.UV1 = meshComponents.HasFlag(MeshAssetComponent.UV1) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV2 = meshComponents.HasFlag(MeshAssetComponent.UV2) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV3 = meshComponents.HasFlag(MeshAssetComponent.UV3) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV4 = meshComponents.HasFlag(MeshAssetComponent.UV4) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV5 = meshComponents.HasFlag(MeshAssetComponent.UV5) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV6 = meshComponents.HasFlag(MeshAssetComponent.UV6) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV7 = meshComponents.HasFlag(MeshAssetComponent.UV7) ? new Vector2Holder[vertexCount] : [];
+                            newMesh.UV8 = meshComponents.HasFlag(MeshAssetComponent.UV8) ? new Vector2Holder[vertexCount] : [];
 
                             var startVertex = 0;
                             var startIndex = 0;
@@ -382,29 +402,49 @@ static partial class Program
                                 from.CopyTo(to.Slice(start, length));
                             }
 
-                            foreach (var submesh in meshPair.Value)
+                            foreach (var (meshItem, submeshIndex) in meshPair.Value)
                             {
-                                Copy(submesh.vertices.AsSpan(), newMesh.vertices.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.normals.AsSpan(), newMesh.normals.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.tangents.AsSpan(), newMesh.tangents.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.bitangents.AsSpan(), newMesh.bitangents.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.colors.AsSpan(), newMesh.colors.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.colors2.AsSpan(), newMesh.colors2.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.colors3.AsSpan(), newMesh.colors3.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.colors4.AsSpan(), newMesh.colors4.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.UV1.AsSpan(), newMesh.UV1.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.UV2.AsSpan(), newMesh.UV2.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.UV3.AsSpan(), newMesh.UV3.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.UV4.AsSpan(), newMesh.UV4.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.UV5.AsSpan(), newMesh.UV5.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.UV6.AsSpan(), newMesh.UV6.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.UV7.AsSpan(), newMesh.UV7.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.UV8.AsSpan(), newMesh.UV8.AsSpan(), startVertex, submesh.vertices.Length);
-                                Copy(submesh.indices.Select(x => x + startVertex).ToArray().AsSpan(), newMesh.indices,
-                                    startIndex, submesh.indices.Length);
+                                ref var submesh = ref meshItem.submeshes[submeshIndex];
 
-                                startVertex += submesh.vertices.Length;
-                                startIndex += submesh.indices.Length;
+                                vertexCount = meshItem.indices.AsSpan(submesh.startIndex, submesh.indexCount).ToArray().Distinct().Count();
+
+                                Copy(meshItem.vertices.AsSpan(submesh.startVertex, vertexCount), newMesh.vertices.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.normals.AsSpan(submesh.startVertex, vertexCount), newMesh.normals.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.tangents.AsSpan(submesh.startVertex, vertexCount), newMesh.tangents.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.bitangents.AsSpan(submesh.startVertex, vertexCount), newMesh.bitangents.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.colors.AsSpan(submesh.startVertex, vertexCount), newMesh.colors.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.colors2.AsSpan(submesh.startVertex, vertexCount), newMesh.colors2.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.colors3.AsSpan(submesh.startVertex, vertexCount), newMesh.colors3.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.colors4.AsSpan(submesh.startVertex, vertexCount), newMesh.colors4.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.UV1.AsSpan(submesh.startVertex, vertexCount), newMesh.UV1.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.UV2.AsSpan(submesh.startVertex, vertexCount), newMesh.UV2.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.UV3.AsSpan(submesh.startVertex, vertexCount), newMesh.UV3.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.UV4.AsSpan(submesh.startVertex, vertexCount), newMesh.UV4.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.UV5.AsSpan(submesh.startVertex, vertexCount), newMesh.UV5.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.UV6.AsSpan(submesh.startVertex, vertexCount), newMesh.UV6.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.UV7.AsSpan(submesh.startVertex, vertexCount), newMesh.UV7.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.UV8.AsSpan(submesh.startVertex, vertexCount), newMesh.UV8.AsSpan(), startVertex,
+                                    vertexCount);
+                                Copy(meshItem.indices.Select(x => x + startVertex).ToArray().AsSpan(submesh.indexCount), newMesh.indices,
+                                    startIndex, submesh.indexCount);
+
+                                startVertex += vertexCount;
+                                startIndex += submesh.indexCount;
                             }
 
                             var p = newMesh.vertices.Select(x => x.ToVector3()).ToArray();

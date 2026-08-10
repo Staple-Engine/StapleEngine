@@ -531,9 +531,6 @@ public class SharpGLTFImporter : IMeshImporter
                     var m = new MeshAssetMeshInfo
                     {
                         name = $"{mesh.Name} {primitive.LogicalIndex}",
-                        materialGuid = (primitive.Material?.LogicalIndex ?? -1) >= 0 && primitive.Material.LogicalIndex < materialMapping.Count ?
-                            materialMapping[primitive.Material.LogicalIndex] : 
-                            AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath),
                         type = node.Skin != null &&
                             primitive.VertexAccessors.ContainsKey("JOINTS_0") &&
                             primitive.VertexAccessors.ContainsKey("WEIGHTS_0") ? MeshAssetType.Skinned : MeshAssetType.Normal,
@@ -929,6 +926,14 @@ public class SharpGLTFImporter : IMeshImporter
 
                         m.boneWeights = [.. boneWeights];
                     }
+
+                    m.submeshes = [new MeshAssetSubmesh()
+                    {
+                        indexCount = m.indices.Length,
+                        materialGuid = (primitive.Material?.LogicalIndex ?? -1) >= 0 && primitive.Material.LogicalIndex < materialMapping.Count ?
+                            materialMapping[primitive.Material.LogicalIndex] :
+                            AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath),
+                    }];
 
                     meshes.Add(m);
                 }

@@ -117,6 +117,16 @@ public:
 
 		return *this;
 	}
+
+	bool operator==(const String& o)
+	{
+		if (length != o.length)
+		{
+			return false;
+		}
+
+		return strncmp(data, o.data, length) == 0;
+	}
 };
 
 class Vertex
@@ -258,6 +268,15 @@ public:
 	}
 };
 
+class MeshSubmesh
+{
+public:
+	int32_t startVertex;
+	int32_t startIndex;
+	int32_t indexCount;
+	int32_t materialIndex;
+};
+
 class Mesh
 {
 public:
@@ -287,8 +306,6 @@ public:
 
 	int32_t indexCount;
 
-	int32_t materialIndex;
-
 	bool isSkinned;
 
 	MeshBone* bones;
@@ -297,13 +314,17 @@ public:
 
 	MeshBlendShape* blendShape;
 
+	int32_t submeshCount;
+
+	MeshSubmesh* submeshes;
+
 	Mesh() : vertices(nullptr), normals(nullptr), tangents(nullptr), bitangents(nullptr),
 		uv0(nullptr), uv1(nullptr), uv2(nullptr), uv3(nullptr),
 		uv4(nullptr), uv5(nullptr), uv6(nullptr), uv7(nullptr),
 		color0(nullptr), color1(nullptr), color2(nullptr), color3(nullptr),
 		boneIndices(nullptr), boneWeights(nullptr), vertexCount(0),
-		indices(nullptr), indexCount(0), materialIndex(-1), isSkinned(false),
-		bones(nullptr), boneCount(0), blendShape(nullptr) {
+		indices(nullptr), indexCount(0), isSkinned(false),
+		bones(nullptr), boneCount(0), blendShape(nullptr), submeshCount(0), submeshes(nullptr) {
 	}
 
 	Mesh(const Mesh& o) : name(o.name), vertices(nullptr), normals(nullptr), tangents(nullptr), bitangents(nullptr),
@@ -311,8 +332,8 @@ public:
 		uv4(nullptr), uv5(nullptr), uv6(nullptr), uv7(nullptr),
 		color0(nullptr), color1(nullptr), color2(nullptr), color3(nullptr),
 		boneIndices(nullptr), boneWeights(nullptr), vertexCount(o.vertexCount),
-		indices(nullptr), indexCount(o.indexCount), materialIndex(o.materialIndex), isSkinned(o.isSkinned),
-		bones(nullptr), boneCount(o.boneCount), blendShape(nullptr)
+		indices(nullptr), indexCount(o.indexCount), isSkinned(o.isSkinned),
+		bones(nullptr), boneCount(o.boneCount), blendShape(nullptr), submeshCount(o.submeshCount), submeshes(nullptr)
 	{
 		COPY(vertices, o.vertices, Vector3, vertexCount);
 		COPY(normals, o.normals, Vector3, vertexCount);
@@ -334,6 +355,7 @@ public:
 		COPY(boneWeights, o.boneWeights, Vector4, vertexCount);
 		COPY(bones, o.bones, MeshBone, boneCount);
 		COPY(indices, o.indices, uint32_t, indexCount);
+		COPY(submeshes, o.submeshes, MeshSubmesh, submeshCount);
 
 		CopyBlendShape(o.blendShape);
 	}
@@ -358,6 +380,7 @@ public:
 		DELETE(color3);
 		DELETE(indices);
 		DELETE(bones);
+		DELETE(submeshes);
 
 		delete blendShape;
 
@@ -384,6 +407,7 @@ public:
 		DELETE(color3);
 		DELETE(indices);
 		DELETE(bones);
+		DELETE(submeshes);
 
 		delete blendShape;
 
@@ -393,8 +417,8 @@ public:
 		vertexCount = o.vertexCount;
 		indexCount = o.indexCount;
 		boneCount = o.boneCount;
-		materialIndex = o.materialIndex;
 		isSkinned = o.isSkinned;
+		submeshCount = o.submeshCount;
 
 		COPY(vertices, o.vertices, Vector3, vertexCount);
 		COPY(normals, o.normals, Vector3, vertexCount);
@@ -416,6 +440,7 @@ public:
 		COPY(boneWeights, o.boneWeights, Vector4, vertexCount);
 		COPY(bones, o.bones, MeshBone, boneCount);
 		COPY(indices, o.indices, uint32_t, indexCount);
+		COPY(submeshes, o.submeshes, MeshSubmesh, submeshCount);
 
 		CopyBlendShape(o.blendShape);
 
@@ -455,9 +480,104 @@ public:
 
 	void ReadMesh(ufbx_node *node, ufbx_mesh* mesh, std::vector<Mesh>& meshCache)
 	{
-		std::vector<Mesh> meshes;
+		Mesh ownMesh;
 
-		std::vector<int32_t> meshIndices;
+		ownMesh.name = String(node->name.data, node->name.length);
+		ownMesh.isSkinned = mesh->skin_deformers.count > 0;
+
+		auto startVertex = 0;
+		auto startIndex = 0;
+
+		bool hasTangents = false;
+		bool hasBitangents = false;
+		bool hasColors[4] = { 0 };
+		bool hasUVs[8] = { 0 };
+
+		std::vector<Vertex> meshVertices;
+		std::vector<uint32_t> meshIndices;
+		std::vector<MeshSubmesh> submeshes;
+		std::vector<MeshBone> bones;
+
+		ufbx_skin_deformer* skin = mesh->skin_deformers.count > 0 ? mesh->skin_deformers[0] : nullptr;
+		ufbx_blend_deformer* blend = nullptr;
+
+		auto meshName = String(mesh->name.data, mesh->name.length);
+
+		for (size_t j = 0; j < mesh->blend_deformers.count; j++)
+		{
+			auto deformer = mesh->blend_deformers[j];
+			auto name = String(deformer->name.data, deformer->name.length);
+
+			if (name == meshName)
+			{
+				blend = deformer;
+
+				break;
+			}
+		}
+
+		if (blend != nullptr)
+		{
+			ownMesh.blendShape = new MeshBlendShape();
+
+			ownMesh.blendShape->name = String(blend->name.data, blend->name.length);
+
+			ownMesh.blendShape->channelCount = blend->channels.count;
+
+			ownMesh.blendShape->channels = new MeshBlendShapeChannel[blend->channels.count];
+
+			for (size_t j = 0; j < blend->channels.count; j++)
+			{
+				auto sourceChannel = blend->channels[j];
+				auto targetChannel = &ownMesh.blendShape->channels[j];
+
+				targetChannel->name = String(sourceChannel->name.data, sourceChannel->name.length);
+				targetChannel->weight = sourceChannel->weight;
+
+				size_t validVerticesCount = 0;
+
+				for (size_t k = 0; k < sourceChannel->target_shape->offset_vertices.count; k++)
+				{
+					auto index = sourceChannel->target_shape->offset_vertices[k];
+
+					if (index >= mesh->num_vertices)
+					{
+						continue;
+					}
+
+					validVerticesCount++;
+				}
+
+				targetChannel->vertexCount = validVerticesCount;
+				targetChannel->vertexIndices = new int[validVerticesCount];
+				targetChannel->vertexOffsets = new Vector3[validVerticesCount];
+
+				if (sourceChannel->target_shape->normal_offsets.count > 0)
+				{
+					targetChannel->normalOffsets = new Vector3[validVerticesCount];
+				}
+
+				for (size_t k = 0, counter = 0; k < sourceChannel->target_shape->offset_vertices.count; k++)
+				{
+					auto index = sourceChannel->target_shape->offset_vertices[k];
+
+					if (index >= mesh->num_vertices)
+					{
+						continue;
+					}
+
+					targetChannel->vertexIndices[counter] = index;
+					targetChannel->vertexOffsets[counter] = sourceChannel->target_shape->position_offsets[k];
+
+					if (targetChannel->normalOffsets != nullptr)
+					{
+						targetChannel->normalOffsets[counter] = sourceChannel->target_shape->normal_offsets[k];
+					}
+
+					counter++;
+				}
+			}
+		}
 
 		for (size_t i = 0; i < mesh->material_parts.count; i++)
 		{
@@ -468,88 +588,9 @@ public:
 				continue;
 			}
 
-			Mesh ownMesh;
-
-			ownMesh.name = String(mesh->name.data, mesh->name.length);
-			ownMesh.isSkinned = mesh->skin_deformers.count > 0;
-
 			ufbx_material* material = i < node->materials.count ? node->materials[i] : nullptr;
 
-			ufbx_blend_deformer* blend = mesh->blend_deformers.count > 0 ? mesh->blend_deformers[0] : nullptr;
-
-			if (blend != nullptr)
-			{
-				ownMesh.blendShape = new MeshBlendShape();
-
-				ownMesh.blendShape->name = String(blend->name.data, blend->name.length);
-
-				ownMesh.blendShape->channelCount = blend->channels.count;
-
-				ownMesh.blendShape->channels = new MeshBlendShapeChannel[blend->channels.count];
-
-				for (size_t j = 0; j < blend->channels.count; j++)
-				{
-					auto sourceChannel = blend->channels[j];
-					auto targetChannel = &ownMesh.blendShape->channels[j];
-
-					targetChannel->name = String(sourceChannel->name.data, sourceChannel->name.length);
-					targetChannel->weight = sourceChannel->weight;
-
-					size_t validVerticesCount = 0;
-
-					for (size_t k = 0; k < sourceChannel->target_shape->offset_vertices.count; k++)
-					{
-						auto index = sourceChannel->target_shape->offset_vertices[k];
-
-						if (index >= mesh->num_vertices)
-						{
-							continue;
-						}
-
-						validVerticesCount++;
-					}
-
-					targetChannel->vertexCount = validVerticesCount;
-					targetChannel->vertexIndices = new int[validVerticesCount];
-					targetChannel->vertexOffsets = new Vector3[validVerticesCount];
-
-					if (sourceChannel->target_shape->normal_offsets.count > 0)
-					{
-						targetChannel->normalOffsets = new Vector3[validVerticesCount];
-					}
-
-					for (size_t k = 0, counter = 0; k < sourceChannel->target_shape->offset_vertices.count; k++)
-					{
-						auto index = sourceChannel->target_shape->offset_vertices[k];
-
-						if (index >= mesh->num_vertices)
-						{
-							continue;
-						}
-
-						targetChannel->vertexIndices[counter] = index;
-						targetChannel->vertexOffsets[counter] = sourceChannel->target_shape->position_offsets[k];
-
-						if (targetChannel->normalOffsets != nullptr)
-						{
-							targetChannel->normalOffsets[counter] = sourceChannel->target_shape->normal_offsets[k];
-						}
-
-						counter++;
-					}
-				}
-			}
-
-			ufbx_skin_deformer* skin = mesh->skin_deformers.count > 0 ? mesh->skin_deformers[0] : nullptr;
-
 			std::vector<Vertex> vertices;
-
-			bool hasTangents = false;
-			bool hasBitangents = false;
-			bool hasColors[4] = { 0 };
-			bool hasUVs[8] = { 0 };
-
-			std::vector<MeshBone> bones;
 
 			for (size_t faceIndex = 0; faceIndex < part.num_faces; faceIndex++)
 			{
@@ -770,51 +811,80 @@ public:
 			}
 			else
 			{
-				ownMesh.vertices = new Vector3[vertexCount];
-				ownMesh.normals = new Vector3[vertexCount];
-				ownMesh.tangents = hasTangents ? new Vector3[vertexCount] : nullptr;
-				ownMesh.bitangents = hasBitangents ? new Vector3[vertexCount] : nullptr;
-				ownMesh.color0 = hasColors[0] ? new Vector4[vertexCount] : nullptr;
-				ownMesh.color1 = hasColors[1] ? new Vector4[vertexCount] : nullptr;
-				ownMesh.color2 = hasColors[2] ? new Vector4[vertexCount] : nullptr;
-				ownMesh.color3 = hasColors[3] ? new Vector4[vertexCount] : nullptr;
-				ownMesh.uv0 = hasUVs[0] ? new Vector2[vertexCount] : nullptr;
-				ownMesh.uv1 = hasUVs[1] ? new Vector2[vertexCount] : nullptr;
-				ownMesh.uv2 = hasUVs[2] ? new Vector2[vertexCount] : nullptr;
-				ownMesh.uv3 = hasUVs[3] ? new Vector2[vertexCount] : nullptr;
-				ownMesh.uv4 = hasUVs[4] ? new Vector2[vertexCount] : nullptr;
-				ownMesh.uv5 = hasUVs[5] ? new Vector2[vertexCount] : nullptr;
-				ownMesh.uv6 = hasUVs[6] ? new Vector2[vertexCount] : nullptr;
-				ownMesh.uv7 = hasUVs[7] ? new Vector2[vertexCount] : nullptr;
-				ownMesh.boneIndices = skin != nullptr ? new Vector4[vertexCount] : nullptr;
-				ownMesh.boneWeights = skin != nullptr ? new Vector4[vertexCount] : nullptr;
+				auto submesh = MeshSubmesh();
 
-				ownMesh.vertexCount = vertexCount;
-				ownMesh.indexCount = (int32_t)indices.size();
-				ownMesh.materialIndex = material != nullptr ? material->typed_id : -1;
+				submesh.indexCount = indices.size();
+				submesh.startIndex = startIndex;
+				submesh.startVertex = startVertex;
+				submesh.materialIndex = material != nullptr ? material->typed_id : -1;
 
-				ownMesh.indices = new uint32_t[indices.size()];
+				submeshes.push_back(submesh);
 
-				memcpy(ownMesh.indices, indices.data(), indices.size() * sizeof(uint32_t));
-
-				if (bones.size() > 0)
+				for (uint32_t j = 0; j < vertexCount; j++)
 				{
-					ownMesh.boneCount = (int32_t)bones.size();
-
-					ownMesh.bones = new MeshBone[ownMesh.boneCount];
-
-					for (size_t k = 0; k < ownMesh.boneCount; k++)
-					{
-						ownMesh.bones[k] = bones[k];
-					}
+					meshVertices.push_back(vertices[j]);
 				}
 
-				for (size_t k = 0; k < vertexCount; k++)
+				for (auto& index : indices)
 				{
-					const Vertex& v = vertices[k];
+					meshIndices.push_back(index + startVertex);
+				}
 
-					ownMesh.vertices[k] = v.position;
-					ownMesh.normals[k] = v.normal;
+				startVertex = meshVertices.size();
+				startIndex = meshIndices.size();
+			}
+		}
+
+		size_t vertexCount = meshVertices.size();
+
+		ownMesh.vertices = new Vector3[vertexCount];
+		ownMesh.normals = new Vector3[vertexCount];
+		ownMesh.tangents = hasTangents ? new Vector3[vertexCount] : nullptr;
+		ownMesh.bitangents = hasBitangents ? new Vector3[vertexCount] : nullptr;
+		ownMesh.color0 = hasColors[0] ? new Vector4[vertexCount] : nullptr;
+		ownMesh.color1 = hasColors[1] ? new Vector4[vertexCount] : nullptr;
+		ownMesh.color2 = hasColors[2] ? new Vector4[vertexCount] : nullptr;
+		ownMesh.color3 = hasColors[3] ? new Vector4[vertexCount] : nullptr;
+		ownMesh.uv0 = hasUVs[0] ? new Vector2[vertexCount] : nullptr;
+		ownMesh.uv1 = hasUVs[1] ? new Vector2[vertexCount] : nullptr;
+		ownMesh.uv2 = hasUVs[2] ? new Vector2[vertexCount] : nullptr;
+		ownMesh.uv3 = hasUVs[3] ? new Vector2[vertexCount] : nullptr;
+		ownMesh.uv4 = hasUVs[4] ? new Vector2[vertexCount] : nullptr;
+		ownMesh.uv5 = hasUVs[5] ? new Vector2[vertexCount] : nullptr;
+		ownMesh.uv6 = hasUVs[6] ? new Vector2[vertexCount] : nullptr;
+		ownMesh.uv7 = hasUVs[7] ? new Vector2[vertexCount] : nullptr;
+		ownMesh.boneIndices = skin != nullptr ? new Vector4[vertexCount] : nullptr;
+		ownMesh.boneWeights = skin != nullptr ? new Vector4[vertexCount] : nullptr;
+
+		ownMesh.vertexCount = vertexCount;
+		ownMesh.indexCount = (int32_t)meshIndices.size();
+
+		ownMesh.indices = new uint32_t[meshIndices.size()];
+
+		memcpy(ownMesh.indices, meshIndices.data(), meshIndices.size() * sizeof(uint32_t));
+
+		ownMesh.submeshCount = submeshes.size();
+
+		COPY(ownMesh.submeshes, submeshes.data(), MeshSubmesh, ownMesh.submeshCount);
+			
+		if (bones.size() > 0)
+		{
+			ownMesh.boneCount = (int32_t)bones.size();
+
+			ownMesh.bones = new MeshBone[ownMesh.boneCount];
+
+			for (size_t k = 0; k < ownMesh.boneCount; k++)
+			{
+				ownMesh.bones[k] = bones[k];
+			}
+		}
+
+		for (size_t k = 0; k < vertexCount; k++)
+		{
+			const Vertex& v = meshVertices[k];
+
+			ownMesh.vertices[k] = v.position;
+			ownMesh.normals[k] = v.normal;
 
 #define COPYIF(condition, to, from)\
 	if(condition)\
@@ -822,38 +892,30 @@ public:
 		to[k] = from;\
 	}
 
-					COPYIF(hasTangents, ownMesh.tangents, v.tangent);
-					COPYIF(hasBitangents, ownMesh.bitangents, v.bitangent);
-					COPYIF(hasColors[0], ownMesh.color0, v.color0);
-					COPYIF(hasColors[1], ownMesh.color1, v.color1);
-					COPYIF(hasColors[2], ownMesh.color2, v.color2);
-					COPYIF(hasColors[3], ownMesh.color3, v.color3);
-					COPYIF(hasUVs[0], ownMesh.uv0, v.uv0);
-					COPYIF(hasUVs[1], ownMesh.uv1, v.uv1);
-					COPYIF(hasUVs[2], ownMesh.uv2, v.uv2);
-					COPYIF(hasUVs[3], ownMesh.uv3, v.uv3);
-					COPYIF(hasUVs[4], ownMesh.uv4, v.uv4);
-					COPYIF(hasUVs[5], ownMesh.uv5, v.uv5);
-					COPYIF(hasUVs[6], ownMesh.uv6, v.uv6);
-					COPYIF(hasUVs[7], ownMesh.uv7, v.uv7);
-					COPYIF(skin != nullptr, ownMesh.boneIndices, v.boneIndices);
-					COPYIF(skin != nullptr, ownMesh.boneWeights, v.boneWeights);
+			COPYIF(hasTangents, ownMesh.tangents, v.tangent);
+			COPYIF(hasBitangents, ownMesh.bitangents, v.bitangent);
+			COPYIF(hasColors[0], ownMesh.color0, v.color0);
+			COPYIF(hasColors[1], ownMesh.color1, v.color1);
+			COPYIF(hasColors[2], ownMesh.color2, v.color2);
+			COPYIF(hasColors[3], ownMesh.color3, v.color3);
+			COPYIF(hasUVs[0], ownMesh.uv0, v.uv0);
+			COPYIF(hasUVs[1], ownMesh.uv1, v.uv1);
+			COPYIF(hasUVs[2], ownMesh.uv2, v.uv2);
+			COPYIF(hasUVs[3], ownMesh.uv3, v.uv3);
+			COPYIF(hasUVs[4], ownMesh.uv4, v.uv4);
+			COPYIF(hasUVs[5], ownMesh.uv5, v.uv5);
+			COPYIF(hasUVs[6], ownMesh.uv6, v.uv6);
+			COPYIF(hasUVs[7], ownMesh.uv7, v.uv7);
+			COPYIF(skin != nullptr, ownMesh.boneIndices, v.boneIndices);
+			COPYIF(skin != nullptr, ownMesh.boneWeights, v.boneWeights);
 #undef COPYIF
-				}
-
-				meshIndices.push_back((int32_t)meshCache.size());
-
-				meshCache.push_back(ownMesh);
-			}
 		}
 
-		if (meshIndices.size() > 0)
-		{
-			this->meshCount = (int32_t)meshIndices.size();
-			this->meshIndices = new int32_t[meshIndices.size()];
+		meshCache.push_back(ownMesh);
 
-			memcpy(this->meshIndices, meshIndices.data(), meshIndices.size() * sizeof(int32_t));
-		}
+		this->meshCount = 1;
+		this->meshIndices = new int32_t[1];
+		this->meshIndices[0] = meshCache.size() - 1;
 	}
 
 	void Read(ufbx_scene *scene, ufbx_node* node, std::vector<Mesh> &meshCache)

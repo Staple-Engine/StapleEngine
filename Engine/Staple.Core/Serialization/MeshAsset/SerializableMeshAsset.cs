@@ -358,13 +358,29 @@ public class MeshAssetBlendShape
 }
 
 [MessagePackObject]
+public struct MeshAssetSubmesh
+{
+    [Key(0)]
+    public int startVertex;
+
+    [Key(1)]
+    public int startIndex;
+
+    [Key(2)]
+    public int indexCount;
+
+    [Key(3)]
+    public string materialGuid;
+}
+
+[MessagePackObject]
 public class MeshAssetMeshInfo
 {
     [Key(0)]
     public string name;
 
     [Key(1)]
-    public string materialGuid;
+    public MeshAssetSubmesh[] submeshes = [];
 
     [Key(2)]
     public MeshTopology topology;

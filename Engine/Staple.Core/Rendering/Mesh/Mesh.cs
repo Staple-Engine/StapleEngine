@@ -1277,14 +1277,12 @@ public sealed partial class Mesh : IGuidAsset
     /// Adds a submesh to the mesh. By default a mesh has no submeshes and will be rendered as a whole
     /// </summary>
     /// <param name="startVertex">The start index of the vertices</param>
-    /// <param name="vertexCount">The amount of vertices to render</param>
     /// <param name="startIndex">The start index of the indices</param>
     /// <param name="indexCount">The amount of indices to render</param>
-    /// <param name="topology">The topology of the mesh</param>
-    public void AddSubmesh(int startVertex, int vertexCount, int startIndex, int indexCount, MeshTopology topology)
+    public void AddSubmesh(int startVertex, int startIndex, int indexCount)
     {
         if(startVertex < 0 ||
-            startVertex + vertexCount > Vertices.Length ||
+            startVertex > Vertices.Length ||
             startIndex < 0 || startIndex + indexCount > Indices.Length)
         {
             return;
@@ -1293,10 +1291,8 @@ public sealed partial class Mesh : IGuidAsset
         submeshes.Add(new()
         {
             startVertex = startVertex,
-            vertexCount = vertexCount,
             startIndex = startIndex,
             indexCount = indexCount,
-            topology = topology,
         });
     }
 
@@ -1680,8 +1676,8 @@ public sealed partial class Mesh : IGuidAsset
             meshTransform = adjustmentTransform;
         }
 
-        var outMaterials = mesh.meshAsset != null ? mesh.meshAsset.Meshes[mesh.meshAssetIndex].submeshMaterialGuids
-            .Select(x => ResourceManager.instance.LoadMaterial(x)).ToList() :
+        var outMaterials = mesh.meshAsset != null ? mesh.meshAsset.Meshes[mesh.meshAssetIndex].submeshes
+            .Select(x => ResourceManager.instance.LoadMaterial(x.materialGuid)).ToList() :
             [ResourceManager.instance.LoadMaterial(AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath))];
 
         if (mesh.HasBoneIndices && mesh.meshAsset != null && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
@@ -1816,7 +1812,7 @@ public sealed partial class Mesh : IGuidAsset
                     meshTransform.SetParent(isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned) ? baseTransform : nodeTransform);
 
                     var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{index}");
-                    var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x)).ToList();
+                    var outMaterials = mesh.submeshes.Select(x => ResourceManager.instance.LoadMaterial(x.materialGuid)).ToList();
 
                     if (outMesh == null)
                     {
@@ -1868,7 +1864,7 @@ public sealed partial class Mesh : IGuidAsset
                 meshTransform.SetParent(baseTransform);
 
                 var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{i}");
-                var outMaterials = mesh.submeshMaterialGuids.Select(x => ResourceManager.instance.LoadMaterial(x)).ToList();
+                var outMaterials = mesh.submeshes.Select(x => ResourceManager.instance.LoadMaterial(x.materialGuid)).ToList();
 
                 if (outMesh == null)
                 {

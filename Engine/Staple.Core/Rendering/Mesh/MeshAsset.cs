@@ -30,17 +30,12 @@ public sealed class MeshAsset : IGuidAsset
     /// <summary>
     /// Data for drawing a submesh
     /// </summary>
-    public class SubmeshInfo
+    public struct SubmeshInfo
     {
         /// <summary>
         /// The vertex to start rendering from
         /// </summary>
         public int startVertex;
-
-        /// <summary>
-        /// How many vertices to render
-        /// </summary>
-        public int vertexCount;
 
         /// <summary>
         /// The index to start rendering from
@@ -51,6 +46,11 @@ public sealed class MeshAsset : IGuidAsset
         /// How many indices to render
         /// </summary>
         public int indexCount;
+
+        /// <summary>
+        /// The material Guid for this submesh
+        /// </summary>
+        public string materialGuid;
     }
 
     /// <summary>
@@ -194,11 +194,6 @@ public sealed class MeshAsset : IGuidAsset
         public SubmeshInfo[] submeshes = [];
 
         /// <summary>
-        /// The material GUIDs for the submeshes
-        /// </summary>
-        public string[] submeshMaterialGuids = [];
-
-        /// <summary>
         /// The lighting to apply
         /// </summary>
         public MaterialLighting lighting;
@@ -207,6 +202,11 @@ public sealed class MeshAsset : IGuidAsset
         /// The components of this mesh
         /// </summary>
         public MeshAssetComponent components;
+
+        /// <summary>
+        /// The blend shape this mesh has, if any
+        /// </summary>
+        public MeshAssetBlendShape blendShape;
 
         public int StorageSize
         {

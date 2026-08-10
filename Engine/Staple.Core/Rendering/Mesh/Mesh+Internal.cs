@@ -13,17 +13,12 @@ public sealed partial class Mesh
     /// <summary>
     /// Contains info for a submesh
     /// </summary>
-    internal class SubmeshInfo
+    internal struct SubmeshInfo
     {
         /// <summary>
         /// The vertex to start rendering from
         /// </summary>
         public int startVertex;
-
-        /// <summary>
-        /// How many vertices to render
-        /// </summary>
-        public int vertexCount;
 
         /// <summary>
         /// The index to start rendering from
@@ -34,11 +29,6 @@ public sealed partial class Mesh
         /// How many indices to render
         /// </summary>
         public int indexCount;
-
-        /// <summary>
-        /// The topology of the mesh
-        /// </summary>
-        public MeshTopology topology;
     }
 
     internal static readonly string LogTag = "Mesh";

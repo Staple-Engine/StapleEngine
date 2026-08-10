@@ -445,8 +445,6 @@ public class UFXImporter : IMeshImporter
                 var m = new MeshAssetMeshInfo
                 {
                     name = mesh.name.ToString(),
-                    materialGuid = mesh.materialIndex >= 0 && mesh.materialIndex < materialMapping.Count ? materialMapping[mesh.materialIndex] :
-                        AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath),
                     type = mesh.isSkinned ? MeshAssetType.Skinned : MeshAssetType.Normal,
                     topology = MeshTopology.Triangles,
                 };
@@ -623,6 +621,16 @@ public class UFXImporter : IMeshImporter
                         }
                     }
                 }
+
+                m.submeshes = [.. mesh.Submeshes.ToArray().Select(x => new MeshAssetSubmesh()
+                    {
+                        indexCount = x.indexCount,
+                        materialGuid = x.materialIndex >= 0 && x.materialIndex < materialMapping.Count ? materialMapping[x.materialIndex] :
+                            AssetDatabase.GetAssetGuid(AssetSerialization.StandardMaterialPath),
+
+                        startIndex = x.startIndex,
+                        startVertex = x.startVertex,
+                    })];
 
                 meshes.Add(m);
             }
