@@ -1171,7 +1171,11 @@ public sealed partial class Mesh
             state.vertexBuffer = vertexBuffer;
             state.indexBuffer = indexBuffer;
             state.staticMeshEntries = staticMeshEntries;
-            state.startVertex = submesh.startVertex;
+            /*
+             * We generally don't want to set startVertex since that'll mess up the vertex input if the index buffer is contiguous with the whole mesh.
+             * For example, setting a startVertex to 10 will essentially add +10 to the indices, according to RenderDoc.
+             */
+            //state.startVertex = submesh.startVertex;
             state.startIndex = submesh.startIndex;
             state.indexCount = submesh.indexCount;
         }
