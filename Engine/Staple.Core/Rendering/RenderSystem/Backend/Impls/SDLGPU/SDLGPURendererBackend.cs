@@ -20,10 +20,14 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     private const uint VulkanVersionPatch = 0;
 
     private static readonly StringID StapleRenderDataUniformName = "StapleRenderData";
-    private static readonly StringID StapleFragmentDataUniformName = "StapleFragmentRenderData";
 
     internal static readonly int RenderDataByteSize = Marshal.SizeOf<StapleRenderData>();
-    internal static readonly int FragmentRenderDataByteSize = Marshal.SizeOf<StapleFragmentRenderData>();
+    internal static readonly int RenderDataLitByteSize = Marshal.SizeOf<StapleRenderDataLit>();
+
+    internal static readonly int RenderDataSkinnedByteSize = Marshal.SizeOf<StapleRenderDataSkinned>();
+
+    internal static readonly int RenderDataLitSkinnedByteSize = Marshal.SizeOf<StapleRenderDataLitSkinned>();
+
     internal static readonly int Matrix4x4ByteSize = Marshal.SizeOf<Matrix4x4>();
     internal static readonly int IndirectDrawCommandSize = Marshal.SizeOf<SDL_GPUIndexedIndirectDrawCommand>();
 
@@ -41,12 +45,64 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         public Matrix4x4 projection;
         public bool useWorldMatrix;
         public MaterialRenderQueue renderQueue;
+        public float time;
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    internal struct StapleFragmentRenderData
+    internal unsafe struct StapleLitData
     {
+        public Vector4 StapleLightCountViewPosition;
+        public Color StapleLightAmbientColor;
+        public fixed float StapleLightTypePosition[LightSystem.MaxLights * 4];
+        public fixed float StapleLightDiffuse[LightSystem.MaxLights * 4];
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    internal unsafe struct StapleSkinnedData
+    {
+        public fixed float StapleBlendShapeWeights[16];
+        public int StapleBlendShapeCount;
+        public int StapleBlendShapeVertexCount;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    internal unsafe struct StapleRenderDataLit
+    {
+        public Matrix4x4 world;
+        public Matrix4x4 view;
+        public Matrix4x4 projection;
+        public bool useWorldMatrix;
+        public MaterialRenderQueue renderQueue;
         public float time;
+        public float padding0;
+        public StapleLitData litData;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    internal unsafe struct StapleRenderDataSkinned
+    {
+        public Matrix4x4 world;
+        public Matrix4x4 view;
+        public Matrix4x4 projection;
+        public bool useWorldMatrix;
+        public MaterialRenderQueue renderQueue;
+        public float time;
+        public float padding0;
+        public StapleSkinnedData skinnedData;
+    }
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    internal unsafe struct StapleRenderDataLitSkinned
+    {
+        public Matrix4x4 world;
+        public Matrix4x4 view;
+        public Matrix4x4 projection;
+        public bool useWorldMatrix;
+        public MaterialRenderQueue renderQueue;
+        public float time;
+        public float padding0;
+        public StapleLitData litData;
+        public StapleSkinnedData skinnedData;
     }
 
     internal class BufferResource
@@ -79,7 +135,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         public Vector4 viewport;
 
         public StapleRenderData renderData;
-        public StapleFragmentRenderData fragmentData;
+        public StapleRenderDataLit renderDataLit;
+        public StapleRenderDataSkinned renderDataSkinned;
+        public StapleRenderDataLitSkinned renderDataLitSkinned;
     }
 
     private readonly struct TransferBufferCacheKey(bool download, int length) : IEquatable<TransferBufferCacheKey>
@@ -405,7 +463,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
     private readonly Dictionary<VertexLayout, TransientEntry> transientBuffers = [];
     private readonly List<SDLGPUShaderProgram> shaders = [];
-    private readonly Dictionary<TransferBufferCacheKey, NativePointerWrapper<SDL_GPUTransferBuffer>> cachedtransferBuffers = [];
+    private readonly Dictionary<TransferBufferCacheKey, NativePointerWrapper<SDL_GPUTransferBuffer>> cachedTransferBuffers = [];
     private readonly ulong[] lastVertexShaderUniformHashes = new ulong[20];
     private readonly ulong[] lastFragmentShaderUniformHashes = new ulong[20];
     private RenderTarget currentRenderTarget;
@@ -1191,8 +1249,16 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         viewData.clearMode = clear;
         viewData.clearColor = clearColor;
         viewData.viewport = viewport;
-        viewData.renderData.view = view;
-        viewData.renderData.projection = projection;
+
+        viewData.renderData.view =
+            viewData.renderDataLit.view =
+            viewData.renderDataSkinned.view =
+            viewData.renderDataLitSkinned.view = view;
+
+        viewData.renderData.projection =
+            viewData.renderDataLit.projection =
+            viewData.renderDataSkinned.projection =
+            viewData.renderDataLitSkinned.projection = projection;
 
         AddCommand(new SDLGPUBeginRenderPassCommand(this, target, clear, clearColor, viewport, view, projection));
     }
@@ -1918,69 +1984,113 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             }
         }
 
-        if (state.shaderInstance.fragmentDataEntry == null)
-        {
-            foreach (var entry in state.shaderInstance.fragmentUniformContainers)
-            {
-                if (entry.Key == StapleFragmentDataUniformName)
-                {
-                    state.shaderInstance.fragmentDataEntry = entry.Value;
-
-                    break;
-                }
-            }
-        }
-
         if(state.shaderInstance.renderDataEntry != null)
         {
             var length = state.shaderInstance.renderDataEntry.length;
 
-            if (length != RenderDataByteSize)
+            if(Array.IndexOf(state.shaderInstance.keyPieces, Shader.SkinningKeyword.GetHashCode()) >= 0 &&
+                Array.IndexOf(state.shaderInstance.keyPieces, Shader.LitKeyword.GetHashCode()) >= 0)
             {
-                Log.Error($"Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {length}: "
-                    + $"Should be {RenderDataByteSize}!", LogTag);
-
-                return;
-            }
-
-            viewData.renderData.world = state.world;
-            viewData.renderData.useWorldMatrix = useWorldMatrix;
-            viewData.renderData.renderQueue = state.renderQueue;
-
-            unsafe
-            {
-                fixed (void* ptr = &viewData.renderData)
+                if (length != RenderDataLitSkinnedByteSize)
                 {
-                    var source = new Span<byte>(ptr, RenderDataByteSize);
-                    var target = new Span<byte>(state.shaderInstance.renderDataEntry.buffer);
+                    Log.Error($"Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {length}: "
+                        + $"Should be {RenderDataLitSkinnedByteSize}!", LogTag);
 
-                    source.CopyTo(target);
+                    return;
+                }
+
+                viewData.renderDataLitSkinned.world = state.world;
+                viewData.renderDataLitSkinned.useWorldMatrix = useWorldMatrix;
+                viewData.renderDataLitSkinned.renderQueue = state.renderQueue;
+                viewData.renderDataLitSkinned.time = time;
+
+                unsafe
+                {
+                    fixed (void* ptr = &viewData.renderDataLitSkinned)
+                    {
+                        var source = new Span<byte>(ptr, RenderDataSkinnedByteSize);
+                        var target = new Span<byte>(state.shaderInstance.renderDataEntry.buffer);
+
+                        source.CopyTo(target);
+                    }
                 }
             }
-        }
-
-        if(state.shaderInstance.fragmentDataEntry != null)
-        {
-            var length = state.shaderInstance.fragmentDataEntry.length;
-
-            if (length != FragmentRenderDataByteSize)
+            else if(Array.IndexOf(state.shaderInstance.keyPieces, Shader.SkinningKeyword.GetHashCode()) >= 0)
             {
-                Log.Error($"Warning: {StapleFragmentDataUniformName} shader uniform is of invalid size {length}: "
-                    + $"Should be {FragmentRenderDataByteSize}!", LogTag);
-
-                return;
-            }
-
-            unsafe
-            {
-                viewData.fragmentData.time = time;
-
-                fixed (void* ptr = &viewData.fragmentData)
+                if (length != RenderDataSkinnedByteSize)
                 {
-                    var source = new Span<byte>(ptr, FragmentRenderDataByteSize);
-                    var target = new Span<byte>(state.shaderInstance.fragmentDataEntry.buffer);
+                    Log.Error($"Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {length}: "
+                        + $"Should be {RenderDataSkinnedByteSize}!", LogTag);
 
-                    source.CopyTo(target);
+                    return;
+                }
+
+                viewData.renderDataSkinned.world = state.world;
+                viewData.renderDataSkinned.useWorldMatrix = useWorldMatrix;
+                viewData.renderDataSkinned.renderQueue = state.renderQueue;
+                viewData.renderDataSkinned.time = time;
+
+                unsafe
+                {
+                    fixed (void* ptr = &viewData.renderDataSkinned)
+                    {
+                        var source = new Span<byte>(ptr, RenderDataSkinnedByteSize);
+                        var target = new Span<byte>(state.shaderInstance.renderDataEntry.buffer);
+
+                        source.CopyTo(target);
+                    }
+                }
+            }
+            else if(Array.IndexOf(state.shaderInstance.keyPieces, Shader.LitKeyword.GetHashCode()) >= 0)
+            {
+                if (length != RenderDataLitByteSize)
+                {
+                    Log.Error($"Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {length}: "
+                        + $"Should be {RenderDataLitByteSize}!", LogTag);
+
+                    return;
+                }
+
+                viewData.renderDataLit.world = state.world;
+                viewData.renderDataLit.useWorldMatrix = useWorldMatrix;
+                viewData.renderDataLit.renderQueue = state.renderQueue;
+                viewData.renderDataLit.time = time;
+
+                unsafe
+                {
+                    fixed (void* ptr = &viewData.renderDataLit)
+                    {
+                        var source = new Span<byte>(ptr, RenderDataLitByteSize);
+                        var target = new Span<byte>(state.shaderInstance.renderDataEntry.buffer);
+
+                        source.CopyTo(target);
+                    }
+                }
+            }
+            else
+            {
+                if (length != RenderDataByteSize)
+                {
+                    Log.Error($"Warning: {StapleRenderDataUniformName} shader uniform is of invalid size {length}: "
+                        + $"Should be {RenderDataByteSize}!", LogTag);
+
+                    return;
+                }
+
+                viewData.renderData.world = state.world;
+                viewData.renderData.useWorldMatrix = useWorldMatrix;
+                viewData.renderData.renderQueue = state.renderQueue;
+                viewData.renderData.time = time;
+
+                unsafe
+                {
+                    fixed (void* ptr = &viewData.renderData)
+                    {
+                        var source = new Span<byte>(ptr, RenderDataByteSize);
+                        var target = new Span<byte>(state.shaderInstance.renderDataEntry.buffer);
+
+                        source.CopyTo(target);
+                    }
                 }
             }
         }

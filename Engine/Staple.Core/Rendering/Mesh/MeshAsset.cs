@@ -53,6 +53,24 @@ public sealed class MeshAsset : IGuidAsset
         public string materialGuid;
     }
 
+    public struct BlendShapeChannel
+    {
+        public float weight;
+
+        public string name;
+
+        public Vector3[] positionOffsets;
+
+        public Vector3[] normalOffsets;
+    }
+
+    public class BlendShape
+    {
+        public string name;
+
+        public BlendShapeChannel[] channels;
+    }
+
     /// <summary>
     /// Data for a mesh
     /// </summary>
@@ -206,7 +224,7 @@ public sealed class MeshAsset : IGuidAsset
         /// <summary>
         /// The blend shape this mesh has, if any
         /// </summary>
-        public MeshAssetBlendShape blendShape;
+        public BlendShape blendShape;
 
         public int StorageSize
         {

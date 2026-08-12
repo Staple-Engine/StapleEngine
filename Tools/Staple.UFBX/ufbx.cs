@@ -27,15 +27,12 @@ public unsafe struct UFBXMeshBlendShapeChannel
     public float weight;
     public UFBXString name;
     public int vertexCount;
-    public int* vertexIndices;
     public Vector3* vertexOffsets;
     public Vector3* normalOffsets;
 
-    public readonly Span<int> VertexIndices => vertexCount > 0 ? new(vertexIndices, vertexCount) : default;
-
     public readonly Span<Vector3> VertexOffsets => vertexCount > 0 ? new(vertexOffsets, vertexCount) : default;
 
-    public readonly Span<Vector3> NormalOffsets => vertexCount > 0 && normalOffsets != null ? new(vertexOffsets, vertexCount) : default;
+    public readonly Span<Vector3> NormalOffsets => vertexCount > 0 && normalOffsets != null ? new(normalOffsets, vertexCount) : default;
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 0)]

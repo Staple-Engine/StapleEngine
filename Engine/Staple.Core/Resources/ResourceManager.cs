@@ -2201,7 +2201,17 @@ internal class ResourceManager
                     lighting = resource.lighting,
                     type = m.type,
                     components = m.Components,
-                    blendShape = m.blendShape,
+                    blendShape = m.blendShape != null ? new MeshAsset.BlendShape()
+                    {
+                        name = m.blendShape.name,
+                        channels = [.. m.blendShape.channels.Select(x => new MeshAsset.BlendShapeChannel()
+                        {
+                            name = x.name,
+                            weight = x.weight,
+                            normalOffsets = x.normalOffsets != null ? [.. x.normalOffsets.Select(y => y.ToVector3())] : [],
+                            positionOffsets = [.. x.positionOffsets.Select(y => y.ToVector3())],
+                        })],
+                    } : null,
 
                     bounds = new AABB(m.boundsCenter.ToVector3(), m.boundsExtents.ToVector3()),
 

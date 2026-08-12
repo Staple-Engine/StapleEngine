@@ -96,6 +96,8 @@ struct Input
 
     uint baseInstance : SV_StartInstanceLocation;
     uint instanceID : SV_InstanceID;
+	uint baseVertex : SV_StartVertexLocation;
+	uint vertexID : SV_VertexID;
 };
 
 [shader("vertex")]
@@ -104,19 +106,21 @@ VertexOutput VertexMain(Input input)
 	VertexOutput output;
 
 	float4x4 model = StapleWorldMatrix(input.baseInstance, input.instanceID);
+	float3 position = input.position;
 
 #ifdef SKINNING
 	model = StapleGetSkinningMatrix(model, input.indices, input.weights);
+	position += StapleGetBlendOffset(input.baseVertex + input.vertexID);
 #endif
 
 	float4x4 projectionViewWorld = ProjectionViewWorld(model);
 	float4x4 viewWorld = ViewWorld(model);
 
-	float4 vertexPosition = mul(projectionViewWorld, float4(input.position, 1.0));
+	float4 vertexPosition = mul(projectionViewWorld, float4(position, 1.0));
 
 	output.position = vertexPosition;
 
-	output.worldPosition = mul(model, float4(input.position, 1.0)).xyz;
+	output.worldPosition = mul(model, float4(position, 1.0)).xyz;
 
 	output.coords = input.coords;
 	output.normal = input.normal;

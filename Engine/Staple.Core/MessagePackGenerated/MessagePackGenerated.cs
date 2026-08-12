@@ -2425,10 +2425,9 @@ namespace MessagePack.Formatters.Staple.Internal
         public void Serialize(ref global::MessagePack.MessagePackWriter writer, global::Staple.Internal.MeshAssetBlendShapeChannel value, global::MessagePack.MessagePackSerializerOptions options)
         {
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(5);
+            writer.WriteArrayHeader(4);
             writer.Write(value.weight);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.name, options);
-            formatterResolver.GetFormatterWithVerify<int[]>().Serialize(ref writer, value.vertexIndices, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Serialize(ref writer, value.positionOffsets, options);
             formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Serialize(ref writer, value.normalOffsets, options);
         }
@@ -2456,12 +2455,9 @@ namespace MessagePack.Formatters.Staple.Internal
                         ____result.name = formatterResolver.GetFormatterWithVerify<string>().Deserialize(ref reader, options);
                         break;
                     case 2:
-                        ____result.vertexIndices = formatterResolver.GetFormatterWithVerify<int[]>().Deserialize(ref reader, options);
-                        break;
-                    case 3:
                         ____result.positionOffsets = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Deserialize(ref reader, options);
                         break;
-                    case 4:
+                    case 3:
                         ____result.normalOffsets = formatterResolver.GetFormatterWithVerify<global::Staple.Internal.Vector3Holder[]>().Deserialize(ref reader, options);
                         break;
                     default:

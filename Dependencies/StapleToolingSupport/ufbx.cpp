@@ -181,30 +181,26 @@ public:
 	float weight;
 	String name;
 	int vertexCount;
-	int* vertexIndices;
 	Vector3* vertexOffsets;
 	Vector3* normalOffsets;
 
-	MeshBlendShapeChannel() : weight(0), vertexCount(0), vertexIndices(nullptr), vertexOffsets(nullptr), normalOffsets(nullptr) {}
+	MeshBlendShapeChannel() : weight(0), vertexCount(0), vertexOffsets(nullptr), normalOffsets(nullptr) {}
 
-	MeshBlendShapeChannel(const MeshBlendShapeChannel& o) : weight(o.weight), name(o.name), vertexCount(o.vertexCount), vertexIndices(nullptr),
-		vertexOffsets(nullptr), normalOffsets(nullptr)
+	MeshBlendShapeChannel(const MeshBlendShapeChannel& o) : weight(o.weight), name(o.name), vertexCount(o.vertexCount), vertexOffsets(nullptr),
+		normalOffsets(nullptr)
 	{
-		COPY(vertexIndices, o.vertexIndices, int, vertexCount);
 		COPY(vertexOffsets, o.vertexOffsets, Vector3, vertexCount);
 		COPY(normalOffsets, o.normalOffsets, Vector3, vertexCount);
 	}
 
 	~MeshBlendShapeChannel()
 	{
-		DELETE(vertexIndices);
 		DELETE(vertexOffsets);
 		DELETE(normalOffsets);
 	}
 
 	MeshBlendShapeChannel& operator=(const MeshBlendShapeChannel& o)
 	{
-		DELETE(vertexIndices);
 		DELETE(vertexOffsets);
 		DELETE(normalOffsets);
 
@@ -212,7 +208,6 @@ public:
 		name = o.name;
 		vertexCount = o.vertexCount;
 
-		COPY(vertexIndices, o.vertexIndices, int, vertexCount);
 		COPY(vertexOffsets, o.vertexOffsets, Vector3, vertexCount);
 		COPY(normalOffsets, o.normalOffsets, Vector3, vertexCount);
 
@@ -503,9 +498,9 @@ public:
 
 		auto meshName = String(mesh->name.data, mesh->name.length);
 
-		for (size_t j = 0; j < mesh->blend_deformers.count; j++)
+		for (size_t i = 0; i < mesh->blend_deformers.count; i++)
 		{
-			auto deformer = mesh->blend_deformers[j];
+			auto deformer = mesh->blend_deformers[i];
 			auto name = String(deformer->name.data, deformer->name.length);
 
 			if (name == meshName)
@@ -513,69 +508,6 @@ public:
 				blend = deformer;
 
 				break;
-			}
-		}
-
-		if (blend != nullptr)
-		{
-			ownMesh.blendShape = new MeshBlendShape();
-
-			ownMesh.blendShape->name = String(blend->name.data, blend->name.length);
-
-			ownMesh.blendShape->channelCount = blend->channels.count;
-
-			ownMesh.blendShape->channels = new MeshBlendShapeChannel[blend->channels.count];
-
-			for (size_t j = 0; j < blend->channels.count; j++)
-			{
-				auto sourceChannel = blend->channels[j];
-				auto targetChannel = &ownMesh.blendShape->channels[j];
-
-				targetChannel->name = String(sourceChannel->name.data, sourceChannel->name.length);
-				targetChannel->weight = sourceChannel->weight;
-
-				size_t validVerticesCount = 0;
-
-				for (size_t k = 0; k < sourceChannel->target_shape->offset_vertices.count; k++)
-				{
-					auto index = sourceChannel->target_shape->offset_vertices[k];
-
-					if (index >= mesh->num_vertices)
-					{
-						continue;
-					}
-
-					validVerticesCount++;
-				}
-
-				targetChannel->vertexCount = validVerticesCount;
-				targetChannel->vertexIndices = new int[validVerticesCount];
-				targetChannel->vertexOffsets = new Vector3[validVerticesCount];
-
-				if (sourceChannel->target_shape->normal_offsets.count > 0)
-				{
-					targetChannel->normalOffsets = new Vector3[validVerticesCount];
-				}
-
-				for (size_t k = 0, counter = 0; k < sourceChannel->target_shape->offset_vertices.count; k++)
-				{
-					auto index = sourceChannel->target_shape->offset_vertices[k];
-
-					if (index >= mesh->num_vertices)
-					{
-						continue;
-					}
-
-					targetChannel->vertexIndices[counter] = index;
-					targetChannel->vertexOffsets[counter] = sourceChannel->target_shape->position_offsets[k];
-
-					if (targetChannel->normalOffsets != nullptr)
-					{
-						targetChannel->normalOffsets[counter] = sourceChannel->target_shape->normal_offsets[k];
-					}
-
-					counter++;
-				}
 			}
 		}
 
@@ -836,6 +768,65 @@ public:
 		}
 
 		size_t vertexCount = meshVertices.size();
+
+		if (blend != nullptr)
+		{
+			ownMesh.blendShape = new MeshBlendShape();
+
+			ownMesh.blendShape->name = String(blend->name.data, blend->name.length);
+
+			size_t channelCount = 0;
+
+			for (size_t j = 0; j < blend->channels.count; j++)
+			{
+				if (blend->channels[j]->keyframes.count == 0)
+				{
+					continue;
+				}
+
+				channelCount++;
+			}
+			
+			ownMesh.blendShape->channelCount = channelCount;
+
+			ownMesh.blendShape->channels = new MeshBlendShapeChannel[channelCount];
+
+			for (size_t j = 0, counter = 0; j < blend->channels.count; j++)
+			{
+				if (blend->channels[j]->keyframes.count == 0)
+				{
+					continue;
+				}
+
+				auto sourceChannel = blend->channels[j];
+				auto targetChannel = &ownMesh.blendShape->channels[counter++];
+
+				auto shape = sourceChannel->target_shape;
+
+				targetChannel->name = String(sourceChannel->name.data, sourceChannel->name.length);
+				targetChannel->weight = sourceChannel->weight;
+				targetChannel->vertexCount = vertexCount;
+				targetChannel->vertexOffsets = new Vector3[vertexCount];
+				targetChannel->normalOffsets = shape->normal_offsets.count > 0 ? new Vector3[vertexCount] : nullptr;
+
+				for (size_t k = 0; k < shape->num_offsets; k++)
+				{
+					auto index = shape->offset_vertices[k];
+
+					if (index == UFBX_NO_INDEX || index >= vertexCount)
+					{
+						continue;
+					}
+
+					targetChannel->vertexOffsets[index] = shape->position_offsets[k];
+
+					if (targetChannel->normalOffsets != nullptr)
+					{
+						targetChannel->normalOffsets[index] = shape->normal_offsets[k];
+					}
+				}
+			}
+		}
 
 		ownMesh.vertices = new Vector3[vertexCount];
 		ownMesh.normals = new Vector3[vertexCount];

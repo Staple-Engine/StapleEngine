@@ -2,7 +2,9 @@ implementing Staple;
 
 __include StapleInternal;
 
-#define STAPLE_LIGHT_COUNT 16
+#define MAX_STAPLE_LIGHT_COUNT 16
+
+public static const int MaxStapleLightCount = MAX_STAPLE_LIGHT_COUNT;
 
 #ifdef LIT
 public struct LightSample
@@ -62,15 +64,6 @@ public struct Light
 
         return sample;
     }
-};
-
-[[vk::binding(2, StapleUniformBufferSet)]]
-public cbuffer StapleLightInfo
-{
-    float4 StapleLightCountViewPosition;
-    float4 StapleLightAmbientColor;
-    float4 StapleLightTypePosition[STAPLE_LIGHT_COUNT];
-    float4 StapleLightDiffuse[STAPLE_LIGHT_COUNT];
 };
 
 public int StapleLightCount()

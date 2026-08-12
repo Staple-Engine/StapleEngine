@@ -138,6 +138,11 @@ internal partial class SDLGPURendererBackend
 
     internal void DestroyTexture(ResourceHandle<Texture> handle)
     {
+        if(!handle.IsValid)
+        {
+            return;
+        }
+
         AddCommand(new SDLGPUDestroyTextureCommand(this, handle));
     }
 

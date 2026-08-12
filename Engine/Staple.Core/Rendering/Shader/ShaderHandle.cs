@@ -47,4 +47,9 @@ public readonly struct ShaderHandle(IGuidAsset owner, ShaderUniformInfo uniform)
     /// The default value of this uniform, if any
     /// </summary>
     public string DefaultValue => IsValid ? uniform.uniform.defaultValue : null;
+
+    public override string ToString()
+    {
+        return uniform != null ? $"{uniform.uniform.name} ({IsValid})" : IsValid.ToString();
+    }
 }

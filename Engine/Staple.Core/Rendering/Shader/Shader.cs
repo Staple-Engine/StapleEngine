@@ -95,6 +95,22 @@ public partial class Shader : IGuidAsset
     }
 
     /// <summary>
+    /// Sets an int uniform's value
+    /// </summary>
+    /// <param name="variantKey">The shader variant key to apply to</param>
+    /// <param name="handle">The shader handle to use</param>
+    /// <param name="value">The value</param>
+    public void SetInt(StringID variantKey, ShaderHandle handle, int value)
+    {
+        if (shaderResource == null)
+        {
+            return;
+        }
+
+        shaderResource.SetValue(this, variantKey, handle, value);
+    }
+
+    /// <summary>
     /// Sets a float uniform's value
     /// </summary>
     /// <param name="variantKey">The shader variant key to apply to</param>

@@ -12,7 +12,7 @@ internal partial class SDLGPURendererBackend
     {
         var key = new TransferBufferCacheKey(download, length);
 
-        if(cachedtransferBuffers.TryGetValue(key, out var buffer))
+        if(cachedTransferBuffers.TryGetValue(key, out var buffer))
         {
             return buffer.ptr;
         }
@@ -28,7 +28,7 @@ internal partial class SDLGPURendererBackend
 
         if (buffer.ptr != null)
         {
-            cachedtransferBuffers.Add(key, buffer);
+            cachedTransferBuffers.Add(key, buffer);
         }
 
         return buffer.ptr;
@@ -192,7 +192,7 @@ internal partial class SDLGPURendererBackend
 
     public void UpdateVertexBuffer(ResourceHandle<VertexBuffer> buffer, Span<byte> data)
     {
-        if(data.Length == 0)
+        if(data.Length == 0 || !buffer.IsValid)
         {
             return;
         }
@@ -202,7 +202,7 @@ internal partial class SDLGPURendererBackend
 
     public void UpdateIndexBuffer(ResourceHandle<IndexBuffer> buffer, Span<ushort> data)
     {
-        if(data.Length == 0)
+        if(data.Length == 0 || !buffer.IsValid)
         {
             return;
         }
@@ -224,7 +224,7 @@ internal partial class SDLGPURendererBackend
 
     public void UpdateIndexBuffer(ResourceHandle<IndexBuffer> buffer, Span<uint> data)
     {
-        if (data.Length == 0)
+        if(data.Length == 0 || !buffer.IsValid)
         {
             return;
         }
@@ -246,11 +246,21 @@ internal partial class SDLGPURendererBackend
 
     public void DestroyVertexBuffer(ResourceHandle<VertexBuffer> buffer)
     {
+        if(!buffer.IsValid)
+        {
+            return;
+        }
+
         AddCommand(new SDLGPUDestroyVertexBufferCommand(this, buffer));
     }
 
     public void DestroyIndexBuffer(ResourceHandle<IndexBuffer> buffer)
     {
+        if (!buffer.IsValid)
+        {
+            return;
+        }
+
         AddCommand(new SDLGPUDestroyIndexBufferCommand(this, buffer));
     }
 

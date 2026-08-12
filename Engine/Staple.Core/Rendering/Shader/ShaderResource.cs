@@ -68,7 +68,6 @@ internal partial class ShaderResource
         public int entityTransformsBufferBinding = -1;
         public int entityTransformIDsBufferBinding = -1;
         public ShaderUniformData renderDataEntry;
-        public ShaderUniformData fragmentDataEntry;
     }
 
     internal static readonly List<DefaultUniform> DefaultUniforms = [];

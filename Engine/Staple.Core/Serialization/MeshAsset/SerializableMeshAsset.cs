@@ -338,12 +338,9 @@ public struct MeshAssetBlendShapeChannel
     public string name;
 
     [Key(2)]
-    public int[] vertexIndices;
-
-    [Key(3)]
     public Vector3Holder[] positionOffsets;
 
-    [Key(4)]
+    [Key(3)]
     public Vector3Holder[] normalOffsets;
 }
 

@@ -611,7 +611,6 @@ public class UFXImporter : IMeshImporter
 
                             targetChannel.weight = channel.weight;
                             targetChannel.name = channel.name.ToString();
-                            targetChannel.vertexIndices = channel.VertexIndices.ToArray();
                             targetChannel.positionOffsets = [.. channel.VertexOffsets.ToArray().Select(x => new Vector3Holder(x))];
 
                             if(channel.normalOffsets != null)

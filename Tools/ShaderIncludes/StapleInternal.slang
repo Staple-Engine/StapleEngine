@@ -44,17 +44,11 @@ public static const int StapleReadWriteBufferSet = 0;
 public static const int StapleUniformBufferSet = 0;
 #endif
 
-#ifdef LIT
-	#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 3
-#else
-	#define STAPLE_INTERNAL_UNIFORM_BUFFER_START 2
-#endif
-
 #ifdef STAPLE_VERTEX_SHADER
 
 	#ifdef SKINNING
 
-		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 3
+		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 4
 
 	#else
 
@@ -69,7 +63,7 @@ public static const int StapleUniformBufferSet = 0;
 #endif
 
 public static const int StapleStorageBufferStart = StapleInternalStorageBufferStart + STAPLE_INTERNAL_STORAGE_BUFFER_COUNT;
-public static const int StapleUniformBufferStart = STAPLE_INTERNAL_UNIFORM_BUFFER_START;
+public static const int StapleUniformBufferStart = 1;
 
 #ifdef STAPLE_VERTEX_SHADER
 
@@ -79,11 +73,14 @@ public StructuredBuffer<float4x4> StapleEntityTransforms;
 [[vk::binding(StapleInternalStorageBufferStart + 1, StapleSamplerStorageBufferSet)]]
 public StructuredBuffer<uint> StapleEntityTransformIDs;
 
-#ifdef SKINNING
+	#ifdef SKINNING
 
 [[vk::binding(StapleInternalStorageBufferStart + 2, StapleSamplerStorageBufferSet)]]
 public StructuredBuffer<float4> StapleBoneMatrices;
 
-#endif
+[[vk::binding(StapleInternalStorageBufferStart + 3, StapleSamplerStorageBufferSet)]]
+public StructuredBuffer<float3> StapleBlendData;
+
+	#endif
 
 #endif
