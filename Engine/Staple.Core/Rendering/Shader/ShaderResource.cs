@@ -68,6 +68,85 @@ internal partial class ShaderResource
         public int entityTransformsBufferBinding = -1;
         public int entityTransformIDsBufferBinding = -1;
         public ShaderUniformData renderDataEntry;
+
+        public bool TryGetUniformData(StringID name, out (int, byte[])? vertexData, out (int, byte[])? fragmentData)
+        {
+            vertexData = default;
+            fragmentData = default;
+
+            if (vertexUniformData.TryGetValue(name, out var d))
+            {
+                vertexData = (d.offset, d.buffer);
+            }
+
+            if (fragmentUniformData.TryGetValue(name, out d))
+            {
+                fragmentData = (d.offset, d.buffer);
+            }
+
+            return vertexData != null || fragmentData != null;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static bool CanStoreUniformData((int, byte[]) data, int size)
+        {
+            //Logic: If we have an array of 1 element, 0 + 1 < 1 fails, so must be <=
+            return data.Item1 >= 0 && data.Item1 + size <= data.Item2.Length;
+        }
+
+        private static void SetValueInternal(Span<byte> source, (int, byte[])? vertexData, (int, byte[])? fragmentData)
+        {
+            if (vertexData != null && CanStoreUniformData(vertexData.Value, source.Length))
+            {
+                var target = new Span<byte>(vertexData.Value.Item2, vertexData.Value.Item1, source.Length);
+
+                source.CopyTo(target);
+            }
+
+            if (fragmentData != null && CanStoreUniformData(fragmentData.Value, source.Length))
+            {
+                var target = new Span<byte>(fragmentData.Value.Item2, fragmentData.Value.Item1, source.Length);
+
+                source.CopyTo(target);
+            }
+        }
+
+        internal void SetValue<T>(StringID name, T value) where T : unmanaged
+        {
+            if (!TryGetUniformData(name, out var vertexData, out var fragmentData))
+            {
+                return;
+            }
+
+            var size = Marshal.SizeOf<T>();
+
+            unsafe
+            {
+                var source = new Span<byte>(&value, size);
+
+                SetValueInternal(source, vertexData, fragmentData);
+            }
+        }
+
+        internal void SetValue<T>(StringID name, ReadOnlySpan<T> value) where T : unmanaged
+        {
+            if (!TryGetUniformData(name, out var vertexData, out var fragmentData))
+            {
+                return;
+            }
+
+            unsafe
+            {
+                fixed (void* ptr = value)
+                {
+                    var size = Marshal.SizeOf<T>() * value.Length;
+
+                    var source = new Span<byte>(ptr, size);
+
+                    SetValueInternal(source, vertexData, fragmentData);
+                }
+            }
+        }
     }
 
     internal static readonly List<DefaultUniform> DefaultUniforms = [];
@@ -480,91 +559,33 @@ internal partial class ShaderResource
         return GetUniform(name, instance);
     }
 
-    internal bool TryGetUniformData(Shader owner, StringID variantKey, ShaderHandle handle, out ShaderUniformInfo uniform,
-        out (int, byte[])? vertexData, out (int, byte[])? fragmentData)
+    internal bool TryGetShaderVariantUniformInfo(Shader owner, StringID variantKey, ShaderHandle handle, out ShaderUniformInfo uniform,
+        out ShaderInstance variant)
     {
         uniform = default;
-        vertexData = default;
-        fragmentData = default;
+        variant = default;
 
-        if (!handle.TryGetUniform(owner, out uniform) ||
-            !instances.TryGetValue(variantKey, out var shaderInstance))
-        {
-            return false;
-        }
-
-        if (shaderInstance.vertexUniformData.TryGetValue(uniform.handle, out var d))
-        {
-            vertexData = (d.offset, d.buffer);
-        }
-
-        if (shaderInstance.fragmentUniformData.TryGetValue(uniform.handle, out d))
-        {
-            fragmentData = (d.offset, d.buffer);
-        }
-
-        return vertexData != null || fragmentData != null;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static bool CanStoreUniformData((int, byte[]) data, int size)
-    {
-        //Logic: If we have an array of 1 element, 0 + 1 < 1 fails, so must be <=
-        return data.Item1 >= 0 && data.Item1 + size <= data.Item2.Length;
-    }
-
-    private static void SetValueInternal(Span<byte> source, (int, byte[])? vertexData, (int, byte[])? fragmentData)
-    {
-        if (vertexData != null && CanStoreUniformData(vertexData.Value, source.Length))
-        {
-            var target = new Span<byte>(vertexData.Value.Item2, vertexData.Value.Item1, source.Length);
-
-            source.CopyTo(target);
-        }
-
-        if (fragmentData != null && CanStoreUniformData(fragmentData.Value, source.Length))
-        {
-            var target = new Span<byte>(fragmentData.Value.Item2, fragmentData.Value.Item1, source.Length);
-
-            source.CopyTo(target);
-        }
+        return handle.TryGetUniform(owner, out uniform) && instances.TryGetValue(variantKey, out variant);
     }
 
     internal void SetValue<T>(Shader owner, StringID variantKey, ShaderHandle handle, T value) where T : unmanaged
     {
-        if (!TryGetUniformData(owner, variantKey, handle, out _, out var vertexData, out var fragmentData))
+        if (!TryGetShaderVariantUniformInfo(owner, variantKey, handle, out var uniform, out var variant))
         {
             return;
         }
 
-        var size = Marshal.SizeOf<T>();
-
-        unsafe
-        {
-            var source = new Span<byte>(&value, size);
-
-            SetValueInternal(source, vertexData, fragmentData);
-        }
+        variant.SetValue(uniform.handle, value);
     }
 
     internal void SetValue<T>(Shader owner, StringID variantKey, ShaderHandle handle, ReadOnlySpan<T> value) where T : unmanaged
     {
-        if (!TryGetUniformData(owner, variantKey, handle, out var uniform, out var vertexData, out var fragmentData))
+        if (!TryGetShaderVariantUniformInfo(owner, variantKey, handle, out var uniform, out var variant))
         {
             return;
         }
 
-        unsafe
-        {
-            fixed (void* ptr = value)
-            {
-                var count = value.Length < uniform.count ? value.Length : uniform.count;
-                var size = Marshal.SizeOf<T>() * count;
-                var source = new Span<byte>(ptr, size);
-
-                SetValueInternal(source, vertexData, fragmentData);
-            }
-        }
+        variant.SetValue(uniform.handle, value);
     }
 
     public void Destroy()

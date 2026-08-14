@@ -81,6 +81,12 @@ public class ShaderReflectionData
 
                             return true;
 
+                        case "bool":
+
+                            type = ShaderUniformType.Int;
+
+                            return true;
+
                         default:
 
                             type = default;

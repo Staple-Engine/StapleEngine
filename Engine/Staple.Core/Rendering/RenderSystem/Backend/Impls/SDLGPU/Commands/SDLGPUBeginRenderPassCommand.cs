@@ -22,14 +22,8 @@ internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend
         backend.viewData.clearMode = clearMode;
         backend.viewData.clearColor = clearColor;
         backend.viewData.viewport = viewport;
-        backend.viewData.renderData.view =
-            backend.viewData.renderDataLit.view =
-            backend.viewData.renderDataSkinned.view =
-            backend.viewData.renderDataLitSkinned.view = view;
-        backend.viewData.renderData.projection =
-            backend.viewData.renderDataLit.projection =
-            backend.viewData.renderDataSkinned.projection =
-            backend.viewData.renderDataLitSkinned.projection = projection;
+        backend.viewData.renderData.view = view;
+        backend.viewData.renderData.projection = projection;
 
         SDL_GPUTexture *texture = null;
         var width = 0;

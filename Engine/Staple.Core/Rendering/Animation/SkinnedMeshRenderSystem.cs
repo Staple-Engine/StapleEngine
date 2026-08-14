@@ -246,9 +246,9 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                         renderer.blendShapeBuffer = VertexBuffer.Create(vertices, blendShapeVertexLayout.Value, RenderBufferFlags.GraphicsRead);
                     }
                 }
-                else if(renderer.blendShapeBuffer != null)
+                else
                 {
-                    renderer.blendShapeBuffer.Destroy();
+                    renderer.blendShapeBuffer?.Destroy();
 
                     renderer.blendShapeBuffer = null;
                 }
