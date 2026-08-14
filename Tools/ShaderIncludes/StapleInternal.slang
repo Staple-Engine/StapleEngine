@@ -48,7 +48,7 @@ public static const int StapleUniformBufferSet = 0;
 
 	#ifdef SKINNING
 
-		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 4
+		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 5
 
 	#else
 
@@ -79,7 +79,10 @@ public StructuredBuffer<uint> StapleEntityTransformIDs;
 public StructuredBuffer<float4> StapleBoneMatrices;
 
 [[vk::binding(StapleInternalStorageBufferStart + 3, StapleSamplerStorageBufferSet)]]
-public StructuredBuffer<float4> StapleBlendData;
+public StructuredBuffer<float4> StapleBlendShapeData;
+
+[[vk::binding(StapleInternalStorageBufferStart + 4, StapleSamplerStorageBufferSet)]]
+public StructuredBuffer<float4> StapleBlendShapeParameters;
 
 	#endif
 

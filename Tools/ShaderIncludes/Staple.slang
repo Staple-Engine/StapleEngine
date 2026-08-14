@@ -33,26 +33,6 @@ public cbuffer StapleRenderData
     float4 StapleLightTypePosition[MaxStapleLightCount];
     float4 StapleLightDiffuse[MaxStapleLightCount];
 #endif
-#if defined(SKINNING) && defined(STAPLE_VERTEX_SHADER)
-	public float StapleBlendShapeWeight0;
-	public float StapleBlendShapeWeight1;
-	public float StapleBlendShapeWeight2;
-	public float StapleBlendShapeWeight3;
-	public float StapleBlendShapeWeight4;
-	public float StapleBlendShapeWeight5;
-	public float StapleBlendShapeWeight6;
-	public float StapleBlendShapeWeight7;
-	public float StapleBlendShapeWeight8;
-	public float StapleBlendShapeWeight9;
-	public float StapleBlendShapeWeight10;
-	public float StapleBlendShapeWeight11;
-	public float StapleBlendShapeWeight12;
-	public float StapleBlendShapeWeight13;
-	public float StapleBlendShapeWeight14;
-	public float StapleBlendShapeWeight15;
-	public int StapleBlendShapeCount;
-	public int StapleBlendShapeVertexCount;
-#endif
 };
 
 #ifdef STAPLE_VERTEX_SHADER
@@ -96,103 +76,50 @@ public float4x4 StapleGetSkinningMatrix(float4x4 world, float4 indices, float4 w
         weights.w * StapleGetBoneMatrix(int(indices.w)));
 }
 
-public float StapleGetBlendWeight(int index)
+public uint StapleGetBlendShapeCount()
 {
-	switch(index)
-	{
-		case 0:
-		
-			return StapleBlendShapeWeight0;
+	return uint(StapleBlendShapeParameters[0].x);
+}
 
-		case 1:
-		
-			return StapleBlendShapeWeight1;
+public uint StapleGetBlendShapeVertexCount()
+{
+	return uint(StapleBlendShapeParameters[0].y);
+}
 
-		case 2:
-		
-			return StapleBlendShapeWeight2;
-
-		case 3:
-		
-			return StapleBlendShapeWeight3;
-
-		case 4:
-		
-			return StapleBlendShapeWeight4;
-
-		case 5:
-		
-			return StapleBlendShapeWeight5;
-
-		case 6:
-		
-			return StapleBlendShapeWeight6;
-
-		case 7:
-		
-			return StapleBlendShapeWeight7;
-
-		case 8:
-		
-			return StapleBlendShapeWeight8;
-
-		case 9:
-		
-			return StapleBlendShapeWeight9;
-
-		case 10:
-		
-			return StapleBlendShapeWeight10;
-
-		case 11:
-		
-			return StapleBlendShapeWeight11;
-
-		case 12:
-		
-			return StapleBlendShapeWeight12;
-
-		case 13:
-		
-			return StapleBlendShapeWeight13;
-
-		case 14:
-		
-			return StapleBlendShapeWeight14;
-
-		case 15:
-		
-			return StapleBlendShapeWeight15;
-	}
-	
-	return 0;
+public float StapleGetBlendWeight(uint index)
+{
+	return StapleBlendShapeParameters[index / 4 + 1][index % 4];
 }
 
 public float3 StapleGetBlendOffset(uint vertexID)
 {
-	if(StapleBlendShapeCount == 0)
+	float blendShapeCount = StapleGetBlendShapeCount();
+
+	if(blendShapeCount == 0)
 	{
 		return float3(0, 0, 0);
 	}
-	
+
+	uint vertexCount = StapleGetBlendShapeVertexCount();
+
 	float3 outValue = float3(0, 0, 0);
-	
-	for(int i = 0; i < StapleBlendShapeCount; i++)
+
+	for(uint i = 0; i < blendShapeCount; i++)
 	{
 		float weight = StapleGetBlendWeight(i);
-		
+
 		if(weight <= 0.0001)
 		{
 			continue;
 		}
-		
-		uint index = i * StapleBlendShapeVertexCount * 2 + vertexID * 2;
-		
-		float3 offset = StapleBlendData[index].xyz * weight;
-		
+
+		uint index = i * vertexCount * 2 + vertexID * 2;
+
+		float3 offset = StapleBlendShapeData[index].xyz * weight;
+
 		outValue += offset;
 	}
-	
+
 	return outValue;
 }
 
