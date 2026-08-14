@@ -57,8 +57,6 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
     public override void Prepare()
     {
         renderers.Clear();
-
-        emptyBlendShapeBuffer ??= VertexBuffer.Create([Vector3.Zero], blendShapeVertexLayout.Value, RenderBufferFlags.GraphicsRead);
     }
 
     public override void Preprocess(IRenderQueue renderQueue)
@@ -67,6 +65,8 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
         {
             return;
         }
+
+        emptyBlendShapeBuffer ??= VertexBuffer.Create([Vector4.Zero], blendShapeVertexLayout.Value, RenderBufferFlags.GraphicsRead);
 
         var items = queue.Items;
 
