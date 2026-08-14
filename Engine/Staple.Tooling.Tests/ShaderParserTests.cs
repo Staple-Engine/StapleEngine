@@ -320,6 +320,7 @@ COLOR0
 TEXCOORD0
 variant: SKINNING|LIGHTING BLENDINDICES
 variant: SKINNING|LIGHTING BLENDWEIGHTS
+COLOR1
 End Input
 
 Begin Instancing
@@ -344,7 +345,7 @@ End Fragment
 
         Assert.That(list, Is.Not.Null);
 
-        Assert.That(list, Has.Count.EqualTo(3));
+        Assert.That(list, Has.Count.EqualTo(4));
 
         Assert.That(list[0], Is.EqualTo(VertexAttribute.Position));
 
@@ -352,25 +353,43 @@ End Fragment
 
         Assert.That(list[2], Is.EqualTo(VertexAttribute.TexCoord0));
 
+        Assert.That(list[5], Is.EqualTo(VertexAttribute.Color1));
+
         Assert.That(vertexAttributes.TryGetValue("SKINNING", out list), Is.True);
 
         Assert.That(list, Is.Not.Null);
 
-        Assert.That(list, Has.Count.EqualTo(2));
+        Assert.That(list, Has.Count.EqualTo(6));
 
-        Assert.That(list[0], Is.EqualTo(VertexAttribute.BlendIndices));
+        Assert.That(list[0], Is.EqualTo(VertexAttribute.Position));
 
-        Assert.That(list[1], Is.EqualTo(VertexAttribute.BlendWeights));
+        Assert.That(list[1], Is.EqualTo(VertexAttribute.Color0));
+
+        Assert.That(list[2], Is.EqualTo(VertexAttribute.TexCoord0));
+
+        Assert.That(list[3], Is.EqualTo(VertexAttribute.BlendIndices));
+
+        Assert.That(list[4], Is.EqualTo(VertexAttribute.BlendWeights));
+
+        Assert.That(list[5], Is.EqualTo(VertexAttribute.Color1));
 
         Assert.That(vertexAttributes.TryGetValue("LIGHTING", out list), Is.True);
 
         Assert.That(list, Is.Not.Null);
 
-        Assert.That(list, Has.Count.EqualTo(2));
+        Assert.That(list, Has.Count.EqualTo(6));
 
-        Assert.That(list[0], Is.EqualTo(VertexAttribute.BlendIndices));
+        Assert.That(list[0], Is.EqualTo(VertexAttribute.Position));
 
-        Assert.That(list[1], Is.EqualTo(VertexAttribute.BlendWeights));
+        Assert.That(list[1], Is.EqualTo(VertexAttribute.Color0));
+
+        Assert.That(list[2], Is.EqualTo(VertexAttribute.TexCoord0));
+
+        Assert.That(list[3], Is.EqualTo(VertexAttribute.BlendIndices));
+
+        Assert.That(list[4], Is.EqualTo(VertexAttribute.BlendWeights));
+
+        Assert.That(list[5], Is.EqualTo(VertexAttribute.Color1));
     }
 
     [Test]

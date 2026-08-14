@@ -29,7 +29,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
     private readonly Lazy<VertexLayout> blendShapeVertexLayout = new(() =>
     {
         return VertexLayoutBuilder.CreateNew()
-            .Add(VertexAttribute.Position, VertexAttributeType.Float3)
+            .Add(VertexAttribute.Position, VertexAttributeType.Float4)
             .Build();
     });
 
@@ -221,26 +221,28 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
                         var vertexCount = mesh.blendShape.channels.Length * mesh.vertices.Length;
 
-                        var vertices = new Vector3[vertexCount * 2];
+                        var vertices = new Vector4[vertexCount * 2];
 
-                        for(int i = 0, index = 0; i < mesh.blendShape.channels.Length; i++)
+                        for(int i = 0, index = 0; i < mesh.blendShape.channels.Length; i++, index += mesh.vertices.Length * 2)
                         {
                             ref var channel = ref mesh.blendShape.channels[i];
 
-                            var from = channel.positionOffsets.AsSpan();
-                            var to = vertices.AsSpan(index, channel.positionOffsets.Length);
-
-                            from.CopyTo(to);
-
-                            if(channel.normalOffsets.Length > 0)
+                            if(channel.positionOffsets.Length != mesh.vertices.Length)
                             {
-                                from = channel.normalOffsets.AsSpan();
-                                to = vertices.AsSpan(index + channel.positionOffsets.Length, channel.positionOffsets.Length);
-
-                                from.CopyTo(to);
+                                continue;
                             }
 
-                            index += channel.positionOffsets.Length * 2;
+                            var copyNormals = channel.normalOffsets.Length == channel.positionOffsets.Length;
+
+                            for(int j = 0, counter = 0; j < channel.positionOffsets.Length; j++, counter += 2)
+                            {
+                                vertices[index + counter] = channel.positionOffsets[j].ToVector4();
+
+                                if(copyNormals)
+                                {
+                                    vertices[index + counter + 1] = channel.normalOffsets[j].ToVector4();
+                                }
+                            }
                         }
 
                         renderer.blendShapeBuffer = VertexBuffer.Create(vertices, blendShapeVertexLayout.Value, RenderBufferFlags.GraphicsRead);

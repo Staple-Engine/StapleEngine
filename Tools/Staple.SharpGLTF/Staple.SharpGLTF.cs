@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
-using System.Runtime.InteropServices;
+using System.Text.Json.Nodes;
 
 namespace Staple.Tooling;
 
@@ -530,7 +530,7 @@ public class SharpGLTFImporter : IMeshImporter
 
                     var m = new MeshAssetMeshInfo
                     {
-                        name = $"{mesh.Name} {primitive.LogicalIndex}",
+                        name = mesh.Primitives.Count == 1 ? node.Name : $"{mesh.Name ?? node.Name} {primitive.LogicalIndex}",
                         type = node.Skin != null &&
                             primitive.VertexAccessors.ContainsKey("JOINTS_0") &&
                             primitive.VertexAccessors.ContainsKey("WEIGHTS_0") ? MeshAssetType.Skinned : MeshAssetType.Normal,
@@ -730,7 +730,17 @@ public class SharpGLTFImporter : IMeshImporter
                         }
                     }
 
-                    indices.AddRange(primitive.GetIndices().Select(x => (int)x));
+                    if(primitive.GetIndices() != null)
+                    {
+                        indices.AddRange(primitive.GetIndices().Select(x => (int)x));
+                    }
+                    else
+                    {
+                        for(var j = 0; j < vertexCount; j++)
+                        {
+                            indices.Add(j);
+                        }
+                    }
 
                     //Invert the flip winding order because we're inverting the Z axis for the adjustment transform
                     if (!metadata.flipWindingOrder)
@@ -925,6 +935,56 @@ public class SharpGLTFImporter : IMeshImporter
                         m.boneIndices = [.. boneIndices];
 
                         m.boneWeights = [.. boneWeights];
+
+                        if(mesh.MorphWeights is IReadOnlyList<float> weights &&
+                            weights.Count > 0 &&
+                            mesh.Extras is JsonObject jsonObject &&
+                            jsonObject.TryGetPropertyValue("targetNames", out var p) &&
+                            p is JsonArray array &&
+                            array.GetValues<string>()?.ToArray() is string[] targetNames)
+                        {
+                            m.blendShape = new()
+                            {
+                                name = node.Name,
+                            };
+
+                            var channels = new List<MeshAssetBlendShapeChannel>();
+
+                            for (var j = 0; j < targetNames.Length; j++)
+                            {
+                                var channel = new MeshAssetBlendShapeChannel()
+                                {
+                                    name = targetNames[j],
+                                    weight = weights[j],
+                                };
+
+                                var targetAccessor = primitive.GetMorphTargetAccessors(j);
+
+                                if(targetAccessor.TryGetValue("POSITION", out var positionAccessor) &&
+                                    positionAccessor.Count == vertexCount &&
+                                    positionAccessor.Format.Dimensions == SharpGLTF.Schema2.DimensionType.VEC3)
+                                {
+                                    channel.positionOffsets = [.. positionAccessor.AsVector3Array()
+                                        .Select(x => new Vector3Holder(x))];
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+
+                                if (targetAccessor.TryGetValue("NORMAL", out var normalAccessor) &&
+                                    normalAccessor.Count == vertexCount &&
+                                    normalAccessor.Format.Dimensions == SharpGLTF.Schema2.DimensionType.VEC3)
+                                {
+                                    channel.normalOffsets = [.. normalAccessor.AsVector3Array()
+                                        .Select(x => new Vector3Holder(x))];
+                                }
+
+                                channels.Add(channel);
+                            }
+
+                            m.blendShape.channels = [.. channels];
+                        }
                     }
 
                     m.submeshes = [new MeshAssetSubmesh()

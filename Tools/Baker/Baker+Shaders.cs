@@ -742,14 +742,17 @@ static partial class Program
 
                         var shaderFileName = $"{Path.Combine(Path.GetTempPath(), Path.GetTempFileName())}.slang";
 
-                        var attributes = new List<VertexAttribute>();
+                        var attributes = new SortedDictionary<int, VertexAttribute>();
 
-                        if(vertexInputs.TryGetValue("", out var a))
+                        if (vertexInputs.TryGetValue("", out var a))
                         {
-                            attributes.AddRange(a);
+                            foreach (var pair in a)
+                            {
+                                attributes.Add(pair.Key, pair.Value);
+                            }
                         }
 
-                        if(variantKey.Length > 0)
+                        if (variantKey.Length > 0)
                         {
                             var variantPieces = variantKey.Split(' ');
 
@@ -759,7 +762,10 @@ static partial class Program
                                 {
                                     if (pair.Key.Equals(piece, StringComparison.OrdinalIgnoreCase))
                                     {
-                                        attributes.AddRange(pair.Value);
+                                        foreach (var attributePair in pair.Value)
+                                        {
+                                            attributes.AddOrSetKey(attributePair.Key, attributePair.Value);
+                                        }
                                     }
                                 }
                             }
@@ -767,7 +773,7 @@ static partial class Program
 
                         var shaderObject = new SerializableShaderData()
                         {
-                            vertexAttributes = attributes.ToArray(),
+                            vertexAttributes = attributes.Select(x => x.Value).ToArray(),
                         };
 
                         byte[] Compile(ShaderPiece piece, ShaderCompilerType type, Renderer renderer, ref string code,

@@ -188,7 +188,7 @@ public float3 StapleGetBlendOffset(uint vertexID)
 		
 		uint index = i * StapleBlendShapeVertexCount * 2 + vertexID * 2;
 		
-		float3 offset = StapleBlendData[index] * weight;
+		float3 offset = StapleBlendData[index].xyz * weight;
 		
 		outValue += offset;
 	}

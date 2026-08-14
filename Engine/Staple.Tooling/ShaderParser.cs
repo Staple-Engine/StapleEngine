@@ -94,7 +94,7 @@ public static partial class ShaderParser
 
     public static bool Parse(string source, ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
         out List<string> variants, out List<KeyValuePair<string, string>> variantDependencies, out List<InstanceParameter> instanceParameters,
-        out Dictionary<string, List<VertexAttribute>> vertexInputs, out MaterialRenderQueue renderQueue,
+        out Dictionary<string, Dictionary<int, VertexAttribute>> vertexInputs, out MaterialRenderQueue renderQueue,
         out int renderQueueOffset, out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
     {
         vertexInputs = [];
@@ -276,9 +276,31 @@ public static partial class ShaderParser
                             list = [];
 
                             vertexInputs.Add(target, list);
+
+                            if (!string.IsNullOrEmpty(target) && vertexInputs.TryGetValue("", out var existingAttributes))
+                            {
+                                foreach(var pair in existingAttributes)
+                                {
+                                    list.Add(pair.Key, pair.Value);
+                                }
+                            }
+
+                            list.Add(i, attribute);
+
+                            continue;
                         }
 
-                        list.Add(attribute);
+                        if (string.IsNullOrEmpty(target))
+                        {
+                            foreach (var pair in vertexInputs)
+                            {
+                                pair.Value.Add(i, attribute);
+                            }
+                        }
+                        else
+                        {
+                            list.Add(i, attribute);
+                        }
                     }
                 }
             }

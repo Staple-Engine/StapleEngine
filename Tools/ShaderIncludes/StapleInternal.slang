@@ -79,7 +79,7 @@ public StructuredBuffer<uint> StapleEntityTransformIDs;
 public StructuredBuffer<float4> StapleBoneMatrices;
 
 [[vk::binding(StapleInternalStorageBufferStart + 3, StapleSamplerStorageBufferSet)]]
-public StructuredBuffer<float3> StapleBlendData;
+public StructuredBuffer<float4> StapleBlendData;
 
 	#endif
 

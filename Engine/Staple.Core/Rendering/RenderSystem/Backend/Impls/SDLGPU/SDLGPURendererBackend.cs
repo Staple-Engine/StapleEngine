@@ -1413,7 +1413,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
                 for (var i = 0; i < state.shaderInstance.attributes.Length; i++)
                 {
-                    var attributeIndex = vertexLayout.vertexAttributes.IndexOf(state.shaderInstance.attributes[i]);
+                    var shaderAttribute = state.shaderInstance.attributes[i];
+
+                    var attributeIndex = vertexLayout.vertexAttributes.IndexOf(shaderAttribute);
 
                     if (attributeIndex < 0)
                     {
@@ -1430,16 +1432,18 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                         return false;
                     }
 
+                    var vertexLayoutAttribute = vertexLayout.vertexAttributes[attributeIndex];
+
                     var attribute = vertexLayout.attributes[attributeIndex];
 
-                    attributeIndex = state.shaderInstance.attributes.IndexOf(vertexLayout.vertexAttributes[attributeIndex]);
+                    var shaderAttributeIndex = state.shaderInstance.attributes.IndexOf(vertexLayoutAttribute);
 
                     ref var currentAttribute = ref shaderAttributes[i];
 
                     currentAttribute.buffer_slot = 0;
                     currentAttribute.format = attribute.format;
                     currentAttribute.offset = attribute.offset;
-                    currentAttribute.location = (uint)attributeIndex;
+                    currentAttribute.location = (uint)shaderAttributeIndex;
                 }
 
                 var attributesSpan = shaderAttributes.AsSpan();
