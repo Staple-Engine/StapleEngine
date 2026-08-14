@@ -168,13 +168,13 @@ namespace StapleCodeGeneration
                         if(!componentHashers.TryGetValue(typeName, out var hasher))
                         {
                             hasher = $@"(c) =>
-    {{
-        if(c is not {typeName} component)
-        {{
-            return 0;
-        }}
+                    {{
+                        if(c is not {typeName} component)
+                        {{
+                            return 0;
+                        }}
 
-        var hashCode = new HashCode();
+                        var hashCode = new HashCode();
 
 ";
 
@@ -182,18 +182,42 @@ namespace StapleCodeGeneration
                             {
                                 if(member.Kind != SymbolKind.Field ||
                                     member.DeclaredAccessibility != Accessibility.Public ||
-                                    member.IsStatic)
+                                    member.IsStatic ||
+                                    member is not IFieldSymbol fieldSymbol)
                                 {
                                     continue;
                                 }
 
-                                hasher += $"hashCode.Add(component.{member.Name});\n";
+                                if(verbose)
+                                {
+                                    foreach (var interfaceName in fieldSymbol.Type.AllInterfaces)
+                                    {
+                                        hasher += $"                //{interfaceName.Name}\n";
+                                    }
+                                }
+
+                                if (fieldSymbol.Type.AllInterfaces.Any(x => x.Name == "IEnumerable"))
+                                {
+                                    hasher += $@"
+                        if(component.{member.Name} != null)
+                        {{
+                            foreach(var item in component.{member.Name})
+                            {{
+                                hashCode.Add(item);
+                            }}
+                        }}
+";
+                                }
+                                else
+                                {
+                                    hasher += $"                        hashCode.Add(component.{member.Name});\n";
+                                }
                             }
 
                             hasher += $@"
 
-        return hashCode.ToHashCode();
-    }}";
+                        return hashCode.ToHashCode();
+                    }}";
 
                             componentHashers.Add(typeName, hasher);
                         }
@@ -456,8 +480,7 @@ namespace StapleCodeGeneration
                         {
                             source += $@"
             Staple.Internal.TypeCache.RegisterComponentHasher(typeof({type}).FullName,
-                {hasher}
-            );
+                {hasher});
 
 ";
                         }
