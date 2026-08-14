@@ -81,6 +81,14 @@ public static class MeshOptimization
 
         var newVertexCount = Meshopt.GenerateVertexRemap(remap.AsSpan(), new ReadOnlySpan<uint>(originalIndices), vertices);
 
+        if (newVertexCount == 0) //Failed to remap
+        {
+            outVertices = vertices.ToArray();
+            outIndices = indices.ToArray();
+
+            return;
+        }
+
         var newVertices = new PlaceholderVertex[newVertexCount];
 
         var newIndices = new uint[originalIndices.Length];
@@ -504,6 +512,14 @@ public static class MeshOptimization
         }
 
         var vertexCount = Meshopt.GenerateVertexRemap(remap.AsSpan(), new ReadOnlySpan<uint>(originalIndices), vertices);
+
+        if(vertexCount == 0) //Failed to remap
+        {
+            outVertices = vertices.ToArray();
+            outIndices = indices.ToArray();
+
+            return;
+        }
 
         var newVertices = new PlaceholderVertex[vertexCount];
 
