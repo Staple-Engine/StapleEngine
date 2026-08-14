@@ -1874,10 +1874,6 @@ public static class EditorGUI
                         ImGui.TableSetupColumn(result.Item1);
                     }
                 }
-                else
-                {
-                    ImGui.TableSetupColumn($"{i}");
-                }
             }
 
             if(showHeader)
