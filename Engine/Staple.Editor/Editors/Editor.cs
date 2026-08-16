@@ -95,11 +95,16 @@ public class Editor
 
         void Content()
         {
-            var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
+            var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             foreach (var field in fields)
             {
                 if (field.GetCustomAttribute<HideInInspectorAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null)
+                {
+                    continue;
+                }
+
+                if(!field.IsPublic && field.GetCustomAttribute<SerializeFieldAttribute>() == null)
                 {
                     continue;
                 }

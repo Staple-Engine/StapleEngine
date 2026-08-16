@@ -44,15 +44,54 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
     private readonly ComponentVersionTracker<Transform> transformVersions = new();
 
-    private readonly Dictionary<int, ShaderHandle[]> cachedMaterialBlendShapeShaderHandles = [];
+    private static readonly Dictionary<StringID, VertexBuffer> cachedBlendShapeBuffers = [];
 
-    private VertexBuffer emptyBlendShapeBuffer;
+    private static VertexBuffer emptyBlendShapeBuffer;
+
+    [OnAssetsReimported]
+    private static void OnAssetsReimported()
+    {
+        foreach(var pair in cachedBlendShapeBuffers)
+        {
+            pair.Value.Destroy();
+        }
+
+        cachedBlendShapeBuffers.Clear();
+    }
 
     public SkinnedMeshRenderSystem() : base(false, typeof(SkinnedMeshRenderer), typeof(GenericRenderQueue<SkinnedMeshRenderer>))
     {
     }
 
     public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshRenderer>();
+
+    public override void Startup()
+    {
+        World.AddComponentChangedCallback(typeof(SkinnedMeshRenderer),
+            (world, entity, ref component) =>
+            {
+                if (component is not SkinnedMeshRenderer renderer)
+                {
+                    return;
+                }
+
+                renderer.needsUpdate = true;
+            });
+    }
+
+    public override void Shutdown()
+    {
+        foreach(var pair in cachedBlendShapeBuffers)
+        {
+            pair.Value.Destroy();
+        }
+
+        cachedBlendShapeBuffers.Clear();
+
+        emptyBlendShapeBuffer?.Destroy();
+
+        emptyBlendShapeBuffer = null;
+    }
 
     public override void Prepare()
     {
@@ -120,11 +159,20 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                         {
                             renderer.blendShapeWeights.Add(meshInfo.blendShape.channels[renderer.blendShapeWeights.Count].weight);
                         }
+
+                        Array.Resize(ref renderer.blendShapeNames, blendCount);
+
+                        for(var i = 0; i < blendCount; i++)
+                        {
+                            renderer.blendShapeNames[i] = meshInfo.blendShape.channels[i].name;
+                        }
                     }
                 }
                 else if((renderer.blendShapeWeights?.Count ?? 0) > 0)
                 {
                     renderer.blendShapeWeights.Clear();
+
+                    renderer.blendShapeNames = [];
                 }
             }
 
@@ -217,41 +265,42 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
             {
                 if(mesh.blendShape != null)
                 {
-                    if(renderer.blendShapeBuffer == null ||
-                        renderer.meshVertexCount != mesh.vertices.Length ||
-                        renderer.needsUpdate)
+                    if(renderer.needsUpdate)
                     {
-                        renderer.meshVertexCount = mesh.vertices.Length;
+                        var key = new StringID(renderer.mesh.Guid.Guid);
 
-                        renderer.blendShapeBuffer?.Destroy();
-
-                        var vertexCount = mesh.blendShape.channels.Length * mesh.vertices.Length;
-
-                        var vertices = new Vector4[vertexCount * 2];
-
-                        for(int i = 0, index = 0; i < mesh.blendShape.channels.Length; i++, index += mesh.vertices.Length * 2)
+                        if (!cachedBlendShapeBuffers.TryGetValue(key, out renderer.blendShapeBuffer))
                         {
-                            ref var channel = ref mesh.blendShape.channels[i];
+                            var vertexCount = mesh.blendShape.channels.Length * mesh.vertices.Length;
 
-                            if(channel.positionOffsets.Length != mesh.vertices.Length)
+                            var vertices = new Vector4[vertexCount * 2];
+
+                            for (int i = 0, index = 0; i < mesh.blendShape.channels.Length; i++, index += mesh.vertices.Length * 2)
                             {
-                                continue;
-                            }
+                                ref var channel = ref mesh.blendShape.channels[i];
 
-                            var copyNormals = channel.normalOffsets.Length == channel.positionOffsets.Length;
-
-                            for(int j = 0, counter = 0; j < channel.positionOffsets.Length; j++, counter += 2)
-                            {
-                                vertices[index + counter] = channel.positionOffsets[j].ToVector4();
-
-                                if(copyNormals)
+                                if (channel.positionOffsets.Length != mesh.vertices.Length)
                                 {
-                                    vertices[index + counter + 1] = channel.normalOffsets[j].ToVector4();
+                                    continue;
+                                }
+
+                                var copyNormals = channel.normalOffsets.Length == channel.positionOffsets.Length;
+
+                                for (int j = 0, counter = 0; j < channel.positionOffsets.Length; j++, counter += 2)
+                                {
+                                    vertices[index + counter] = channel.positionOffsets[j].ToVector4();
+
+                                    if (copyNormals)
+                                    {
+                                        vertices[index + counter + 1] = channel.normalOffsets[j].ToVector4();
+                                    }
                                 }
                             }
-                        }
 
-                        renderer.blendShapeBuffer = VertexBuffer.Create(vertices, blendShapeVertexLayout.Value, RenderBufferFlags.GraphicsRead);
+                            renderer.blendShapeBuffer = VertexBuffer.Create(vertices, blendShapeVertexLayout.Value, RenderBufferFlags.GraphicsRead);
+
+                            cachedBlendShapeBuffers.Add(key, renderer.blendShapeBuffer);
+                        }
                     }
 
                     if(renderer.blendShapeParameterBuffer == null ||
@@ -291,7 +340,6 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                 }
                 else
                 {
-                    renderer.blendShapeBuffer?.Destroy();
                     renderer.blendShapeParameterBuffer?.Destroy();
 
                     renderer.blendShapeBuffer = null;
@@ -693,27 +741,4 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
             transform.LocalScale = original ? node.OriginalScale : node.Scale;
         }
     }
-
-    #region Lifecycle
-    public override void Startup()
-    {
-        World.AddComponentChangedCallback(typeof(SkinnedMeshRenderer), 
-            (world, entity, ref component) =>
-            {
-                if(component is not SkinnedMeshRenderer renderer)
-                {
-                    return;
-                }
-
-                renderer.needsUpdate = true;
-            });
-    }
-
-    public override void Shutdown()
-    {
-        emptyBlendShapeBuffer?.Destroy();
-
-        emptyBlendShapeBuffer = null;
-    }
-    #endregion
 }
