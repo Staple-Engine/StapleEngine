@@ -51,6 +51,11 @@ internal class MeshAssetResource
     public int BoneCount { get; internal set; }
 
     /// <summary>
+    /// Whether this MeshAsset has Blend Shapes
+    /// </summary>
+    public bool HasBlendShapes { get; internal set; }
+
+    /// <summary>
     /// The adjustment transform for all meshes, if any
     /// </summary>
     public MeshAdjustmentTransform AdjustmentTransform { get; internal set; }

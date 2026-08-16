@@ -726,6 +726,11 @@ public sealed class MeshAsset : IGuidAsset
     public int BoneCount => meshResource?.BoneCount ?? 0;
 
     /// <summary>
+    /// Whether this asset has blend shapes
+    /// </summary>
+    public bool HasBlendShapes => meshResource?.HasBlendShapes ?? false;
+
+    /// <summary>
     /// Transform adjustments for all meshes
     /// </summary>
     public MeshAdjustmentTransform AdjustmentTransform => meshResource?.AdjustmentTransform;

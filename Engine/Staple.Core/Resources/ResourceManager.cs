@@ -2187,6 +2187,7 @@ internal class ResourceManager
             }
 
             var startBoneIndex = 0;
+            var hasBlendShapes = false;
 
             resource.meshes = new MeshAsset.MeshInfo[meshAssetData.meshes.Length];
 
@@ -2345,10 +2346,13 @@ internal class ResourceManager
                 }
 
                 resource.meshes[i] = newMesh;
+
+                hasBlendShapes |= newMesh.blendShape != null;
             }
 
             resource.BoneCount = startBoneIndex;
             resource.AdjustmentTransform = meshAssetData.adjustmentTransform;
+            resource.HasBlendShapes = hasBlendShapes;
 
             resource.AdjustmentTransformMatrix = resource.AdjustmentTransform != null ? new(Matrix4x4.TRS(
                 resource.AdjustmentTransform.position.ToVector3(),

@@ -84,7 +84,16 @@ public sealed class SkinnedMeshRenderer : Renderable, IComponentDisposable
             return;
         }
 
-        blendShapeWeights[index] = weight;
+        if(instance?.Content is SkinnedMeshInstance i)
+        {
+            i.SetBlendShapeWeight(blendShapeNames[index], weight);
+        }
+        else
+        {
+            blendShapeWeights[index] = weight;
+
+            needsUpdate = true;
+        }
     }
 
     /// <summary>

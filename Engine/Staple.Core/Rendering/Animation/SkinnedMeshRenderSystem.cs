@@ -258,7 +258,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                     needsInstanceUpdate = true;
                 }
 
-                renderer.instance ??= new(entry.entity, EntityQueryMode.Parent, false);
+                renderer.instance ??= new(entry.entity, EntityQueryMode.Parent, true);
             }
 
             if(renderer.mesh?.MeshAssetMesh is MeshAsset.MeshInfo mesh)
@@ -300,6 +300,27 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                             renderer.blendShapeBuffer = VertexBuffer.Create(vertices, blendShapeVertexLayout.Value, RenderBufferFlags.GraphicsRead);
 
                             cachedBlendShapeBuffers.Add(key, renderer.blendShapeBuffer);
+                        }
+
+                        if((renderer.instance?.Length ?? 0) > 0 &&
+                            (renderer.blendShapeWeights?.Count ?? 0) == (renderer.blendShapeNames?.Length ?? 0) &&
+                            (renderer.blendShapeWeights?.Count ?? 0) > 0)
+                        {
+                            var instance = renderer.instance.Content;
+
+                            for (var i = 0; i < renderer.blendShapeWeights.Count; i++)
+                            {
+                                var name = renderer.blendShapeNames[i];
+
+                                if (instance.TryGetBlendShapeWeight(name, out var weight))
+                                {
+                                    renderer.blendShapeWeights[i] = weight;
+
+                                    continue;
+                                }
+
+                                instance.SetBlendShapeWeight(name, renderer.blendShapeWeights[i]);
+                            }
                         }
                     }
 
@@ -465,7 +486,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
             var item = renderers.Contents[i];
 
             var renderer = item.renderer;
-            var instance = renderer.instance.Content;
+            var (instanceEntity, instance) = renderer.instance.ContentEntity;
 
             if(instance == null)
             {
@@ -474,8 +495,14 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
-            var meshAssetMesh = mesh.MeshAssetMesh;
             var lighting = renderer.overrideLighting ? renderer.lighting : meshAsset.Lighting;
+
+            if ((instance.blendShapeNames?.Length ?? 0) == 0 && (meshAsset?.HasBlendShapes ?? false))
+            {
+                instance.renderers ??= new(instanceEntity, EntityQueryMode.Children, false);
+
+                instance.UpdateBlendShapeData();
+            }
 
             for (var j = 0; j < renderer.mesh.submeshes.Count; j++)
             {

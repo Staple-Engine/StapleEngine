@@ -43,10 +43,14 @@ internal class SkinnedMeshRendererEditor : Editor
 
                         if (newValue != originalValue)
                         {
+                            renderer.instance?.Content?.SetBlendShapeWeight(blendShape.channels[row].name, newValue);
+
                             EditorGUI.Button("R", $"{GetType().FullName}.{name}{row}.Revert",
                                 () =>
                                 {
                                     blendShapeWeights[row] = originalValue;
+
+                                    renderer.instance?.Content?.SetBlendShapeWeight(blendShape.channels[row].name, originalValue);
                                 });
                         }
                         else

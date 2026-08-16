@@ -45,6 +45,7 @@
     <Compile Include="Editors\Default\CameraGizmoEditor.cs" />
     <Compile Include="Editors\Default\CullingVolumeGizmoEditor.cs" />
     <Compile Include="Editors\Default\MeshRendererGizmo.cs" />
+    <Compile Include="Editors\Default\SkinnedMeshInstanceEditor.cs" />
     <Compile Include="Editors\EditorWindowFlags.cs" />
     <Compile Include="Editors\Default\SkinnedMeshRendererGizmo.cs" />
     <Compile Include="Generators\GeneratorAssetManager.cs" />
