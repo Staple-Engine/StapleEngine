@@ -11,13 +11,6 @@ texture mainTexture = WHITE
 
 End Parameters
 
-Begin Input
-POSITION
-TEXCOORD0
-variant: SKINNING BLENDINDICES
-variant: SKINNING BLENDWEIGHTS
-End Input
-
 Begin Common
 
 [[vk::binding(StapleUniformBufferStart, StapleUniformBufferSet)]]

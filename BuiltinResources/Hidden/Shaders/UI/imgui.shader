@@ -7,12 +7,6 @@ texture mainTexture
 
 End Parameters
 
-Begin Input
-POSITION
-TEXCOORD0
-COLOR0
-End Input
-
 Begin Common
 
 struct VertexOutput

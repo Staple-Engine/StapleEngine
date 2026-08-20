@@ -25,17 +25,6 @@ float alphaThreshold = 0.25
 
 End Parameters
 
-Begin Input
-POSITION
-TEXCOORD0
-NORMAL
-variant: NORMALMAP TANGENT
-variant: NORMALMAP BITANGENT
-variant: VERTEX_COLORS|PER_VERTEX_LIGHTING COLOR0
-variant: SKINNING BLENDINDICES
-variant: SKINNING BLENDWEIGHTS
-End Input
-
 Begin Instancing
 End Instancing
 

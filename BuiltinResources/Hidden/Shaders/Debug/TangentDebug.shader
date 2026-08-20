@@ -6,13 +6,6 @@ Begin Parameters
 
 End Parameters
 
-Begin Input
-POSITION
-TANGENT
-variant: SKINNING BLENDINDICES
-variant: SKINNING BLENDWEIGHTS
-End Input
-
 Begin Instancing
 End Instancing
 

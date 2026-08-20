@@ -6,12 +6,6 @@ color mainColor
 
 End Parameters
 
-Begin Input
-POSITION
-variant: SKINNING BLENDINDICES
-variant: SKINNING BLENDWEIGHTS
-End Input
-
 Begin Instancing
 End Instancing
 
