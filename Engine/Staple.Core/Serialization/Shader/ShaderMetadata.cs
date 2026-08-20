@@ -111,6 +111,16 @@ public class ShaderUniformMapping
 }
 
 [MessagePackObject]
+public class ShaderVertexAttributeData
+{
+    [Key(0)]
+    public VertexAttribute attribute;
+
+    [Key(1)]
+    public VertexAttributeType attributeType;
+}
+
+[MessagePackObject]
 public class ShaderUniformContainer
 {
     [Key(0)]
@@ -122,36 +132,8 @@ public class ShaderUniformContainer
     [Key(2)]
     public List<ShaderUniformMapping> storageBuffers = [];
 
-    public void Merge(ShaderUniformContainer other)
-    {
-        static void Add(List<ShaderUniformMapping> container, ShaderUniformMapping target)
-        {
-            foreach(var uniform in container)
-            {
-                if(uniform.name == target.name)
-                {
-                    return;
-                }
-            }
-
-            container.Add(target);
-        }
-
-        foreach(var uniform in other.uniforms)
-        {
-            Add(uniforms, uniform);
-        }
-
-        foreach (var uniform in other.textures)
-        {
-            Add(textures, uniform);
-        }
-
-        foreach (var uniform in other.storageBuffers)
-        {
-            Add(storageBuffers, uniform);
-        }
-    }
+    [Key(3)]
+    public List<ShaderVertexAttributeData> vertexAttributes = [];
 }
 
 [MessagePackObject]

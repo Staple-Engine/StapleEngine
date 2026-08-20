@@ -120,8 +120,7 @@ static partial class Program
                 }
 
                 if (ShaderParser.Parse(text, shader.type, out var blendMode, out var shaderParameters, out shader.variants,
-                    out var variantDependencies, out var instancingParameters, out var vertexInputs, out var renderQueue,
-                    out var renderQueueOffset, out var vertex, out var fragment, out var compute) == false)
+                    out var variantDependencies, out var instancingParameters, out var renderQueue, out var renderQueueOffset, out var vertex, out var fragment, out var compute) == false)
                 {
                     Console.WriteLine("\t\tError: File has invalid format");
 
@@ -333,7 +332,7 @@ static partial class Program
 
                     byte[] ProcessShader(string shaderFileName, List<string> extraDefines,
                         ShaderCompilerType shaderType, Renderer renderer, out object shaderMetrics,
-                        out ShaderReflectionData reflectionData)
+                        out ShaderReflectionData reflectionData, out VertexAttribute[] vertexAttributes)
                     {
                         var shaderExtension = shaderType switch
                         {
@@ -445,6 +444,7 @@ static partial class Program
                             {
                                 shaderMetrics = null;
                                 reflectionData = null;
+                                vertexAttributes = null;
 
                                 Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
 
@@ -474,6 +474,7 @@ static partial class Program
                             {
                                 shaderMetrics = null;
                                 reflectionData = null;
+                                vertexAttributes = null;
 
                                 Console.WriteLine($"Failed to process reflection: {e}");
 
@@ -512,6 +513,7 @@ static partial class Program
                             {
                                 shaderMetrics = null;
                                 reflectionData = null;
+                                vertexAttributes = null;
 
                                 Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
 
@@ -542,6 +544,7 @@ static partial class Program
                         {
                             shaderMetrics = null;
                             reflectionData = null;
+                            vertexAttributes = null;
 
                             Console.WriteLine($"Failed to process reflection: {e}");
 
@@ -569,6 +572,7 @@ static partial class Program
                             if (process.ExitCode != 0)
                             {
                                 shaderMetrics = null;
+                                vertexAttributes = null;
 
                                 Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
 
@@ -597,6 +601,7 @@ static partial class Program
                             catch (Exception e)
                             {
                                 shaderMetrics = null;
+                                vertexAttributes = null;
 
                                 return null;
                             }
@@ -618,6 +623,7 @@ static partial class Program
                             if (process.ExitCode != 0)
                             {
                                 shaderMetrics = null;
+                                vertexAttributes = null;
 
                                 Console.WriteLine($"Arguments: {process.StartInfo.Arguments}");
 
@@ -642,6 +648,10 @@ static partial class Program
                                 File.Delete($"{outShaderFileName}.json");
                                 File.Delete(outShaderFileName);
                                 File.Delete(outShaderFileNameTranspiled);
+
+                                var container = reflectionData?.ToContainer();
+
+                                vertexAttributes = container?.vertexAttributes.Select(x => x.attribute).ToArray() ?? [];
 
                                 var stats = JsonConvert.DeserializeObject<Dictionary<string, object>>(text);
 
@@ -727,6 +737,7 @@ static partial class Program
                             catch (Exception e)
                             {
                                 shaderMetrics = null;
+                                vertexAttributes = null;
 
                                 File.Delete(outShaderFileName);
                                 File.Delete(outShaderFileNameTranspiled);
@@ -742,42 +753,10 @@ static partial class Program
 
                         var shaderFileName = $"{Path.Combine(Path.GetTempPath(), Path.GetTempFileName())}.slang";
 
-                        var attributes = new SortedDictionary<int, VertexAttribute>();
-
-                        if (vertexInputs.TryGetValue("", out var a))
-                        {
-                            foreach (var pair in a)
-                            {
-                                attributes.Add(pair.Key, pair.Value);
-                            }
-                        }
-
-                        if (variantKey.Length > 0)
-                        {
-                            var variantPieces = variantKey.Split(' ');
-
-                            foreach (var piece in variantPieces)
-                            {
-                                foreach (var pair in vertexInputs)
-                                {
-                                    if (pair.Key.Equals(piece, StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        foreach (var attributePair in pair.Value)
-                                        {
-                                            attributes.AddOrSetKey(attributePair.Key, attributePair.Value);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        var shaderObject = new SerializableShaderData()
-                        {
-                            vertexAttributes = attributes.Select(x => x.Value).ToArray(),
-                        };
+                        var shaderObject = new SerializableShaderData();
 
                         byte[] Compile(ShaderPiece piece, ShaderCompilerType type, Renderer renderer, ref string code,
-                            out object shaderMetrics, out ShaderUniformContainer uniforms)
+                            out object shaderMetrics, out ShaderUniformContainer uniforms, out VertexAttribute[] attributes)
                         {
                             code = "import Staple;\n";
 
@@ -791,12 +770,15 @@ static partial class Program
                             {
                                 shaderMetrics = null;
                                 uniforms = null;
+                                attributes = null;
 
                                 return null;
                             }
 
                             var data = ProcessShader(shaderFileName, extraDefines, type, renderer, out shaderMetrics,
-                                out var reflection);
+                                out var reflection, out var attr);
+
+                            attributes = type == ShaderCompilerType.vertex ? attr : null;
 
                             if(reflection == null)
                             {
@@ -847,7 +829,7 @@ static partial class Program
                                 string computeCode = "";
 
                                 shaderObject.computeShader = Compile(shader.compute, ShaderCompilerType.compute, renderer, ref computeCode,
-                                    out var computeMetrics, out var reflectionData);
+                                    out var computeMetrics, out var reflectionData, out _);
 
                                 if (shaderObject.computeShader == null)
                                 {
@@ -896,10 +878,10 @@ static partial class Program
                                 string fragmentCode = "";
 
                                 shaderObject.vertexShader = Compile(shader.vertex, ShaderCompilerType.vertex, renderer, ref vertexCode,
-                                    out var vertexMetrics, out var vertexReflectionData);
+                                    out var vertexMetrics, out var vertexReflectionData, out var attributes);
 
                                 shaderObject.fragmentShader = Compile(shader.fragment, ShaderCompilerType.fragment, renderer, ref fragmentCode,
-                                    out var fragmentMetrics, out var fragmentReflectionData);
+                                    out var fragmentMetrics, out var fragmentReflectionData, out _);
 
                                 if (shaderObject.vertexShader == null || shaderObject.fragmentShader == null)
                                 {
@@ -907,6 +889,8 @@ static partial class Program
 
                                     return false;
                                 }
+
+                                shaderObject.vertexAttributes = attributes ?? [];
 
                                 if (vertexMetrics is VertexFragmentShaderMetrics v)
                                 {

@@ -160,6 +160,205 @@ public class ShaderReflectionData
 
             return false;
         }
+
+        public bool TryGetVertexAttributeType(out VertexAttributeType type)
+        {
+            switch (kind)
+            {
+                case "vector":
+
+                    switch (elementCount)
+                    {
+                        case 2:
+
+                            switch(elementType.scalarType)
+                            {
+                                case "float16":
+
+                                    type = VertexAttributeType.Half2;
+
+                                    return true;
+
+                                case "float32":
+
+                                    type = VertexAttributeType.Float2;
+
+                                    return true;
+
+                                case "int8":
+
+                                    type = VertexAttributeType.Byte2;
+
+                                    return true;
+
+                                case "uint8":
+
+                                    type = VertexAttributeType.UByte2;
+
+                                    return true;
+
+                                case "int16":
+
+                                    type = VertexAttributeType.Short2;
+
+                                    return true;
+
+                                case "uint16":
+
+                                    type = VertexAttributeType.UShort2;
+
+                                    return true;
+
+                                case "int32":
+
+                                    type = VertexAttributeType.Int2;
+
+                                    return true;
+
+                                case "uint32":
+
+                                    type = VertexAttributeType.UInt2;
+
+                                    return true;
+
+                                default:
+
+                                    type = default;
+
+                                    return false;
+                            }
+
+                        case 3:
+
+                            switch (elementType.scalarType)
+                            {
+                                case "float32":
+
+                                    type = VertexAttributeType.Float3;
+
+                                    return true;
+
+                                case "int32":
+
+                                    type = VertexAttributeType.Int3;
+
+                                    return true;
+
+                                case "uint32":
+
+                                    type = VertexAttributeType.UInt3;
+
+                                    return true;
+
+                                default:
+
+                                    type = default;
+
+                                    return false;
+                            }
+
+                        case 4:
+
+                            switch (elementType.scalarType)
+                            {
+                                case "float16":
+
+                                    type = VertexAttributeType.Half4;
+
+                                    return true;
+
+                                case "float32":
+
+                                    type = VertexAttributeType.Float4;
+
+                                    return true;
+
+                                case "int8":
+
+                                    type = VertexAttributeType.Byte4;
+
+                                    return true;
+
+                                case "uint8":
+
+                                    type = VertexAttributeType.UByte4;
+
+                                    return true;
+
+                                case "int16":
+
+                                    type = VertexAttributeType.Short4;
+
+                                    return true;
+
+                                case "uint16":
+
+                                    type = VertexAttributeType.UShort4;
+
+                                    return true;
+
+                                case "int32":
+
+                                    type = VertexAttributeType.Int4;
+
+                                    return true;
+
+                                case "uint32":
+
+                                    type = VertexAttributeType.UInt4;
+
+                                    return true;
+
+                                default:
+
+                                    type = default;
+
+                                    return false;
+                            }
+
+                        default:
+
+                            type = default;
+
+                            return false;
+                    }
+
+                case "scalar":
+
+                    switch (scalarType)
+                    {
+                        case "float32":
+
+                            type = VertexAttributeType.Float;
+
+                            return true;
+
+                        case "int32":
+
+                            type = VertexAttributeType.Int;
+
+                            return true;
+
+                        case "uint32":
+
+                            type = VertexAttributeType.UInt;
+
+                            return true;
+
+                        default:
+
+                            type = default;
+
+                            return false;
+                    }
+
+                default:
+
+                    type = default;
+
+                    return false;
+            }
+        }
     }
 
     [Serializable]
@@ -176,6 +375,8 @@ public class ShaderReflectionData
     public class ElementField
     {
         public string name;
+        public string semanticName;
+        public int semanticIndex;
         public FieldType type;
         public ElementFieldBinding binding;
     }
@@ -188,11 +389,44 @@ public class ShaderReflectionData
         public FieldType type;
     }
 
+    [Serializable]
+    public class EntryPoint
+    {
+        public string name;
+        public string stage;
+        public List<Parameter> parameters = [];
+    }
+
     public List<Parameter> parameters = [];
+
+    public List<EntryPoint> entryPoints = [];
 
     public ShaderUniformContainer ToContainer()
     {
         var outValue = new ShaderUniformContainer();
+
+        var vertexEntry = entryPoints.FirstOrDefault(x => x.stage == "vertex");
+
+        var inputParameter = vertexEntry?.parameters.FirstOrDefault(x => x.name == "input");
+
+        if(inputParameter != null)
+        {
+            foreach (var field in inputParameter.type.fields)
+            {
+                if(!field.type.TryGetVertexAttributeType(out var attributeType) ||
+                    !Enum.TryParse<VertexAttribute>(field.semanticName, true, out var attribute) &&
+                    !Enum.TryParse($"{field.semanticName}{field.semanticIndex}", true, out attribute))
+                {
+                    continue;
+                }
+
+                outValue.vertexAttributes.Add(new()
+                {
+                    attribute = attribute,
+                    attributeType = attributeType,
+                });
+            }
+        }
 
         foreach (var parameter in parameters)
         {

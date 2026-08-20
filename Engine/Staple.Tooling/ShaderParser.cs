@@ -37,8 +37,6 @@ public static partial class ShaderParser
     private static readonly Regex computeRegex = ComputeRegex();
     private static readonly Regex commonRegex = CommonRegex();
     private static readonly Regex parameterRegex = ParameterRegex();
-    private static readonly Regex vertexInputRegex = VertexInputRegex();
-    private static readonly Regex vertexInputElementRegex = VertexInputElementRegex();
     private static readonly Regex blendRegex = BlendRegex();
     private static readonly Regex variantsRegex = VariantsRegex();
     private static readonly Regex variantDependencyRegex = VariantDependencyRegex();
@@ -74,12 +72,6 @@ public static partial class ShaderParser
     [GeneratedRegex("(\\w+) (\\w+)")]
     private static partial Regex InstancingParameterRegex();
 
-    [GeneratedRegex("Begin Input((.|\\n)*)End Input")]
-    private static partial Regex VertexInputRegex();
-
-    [GeneratedRegex("(variant\\: (?:[^|\\s]+\\|)*[^|\\s]+)?([ ]*)(\\w+)")]
-    private static partial Regex VertexInputElementRegex();
-
     [GeneratedRegex("Blend (.*) (.*)")]
     private static partial Regex BlendRegex();
 
@@ -94,11 +86,8 @@ public static partial class ShaderParser
 
     public static bool Parse(string source, ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
         out List<string> variants, out List<KeyValuePair<string, string>> variantDependencies, out List<InstanceParameter> instanceParameters,
-        out Dictionary<string, Dictionary<int, VertexAttribute>> vertexInputs, out MaterialRenderQueue renderQueue,
-        out int renderQueueOffset, out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
+        out MaterialRenderQueue renderQueue, out int renderQueueOffset, out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
     {
-        vertexInputs = [];
-
         if (type == ShaderType.VertexFragment)
         {
             var variantsMatch = variantsRegex.Match(source);
@@ -226,84 +215,6 @@ public static partial class ShaderParser
         else
         {
             parameters = default;
-        }
-
-        var inputMatch = vertexInputRegex.Match(source);
-
-        if (inputMatch.Success)
-        {
-            var inputs = inputMatch.Groups[1].Value.Trim().Split('\n').Select(x => x.Trim()).Where(x => x.Length > 0).ToArray();
-
-            for(var i = 0; i < inputs.Length; i++)
-            {
-                var match = vertexInputElementRegex.Match(inputs[i]);
-
-                if(match.Success)
-                {
-                    if (!Enum.TryParse<VertexAttribute>(match.Groups[3].Value, true, out var attribute))
-                    {
-                        type = default;
-                        parameters = default;
-                        variants = [];
-                        vertex = default;
-                        fragment = default;
-                        compute = default;
-                        blendMode = default;
-                        instanceParameters = default;
-                        vertexInputs = default;
-
-                        return false;
-                    }
-
-                    var keys = match.Groups[1].Value.Trim().Split('|');
-
-                    foreach(var key in keys)
-                    {
-                        var target = key;
-
-                        if(key.Length > 0)
-                        {
-                            if(key.StartsWith("variant: "))
-                            {
-                                target = target["variant: ".Length..];
-                            }
-                        }
-
-                        vertexInputs ??= [];
-
-                        if (!vertexInputs.TryGetValue(target, out var list))
-                        {
-                            list = [];
-
-                            vertexInputs.Add(target, list);
-
-                            if (!string.IsNullOrEmpty(target) && vertexInputs.TryGetValue("", out var existingAttributes))
-                            {
-                                foreach(var pair in existingAttributes)
-                                {
-                                    list.Add(pair.Key, pair.Value);
-                                }
-                            }
-
-                            list.Add(i, attribute);
-
-                            continue;
-                        }
-
-                        if (string.IsNullOrEmpty(target))
-                        {
-                            foreach (var pair in vertexInputs)
-                            {
-                                pair.Value.Add(i, attribute);
-                            }
-                        }
-                        else
-                        {
-                            list.Add(i, attribute);
-                        }
-                    }
-                }
-            }
         }
 
         void HandleContent(Regex regex, out ShaderPiece piece)

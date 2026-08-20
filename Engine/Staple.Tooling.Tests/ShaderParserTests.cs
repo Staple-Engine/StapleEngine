@@ -35,7 +35,7 @@ End Compute
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variants.Count, Is.EqualTo(3));
@@ -115,7 +115,7 @@ End Compute
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variants.Count, Is.EqualTo(3));
@@ -202,7 +202,7 @@ End Compute
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.Compute, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variants.Count, Is.EqualTo(0));
@@ -263,7 +263,7 @@ End Fragment
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(blend, Is.Null);
@@ -294,7 +294,7 @@ End Fragment
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(parameters.Length, Is.EqualTo(1));
@@ -302,124 +302,6 @@ End Fragment
         Assert.That(parameters[0].attribute, Is.EqualTo("Attribute"));
 
         Assert.That(parameters[0].variant, Is.EqualTo("Variant"));
-    }
-
-    [Test]
-    public void TestParseVertexAttributes()
-    {
-        var shader = $$"""
-Type VertexFragment
-
-Begin Parameters
-texture myTexture
-End Parameters
-
-Begin Input
-POSITION
-COLOR0
-TEXCOORD0
-variant: SKINNING|LIGHTING BLENDINDICES
-variant: SKINNING|LIGHTING BLENDWEIGHTS
-COLOR1
-End Input
-
-Begin Instancing
-End Instancing
-
-Begin Vertex
-End Vertex
-
-Begin Fragment
-End Fragment
-""";
-
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
-            out var vertex, out var fragment, out var compute), Is.True);
-
-        Assert.That(vertexAttributes, Is.Not.Null);
-
-        Assert.That(vertexAttributes.Count, Is.EqualTo(3));
-
-        Assert.That(vertexAttributes.TryGetValue("", out var list), Is.True);
-
-        Assert.That(list, Is.Not.Null);
-
-        Assert.That(list, Has.Count.EqualTo(4));
-
-        Assert.That(list[0], Is.EqualTo(VertexAttribute.Position));
-
-        Assert.That(list[1], Is.EqualTo(VertexAttribute.Color0));
-
-        Assert.That(list[2], Is.EqualTo(VertexAttribute.TexCoord0));
-
-        Assert.That(list[5], Is.EqualTo(VertexAttribute.Color1));
-
-        Assert.That(vertexAttributes.TryGetValue("SKINNING", out list), Is.True);
-
-        Assert.That(list, Is.Not.Null);
-
-        Assert.That(list, Has.Count.EqualTo(6));
-
-        Assert.That(list[0], Is.EqualTo(VertexAttribute.Position));
-
-        Assert.That(list[1], Is.EqualTo(VertexAttribute.Color0));
-
-        Assert.That(list[2], Is.EqualTo(VertexAttribute.TexCoord0));
-
-        Assert.That(list[3], Is.EqualTo(VertexAttribute.BlendIndices));
-
-        Assert.That(list[4], Is.EqualTo(VertexAttribute.BlendWeights));
-
-        Assert.That(list[5], Is.EqualTo(VertexAttribute.Color1));
-
-        Assert.That(vertexAttributes.TryGetValue("LIGHTING", out list), Is.True);
-
-        Assert.That(list, Is.Not.Null);
-
-        Assert.That(list, Has.Count.EqualTo(6));
-
-        Assert.That(list[0], Is.EqualTo(VertexAttribute.Position));
-
-        Assert.That(list[1], Is.EqualTo(VertexAttribute.Color0));
-
-        Assert.That(list[2], Is.EqualTo(VertexAttribute.TexCoord0));
-
-        Assert.That(list[3], Is.EqualTo(VertexAttribute.BlendIndices));
-
-        Assert.That(list[4], Is.EqualTo(VertexAttribute.BlendWeights));
-
-        Assert.That(list[5], Is.EqualTo(VertexAttribute.Color1));
-    }
-
-    [Test]
-    public void TestFailParseVertexAttributes()
-    {
-        var shader = $$"""
-Type VertexFragment
-
-Begin Parameters
-texture myTexture
-End Parameters
-
-Begin Input
-POSITION
-asdf
-End Input
-
-Begin Instancing
-End Instancing
-
-Begin Vertex
-End Vertex
-
-Begin Fragment
-End Fragment
-""";
-
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
-            out var vertex, out var fragment, out var compute), Is.True);
     }
 
     [Test]
@@ -445,7 +327,7 @@ End Fragment
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variantDependencies, Has.Count.EqualTo(3));
@@ -550,11 +432,6 @@ Begin Parameters
 texture myTexture
 End Parameters
 
-Begin Input
-POSITION
-asdf
-End Input
-
 Begin Instancing
 End Instancing
 
@@ -566,7 +443,7 @@ End Fragment
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(renderQueue, Is.EqualTo(MaterialRenderQueue.Transparent));
@@ -586,11 +463,6 @@ Begin Parameters
 texture myTexture
 End Parameters
 
-Begin Input
-POSITION
-asdf
-End Input
-
 Begin Instancing
 End Instancing
 
@@ -602,12 +474,12 @@ End Fragment
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(renderQueue, Is.EqualTo(MaterialRenderQueue.Opaque));
 
-        Assert.That(renderQueueOffset, Is.EqualTo(5));
+        Assert.That(renderQueueOffset, Is.Zero);
     }
 
     [Test]
@@ -622,11 +494,6 @@ Begin Parameters
 texture myTexture
 End Parameters
 
-Begin Input
-POSITION
-asdf
-End Input
-
 Begin Instancing
 End Instancing
 
@@ -638,7 +505,7 @@ End Fragment
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(renderQueue, Is.EqualTo(MaterialRenderQueue.Opaque));
@@ -658,11 +525,6 @@ Begin Parameters
 texture myTexture
 End Parameters
 
-Begin Input
-POSITION
-asdf
-End Input
-
 Begin Instancing
 End Instancing
 
@@ -674,7 +536,7 @@ End Fragment
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(renderQueue, Is.EqualTo(MaterialRenderQueue.Opaque));
@@ -696,9 +558,6 @@ VariantDependency C -B
 Begin Parameters
 End Parameters
 
-Begin Input
-End Input
-
 Begin Instancing
 End Instancing
 
@@ -710,7 +569,7 @@ End Fragment
 """;
 
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var vertexAttributes, out var renderQueue, out var renderQueueOffset,
+            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset,
             out var vertex, out var fragment, out var compute), Is.True);
 
         Assert.That(variantDependencies, Has.Count.EqualTo(2));
