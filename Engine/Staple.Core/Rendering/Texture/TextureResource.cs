@@ -52,4 +52,11 @@ internal class TextureResource(ITextureCreateMethod createMethod)
 
         return ok;
     }
+
+    internal void Destroy()
+    {
+        impl?.Destroy();
+
+        impl = null;
+    }
 }

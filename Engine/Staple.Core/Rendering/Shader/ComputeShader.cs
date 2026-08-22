@@ -28,11 +28,6 @@ public partial class ComputeShader : IGuidAsset, IDisposableAsset
         Guid = resource.Guid;
     }
 
-    ~ComputeShader()
-    {
-        Destroy();
-    }
-
     internal ShaderUniformInfo GetUniform(int hash)
     {
         if (Disposed)

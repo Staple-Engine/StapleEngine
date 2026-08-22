@@ -36,11 +36,6 @@ public partial class Shader : IGuidAsset, IDisposableAsset
         Guid = resource?.Guid;
     }
 
-    ~Shader()
-    {
-        Destroy();
-    }
-
     /// <summary>
     /// Attempts to get the attribute a uniform might have
     /// </summary>

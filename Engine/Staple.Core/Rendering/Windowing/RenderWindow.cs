@@ -693,6 +693,8 @@ internal class RenderWindow
 
         lastTime = current;
 
+        ResourceManager.instance.OnFrame();
+
         World.Current?.StartFrame();
 
         RenderSystem.Instance.OnStartFrame();

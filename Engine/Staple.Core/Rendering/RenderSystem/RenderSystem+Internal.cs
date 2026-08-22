@@ -684,6 +684,7 @@ public sealed partial class RenderSystem
             renderQueue.Clear();
             entityTransformTracker.Clear();
             entityRenderableTracker.Clear();
+            renderables.ClearValues();
 
             if (entityQuery.Contents.Length > renderables.Length)
             {
@@ -835,8 +836,9 @@ public sealed partial class RenderSystem
         lock (lockObject)
         {
             renderQueue.Clear();
+            renderables.ClearValues();
 
-            if(entityQuery.Contents.Length > renderables.Length)
+            if (entityQuery.Contents.Length > renderables.Length)
             {
                 var newSize = renderables.Length * 2;
 

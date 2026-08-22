@@ -54,11 +54,6 @@ public class Texture : IGuidAsset
         textureResource = resource;
     }
 
-    ~Texture()
-    {
-        Destroy();
-    }
-
     internal void ApplyTextureToSprites()
     {
         foreach(var sprite in Sprites)
@@ -76,10 +71,6 @@ public class Texture : IGuidAsset
         {
             return;
         }
-
-        textureResource?.impl?.Destroy();
-
-        textureResource?.impl = null;
 
         textureResource = null;
     }

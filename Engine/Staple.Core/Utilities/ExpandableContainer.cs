@@ -16,11 +16,6 @@ public class ExpandableContainer<T>
     private T[] contents;
 
     /// <summary>
-    /// Whether to reset the array on clear, to ensure GC can get references
-    /// </summary>
-    private readonly bool ShouldResetOnClear = typeof(T).IsClass;
-
-    /// <summary>
     /// Whether we want to reset on clear
     /// </summary>
     private readonly bool EnableResetOnClear;
@@ -79,7 +74,7 @@ public class ExpandableContainer<T>
     {
         Length = 0;
 
-        if (!ShouldResetOnClear || !EnableResetOnClear)
+        if (!EnableResetOnClear)
         {
             return;
         }

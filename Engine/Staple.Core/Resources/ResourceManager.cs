@@ -14,11 +14,84 @@ namespace Staple.Internal;
 /// </summary>
 internal class ResourceManager
 {
+    public const float AssetUnloadCheckTime = 30.0f;
+
     public enum DestroyMode
     {
         Normal,
         Final,
         UserOnly,
+    }
+
+    public class ReferenceContainer<T, TResource, TExtra>
+        where T : class
+        where TResource : class
+    {
+        public readonly ExpandableContainer<WeakReference<T>> container = new();
+
+        public TResource resource;
+
+        public TExtra extra;
+
+        public bool Disposed
+        {
+            get
+            {
+                if(resource == null)
+                {
+                    return true;
+                }
+
+                var contents = container.Contents;
+
+                if(contents.Length == 0)
+                {
+                    return true;
+                }
+
+                foreach(var item in contents)
+                {
+                    if(item?.TryGetTarget(out _) ?? false)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        public void Add(T item)
+        {
+            container.Add(new(item));
+        }
+
+        public void Clear()
+        {
+            container.Clear();
+
+            resource = null;
+        }
+
+        public void Iterate(Action<T> callback)
+        {
+            var contents = container.Contents;
+
+            if (contents.Length == 0)
+            {
+                return;
+            }
+
+            foreach (var item in contents)
+            {
+                if (!(item?.TryGetTarget(out var instance) ?? false))
+                {
+                    continue;
+                }
+
+                callback(instance);
+            }
+        }
     }
 
     internal static readonly string LogTag = "ResourceManager";
@@ -28,15 +101,15 @@ internal class ResourceManager
     /// </summary>
     public List<string> resourcePaths = [];
 
-    internal readonly Dictionary<StringID, Texture> cachedTextures = [];
-    internal readonly Dictionary<StringID, Material> cachedMaterials = [];
-    internal readonly Dictionary<StringID, Shader> cachedShaders = [];
-    internal readonly Dictionary<StringID, ComputeShader> cachedComputeShaders = [];
-    internal readonly Dictionary<StringID, Mesh> cachedMeshes = [];
-    internal readonly Dictionary<StringID, AudioClip> cachedAudioClips = [];
+    internal readonly Dictionary<StringID, ReferenceContainer<Texture, TextureResource, TextureFlags>> cachedTextures = [];
+    internal readonly Dictionary<StringID, ReferenceContainer<Material, MaterialResource, bool>> cachedMaterials = [];
+    internal readonly Dictionary<StringID, ReferenceContainer<Shader, ShaderResource, bool>> cachedShaders = [];
+    internal readonly Dictionary<StringID, ReferenceContainer<ComputeShader, ComputeShaderResource, bool>> cachedComputeShaders = [];
+    internal readonly Dictionary<StringID, ReferenceContainer<Mesh, MeshAssetResource, bool>> cachedMeshes = [];
+    internal readonly Dictionary<StringID, ReferenceContainer<AudioClip, AudioClipResource, bool>> cachedAudioClips = [];
     internal readonly Dictionary<StringID, MeshAsset> cachedMeshAssets = [];
-    internal readonly Dictionary<StringID, FontAsset> cachedFonts = [];
-    internal readonly Dictionary<StringID, TextAsset> cachedTextAssets = [];
+    internal readonly Dictionary<StringID, ReferenceContainer<FontAsset, FontAssetResource, bool>> cachedFonts = [];
+    internal readonly Dictionary<StringID, ReferenceContainer<TextAsset, TextAssetResource, bool>> cachedTextAssets = [];
     internal readonly Dictionary<StringID, IStapleAsset> cachedAssets = [];
     internal readonly Dictionary<StringID, Prefab> cachedPrefabs = [];
     internal readonly Dictionary<StringID, ResourcePak> resourcePaks = [];
@@ -48,7 +121,7 @@ internal class ResourceManager
     /// <summary>
     /// Assets that must not be destroyed when using UserOnly mode
     /// </summary>
-    internal readonly HashSet<int> lockedAssets = [];
+    internal readonly HashSet<StringID> lockedAssets = [];
 
     /// <summary>
     /// Keeps track of all assets that failed to load while a scene was loading them
@@ -59,6 +132,16 @@ internal class ResourceManager
     /// Whether we're loading a scene
     /// </summary>
     internal bool loadingScene = false;
+
+    /// <summary>
+    /// A timer for checking any assets that have been fully unloaded to clear them out
+    /// </summary>
+    internal float assetUnloadCheckTimer = 0;
+
+    /// <summary>
+    /// Pending asset unload list. This is kept only for one category of assets.
+    /// </summary>
+    internal ExpandableContainer<StringID> pendingAssetUnloads = new();
 
     /// <summary>
     /// The default instance of the resource manager
@@ -163,7 +246,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedTextures)
         {
-            if(!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if(!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -171,7 +254,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedMaterials)
         {
-            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if (!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -179,7 +262,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedShaders)
         {
-            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if (!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -187,7 +270,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedComputeShaders)
         {
-            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if (!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -195,7 +278,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedMeshes)
         {
-            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if (!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -203,7 +286,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedAudioClips)
         {
-            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if (!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -211,7 +294,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedMeshAssets)
         {
-            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if (!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -219,7 +302,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedFonts)
         {
-            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if (!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -227,7 +310,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedTextAssets)
         {
-            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if (!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -235,7 +318,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedAssets)
         {
-            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if (!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -243,7 +326,7 @@ internal class ResourceManager
 
         foreach (var pair in cachedPrefabs)
         {
-            if (!lockedAssets.Contains(pair.Key.GetHashCode()))
+            if (!lockedAssets.Contains(pair.Key))
             {
                 destroyed.Add(pair.Key);
             }
@@ -278,59 +361,64 @@ internal class ResourceManager
 
         foreach (var pair in cachedTextures)
         {
-            if(mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
+            if(mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Key))
             {
                 continue;
             }
 
-            pair.Value?.Destroy();
+            pair.Value.Iterate((t) => t.Destroy());
+            pair.Value.Clear();
         }
 
         foreach (var pair in cachedMaterials)
         {
-            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Key))
             {
                 continue;
             }
 
-            pair.Value?.Destroy();
+            pair.Value.Iterate((t) => t.Destroy());
+            pair.Value.Clear();
         }
 
         foreach (var pair in cachedComputeShaders)
         {
-            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Key))
             {
                 continue;
             }
 
-            pair.Value?.Destroy();
+            pair.Value.Iterate((t) => t.Destroy());
+            pair.Value.Clear();
         }
 
         foreach (var pair in cachedShaders)
         {
-            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Key))
             {
                 continue;
             }
 
-            pair.Value?.Destroy();
+            pair.Value.Iterate((t) => t.Destroy());
+            pair.Value.Clear();
         }
 
         foreach (var pair in cachedMeshes)
         {
-            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
+            if (mode == DestroyMode.UserOnly && lockedAssets.Contains(pair.Key))
             {
                 continue;
             }
 
-            pair.Value?.Destroy();
+            pair.Value.Iterate((t) => t.Destroy());
+            pair.Value.Clear();
         }
 
-        if(mode != DestroyMode.UserOnly)
+        if (mode != DestroyMode.UserOnly)
         {
             foreach (var pair in Mesh.defaultMeshes)
             {
-                if (lockedAssets.Contains(pair.Value?.Guid.GuidHash ?? 0))
+                if (lockedAssets.Contains(pair.Key))
                 {
                     continue;
                 }
@@ -367,6 +455,99 @@ internal class ResourceManager
         }
     }
 
+    internal void ProcessDisposedResources<T, TResource, TExtra>(Dictionary<StringID, ReferenceContainer<T, TResource, TExtra>> resources,
+        Action<StringID, ReferenceContainer<T, TResource, TExtra>> callback)
+        where T : class
+        where TResource : class
+    {
+        pendingAssetUnloads.Clear();
+
+        foreach(var pair in resources)
+        {
+            if(pair.Value.Disposed)
+            {
+                pendingAssetUnloads.Add(pair.Key);
+            }
+        }
+
+        var contents = pendingAssetUnloads.Contents;
+
+        if(contents.Length == 0)
+        {
+            return;
+        }
+
+        foreach(var key in contents)
+        {
+            callback?.Invoke(key, resources[key]);
+
+            resources.Remove(key);
+        }
+    }
+
+    internal void OnFrame()
+    {
+        assetUnloadCheckTimer += Time.deltaTime;
+
+        if(assetUnloadCheckTimer >= AssetUnloadCheckTime)
+        {
+            assetUnloadCheckTimer -= AssetUnloadCheckTime;
+
+            var forceGC = false;
+
+            ProcessDisposedResources(cachedAudioClips, null);
+
+            ProcessDisposedResources(cachedTextAssets, null);
+
+            ProcessDisposedResources(cachedMaterials, (_, _) => forceGC = true);
+
+            if(forceGC)
+            {
+                MemoryUtils.GarbageCollect(true);
+            }
+
+            ProcessDisposedResources(cachedTextures, (key, container) =>
+            {
+                container.resource?.Destroy();
+            });
+
+            ProcessDisposedResources(cachedShaders, (key, container) =>
+            {
+                container.resource?.Destroy();
+            });
+
+            ProcessDisposedResources(cachedComputeShaders, (key, container) =>
+            {
+                container.resource?.Destroy();
+            });
+
+            ProcessDisposedResources(cachedFonts, (key, container) =>
+            {
+                container.resource?.font?.Dispose();
+            });
+
+            ProcessDisposedResources(cachedMeshes, (key, container) =>
+            {
+                StringID? removed = null;
+
+                foreach (var pair in cachedMeshAssets)
+                {
+                    if (pair.Value.Guid.GuidHash == container.resource.Guid.GuidHash)
+                    {
+                        removed = pair.Key;
+
+                        break;
+                    }
+                }
+
+                if (removed != null)
+                {
+                    cachedMeshAssets.Remove(removed.Value);
+                }
+            });
+        }
+    }
+
     /// <summary>
     /// Attempts to recreate resources (used usually when context is lost and rendering was restarted)
     /// </summary>
@@ -390,7 +571,7 @@ internal class ResourceManager
         {
             try
             {
-                if(pair.Value?.textureResource?.Create() ?? false)
+                if(pair.Value?.resource?.Create() ?? false)
                 {
                     Log.Debug($"Recreated texture {pair.Key}");
                 }
@@ -416,14 +597,14 @@ internal class ResourceManager
 
         foreach (var pair in cachedShaders)
         {
-            if(pair.Value?.shaderResource == null)
+            if(pair.Value?.resource == null)
             {
                 continue;
             }
 
             try
             {
-                if (pair.Value?.shaderResource?.Create() ?? false)
+                if (pair.Value.resource?.Create() ?? false)
                 {
                     Log.Debug($"Recreated shader {pair.Key}");
                 }
@@ -438,7 +619,7 @@ internal class ResourceManager
         {
             try
             {
-                if (pair.Value?.shaderResource?.Create() ?? false)
+                if (pair.Value?.resource?.Create() ?? false)
                 {
                     Log.Debug($"Recreated compute shader {pair.Key}");
                 }
@@ -469,9 +650,12 @@ internal class ResourceManager
 
             try
             {
-                pair.Value.changed = true;
+                pair.Value.Iterate((t) =>
+                {
+                    t.changed = true;
 
-                pair.Value.UploadMeshData();
+                    t.UploadMeshData();
+                });
 
                 Log.Debug($"Recreated mesh {pair.Key}");
             }
@@ -641,6 +825,8 @@ internal class ResourceManager
         }
         catch (Exception e)
         {
+            Log.Error($"Failed to load scene list: {e}", LogTag);
+
             return null;
         }
     }
@@ -800,6 +986,7 @@ internal class ResourceManager
                         }
                         catch (Exception e)
                         {
+                            Log.Error($"Failed to apply field {parameter.Key} for component {component.type}: {e}", LogTag);
                         }
                     }
                 }
@@ -1000,6 +1187,7 @@ internal class ResourceManager
                         }
                         catch (Exception e)
                         {
+                            Log.Error($"Failed to apply field {parameter.Key} for component {component.type}: {e}", LogTag);
                         }
                     }
                 }
@@ -1324,11 +1512,15 @@ internal class ResourceManager
         }
 
         if (!ignoreCache &&
-            cachedShaders.TryGetValue(path, out var shader) &&
-            shader != null &&
-            !shader.Disposed)
+            cachedShaders.TryGetValue(path, out var container) &&
+            container != null &&
+            !container.Disposed)
         {
-            return shader;
+            var outValue = new Shader(container.resource);
+
+            container.Add(outValue);
+
+            return outValue;
         }
 
         var resource = LoadShaderResource(path);
@@ -1340,11 +1532,18 @@ internal class ResourceManager
             return null;
         }
 
-        shader = new(resource);
+        var shader = new Shader(resource);
 
         if (!ignoreCache)
         {
-            cachedShaders.AddOrSetKey(path, shader);
+            container = new()
+            {
+                resource = resource,
+            };
+
+            cachedShaders.AddOrSetKey(path, container);
+
+            container.Add(shader);
         }
 
         return shader;
@@ -1486,11 +1685,15 @@ internal class ResourceManager
         }
 
         if (!ignoreCache &&
-            cachedComputeShaders.TryGetValue(path, out var shader) &&
-            shader != null &&
-            !shader.Disposed)
+            cachedComputeShaders.TryGetValue(path, out var container) &&
+            container != null &&
+            !container.Disposed)
         {
-            return shader;
+            var outValue = new ComputeShader(container.resource);
+
+            container.Add(outValue);
+
+            return outValue;
         }
 
         var resource = LoadComputeShaderResource(path);
@@ -1500,11 +1703,18 @@ internal class ResourceManager
             return null;
         }
 
-        shader = new(resource);
+        var shader = new ComputeShader(resource);
 
         if (!ignoreCache)
         {
-            cachedComputeShaders.AddOrSetKey(path, shader);
+            container = new()
+            {
+                resource = resource,
+            };
+
+            container.Add(shader);
+
+            cachedComputeShaders.AddOrSetKey(path, container);
         }
 
         return shader;
@@ -1614,12 +1824,107 @@ internal class ResourceManager
             return null;
         }
 
-        if (!ignoreCache &&
-            cachedMaterials.TryGetValue(path, out var material) &&
-            material != null &&
-            !material.Disposed)
+        Material CreateMaterial(MaterialResource resource)
         {
+            var material = new Material
+            {
+                materialResource = resource,
+            };
+
+            foreach (var variant in resource.metadata.enabledShaderVariants)
+            {
+                if (resource.shader.shaderResource.metadata.variants.Contains(variant))
+                {
+                    material.EnableShaderKeyword(variant);
+                }
+            }
+
+            foreach (var parameter in resource.metadata.parameters)
+            {
+                switch (parameter.Value.type)
+                {
+                    case MaterialParameterType.TextureWrap:
+
+                        material.materialResource.parameters.Add(parameter.Key, new()
+                        {
+                            name = parameter.Key,
+                            type = MaterialParameterType.TextureWrap,
+                            textureWrapValue = parameter.Value.textureWrapValue,
+                        });
+
+                        break;
+
+                    case MaterialParameterType.Texture:
+
+                        var texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
+
+                        material.SetTexture(parameter.Key, texture);
+
+                        break;
+
+                    case MaterialParameterType.Matrix3x3:
+
+                        material.SetMatrix3x3(parameter.Key, new(), parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Matrix4x4:
+
+                        material.SetMatrix4x4(parameter.Key, new(), parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Vector2:
+
+                        material.SetVector2(parameter.Key, parameter.Value.vec2Value.ToVector2(), parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Vector3:
+
+                        material.SetVector3(parameter.Key, parameter.Value.vec3Value.ToVector3(), parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Vector4:
+
+                        material.SetVector4(parameter.Key, parameter.Value.vec4Value.ToVector4(), parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Color:
+
+                        material.SetColor(parameter.Key, parameter.Value.colorValue, parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Float:
+
+                        material.SetFloat(parameter.Key, parameter.Value.floatValue, parameter.Value.source);
+
+                        break;
+
+                    case MaterialParameterType.Int:
+
+                        material.SetInt(parameter.Key, parameter.Value.intValue, parameter.Value.source);
+
+                        break;
+                }
+            }
+
             return material;
+        }
+
+        if (!ignoreCache &&
+            cachedMaterials.TryGetValue(path, out var container) &&
+            container != null &&
+            !container.Disposed)
+        {
+            var outValue = CreateMaterial(container.resource);
+
+            container.Add(outValue);
+
+            return outValue;
         }
 
         var resource = LoadMaterialResource(path);
@@ -1629,95 +1934,18 @@ internal class ResourceManager
             return null;
         }
 
-        material = new Material
-        {
-            materialResource = resource,
-        };
-
-        foreach (var variant in resource.metadata.enabledShaderVariants)
-        {
-            if (resource.shader.shaderResource.metadata.variants.Contains(variant))
-            {
-                material.EnableShaderKeyword(variant);
-            }
-        }
-
-        foreach (var parameter in resource.metadata.parameters)
-        {
-            switch (parameter.Value.type)
-            {
-                case MaterialParameterType.TextureWrap:
-
-                    material.materialResource.parameters.Add(parameter.Key, new()
-                    {
-                        name = parameter.Key,
-                        type = MaterialParameterType.TextureWrap,
-                        textureWrapValue = parameter.Value.textureWrapValue,
-                    });
-
-                    break;
-
-                case MaterialParameterType.Texture:
-
-                    var texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
-
-                    material.SetTexture(parameter.Key, texture);
-
-                    break;
-
-                case MaterialParameterType.Matrix3x3:
-
-                    material.SetMatrix3x3(parameter.Key, new(), parameter.Value.source);
-
-                    break;
-
-                case MaterialParameterType.Matrix4x4:
-
-                    material.SetMatrix4x4(parameter.Key, new(), parameter.Value.source);
-
-                    break;
-
-                case MaterialParameterType.Vector2:
-
-                    material.SetVector2(parameter.Key, parameter.Value.vec2Value.ToVector2(), parameter.Value.source);
-
-                    break;
-
-                case MaterialParameterType.Vector3:
-
-                    material.SetVector3(parameter.Key, parameter.Value.vec3Value.ToVector3(), parameter.Value.source);
-
-                    break;
-
-                case MaterialParameterType.Vector4:
-
-                    material.SetVector4(parameter.Key, parameter.Value.vec4Value.ToVector4(), parameter.Value.source);
-
-                    break;
-
-                case MaterialParameterType.Color:
-
-                    material.SetColor(parameter.Key, parameter.Value.colorValue, parameter.Value.source);
-
-                    break;
-
-                case MaterialParameterType.Float:
-
-                    material.SetFloat(parameter.Key, parameter.Value.floatValue, parameter.Value.source);
-
-                    break;
-
-                case MaterialParameterType.Int:
-
-                    material.SetInt(parameter.Key, parameter.Value.intValue, parameter.Value.source);
-
-                    break;
-            }
-        }
+        var material = CreateMaterial(resource);
 
         if (!ignoreCache)
         {
-            cachedMaterials.AddOrSetKey(path, material);
+            container = new()
+            {
+                resource = resource,
+            };
+
+            container.Add(material);
+
+            cachedMaterials.AddOrSetKey(path, container);
         }
 
         return material;
@@ -1830,11 +2058,17 @@ internal class ResourceManager
         }
 
         if(!ignoreCache &&
-            cachedTextures.TryGetValue(path, out var texture) &&
-            texture != null &&
-            !texture.Disposed)
+            cachedTextures.TryGetValue(path, out var container) &&
+            container != null &&
+            !container.Disposed)
         {
-            return texture;
+            var outValue = new Texture(container.resource);
+
+            outValue.ApplyTextureToSprites();
+
+            container.Add(outValue);
+
+            return outValue;
         }
 
         var guid = AssetDatabase.GetAssetGuid(path);
@@ -1848,13 +2082,21 @@ internal class ResourceManager
             return null;
         }
 
-        texture = new Texture(resource);
+        var texture = new Texture(resource);
 
         texture.ApplyTextureToSprites();
 
         if (!ignoreCache)
         {
-            cachedTextures.AddOrSetKey(path, texture);
+            container = new()
+            {
+                resource = resource,
+                extra = flags,
+            };
+
+            container.Add(texture);
+
+            cachedTextures.AddOrSetKey(path, container);
         }
 
         return texture;
@@ -1953,10 +2195,18 @@ internal class ResourceManager
         }
 
         if (!ignoreCache &&
-            cachedAudioClips.TryGetValue(path, out var audioClip) &&
-            audioClip != null)
+            cachedAudioClips.TryGetValue(path, out var container) &&
+            container != null &&
+            !container.Disposed)
         {
-            return audioClip;
+            var outValue = new AudioClip()
+            {
+                audioResource = container.resource,
+            };
+
+            container.Add(outValue);
+
+            return outValue;
         }
 
         var guid = AssetDatabase.GetAssetGuid(path);
@@ -1970,14 +2220,21 @@ internal class ResourceManager
             return null;
         }
 
-        audioClip = new AudioClip()
+        var audioClip = new AudioClip()
         {
             audioResource = resource,
         };
 
         if (!ignoreCache)
         {
-            cachedAudioClips.AddOrSetKey(path, audioClip);
+            container = new()
+            {
+                resource = resource,
+            };
+
+            container.Add(audioClip);
+
+            cachedAudioClips.AddOrSetKey(path, container);
         }
 
         return audioClip;
@@ -2018,78 +2275,110 @@ internal class ResourceManager
             indexString = split[1];
         }
 
-        if (!ignoreCache &&
-            cachedMeshes.TryGetValue(original, out var mesh) &&
-            mesh != null)
+        (Mesh, MeshAssetResource)? CreateMesh()
         {
-            return mesh;
-        }
-
-        var asset = LoadMeshAsset(guid);
-
-        if (asset == null || asset.Meshes.Length == 0)
-        {
-            if(asset != null && asset.Meshes.Length == 0)
+            if(!TryGetMeshAsset(guid, out var asset))
             {
-                Log.Error($"Failed to load mesh {original}: Asset contains no mesh data", LogTag);
+                asset = LoadMeshAsset(guid, ignoreCache);
+            }
+
+            if (asset == null || asset.Meshes.Length == 0)
+            {
+                if (asset != null && asset.Meshes.Length == 0)
+                {
+                    Log.Error($"Failed to load mesh {original}: Asset contains no mesh data", LogTag);
+
+                    ReportFailedAssetLoad(original, original);
+                }
+
+                return null;
+            }
+
+            var meshIndex = 0;
+
+            if (!string.IsNullOrEmpty(indexString))
+            {
+                if (!int.TryParse(indexString, out meshIndex))
+                {
+                    meshIndex = Array.FindIndex(asset.Meshes, x => x.name == indexString);
+                }
+            }
+
+            if (meshIndex < 0 || meshIndex >= asset.Meshes.Length)
+            {
+                Log.Error($"Failed to load mesh {original}: Invalid mesh index {meshIndex}", LogTag);
 
                 ReportFailedAssetLoad(original, original);
+
+                return null;
             }
 
-            return null;
-        }
+            var m = asset.Meshes[meshIndex];
 
-        var meshIndex = 0;
-
-        if(!string.IsNullOrEmpty(indexString))
-        {
-            if(!int.TryParse(indexString, out meshIndex))
+            var mesh = new Mesh(true, false)
             {
-                meshIndex = Array.FindIndex(asset.Meshes, x => x.name == indexString);
+                meshTopology = m.topology,
+                indexFormat = MeshIndexFormat.UInt32,
+                bounds = m.transformedBounds,
+
+                meshAsset = asset,
+                meshAssetIndex = meshIndex,
+            };
+
+            foreach (var submesh in m.submeshes)
+            {
+                mesh.AddSubmesh(submesh.startVertex, submesh.startIndex, submesh.indexCount);
             }
+
+            mesh.changed = true;
+
+            if (!mesh.HasBoneIndices)
+            {
+                mesh.MarkStaticMesh();
+            }
+
+            mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{meshIndex}" : original;
+
+            return (mesh, mesh.meshAsset.meshResource);
         }
 
-        if(meshIndex < 0 || meshIndex >= asset.Meshes.Length)
+        if (!ignoreCache &&
+            cachedMeshes.TryGetValue(original, out var container) &&
+            container != null &&
+            !container.Disposed)
         {
-            Log.Error($"Failed to load mesh {original}: Invalid mesh index {meshIndex}", LogTag);
+            var outValue = CreateMesh();
 
-            ReportFailedAssetLoad(original, original);
+            if(outValue == null)
+            {
+                return null;
+            }
 
+            container.Add(outValue.Value.Item1);
+
+            return outValue.Value.Item1;
+        }
+
+        var mesh = CreateMesh();
+
+        if(mesh == null)
+        {
             return null;
         }
 
-        var m = asset.Meshes[meshIndex];
-
-        mesh = new Mesh(true, false)
+        if (!ignoreCache)
         {
-            meshTopology = m.topology,
-            indexFormat = MeshIndexFormat.UInt32,
-            bounds = m.transformedBounds,
+            container = new()
+            {
+                resource = mesh.Value.Item2,
+            };
 
-            meshAsset = asset,
-            meshAssetIndex = meshIndex,
-        };
+            container.Add(mesh.Value.Item1);
 
-        foreach (var submesh in m.submeshes)
-        {
-            mesh.AddSubmesh(submesh.startVertex, submesh.startIndex, submesh.indexCount);
+            cachedMeshes.AddOrSetKey(original, container);
         }
 
-        mesh.changed = true;
-
-        if(!mesh.HasBoneIndices)
-        {
-            mesh.MarkStaticMesh();
-        }
-
-        mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{meshIndex}" : original;
-
-        if(!ignoreCache)
-        {
-            cachedMeshes.AddOrSetKey(original, mesh);
-        }
-
-        return mesh;
+        return mesh.Value.Item1;
     }
 
     /// <summary>
@@ -2847,10 +3136,18 @@ internal class ResourceManager
         path = guid ?? path;
 
         if (!ignoreCache &&
-            cachedFonts.TryGetValue(path, out var font) &&
-            font != null)
+            cachedFonts.TryGetValue(path, out var container) &&
+            container != null &&
+            !container.Disposed)
         {
-            return font;
+            var outValue = new FontAsset()
+            {
+                fontResource = container.resource,
+            };
+
+            container.Add(outValue);
+
+            return outValue;
         }
 
         var resource = LoadFontResource(path);
@@ -2860,14 +3157,21 @@ internal class ResourceManager
             return null;
         }
 
-        font = new()
+        var font = new FontAsset()
         {
             fontResource = resource,
         };
 
         if (!ignoreCache)
         {
-            cachedFonts.AddOrSetKey(path, font);
+            container = new()
+            {
+                resource = resource,
+            };
+
+            container.Add(font);
+
+            cachedFonts.AddOrSetKey(path, container);
         }
 
         return font;
@@ -2982,10 +3286,18 @@ internal class ResourceManager
         path = guid ?? path;
 
         if (!ignoreCache &&
-            cachedTextAssets.TryGetValue(path, out var textAsset) &&
-            textAsset != null)
+            cachedTextAssets.TryGetValue(path, out var container) &&
+            container != null &&
+            !container.Disposed)
         {
-            return textAsset;
+            var outValue = new TextAsset()
+            {
+                textResource = container.resource,
+            };
+
+            container.Add(outValue);
+
+            return outValue;
         }
 
         var resource = LoadTextAssetResource(path);
@@ -3002,7 +3314,14 @@ internal class ResourceManager
 
         if (!ignoreCache)
         {
-            cachedTextAssets.AddOrSetKey(path, outAsset);
+            container = new()
+            {
+                resource = resource,
+            };
+
+            container.Add(outAsset);
+
+            cachedTextAssets.AddOrSetKey(path, container);
         }
 
         return outAsset;
@@ -3023,130 +3342,157 @@ internal class ResourceManager
 
         if(localGuid != null)
         {
-            lockedAssets.Add(localGuid.GetHashCode());
+            lockedAssets.Add(localGuid);
         }
 
         localGuid = AssetDatabase.GetAssetGuid(guid);
 
         if (localGuid != null)
         {
-            lockedAssets.Add(localGuid.GetHashCode());
+            lockedAssets.Add(localGuid);
         }
 
-        lockedAssets.Add(guid.GetHashCode());
+        lockedAssets.Add(guid);
     }
 
-    public void ReloadMaterial(string guid)
+    private static void ReloadResourceInternal<T, TResource, TExtra>(string guid,
+        Dictionary<StringID, ReferenceContainer<T, TResource, TExtra>> resources,
+        Func<string, TExtra, TResource> loader, Action<T, TResource> iterator)
+        where T: class
+        where TResource: class
     {
-        if(!cachedMaterials.TryGetValue(guid, out var material))
+        if(!resources.TryGetValue(guid, out var container))
         {
             return;
         }
 
-        var resource = LoadMaterialResource(guid);
+        var resource = loader(guid, container.extra);
 
         if(resource != null)
         {
-            material.materialResource = resource;
+            container.resource = resource;
 
-            material.shaderKeywords.Clear();
-
-            foreach (var variant in resource.metadata.enabledShaderVariants)
+            container.Iterate((item) =>
             {
-                if (resource.shader.shaderResource.metadata.variants.Contains(variant))
-                {
-                    material.EnableShaderKeyword(variant);
-                }
-            }
-
-            foreach (var parameter in resource.metadata.parameters)
-            {
-                switch (parameter.Value.type)
-                {
-                    case MaterialParameterType.TextureWrap:
-
-                        material.materialResource.parameters.Add(parameter.Key, new()
-                        {
-                            name = parameter.Key,
-                            type = MaterialParameterType.TextureWrap,
-                            textureWrapValue = parameter.Value.textureWrapValue,
-                        });
-
-                        break;
-
-                    case MaterialParameterType.Texture:
-
-                        var texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
-
-                        material.SetTexture(parameter.Key, texture);
-
-                        break;
-
-                    case MaterialParameterType.Matrix3x3:
-
-                        material.SetMatrix3x3(parameter.Key, new(), parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Matrix4x4:
-
-                        material.SetMatrix4x4(parameter.Key, new(), parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Vector2:
-
-                        material.SetVector2(parameter.Key, parameter.Value.vec2Value.ToVector2(), parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Vector3:
-
-                        material.SetVector3(parameter.Key, parameter.Value.vec3Value.ToVector3(), parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Vector4:
-
-                        material.SetVector4(parameter.Key, parameter.Value.vec4Value.ToVector4(), parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Color:
-
-                        material.SetColor(parameter.Key, parameter.Value.colorValue, parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Float:
-
-                        material.SetFloat(parameter.Key, parameter.Value.floatValue, parameter.Value.source);
-
-                        break;
-
-                    case MaterialParameterType.Int:
-
-                        material.SetInt(parameter.Key, parameter.Value.intValue, parameter.Value.source);
-
-                        break;
-                }
-            }
+                iterator(item, resource);
+            });
         }
     }
 
-    public bool TryGetMaterial(string guid, out Material material) => cachedMaterials.TryGetValue(guid, out material);
-
-    public Material GetMaterial(string guid)
+    public static void IterateResourcesInternal<T, TResource, TExtra>(string guid, Action<T> iterator,
+        Dictionary<StringID, ReferenceContainer<T, TResource, TExtra>> resources)
+        where T: class
+        where TResource: class
     {
-        return TryGetMaterial(guid, out var material) ? material : null;
+        if (!resources.TryGetValue(guid, out var container))
+        {
+            return;
+        }
+
+        container.Iterate(iterator);
     }
+
+    public void ReloadMaterial(string guid)
+    {
+        ReloadResourceInternal(guid, cachedMaterials,
+            (g, _) => LoadMaterialResource(g),
+            (material, resource) =>
+            {
+                material.materialResource = resource;
+
+                material.shaderKeywords.Clear();
+
+                foreach (var variant in resource.metadata.enabledShaderVariants)
+                {
+                    if (resource.shader.shaderResource.metadata.variants.Contains(variant))
+                    {
+                        material.EnableShaderKeyword(variant);
+                    }
+                }
+
+                foreach (var parameter in resource.metadata.parameters)
+                {
+                    switch (parameter.Value.type)
+                    {
+                        case MaterialParameterType.TextureWrap:
+
+                            material.materialResource.parameters.Add(parameter.Key, new()
+                            {
+                                name = parameter.Key,
+                                type = MaterialParameterType.TextureWrap,
+                                textureWrapValue = parameter.Value.textureWrapValue,
+                            });
+
+                            break;
+
+                        case MaterialParameterType.Texture:
+
+                            var texture = (parameter.Value.textureValue?.Length ?? 0) > 0 ? LoadTexture(parameter.Value.textureValue) : null;
+
+                            material.SetTexture(parameter.Key, texture);
+
+                            break;
+
+                        case MaterialParameterType.Matrix3x3:
+
+                            material.SetMatrix3x3(parameter.Key, new(), parameter.Value.source);
+
+                            break;
+
+                        case MaterialParameterType.Matrix4x4:
+
+                            material.SetMatrix4x4(parameter.Key, new(), parameter.Value.source);
+
+                            break;
+
+                        case MaterialParameterType.Vector2:
+
+                            material.SetVector2(parameter.Key, parameter.Value.vec2Value.ToVector2(), parameter.Value.source);
+
+                            break;
+
+                        case MaterialParameterType.Vector3:
+
+                            material.SetVector3(parameter.Key, parameter.Value.vec3Value.ToVector3(), parameter.Value.source);
+
+                            break;
+
+                        case MaterialParameterType.Vector4:
+
+                            material.SetVector4(parameter.Key, parameter.Value.vec4Value.ToVector4(), parameter.Value.source);
+
+                            break;
+
+                        case MaterialParameterType.Color:
+
+                            material.SetColor(parameter.Key, parameter.Value.colorValue, parameter.Value.source);
+
+                            break;
+
+                        case MaterialParameterType.Float:
+
+                            material.SetFloat(parameter.Key, parameter.Value.floatValue, parameter.Value.source);
+
+                            break;
+
+                        case MaterialParameterType.Int:
+
+                            material.SetInt(parameter.Key, parameter.Value.intValue, parameter.Value.source);
+
+                            break;
+                    }
+                }
+            });
+    }
+
+    public void IterateMaterials(string guid, Action<Material> iterator) => IterateResourcesInternal(guid, iterator, cachedMaterials);
 
     public void UnloadMaterial(Material material)
     {
         var guid = material?.Guid?.Guid;
 
         if (string.IsNullOrEmpty(guid) ||
-            lockedAssets.Contains(guid.GetHashCode()))
+            lockedAssets.Contains(guid))
         {
             return;
         }
@@ -3156,96 +3502,71 @@ internal class ResourceManager
 
     public void ReloadShader(string guid)
     {
-        if (!cachedShaders.TryGetValue(guid, out var shader))
-        {
-            return;
-        }
-
-        var resource = LoadShaderResource(guid);
-
-        if (resource != null)
-        {
-            //TODO: Destroy
-            /*
-            if (shader.shaderResource != null)
+        ReloadResourceInternal(guid, cachedShaders,
+            (g, _) => LoadShaderResource(g),
+            (shader, resource) =>
             {
-                shader.shaderResource.Destroy();
-            }
-            */
+                //TODO: Destroy
+                /*
+                if (shader.shaderResource != null)
+                {
+                    shader.shaderResource.Destroy();
+                }
+                */
 
-            shader.shaderResource = resource;
-        }
+                shader.shaderResource = resource;
+            });
     }
 
-    public bool TryGetShader(string guid, out Shader shader) => cachedShaders.TryGetValue(guid, out shader);
-
-    public Shader GetShader(string guid)
-    {
-        return TryGetShader(guid, out var shader) ? shader : null;
-    }
+    public void IterateShaders(string guid, Action<Shader> iterator) => IterateResourcesInternal(guid, iterator, cachedShaders);
 
     public void UnloadShader(Shader shader)
     {
         var guid = shader?.Guid?.Guid;
 
         if (string.IsNullOrEmpty(guid) ||
-            lockedAssets.Contains(guid.GetHashCode()))
+            lockedAssets.Contains(guid))
         {
             return;
         }
 
-        if (TryGetShader(guid, out var s))
-        {
-            s.Destroy();
-        }
+        IterateShaders(guid, (s) => s.Destroy());
 
         cachedShaders.Remove(guid);
     }
 
     public void ReloadComputeShader(string guid)
     {
-        if (!cachedComputeShaders.TryGetValue(guid, out var shader))
-        {
-            return;
-        }
-
-        var resource = LoadComputeShaderResource(guid);
-
-        if (resource != null)
-        {
-            //TODO: Destroy
-            /*
-            if (shader.shaderResource != null)
+        ReloadResourceInternal(guid, cachedComputeShaders,
+            (g, _) => LoadComputeShaderResource(g),
+            (shader, resource) =>
             {
-                shader.shaderResource.Destroy();
-            }
-            */
 
-            shader.shaderResource = resource;
-        }
+                //TODO: Destroy
+                /*
+                if (shader.shaderResource != null)
+                {
+                    shader.shaderResource.Destroy();
+                }
+                */
+
+                shader.shaderResource = resource;
+            });
     }
 
-    public bool TryGetComputeShader(string guid, out ComputeShader shader) => cachedComputeShaders.TryGetValue(guid, out shader);
-
-    public ComputeShader GetComputeShader(string guid)
-    {
-        return TryGetComputeShader(guid, out var shader) ? shader : null;
-    }
+    public void IterateComputeShaders(string guid, Action<ComputeShader> iterator) => IterateResourcesInternal(guid, iterator, cachedComputeShaders);
 
     public void UnloadComputeShader(ComputeShader shader)
     {
         var guid = shader?.Guid?.Guid;
 
         if (string.IsNullOrEmpty(guid) ||
-            lockedAssets.Contains(guid.GetHashCode()))
+            lockedAssets.Contains(guid))
         {
             return;
         }
 
-        if (TryGetComputeShader(guid, out var s))
-        {
-            s.Destroy();
-        }
+        IterateComputeShaders(guid, (s) => s.Destroy());
 
         cachedComputeShaders.Remove(guid);
     }
@@ -3269,17 +3590,12 @@ internal class ResourceManager
 
     public bool TryGetMeshAsset(string guid, out MeshAsset mesh) => cachedMeshAssets.TryGetValue(guid, out mesh);
 
-    public MeshAsset GetMeshAsset(string guid)
-    {
-        return TryGetMeshAsset(guid, out var meshAsset) ? meshAsset : null;
-    }
-
     public void UnloadMeshAsset(MeshAsset meshAsset)
     {
         var guid = meshAsset?.Guid?.Guid;
 
         if (string.IsNullOrEmpty(guid) ||
-            lockedAssets.Contains(guid.GetHashCode()))
+            lockedAssets.Contains(guid))
         {
             return;
         }
@@ -3290,12 +3606,15 @@ internal class ResourceManager
 
             foreach (var pair in cachedMeshes)
             {
-                if (pair.Value.meshAsset == m)
+                if (pair.Value.resource == m.meshResource)
                 {
-                    pair.Value.Destroy();
+                    pair.Value.Iterate((mesh) =>
+                    {
+                        mesh.Destroy();
 
-                    pair.Value.meshAsset = null;
-                    pair.Value.meshAssetIndex = 0;
+                        mesh.meshAsset = null;
+                        mesh.meshAssetIndex = 0;
+                    });
 
                     removedMeshes.Add(pair.Key);
                 }
@@ -3317,182 +3636,131 @@ internal class ResourceManager
         var guid = mesh?.Guid?.Guid;
 
         if (string.IsNullOrEmpty(guid) ||
-            lockedAssets.Contains(guid.GetHashCode()))
+            lockedAssets.Contains(guid))
         {
             return;
         }
 
-        if (cachedMeshes.TryGetValue(guid, out var m))
-        {
-            m.Destroy();
-
-            m.meshAsset = null;
-            m.meshAssetIndex = 0;
-        }
+        mesh.Destroy();
 
         cachedMeshes.Remove(guid);
     }
 
     public void ReloadTextAsset(string guid)
     {
-        if (!cachedTextAssets.TryGetValue(guid, out var textAsset))
-        {
-            return;
-        }
-
-        var resource = LoadTextAssetResource(guid);
-
-        if (resource != null)
-        {
-            textAsset.textResource = resource;
-        }
+        ReloadResourceInternal(guid, cachedTextAssets,
+            (g, _) => LoadTextAssetResource(g),
+            (textAsset, resource) =>
+            {
+                textAsset.textResource = resource;
+            });
     }
 
-    public bool TryGetTextAsset(string guid, out TextAsset textAsset) => cachedTextAssets.TryGetValue(guid, out textAsset);
-
-    public TextAsset GetTextAsset(string guid)
-    {
-        return TryGetTextAsset(guid, out var textAsset) ? textAsset : null;
-    }
+    public void IterateTextAssets(string guid, Action<TextAsset> iterator) => IterateResourcesInternal(guid, iterator, cachedTextAssets);
 
     public void UnloadTextAsset(TextAsset asset)
     {
         var guid = asset?.Guid?.Guid;
 
         if (string.IsNullOrEmpty(guid) ||
-            lockedAssets.Contains(guid.GetHashCode()))
+            lockedAssets.Contains(guid))
         {
             return;
         }
 
-        if (TryGetTextAsset(guid, out var t))
-        {
-            t.textResource = null;
-        }
+        IterateTextAssets(guid, (t) => t.textResource = null);
 
         cachedTextAssets.Remove(guid);
     }
 
     public void ReloadAudioClip(string guid)
     {
-        if (!cachedAudioClips.TryGetValue(guid, out var audioClip))
-        {
-            return;
-        }
-
-        var resource = LoadAudioClipResource(guid);
-
-        if (resource != null)
-        {
-            audioClip.audioResource = resource;
-        }
+        ReloadResourceInternal(guid, cachedAudioClips,
+            (g, _) => LoadAudioClipResource(g),
+            (audioClip, resource) =>
+            {
+                audioClip.audioResource = resource;
+            });
     }
 
-    public bool TryGetAudioClip(string guid, out AudioClip audioClip) => cachedAudioClips.TryGetValue(guid, out audioClip);
-
-    public AudioClip GetAudioClip(string guid)
-    {
-        return TryGetAudioClip(guid, out var audioClip) ? audioClip : null;
-    }
+    public void IterateAudioClips(string guid, Action<AudioClip> iterator) => IterateResourcesInternal(guid, iterator, cachedAudioClips);
 
     public void UnloadAudioClip(AudioClip clip)
     {
         var guid = clip?.Guid?.Guid;
 
         if (string.IsNullOrEmpty(guid) ||
-            lockedAssets.Contains(guid.GetHashCode()))
+            lockedAssets.Contains(guid))
         {
             return;
         }
 
-        if (TryGetAudioClip(guid, out var c))
-        {
-            c.audioResource = null;
-        }
+        IterateAudioClips(guid, (c) => c.audioResource = null);
 
         cachedAudioClips.Remove(guid);
     }
 
     public void ReloadFont(string guid)
     {
-        if (!cachedFonts.TryGetValue(guid, out var font))
-        {
-            return;
-        }
-
-        var resource = LoadFontResource(guid);
-
-        if (resource != null)
-        {
-            font.fontResource = resource;
-        }
+        ReloadResourceInternal(guid, cachedFonts,
+            (g, _) => LoadFontResource(g),
+            (font, resource) =>
+            {
+                font.fontResource = resource;
+            });
     }
 
-    public bool TryGetFont(string guid, out FontAsset font) => cachedFonts.TryGetValue(guid, out font);
-
-    public FontAsset GetFont(string guid)
-    {
-        return TryGetFont(guid, out var font) ? font : null;
-    }
+    public void IterateFonts(string guid, Action<FontAsset> iterator) => IterateResourcesInternal(guid, iterator, cachedFonts);
 
     public void UnloadFont(FontAsset font)
     {
         var guid = font?.Guid?.Guid;
 
-        if(string.IsNullOrEmpty(guid) || lockedAssets.Contains(guid.GetHashCode()))
+        if(string.IsNullOrEmpty(guid) || lockedAssets.Contains(guid))
         {
             return;
         }
 
-        if (TryGetFont(guid, out var f))
-        {
-            f.fontResource?.font?.Dispose();
+        IterateFonts(guid,
+            (f) =>
+            {
+                f.fontResource?.font?.Dispose();
 
-            f.fontResource = null;
-        }
+                f.fontResource = null;
+            });
 
         cachedFonts.Remove(guid);
     }
 
     public void ReloadTexture(string guid)
     {
-        if (!cachedTextures.TryGetValue(guid, out var texture))
-        {
-            return;
-        }
+        ReloadResourceInternal(guid, cachedTextures,
+            (g, e) => LoadTextureResource(g, e),
+            (texture, resource) =>
+            {
+                texture.textureResource = resource;
 
-        var resource = LoadTextureResource(guid);
-
-        if (resource != null)
-        {
-            texture.textureResource = resource;
-
-            texture.ApplyTextureToSprites();
-        }
+                texture.ApplyTextureToSprites();
+            });
     }
 
-    public bool TryGetTexture(string guid, out Texture texture) => cachedTextures.TryGetValue(guid, out texture);
-
-    public Texture GetTexture(string guid)
-    {
-        return TryGetTexture(guid, out var texture) ? texture : null;
-    }
+    public void IterateTextures(string guid, Action<Texture> iterator) => IterateResourcesInternal(guid, iterator, cachedTextures);
 
     public void UnloadTexture(Texture texture)
     {
         var guid = texture?.Guid?.Guid;
 
-        if (string.IsNullOrEmpty(guid) || lockedAssets.Contains(guid.GetHashCode()))
+        if (string.IsNullOrEmpty(guid) || lockedAssets.Contains(guid))
         {
             return;
         }
 
-        if (TryGetTexture(guid, out var t))
+        IterateTextures(guid, (t) =>
         {
             t.Destroy();
 
             t.textureResource = null;
-        }
+        });
 
         cachedTextures.Remove(guid);
     }

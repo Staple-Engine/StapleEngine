@@ -369,23 +369,6 @@ internal partial class ShaderResource
         return name;
     }
 
-    private static int NormalizeUniformCount(string name)
-    {
-        if (!uniformCountRegex.IsMatch(name))
-        {
-            return 1;
-        }
-
-        var match = uniformCountRegex.Match(name);
-
-        if (match.Groups.Count == 2)
-        {
-            return int.TryParse(match.Groups[1].Value, out var value) ? value : 1;
-        }
-
-        return 1;
-    }
-
     internal bool Create()
     {
         foreach (var pair in instances)
