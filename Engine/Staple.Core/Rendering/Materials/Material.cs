@@ -120,6 +120,7 @@ public sealed class Material : IGuidAsset
         var hashCode = new HashCode();
 
         hashCode.Add(Guid.GuidHash);
+        hashCode.Add(ShaderVariantKey);
 
         void HandleParameter(StringID key, MaterialResourceParameter parameter)
         {
@@ -215,7 +216,7 @@ public sealed class Material : IGuidAsset
     /// <summary>
     /// Valid shader keywords
     /// </summary>
-    public IEnumerable<string> Keywords => materialResource?.shader?.shaderResource?.metadata?.variants ?? Enumerable.Empty<string>();
+    public Span<string> Keywords => materialResource?.shader?.shaderResource?.metadata?.variants is string[] variants ? variants.AsSpan() : default;
 
     private IShaderProgram shaderProgram;
 
@@ -354,6 +355,8 @@ public sealed class Material : IGuidAsset
     private void UpdateVariantKey()
     {
         ShaderVariantKey = "";
+
+        needsHashUpdate = true;
 
         if ((materialResource?.shader?.Disposed ?? true) ||
             materialResource.shader.shaderResource.metadata.type != ShaderType.VertexFragment)
