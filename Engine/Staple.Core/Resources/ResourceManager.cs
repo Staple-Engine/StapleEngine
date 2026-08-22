@@ -12,7 +12,7 @@ namespace Staple.Internal;
 /// <summary>
 /// Resource manager. Keeps track of resources.
 /// </summary>
-internal class ResourceManager
+internal class ResourceManager : IWorldChangeReceiver
 {
     public const float AssetUnloadCheckTime = 30.0f;
 
@@ -146,7 +146,12 @@ internal class ResourceManager
     /// <summary>
     /// The default instance of the resource manager
     /// </summary>
-    public static ResourceManager instance = new();
+    public static readonly ResourceManager instance = new();
+
+    public ResourceManager()
+    {
+        World.AddChangeReceiver(this);
+    }
 
     /// <summary>
     /// Reports an asset that failed to load
@@ -3763,5 +3768,22 @@ internal class ResourceManager
         });
 
         cachedTextures.Remove(guid);
+    }
+
+    private void PrepareAssetCheck()
+    {
+        assetUnloadCheckTimer = AssetUnloadCheckTime - 5;
+
+        ThreadHelper.DispatchDelayed(2.0f, () => MemoryUtils.GarbageCollect(true));
+    }
+
+    public void WorldReplaced(World world)
+    {
+        PrepareAssetCheck();
+    }
+
+    public void WorldChanged(World world)
+    {
+        PrepareAssetCheck();
     }
 }

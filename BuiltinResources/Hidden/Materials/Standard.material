@@ -55,10 +55,6 @@
 		"specularTexture": {
 			"type": "Texture"
 		},
-		"cutout": {
-			"type": "Float",
-			"floatValue": 0
-		},
 		"alphaThreshold": {
 			"type": "Float",
 			"floatValue": 0.25

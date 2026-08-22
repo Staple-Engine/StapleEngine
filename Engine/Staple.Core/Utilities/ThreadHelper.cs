@@ -9,8 +9,19 @@ namespace Staple;
 /// </summary>
 public static class ThreadHelper
 {
+    private readonly struct DelayedAction(float delay, Action action)
+    {
+        public readonly DateTime time = DateTime.Now;
+        public readonly float delay = delay;
+        public readonly Action action = action;
+
+        public bool CanTrigger(DateTime currentTime) => currentTime >= time.AddSeconds(delay);
+    }
+
     private static Thread mainThread;
+    private static readonly List<DelayedAction> pendingDelayedActions = [];
     private static readonly List<Action> pendingActions = [];
+
     private static readonly Lock threadLock = new();
 
     public static bool IsMainThread => mainThread == Thread.CurrentThread;
@@ -65,7 +76,38 @@ public static class ThreadHelper
 
             if(current == null)
             {
-                return;
+                break;
+            }
+
+            PerformAction(current);
+        }
+
+        for (; ; )
+        {
+            Action current = null;
+
+            if (pendingDelayedActions.Count > 0)
+            {
+                var currentTime = DateTime.Now;
+
+                for (var i = pendingDelayedActions.Count - 1; i >= 0; i--)
+                {
+                    var action = pendingDelayedActions[i];
+
+                    if (action.CanTrigger(currentTime))
+                    {
+                        current = action.action;
+
+                        pendingDelayedActions.RemoveAt(i);
+
+                        break;
+                    }
+                }
+            }
+
+            if (current == null)
+            {
+                break;
             }
 
             PerformAction(current);
@@ -81,6 +123,19 @@ public static class ThreadHelper
         lock(threadLock)
         {
             pendingActions.Add(action);
+        }
+    }
+
+    /// <summary>
+    /// Dispatches an action to run on the main thread with a delay
+    /// </summary>
+    /// <param name="delay">The delay in seconds</param>
+    /// <param name="action">The action to run</param>
+    public static void DispatchDelayed(float delay, Action action)
+    {
+        lock (threadLock)
+        {
+            pendingDelayedActions.Add(new(delay, action));
         }
     }
 }
