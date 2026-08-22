@@ -7,16 +7,29 @@ namespace Staple.Internal;
 /// Direct access to a shader uniform, used for caching.
 /// </summary>
 /// <param name="uniform">The uniform to store</param>
-public readonly struct ShaderHandle(IGuidAsset owner, ShaderUniformInfo uniform)
+public readonly struct ShaderHandle
 {
-    internal readonly ShaderUniformInfo uniform = uniform;
-    internal readonly WeakReference<object> owner = new(owner);
+    internal readonly ShaderUniformInfo uniform;
+    internal readonly WeakReference<object> owner;
+
+    public ShaderHandle(object owner, ShaderUniformInfo uniform)
+    {
+        if(owner is not IDisposableAsset ||
+            owner is not IGuidAsset)
+        {
+            throw new ArgumentException("Owner needs to implement both IDisposableAsset and IGuidAsset!", nameof(owner));
+        }
+
+        this.owner = new(owner);
+        this.uniform = uniform;
+    }
 
     internal bool TryGetUniform(IGuidAsset owner, out ShaderUniformInfo uniform)
     {
         if(IsValid &&
             this.owner.TryGetTarget(out var actualOwner) &&
-            ((IGuidAsset)actualOwner).Guid.GuidHash == owner.Guid.GuidHash)
+            actualOwner is IGuidAsset guidAsset &&
+            guidAsset.Guid.GuidHash == owner.Guid.GuidHash)
         {
             uniform = this.uniform;
 
@@ -31,7 +44,10 @@ public readonly struct ShaderHandle(IGuidAsset owner, ShaderUniformInfo uniform)
     /// <summary>
     /// Whether this handle is valid
     /// </summary>
-    public bool IsValid => uniform != null && (owner?.TryGetTarget(out _) ?? false);
+    public bool IsValid => uniform != null &&
+        (owner?.TryGetTarget(out var s) ?? false) &&
+        s is IDisposableAsset disposable &&
+        !disposable.Disposed;
 
     /// <summary>
     /// The uniform's attribute, if any

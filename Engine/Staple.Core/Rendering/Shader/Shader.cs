@@ -7,7 +7,7 @@ namespace Staple.Internal;
 /// <summary>
 /// Shader resource
 /// </summary>
-public partial class Shader : IGuidAsset
+public partial class Shader : IGuidAsset, IDisposableAsset
 {
     public static readonly string SkinningKeyword = "SKINNING";
     public static readonly string LitKeyword = "LIT";

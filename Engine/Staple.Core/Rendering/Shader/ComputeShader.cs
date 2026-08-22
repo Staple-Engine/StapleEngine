@@ -7,7 +7,7 @@ namespace Staple.Internal;
 /// <summary>
 /// Compute shader resource
 /// </summary>
-public partial class ComputeShader : IGuidAsset
+public partial class ComputeShader : IGuidAsset, IDisposableAsset
 {
     internal static readonly List<ShaderResource.DefaultUniform> DefaultUniforms = [];
 
