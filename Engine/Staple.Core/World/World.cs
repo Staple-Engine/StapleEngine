@@ -22,6 +22,18 @@ public partial class World
     public delegate void CallableComponentCallback(Span<(Entity, CallbackComponent)> content);
 
     /// <summary>
+    /// Contains data about a component
+    /// </summary>
+    internal class ComponentHolder(int hash, IComponent component, bool versionable, ulong version)
+    {
+        public int hash = hash;
+        public IComponent component = component;
+        public IComponentVersion versionableComponent = versionable ? (IComponentVersion)component : null;
+        public bool versionable = versionable;
+        public ulong version = version;
+    }
+
+    /// <summary>
     /// Contains data on an entity
     /// </summary>
     internal class EntityInfo
@@ -54,17 +66,7 @@ public partial class World
         /// <summary>
         /// List of components for the entity
         /// </summary>
-        public Dictionary<int, IComponent> components = [];
-
-        /// <summary>
-        /// Cache whether a component is versionable
-        /// </summary>
-        public Dictionary<int, bool> componentIsVersionable = [];
-
-        /// <summary>
-        /// Stores component versions
-        /// </summary>
-        public Dictionary<int, ulong> componentVersions = [];
+        public Dictionary<int, ComponentHolder> components = [];
 
         /// <summary>
         /// The entity's name
@@ -106,6 +108,10 @@ public partial class World
         /// </summary>
         public readonly HashSet<int> emittedChangeComponents = [];
 
+        /// <summary>
+        /// Converts this <see cref="EntityInfo"/> into an <see cref="Entity"/>
+        /// </summary>
+        /// <returns>The <see cref="Entity"/></returns>
         public Entity ToEntity()
         {
             return new()
@@ -118,17 +124,21 @@ public partial class World
             };
         }
 
-        public bool ShouldUpdateComponent(int hash, IComponent value)
+        /// <summary>
+        /// Checks whether a component needs to be updated
+        /// </summary>
+        /// <param name="holder">The component holder</param>
+        /// <param name="value">The component we're checking</param>
+        /// <returns>Whether it needs to be updated</returns>
+        public bool ShouldUpdateComponent(ComponentHolder holder)
         {
-            if(!componentIsVersionable.TryGetValue(hash, out var versionable) ||
-                !versionable ||
-                !componentVersions.TryGetValue(hash, out var version) ||
-                version == ((IComponentVersion)value).Version)
+            if(!holder.versionable ||
+                holder.versionableComponent.Version == holder.version)
             {
                 return false;
             }
 
-            componentVersions[hash] = version;
+            holder.version = holder.versionableComponent.Version;
 
             return true;
         }
@@ -191,8 +201,9 @@ public partial class World
 
     public static World Current { get; internal set; } = new();
 
-    private int entityCount;
-
+    /// <summary>
+    /// The total amount of live entities in the world
+    /// </summary>
     public int EntityCount
     {
         get
@@ -236,6 +247,7 @@ public partial class World
     private bool needsEmitWorldChange = false;
     private readonly SortedSet<int> deadEntities = [];
 
+    private int entityCount;
     private static readonly WorldChangeBox worldChangeReceivers = new();
     private static readonly SceneQueryBox sceneQueries = new();
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentAddedCallbacks = [];
@@ -404,8 +416,6 @@ public partial class World
                     if(TryGetEntity(item.Item1, out var entityInfo))
                     {
                         entityInfo.components.Remove(item.Item2);
-                        entityInfo.componentVersions.Remove(item.Item2);
-                        entityInfo.componentIsVersionable.Remove(item.Item2);
 
                         needsEmitWorldChange = true;
                     }
@@ -440,12 +450,10 @@ public partial class World
 
                     foreach(var pair in info.components)
                     {
-                        RemoveComponent(e, pair.Value.GetType());
+                        RemoveComponent(e, pair.Value.component.GetType());
                     }
 
                     info.components.Clear();
-                    info.componentVersions.Clear();
-                    info.componentIsVersionable.Clear();
 
                     removedComponents.RemoveWhere(x => x.Item1 == e);
 
@@ -483,12 +491,12 @@ public partial class World
 
                     foreach(var pair in entity.components)
                     {
-                        if(!entity.ShouldUpdateComponent(pair.Key, pair.Value))
+                        if(!entity.ShouldUpdateComponent(pair.Value))
                         {
                             continue;
                         }
 
-                        var component = pair.Value;
+                        ref var component = ref pair.Value.component;
 
                         EmitChangedComponentEvent(entity.ToEntity(), ref component);
                     }
@@ -511,12 +519,10 @@ public partial class World
 
                 foreach(var pair in entity.components)
                 {
-                    RemoveComponent(entity.ToEntity(), pair.Value.GetType());
+                    RemoveComponent(entity.ToEntity(), pair.Value.component.GetType());
                 }
 
                 entity.components.Clear();
-                entity.componentIsVersionable.Clear();
-                entity.componentVersions.Clear();
             }
 
             entities.Clear();

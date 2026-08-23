@@ -48,8 +48,6 @@ public partial class World
                     foreach(var entity in entities.Contents)
                     {
                         entity.components.Remove(key);
-                        entity.componentIsVersionable.Remove(key);
-                        entity.componentVersions.Remove(key);
                     }
                 }
             }
@@ -94,35 +92,29 @@ public partial class World
 
             removedComponents.Remove((entity, hash));
 
-            if (entityInfo.components.TryGetValue(hash, out var component))
+            if (entityInfo.components.TryGetValue(hash, out var container))
             {
                 //Already has one, return it
 
-                return component;
+                return container.component;
             }
-            else
+
+            var component = ObjectCreation.CreateObject<IComponent>(t);
+
+            if (component == default)
             {
-                component = ObjectCreation.CreateObject<IComponent>(t);
+                return default;
+            }
 
-                if (component == default)
-                {
-                    return default;
-                }
+            container = new ComponentHolder(hash, component, TypeCache.ComponentShouldBeVersionedByWorld(t.FullName), 0);
 
-                needsEmitWorldChange = true;
+            needsEmitWorldChange = true;
 
-                entityInfo.components.Add(hash, component);
+            entityInfo.components.Add(hash, container);
 
-                if(TypeCache.ComponentShouldBeVersionedByWorld(t.FullName))
-                {
-                    entityInfo.componentIsVersionable.AddOrSetKey(hash, true);
-                    entityInfo.componentVersions.Add(hash, ((IComponentVersion)component).Version);
-                }
-
-                if (!Scene.InstancingComponent)
-                {
-                    EmitAddComponentEvent(entity, ref component);
-                }
+            if (!Scene.InstancingComponent)
+            {
+                EmitAddComponentEvent(entity, ref container.component);
             }
 
             if (t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
@@ -131,7 +123,7 @@ public partial class World
                 {
                     var field = t.GetField("Entity") ?? t.GetField("entity");
 
-                    field?.SetValue(component, entity);
+                    field?.SetValue(container.component, entity);
 
                     var property = t.GetProperty("Entity") ?? t.GetProperty("entity");
 
@@ -139,22 +131,11 @@ public partial class World
                     {
                         if(property.CanWrite)
                         {
-                            property.SetValue(component, entity);
+                            property.SetValue(container.component, entity);
                         }
                         else
                         {
                             Log.Debug($"[{t.FullName}]: Can't auto assign entity: Property isn't writable");
-                        }
-                    }
-
-                    if(t.IsValueType)
-                    {
-                        entityInfo.components.AddOrSetKey(hash, component);
-
-                        if (TypeCache.ComponentShouldBeVersionedByWorld(t.FullName))
-                        {
-                            entityInfo.componentIsVersionable.AddOrSetKey(hash, true);
-                            entityInfo.componentVersions.Add(hash, ((IComponentVersion)component).Version);
                         }
                     }
                 }
@@ -167,7 +148,7 @@ public partial class World
             if(Platform.IsPlaying &&
                 !Scene.InstancingComponent &&
                 callableComponentTypes.Count != 0 &&
-                component is CallbackComponent callback)
+                container.component is CallbackComponent callback)
             {
                 try
                 {
@@ -179,12 +160,12 @@ public partial class World
                 }
             }
 
-            if(component is Transform transform)
+            if(container.component is Transform transform)
             {
                 entityInfo.transform = transform;
             }
 
-            return component;
+            return container.component;
         }
     }
 
@@ -288,7 +269,7 @@ public partial class World
 
             foreach(var typeName in compatibility)
             {
-                if (entityInfo.components.TryGetValue(typeName, out var component))
+                if (entityInfo.components.TryGetValue(typeName, out var container))
                 {
                     needsEmitWorldChange = true;
 
@@ -301,7 +282,7 @@ public partial class World
 
                     if (Platform.IsPlaying &&
                         callableComponentTypes.Count != 0 &&
-                        component is CallbackComponent callable)
+                        container.component is CallbackComponent callable)
                     {
                         try
                         {
@@ -313,14 +294,12 @@ public partial class World
                         }
                     }
 
-                    EmitRemoveComponentEvent(entity, ref component);
+                    EmitRemoveComponentEvent(entity, ref container.component);
 
-                    if(component is IComponentDisposable disposable)
+                    if(container.component is IComponentDisposable disposable)
                     {
                         disposable.DisposeComponent();
                     }
-
-                    entityInfo.components[typeName] = component;
                 }
             }
         }
@@ -349,9 +328,9 @@ public partial class World
 
             foreach (var typeName in compatibility)
             {
-                if (entityInfo.components.TryGetValue(typeName, out var component))
+                if (entityInfo.components.TryGetValue(typeName, out var container))
                 {
-                    return component;
+                    return container.component;
                 }
             }
 
@@ -388,8 +367,10 @@ public partial class World
 
         foreach (var typeName in compatibility)
         {
-            if (info.components.TryGetValue(typeName, out component))
+            if (info.components.TryGetValue(typeName, out var container))
             {
+                component = container.component;
+
                 return true;
             }
         }
@@ -472,44 +453,46 @@ public partial class World
 
             foreach (var typeName in compatibility)
             {
-                if(entityInfo.components.ContainsKey(typeName))
+                if (!entityInfo.components.ContainsKey(typeName))
                 {
-                    removedComponents.Remove((entity, typeName.GetHashCode()));
+                    continue;
+                }
 
-                    var t = component.GetType();
+                removedComponents.Remove((entity, typeName.GetHashCode()));
 
-                    if (t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
+                var t = component.GetType();
+
+                if (t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
+                {
+                    try
                     {
-                        try
+                        var field = t.GetField("Entity") ?? t.GetField("entity");
+
+                        field?.SetValue(component, entity);
+
+                        var property = t.GetProperty("Entity") ?? t.GetProperty("entity");
+
+                        if (property != null)
                         {
-                            var field = t.GetField("Entity") ?? t.GetField("entity");
-
-                            field?.SetValue(component, entity);
-
-                            var property = t.GetProperty("Entity") ?? t.GetProperty("entity");
-
-                            if (property != null)
+                            if (property.CanWrite)
                             {
-                                if (property.CanWrite)
-                                {
-                                    property.SetValue(component, entity);
-                                }
-                                else
-                                {
-                                    Log.Debug($"[{t.FullName}]: Can't auto assign entity: Property isn't writable");
-                                }
+                                property.SetValue(component, entity);
+                            }
+                            else
+                            {
+                                Log.Debug($"[{t.FullName}]: Can't auto assign entity: Property isn't writable");
                             }
                         }
-                        catch (Exception e)
-                        {
-                            Log.Debug($"[{t.FullName}]: Failed to auto assign entity: {e}");
-                        }
                     }
-
-                    entityInfo.components[typeName] = component;
-
-                    needsEmitWorldChange = true;
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[{t.FullName}]: Failed to auto assign entity: {e}");
+                    }
                 }
+
+                entityInfo.components[typeName].component = component;
+
+                needsEmitWorldChange = true;
             }
         }
     }
@@ -794,7 +777,7 @@ public partial class World
                 {
                     if (entity.alive &&
                         entity.components.TryGetValue(typeName, out var c) &&
-                        c == component)
+                        c.component == component)
                     {
                         return new Entity()
                         {

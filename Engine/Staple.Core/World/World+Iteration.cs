@@ -33,7 +33,7 @@ public partial class World
                     continue;
                 }
 
-                IComponent tComponent = default;
+                ComponentHolder tComponent = default;
 
                 foreach(var key in c1)
                 {
@@ -43,7 +43,7 @@ public partial class World
                     }
                 }
 
-                if(tComponent == null || tComponent is not T t)
+                if(tComponent == null || tComponent.component is not T t)
                 {
                     continue;
                 }
@@ -94,8 +94,8 @@ public partial class World
                     continue;
                 }
 
-                IComponent tComponent = default;
-                IComponent t2Component = default;
+                ComponentHolder tComponent = default;
+                ComponentHolder t2Component = default;
 
                 foreach (var key in c1)
                 {
@@ -115,8 +115,8 @@ public partial class World
 
                 if (tComponent == null ||
                     t2Component == null ||
-                    tComponent is not T t ||
-                    t2Component is not T2 t2)
+                    tComponent.component is not T t ||
+                    t2Component.component is not T2 t2)
                 {
                     continue;
                 }
@@ -171,9 +171,9 @@ public partial class World
                     continue;
                 }
 
-                IComponent tComponent = default;
-                IComponent t2Component = default;
-                IComponent t3Component = default;
+                ComponentHolder tComponent = default;
+                ComponentHolder t2Component = default;
+                ComponentHolder t3Component = default;
 
                 foreach (var key in c1)
                 {
@@ -202,9 +202,9 @@ public partial class World
                 if (tComponent == null ||
                     t2Component == null ||
                     t3Component == null ||
-                    tComponent is not T t ||
-                    t2Component is not T2 t2 ||
-                    t3Component is not T3 t3)
+                    tComponent.component is not T t ||
+                    t2Component.component is not T2 t2 ||
+                    t3Component.component is not T3 t3)
                 {
                     continue;
                 }
@@ -263,10 +263,10 @@ public partial class World
                     continue;
                 }
 
-                IComponent tComponent = default;
-                IComponent t2Component = default;
-                IComponent t3Component = default;
-                IComponent t4Component = default;
+                ComponentHolder tComponent = default;
+                ComponentHolder t2Component = default;
+                ComponentHolder t3Component = default;
+                ComponentHolder t4Component = default;
 
                 foreach (var key in c1)
                 {
@@ -304,10 +304,10 @@ public partial class World
                     t2Component == null ||
                     t3Component == null ||
                     t4Component == null ||
-                    tComponent is not T t ||
-                    t2Component is not T2 t2 ||
-                    t3Component is not T3 t3 ||
-                    t4Component is not T4 t4)
+                    tComponent.component is not T t ||
+                    t2Component.component is not T2 t2 ||
+                    t3Component.component is not T3 t3 ||
+                    t4Component.component is not T4 t4)
                 {
                     continue;
                 }
@@ -370,11 +370,11 @@ public partial class World
                     continue;
                 }
 
-                IComponent tComponent = default;
-                IComponent t2Component = default;
-                IComponent t3Component = default;
-                IComponent t4Component = default;
-                IComponent t5Component = default;
+                ComponentHolder tComponent = default;
+                ComponentHolder t2Component = default;
+                ComponentHolder t3Component = default;
+                ComponentHolder t4Component = default;
+                ComponentHolder t5Component = default;
 
                 foreach (var key in c1)
                 {
@@ -421,11 +421,11 @@ public partial class World
                     t3Component == null ||
                     t4Component == null ||
                     t5Component == null ||
-                    tComponent is not T t ||
-                    t2Component is not T2 t2 ||
-                    t3Component is not T3 t3 ||
-                    t4Component is not T4 t4 ||
-                    t5Component is not T5 t5)
+                    tComponent.component is not T t ||
+                    t2Component.component is not T2 t2 ||
+                    t3Component.component is not T3 t3 ||
+                    t4Component.component is not T4 t4 ||
+                    t5Component.component is not T5 t5)
                 {
                     continue;
                 }
@@ -593,11 +593,9 @@ public partial class World
                     break;
                 }
 
-                var component = pair.Value;
+                ref var component = ref pair.Value.component;
 
                 callback(ref component);
-
-                entityInfo.components[pair.Key] = component;
             }
         }
     }
