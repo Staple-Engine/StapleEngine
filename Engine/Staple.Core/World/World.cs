@@ -118,6 +118,21 @@ public partial class World
             };
         }
 
+        public bool ShouldUpdateComponent(int hash, IComponent value)
+        {
+            if(!componentIsVersionable.TryGetValue(hash, out var versionable) ||
+                !versionable ||
+                !componentVersions.TryGetValue(hash, out var version) ||
+                version == ((IComponentVersion)value).Version)
+            {
+                return false;
+            }
+
+            componentVersions[hash] = version;
+
+            return true;
+        }
+
         public override string ToString()
         {
             return alive ? $"{name} ({ID}:{generation})" : "Invalid Entity (Dead)";
@@ -468,10 +483,7 @@ public partial class World
 
                     foreach(var pair in entity.components)
                     {
-                        if(!entity.componentIsVersionable.TryGetValue(pair.Key, out var versionable) ||
-                            !versionable ||
-                            !entity.componentVersions.TryGetValue(pair.Key, out var version) ||
-                            version == ((IComponentVersion)pair.Value).Version)
+                        if(!entity.ShouldUpdateComponent(pair.Key, pair.Value))
                         {
                             continue;
                         }
