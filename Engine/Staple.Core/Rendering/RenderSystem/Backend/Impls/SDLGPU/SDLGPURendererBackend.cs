@@ -20,6 +20,12 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     private const uint VulkanVersionPatch = 0;
 
     private static readonly StringID StapleRenderDataUniformName = "StapleRenderData";
+    private static readonly StringID StapleRenderDataWorldUniformName = new(nameof(StapleRenderData.world));
+    private static readonly StringID StapleRenderDataViewUniformName = new(nameof(StapleRenderData.view));
+    private static readonly StringID StapleRenderDataProjectionUniformName = new(nameof(StapleRenderData.projection));
+    private static readonly StringID StapleRenderDataUseWorldMatrixUniformName = new(nameof(StapleRenderData.useWorldMatrix));
+    private static readonly StringID StapleRenderDataRenderQueueUniformName = new(nameof(StapleRenderData.renderQueue));
+    private static readonly StringID StapleRenderDataTimeUniformName = new(nameof(StapleRenderData.time));
 
     internal static readonly int RenderDataByteSize = Marshal.SizeOf<StapleRenderData>();
 
@@ -1917,12 +1923,12 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             }
         }
 
-        state.shaderInstance.SetValue(nameof(StapleRenderData.world), state.world);
-        state.shaderInstance.SetValue(nameof(StapleRenderData.view), viewData.renderData.view);
-        state.shaderInstance.SetValue(nameof(StapleRenderData.projection), viewData.renderData.projection);
-        state.shaderInstance.SetValue(nameof(StapleRenderData.useWorldMatrix), useWorldMatrix);
-        state.shaderInstance.SetValue(nameof(StapleRenderData.renderQueue), (int)state.renderQueue);
-        state.shaderInstance.SetValue(nameof(StapleRenderData.time), time);
+        state.shaderInstance.SetValue(StapleRenderDataWorldUniformName, state.world);
+        state.shaderInstance.SetValue(StapleRenderDataViewUniformName, viewData.renderData.view);
+        state.shaderInstance.SetValue(StapleRenderDataProjectionUniformName, viewData.renderData.projection);
+        state.shaderInstance.SetValue(StapleRenderDataUseWorldMatrixUniformName, useWorldMatrix);
+        state.shaderInstance.SetValue(StapleRenderDataRenderQueueUniformName, (int)state.renderQueue);
+        state.shaderInstance.SetValue(StapleRenderDataTimeUniformName, time);
 
         var counter = 0;
 

@@ -633,20 +633,23 @@ public sealed partial class RenderSystem
 
             var renderable = renderablesContents[i];
 
-            if (!entityTransformTracker.ShouldUpdateComponent(entity.ToEntity(), in entity.transform))
+            var e = entity.ToEntity();
+
+            if (!entityTransformTracker.ShouldUpdateComponent(e, in entity.transform))
             {
-                if (startIndex < 0)
+                if(renderable != null && entityRenderableTracker.ShouldUpdateComponent(e, in renderable))
                 {
                     UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
+                }
 
+                if (startIndex < 0)
+                {
                     continue;
                 }
 
                 changedEntityTransformRanges.Add(startIndex, length);
 
                 startIndex = -1;
-
-                UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
 
                 continue;
             }
@@ -663,7 +666,10 @@ public sealed partial class RenderSystem
                 length++;
             }
 
-            UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
+            if (renderable != null && entityRenderableTracker.ShouldUpdateComponent(e, in renderable))
+            {
+                UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
+            }
         }
 
         if (startIndex >= 0)
