@@ -383,8 +383,8 @@ internal static class StapleSerializer
             {
                 if(s.HandlesType(field.FieldType))
                 {
-                    var o = mode != StapleSerializationMode.Binary ? s.SerializeJsonField(value, instance.GetType(), field, field.FieldType, mode) :
-                        s.SerializeField(value, instance.GetType(), field, field.FieldType, mode);
+                    var o = mode != StapleSerializationMode.Binary ? s.SerializeJsonField(value, instance.GetType(), field.FieldType, mode) :
+                        s.SerializeField(value, instance.GetType(), field.FieldType, mode);
 
                     if(o != null)
                     {
@@ -503,8 +503,8 @@ internal static class StapleSerializer
 
                             foreach(var item in array)
                             {
-                                var o = mode != StapleSerializationMode.Binary ? s.SerializeJsonField(item, instance.GetType(), field, elementType, mode) :
-                                    s.SerializeField(item, instance.GetType(), field, elementType, mode);
+                                var o = mode != StapleSerializationMode.Binary ? s.SerializeJsonField(item, instance.GetType(), elementType, mode) :
+                                    s.SerializeField(item, instance.GetType(), elementType, mode);
 
                                 if(o != null)
                                 {
@@ -681,6 +681,343 @@ internal static class StapleSerializer
     }
 
     /// <summary>
+    /// Serializes a property into an asset container
+    /// </summary>
+    /// <param name="property">The property to serialize</param>
+    /// <param name="instance">The instance of the object we're handling</param>
+    /// <param name="context">The serializer context to store into</param>
+    /// <param name="mode">The serialization mode we want to use</param>
+    public static void SerializeProperty(PropertyInfo property, object instance, StapleSerializerContext context, StapleSerializationMode mode)
+    {
+        var hasSerializeField = property.GetCustomAttribute<SerializeFieldAttribute>() != null;
+
+        if (property.GetCustomAttribute<NonSerializedAttribute>() != null ||
+            !property.CanRead ||
+            !property.CanWrite ||
+            property.GetMethod is not MethodInfo getMethod ||
+            (!getMethod.IsPublic && !hasSerializeField) ||
+            property.SetMethod is not MethodInfo setMethod ||
+            (!setMethod.IsPublic && !hasSerializeField))
+        {
+            return;
+        }
+
+        if (property.PropertyType.GetCustomAttribute<SerializeInEditorAttribute>() != null && !Platform.IsEditor)
+        {
+            return;
+        }
+
+        if (IsValidType(property.PropertyType))
+        {
+            var value = property.GetValue(instance);
+
+            if (value == null)
+            {
+                return;
+            }
+
+            foreach (var s in TypeSerializers)
+            {
+                if (s.HandlesType(property.PropertyType))
+                {
+                    var o = mode != StapleSerializationMode.Binary ? s.SerializeJsonField(value, instance.GetType(), property.PropertyType, mode) :
+                        s.SerializeField(value, instance.GetType(), property.PropertyType, mode);
+
+                    if (o != null)
+                    {
+                        context.setProperty(property, value.GetType().ToString(), o);
+
+                        return;
+                    }
+                }
+            }
+
+            if (property.PropertyType.IsArray && IsValidType(property.PropertyType.GetElementType()))
+            {
+                var array = (Array)value;
+
+                var elementType = property.PropertyType.GetElementType();
+
+                if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                    elementType == typeof(IGuidAsset))
+                {
+                    var assetList = new List<string>();
+
+                    foreach (var item in array)
+                    {
+                        if (item is IGuidAsset asset)
+                        {
+                            //Normalize the asset path in case the guid is actually a path
+                            assetList.Add(AssetSerialization.GetAssetPathFromCache(asset.Guid.Guid));
+                        }
+                        else
+                        {
+                            assetList.Add(null);
+                        }
+                    }
+
+                    context.setProperty(property, property.PropertyType.ToString(), assetList.ToArray());
+                }
+                else if (elementType == typeof(string))
+                {
+                    context.setProperty(property, property.PropertyType.ToString(), array);
+                }
+                else if (elementType.IsPrimitive)
+                {
+                    if (mode != StapleSerializationMode.Binary && property.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                    {
+                        var buffer = SerializePrimitiveArray(array);
+
+                        if (buffer != null)
+                        {
+                            context.setProperty(property, property.PropertyType.ToString(), Convert.ToHexString(buffer));
+                        }
+                    }
+                    else
+                    {
+                        context.setProperty(property, property.PropertyType.ToString(), value);
+                    }
+                }
+                else if (elementType.GetCustomAttribute<SerializableAttribute>() != null)
+                {
+                    try
+                    {
+                        var newList = new List<object>();
+
+                        foreach (var item in array)
+                        {
+                            try
+                            {
+                                var container = SerializeContainer(item, mode);
+
+                                newList.Add(container);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.ToString()} element: {e}");
+                            }
+                        }
+
+                        context.setProperty(property, property.PropertyType.ToString(), newList);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.ToString()} list: {e}");
+                    }
+                }
+                else if (elementType.IsEnum)
+                {
+                    if (elementType.GetCustomAttribute<FlagsAttribute>() != null)
+                    {
+                        var newList = new List<long>();
+
+                        foreach (var item in array)
+                        {
+                            newList.Add((long)item);
+                        }
+
+                        context.setProperty(property, property.PropertyType.ToString(), newList);
+                    }
+                    else
+                    {
+                        var newList = new List<string>();
+
+                        foreach (var item in array)
+                        {
+                            newList.Add(item.ToString());
+                        }
+
+                        context.setProperty(property, property.PropertyType.ToString(), newList);
+                    }
+                }
+                else
+                {
+                    foreach (var s in TypeSerializers)
+                    {
+                        if (s.HandlesType(elementType))
+                        {
+                            var newList = new List<object>();
+
+                            foreach (var item in array)
+                            {
+                                var o = mode != StapleSerializationMode.Binary ? s.SerializeJsonField(item, instance.GetType(), elementType, mode) :
+                                    s.SerializeField(item, instance.GetType(), elementType, mode);
+
+                                if (o != null)
+                                {
+                                    newList.Add(o);
+                                }
+                            }
+
+                            context.setProperty(property, property.PropertyType.ToString(), newList);
+
+                            return;
+                        }
+                    }
+                }
+
+                return;
+            }
+
+            if (property.PropertyType.IsGenericType)
+            {
+                if (property.PropertyType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    var listType = property.PropertyType.GetGenericArguments()[0];
+
+                    if (listType != null)
+                    {
+                        if (listType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                            listType == typeof(IGuidAsset))
+                        {
+                            var newList = new List<string>();
+
+                            var inList = (IList)value;
+
+                            foreach (var item in inList)
+                            {
+                                if (item is IGuidAsset g)
+                                {
+                                    //Normalize the asset path in case the guid is actually a path
+                                    newList.Add(AssetSerialization.GetAssetPathFromCache(g.Guid.Guid));
+                                }
+                                else
+                                {
+                                    newList.Add(null);
+                                }
+                            }
+
+                            context.setProperty(property, property.PropertyType.ToString(), newList);
+                        }
+                        else if (listType == typeof(string))
+                        {
+                            context.setProperty(property, property.PropertyType.ToString(), value);
+                        }
+                        else if (listType.IsPrimitive)
+                        {
+                            if (mode != StapleSerializationMode.Binary && property.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                            {
+                                var list = (IList)value;
+
+                                var buffer = SerializePrimitiveList(list, listType);
+
+                                if (buffer != null)
+                                {
+                                    context.setProperty(property, property.PropertyType.ToString(), Convert.ToHexString(buffer));
+                                }
+                            }
+                            else
+                            {
+                                context.setProperty(property, property.PropertyType.ToString(), value);
+                            }
+                        }
+                        else if (listType.GetCustomAttribute<SerializableAttribute>() != null)
+                        {
+                            try
+                            {
+                                var newList = new List<object>();
+
+                                var inList = (IList)value;
+
+                                foreach (var item in inList)
+                                {
+                                    try
+                                    {
+                                        var container = SerializeContainer(item, mode);
+
+                                        if (container != null)
+                                        {
+                                            if (mode == StapleSerializationMode.Scene)
+                                            {
+                                                newList.Add(container.ToRawContainer());
+                                            }
+                                            else
+                                            {
+                                                newList.Add(container);
+                                            }
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Log.Debug($"[{LogTag}] Failed to deserialize a {listType.ToString()} list element: {e}");
+                                    }
+                                }
+
+                                context.setProperty(property, property.PropertyType.ToString(), newList);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Debug($"[{LogTag}] Failed to deserialize a {listType.ToString()} list: {e}");
+                            }
+                        }
+                        else if (listType.IsEnum)
+                        {
+                            if (listType.GetCustomAttribute<FlagsAttribute>() != null)
+                            {
+                                var newList = new List<long>();
+
+                                var inList = (IList)value;
+
+                                foreach (var item in inList)
+                                {
+                                    newList.Add((long)item);
+                                }
+
+                                context.setProperty(property, property.PropertyType.ToString(), newList);
+                            }
+                            else
+                            {
+                                var newList = new List<string>();
+
+                                var inList = (IList)value;
+
+                                foreach (var item in inList)
+                                {
+                                    newList.Add(item.ToString());
+                                }
+
+                                context.setProperty(property, property.PropertyType.ToString(), newList);
+                            }
+                        }
+
+                        return;
+                    }
+                }
+            }
+
+            //Need to describe the item
+            if (!IsDirectParameter(value.GetType()) &&
+                property.PropertyType.GetCustomAttribute<SerializableAttribute>() != null)
+            {
+                try
+                {
+                    var innerContainer = SerializeContainer(value, mode);
+
+                    if (innerContainer != null)
+                    {
+                        if (mode == StapleSerializationMode.Scene)
+                        {
+                            context.setProperty(property, property.PropertyType.ToString(), innerContainer.ToRawContainer());
+                        }
+                        else
+                        {
+                            context.setProperty(property, property.PropertyType.ToString(), innerContainer);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Debug($"[{LogTag}] Failed to deserialize a {property.PropertyType.ToString()} container: {e}");
+                }
+
+                return;
+            }
+
+            context.setProperty(property, value.GetType().ToString(), value);
+        }
+    }
+
+    /// <summary>
     /// Serializes an object into an asset container
     /// </summary>
     /// <param name="instance">The object instance we're handling</param>
@@ -704,6 +1041,11 @@ internal static class StapleSerializer
             {
                 typeName = typeName,
                 value = value,
+            }),
+            (field, typeName, value) => outValue.fields.Add(field.Name, new()
+            {
+                typeName = typeName,
+                value = value,
             }));
 
         var fields = instance.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
@@ -720,15 +1062,28 @@ internal static class StapleSerializer
             SerializeField(field, instance, context, mode);
         }
 
+        var properties = instance.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+        foreach (var property in properties)
+        {
+            if (property.PropertyType.IsNestedFamORAssem ||
+                property.PropertyType.IsNestedAssembly)
+            {
+                continue;
+            }
+
+            SerializeProperty(property, instance, context, mode);
+        }
+
         return outValue;
     }
 
-    private static object GetArrayValue(StapleSerializerField fieldInfo, Type type, FieldInfo field, StapleSerializationMode mode)
+    private static object GetArrayValue(StapleSerializerField fieldInfo, Type type, Func<Type, bool> hasAttribute, StapleSerializationMode mode)
     {
         var condensed = fieldInfo.value is JsonElement jsonElement ?
-            GetJsonArray(type, field, TypeCache.GetType(fieldInfo.typeName), jsonElement, mode) : fieldInfo.value;
+            GetJsonArray(type, TypeCache.GetType(fieldInfo.typeName), jsonElement, mode) : fieldInfo.value;
 
-        object sourceValue = field.GetCustomAttribute<SerializeAsHexAttribute>() != null && condensed is string s ?
+        object sourceValue = hasAttribute(typeof(SerializeAsHexAttribute)) && condensed is string s ?
             s : condensed is object[] a ? a : condensed is List<string> l ? l : null;
 
         if (sourceValue is List<string> li)
@@ -746,7 +1101,7 @@ internal static class StapleSerializer
         return sourceValue;
     }
 
-    private static object[] GetJsonArray(Type type, FieldInfo field, Type fieldType, JsonElement element, StapleSerializationMode mode)
+    private static object[] GetJsonArray(Type type, Type fieldType, JsonElement element, StapleSerializationMode mode)
     {
         if(element.ValueKind != JsonValueKind.Array)
         {
@@ -765,7 +1120,7 @@ internal static class StapleSerializer
 
         for(var i = 0; i < element.GetArrayLength(); i++)
         {
-            var o = GetJsonValue(type, field, elementType, element[i], mode);
+            var o = GetJsonValue(type, elementType, element[i], mode);
 
             if(o != null)
             {
@@ -776,13 +1131,13 @@ internal static class StapleSerializer
         return array;
     }
 
-    private static object GetJsonValue(Type type, FieldInfo fieldInfo, Type fieldType, JsonElement element, StapleSerializationMode mode)
+    private static object GetJsonValue(Type type, Type fieldType, JsonElement element, StapleSerializationMode mode)
     {
         foreach(var s in TypeSerializers)
         {
             if(s.HandlesType(fieldType))
             {
-                return s.DeserializeJsonField(type, fieldInfo, fieldType, null, element, mode);
+                return s.DeserializeJsonField(type, fieldType, null, element, mode);
             }
         }
 
@@ -871,7 +1226,7 @@ internal static class StapleSerializer
                 return fieldInfo.value;
             }
             else if (fieldInfo.value is JsonElement jsonElement &&
-                GetJsonValue(type, field, fieldType, jsonElement, mode) is object jsonObject &&
+                GetJsonValue(type, fieldType, jsonElement, mode) is object jsonObject &&
                 (fieldType == jsonObject.GetType() ||
                 jsonObject.GetType().IsAssignableTo(fieldType)))
             {
@@ -881,7 +1236,7 @@ internal static class StapleSerializer
             {
                 if (fieldInfo.value is JsonElement element)
                 {
-                    var o = GetJsonValue(type, field, fieldType, element, mode);
+                    var o = GetJsonValue(type, fieldType, element, mode);
 
                     return o;
                 }
@@ -894,8 +1249,8 @@ internal static class StapleSerializer
                 {
                     if(s.HandlesType(fieldType))
                     {
-                        return fieldInfo.value is JsonElement element ? s.DeserializeJsonField(type, field, fieldType, fieldInfo, element, mode) :
-                            s.DeserializeField(type, field, fieldType, fieldInfo, mode);
+                        return fieldInfo.value is JsonElement element ? s.DeserializeJsonField(type, fieldType, fieldInfo, element, mode) :
+                            s.DeserializeField(type, fieldType, fieldInfo, mode);
                     }
                 }
             }
@@ -948,7 +1303,7 @@ internal static class StapleSerializer
 
                 var elementType = fieldType.GetElementType();
 
-                var sourceValue = GetArrayValue(fieldInfo, type, field, mode);
+                var sourceValue = GetArrayValue(fieldInfo, type, (t) => field.GetCustomAttribute(t) != null, mode);
 
                 if (sourceValue is Array array)
                 {
@@ -1131,7 +1486,7 @@ internal static class StapleSerializer
                         return null;
                     }
 
-                    var sourceValue = GetArrayValue(fieldInfo, type, field, mode);
+                    var sourceValue = GetArrayValue(fieldInfo, type, (t) => field.GetCustomAttribute(t) != null, mode);
 
                     if (sourceValue is object[] array)
                     {
@@ -1366,7 +1721,7 @@ internal static class StapleSerializer
             }
 
             {
-                var v = fieldInfo.value is JsonElement element ? GetJsonValue(type, field, fieldType, element, mode) : fieldInfo.value;
+                var v = fieldInfo.value is JsonElement element ? GetJsonValue(type, fieldType, element, mode) : fieldInfo.value;
 
                 if (fieldType.IsEnum && v is string str)
                 {
@@ -1380,7 +1735,7 @@ internal static class StapleSerializer
             }
 
             {
-                var v = fieldInfo.value is JsonElement element ? GetJsonValue(type, field, fieldType, element, mode) : fieldInfo.value;
+                var v = fieldInfo.value is JsonElement element ? GetJsonValue(type, fieldType, element, mode) : fieldInfo.value;
 
                 return v;
             }
@@ -1388,6 +1743,579 @@ internal static class StapleSerializer
         catch (Exception e)
         {
             Log.Debug($"[{LogTag}] Failed to deserialize field {field.Name} for {type.ToString()}: {e}");
+
+            return null;
+        }
+    }
+
+    private static object DeserializeProperty(Type type, PropertyInfo property, Type fieldType, StapleSerializerField fieldInfo,
+        StapleSerializationMode mode)
+    {
+        try
+        {
+            var valueType = TypeCache.GetType(fieldInfo.typeName);
+
+            if (valueType == null ||
+                property == null ||
+                fieldInfo.value == null ||
+                ((property.GetCustomAttribute<SerializeInEditorAttribute>() != null ||
+                fieldType.GetCustomAttribute<SerializeInEditorAttribute>() != null) && !Platform.IsEditor) ||
+                (fieldType.ToString() != fieldInfo.typeName && valueType.GetInterface(fieldType.FullName) == null))
+            {
+                return null;
+            }
+
+            if (valueType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                valueType == typeof(IGuidAsset))
+            {
+                string v = null;
+
+                if (fieldInfo.value is string str)
+                {
+                    v = str;
+                }
+                else if (fieldInfo.value is JsonElement element && element.ValueKind == JsonValueKind.String)
+                {
+                    v = element.GetString();
+                }
+
+                if (v is string guid)
+                {
+                    var result = AssetSerialization.GetGuidAsset(valueType, guid);
+
+                    if (result == null || (result.GetType() != fieldType && result.GetType().GetInterface(fieldType.FullName) == null))
+                    {
+                        return null;
+                    }
+
+                    return result;
+                }
+
+                return null;
+            }
+
+            if (fieldInfo.value.GetType().IsAssignableTo(fieldType))
+            {
+                return fieldInfo.value;
+            }
+            else if (fieldInfo.value is JsonElement jsonElement &&
+                GetJsonValue(type, fieldType, jsonElement, mode) is object jsonObject &&
+                (fieldType == jsonObject.GetType() ||
+                jsonObject.GetType().IsAssignableTo(fieldType)))
+            {
+                return jsonObject;
+            }
+            else if (fieldType.IsPrimitive)
+            {
+                if (fieldInfo.value is JsonElement element)
+                {
+                    var o = GetJsonValue(type, fieldType, element, mode);
+
+                    return o;
+                }
+
+                return Convert.ChangeType(fieldInfo.value, fieldType);
+            }
+            else if (TypeSerializers.Any(x => x.HandlesType(fieldType)))
+            {
+                foreach (var s in TypeSerializers)
+                {
+                    if (s.HandlesType(fieldType))
+                    {
+                        return fieldInfo.value is JsonElement element ? s.DeserializeJsonField(type, fieldType, fieldInfo, element, mode) :
+                            s.DeserializeField(type, fieldType, fieldInfo, mode);
+                    }
+                }
+            }
+            else if (!IsDirectParameter(fieldType.GetType()) &&
+                fieldType.GetCustomAttribute<SerializableAttribute>() != null)
+            {
+                {
+                    if (fieldInfo.value is Dictionary<object, object> pairs &&
+                        pairs.TryGetValue(nameof(SerializableStapleAssetContainer.typeName), out var t) &&
+                        t is string typeName &&
+                        pairs.TryGetValue(nameof(SerializableStapleAssetContainer.fields), out var p) &&
+                        p is Dictionary<object, object> fields)
+                    {
+                        try
+                        {
+                            var decodedContainer = DecodeContainer(typeName, fields);
+
+                            var value = DeserializeContainer(decodedContainer, mode);
+
+                            return value;
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"[{LogTag}] Failed to deserialize a container of type {typeName}: {e}");
+
+                            return null;
+                        }
+                    }
+                }
+
+                {
+                    if (fieldInfo.value is JsonElement element &&
+                        element.ValueKind == JsonValueKind.Object &&
+                        element.TryGetProperty(nameof(SerializableStapleAssetContainer.typeName), out var typeNameProperty) &&
+                        typeNameProperty.ValueKind == JsonValueKind.String &&
+                        typeNameProperty.GetString() is string typeName &&
+                        element.TryGetProperty(nameof(SerializableStapleAssetContainer.fields), out var fieldsProperty) &&
+                        fieldsProperty.ValueKind == JsonValueKind.Object)
+                    {
+                        //TODO
+
+                        return null;
+                    }
+                }
+            }
+
+            if (fieldType.IsArray && IsValidType(fieldType.GetElementType()))
+            {
+                Array newValue = null;
+
+                var elementType = fieldType.GetElementType();
+
+                var sourceValue = GetArrayValue(fieldInfo, type, (t) => property.GetCustomAttribute(t) != null, mode);
+
+                if (sourceValue is Array array)
+                {
+                    try
+                    {
+                        if (sourceValue is not string[] &&
+                            fieldType.GetElementType().IsPrimitive &&
+                            fieldType.GetElementType() != typeof(bool))
+                        {
+                            var size = TypeCache.SizeOf(elementType.ToString());
+
+                            newValue = TypeCache.CreateArray(elementType.ToString(), array.Length / size);
+                        }
+                        else
+                        {
+                            newValue = TypeCache.CreateArray(elementType.ToString(), array.Length);
+                        }
+
+                        if (newValue != null)
+                        {
+                            if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null ||
+                                elementType == typeof(IGuidAsset))
+                            {
+                                for (var i = 0; i < array.Length; i++)
+                                {
+                                    if (array.GetValue(i) is string guid)
+                                    {
+                                        var asset = AssetSerialization.GetGuidAsset(elementType, guid);
+
+                                        newValue.SetValue(asset, i);
+                                    }
+                                }
+                            }
+                            else if (elementType == typeof(string))
+                            {
+                                for (var i = 0; i < array.Length; i++)
+                                {
+                                    newValue.SetValue(array.GetValue(i), i);
+                                }
+                            }
+                            else if (elementType.IsPrimitive)
+                            {
+                                if (array is byte[] buffer)
+                                {
+                                    DeserializePrimitiveArray(buffer, newValue);
+                                }
+                            }
+                            else if (elementType.GetCustomAttribute<SerializableAttribute>() != null &&
+                                array is object[] arrayData)
+                            {
+                                newValue = TypeCache.CreateArray(elementType.ToString(), arrayData.Length);
+
+                                if (newValue != null)
+                                {
+                                    for (var i = 0; i < arrayData.Length; i++)
+                                    {
+                                        if (arrayData[i] is Dictionary<object, object> content)
+                                        {
+                                            if (content.TryGetValue(nameof(SerializableStapleAssetContainer.typeName), out var atn) &&
+                                                atn is string arrayTypeName &&
+                                                content.TryGetValue(nameof(SerializableStapleAssetContainer.fields), out var ap) &&
+                                                ap is Dictionary<object, object> arrayParameters)
+                                            {
+                                                try
+                                                {
+                                                    var c = DecodeContainer(arrayTypeName, arrayParameters);
+
+                                                    var itemValue = DeserializeContainer(c, mode);
+
+                                                    if (itemValue != null)
+                                                    {
+                                                        newValue.SetValue(itemValue, i);
+                                                    }
+                                                }
+                                                catch (Exception e)
+                                                {
+                                                    Log.Debug($"[{LogTag}] Failed to deserialize an item of type {arrayTypeName}: {e}");
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[{LogTag}] Failed to deserialize {property.Name}: {e}");
+
+                        return null;
+                    }
+                }
+                else if (sourceValue is string hexString && property.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                {
+                    try
+                    {
+                        var bytes = Convert.FromHexString(hexString);
+
+                        if (bytes != null)
+                        {
+                            if (fieldType.GetElementType().IsPrimitive &&
+                                fieldType.GetElementType() != typeof(bool))
+                            {
+                                var size = TypeCache.SizeOf(elementType.ToString());
+
+                                newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length / size);
+                            }
+                            else
+                            {
+                                newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length);
+                            }
+
+                            if (newValue != null)
+                            {
+                                DeserializePrimitiveArray(bytes, newValue);
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[{LogTag}] Failed to deserialize {property.Name}: {e}");
+
+                        return null;
+                    }
+                }
+                else if (fieldType.GetElementType().GetCustomAttribute<SerializableAttribute>() != null &&
+                    fieldInfo.value is List<SerializableStapleAssetContainer> containers)
+                {
+                    try
+                    {
+                        newValue = TypeCache.CreateArray(fieldType.GetElementType().ToString(), containers.Count);
+
+                        if (newValue != null)
+                        {
+                            for (var i = 0; i < containers.Count; i++)
+                            {
+                                try
+                                {
+                                    var itemValue = DeserializeContainer(containers[i].ToSerializerContainer(), mode);
+
+                                    if (itemValue != null)
+                                    {
+                                        newValue.SetValue(itemValue, i);
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    Log.Debug($"[{LogTag}] Failed to decode an item for {fieldType.GetElementType().ToString()}: {e}");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[{LogTag}] Failed to deserialize {property.Name}: {e}");
+
+                        return null;
+                    }
+                }
+
+                return newValue;
+            }
+
+            if (fieldType.IsGenericType)
+            {
+                if (fieldType.GetGenericTypeDefinition() == typeof(List<>))
+                {
+                    IList list = (IList)ObjectCreation.CreateObject(fieldType);
+
+                    if (list == null)
+                    {
+                        return null;
+                    }
+
+                    var fail = false;
+                    var elementType = fieldType.GenericTypeArguments[0];
+
+                    if (!IsValidType(elementType))
+                    {
+                        return null;
+                    }
+
+                    var sourceValue = GetArrayValue(fieldInfo, type, (t) => property.GetCustomAttribute(t) != null, mode);
+
+                    if (sourceValue is object[] array)
+                    {
+                        foreach (var item in array)
+                        {
+                            if (item == null)
+                            {
+                                list.Add(null);
+                            }
+                            else if (item.GetType().IsAssignableTo(elementType) ||
+                                elementType.IsPrimitive)
+                            {
+                                list.Add(item);
+                            }
+                            else if (elementType.GetInterface(typeof(IGuidAsset).FullName) != null)
+                            {
+                                if (item is string guid)
+                                {
+                                    var v = AssetSerialization.GetGuidAsset(elementType, guid);
+
+                                    if (v != null)
+                                    {
+                                        list.Add(v);
+                                    }
+                                }
+                            }
+                            else if (elementType.GetCustomAttribute<SerializableAttribute>() != null)
+                            {
+                                try
+                                {
+                                    string innerTypeName = null;
+                                    Dictionary<object, object> parameters = null;
+
+                                    if (mode == StapleSerializationMode.Scene)
+                                    {
+                                        if (item is Dictionary<object, object> contents)
+                                        {
+                                            innerTypeName = elementType.ToString();
+
+                                            parameters = [];
+
+                                            foreach (var pair in contents)
+                                            {
+                                                if (pair.Key is string key)
+                                                {
+                                                    var elementField = elementType.GetField(key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                                                    if (elementField == null)
+                                                    {
+                                                        continue;
+                                                    }
+
+                                                    parameters.Add(key, new Dictionary<object, object>()
+                                                    {
+                                                        { nameof(StapleSerializerContainer.typeName), elementField.FieldType.ToString() },
+                                                        { nameof(StapleSerializerField.value), pair.Value },
+                                                    });
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else if (item is Dictionary<object, object> itemData &&
+                                        itemData.Count == 2 &&
+                                        itemData.ContainsKey(nameof(StapleSerializerContainer.typeName)) &&
+                                        itemData.ContainsKey(nameof(StapleSerializerContainer.fields)) &&
+                                        itemData[nameof(StapleSerializerContainer.typeName)] is string &&
+                                        itemData[nameof(StapleSerializerContainer.fields)] is Dictionary<object, object>)
+                                    {
+                                        innerTypeName = (string)itemData[nameof(StapleSerializerContainer.typeName)];
+                                        parameters = (Dictionary<object, object>)itemData[nameof(StapleSerializerContainer.fields)];
+                                    }
+                                    //TODO: Check if still usable. Probably not.
+                                    else if (item is object[] containers &&
+                                        containers.Length == 2 &&
+                                        containers[0] is string &&
+                                        containers[1] is Dictionary<object, object>) //Name and parameters
+                                    {
+                                        innerTypeName = (string)containers[0];
+                                        parameters = (Dictionary<object, object>)containers[1];
+                                    }
+
+                                    if (innerTypeName != null && parameters != null)
+                                    {
+                                        var itemContainer = new SerializableStapleAssetContainer()
+                                        {
+                                            typeName = innerTypeName,
+                                        };
+
+                                        var containerParameters = new Dictionary<string, SerializableStapleAssetParameter>();
+
+                                        foreach (var containerPair in parameters)
+                                        {
+                                            string containerKey = null;
+                                            string parameterTypeName = null;
+                                            object parameterValue = null;
+
+                                            if (containerPair.Key is string &&
+                                                containerPair.Value is Dictionary<object, object> containerData &&
+                                                containerData.Count == 2 &&
+                                                containerData.ContainsKey(nameof(StapleSerializerContainer.typeName)) &&
+                                                containerData.ContainsKey(nameof(StapleSerializerField.value)) &&
+                                                containerData[nameof(StapleSerializerContainer.typeName)] is string)
+                                            {
+                                                containerKey = (string)containerPair.Key;
+                                                parameterTypeName = (string)containerData[nameof(StapleSerializerContainer.typeName)];
+                                                parameterValue = containerData["value"];
+                                            }
+                                            //TODO: Check if still usable. Probably not.
+                                            else if (containerPair.Key is string &&
+                                                containerPair.Value is object[] pieces &&
+                                                pieces.Length == 2 &&
+                                                pieces[0] is string)
+                                            {
+                                                containerKey = (string)containerPair.Key;
+                                                parameterTypeName = (string)((object[])containerPair.Value)[0];
+                                                parameterValue = (string)((object[])containerPair.Value)[1];
+                                            }
+
+                                            if (containerKey != null &&
+                                                parameterTypeName != null &&
+                                                parameterValue != null)
+                                            {
+                                                var tempParameter = new SerializableStapleAssetParameter()
+                                                {
+                                                    typeName = parameterTypeName,
+                                                    value = parameterValue,
+                                                };
+
+                                                containerParameters.Add(containerKey, tempParameter);
+                                            }
+                                        }
+
+                                        itemContainer.fields = containerParameters;
+
+                                        var itemInstance = DeserializeContainer(itemContainer.ToSerializerContainer(), mode);
+
+                                        if (itemInstance != null)
+                                        {
+                                            list.Add(itemInstance);
+                                        }
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.ToString()}: {e}");
+
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    var value = Convert.ChangeType(item, elementType.GenericTypeArguments[0]);
+
+                                    list.Add(value);
+                                }
+                                catch (Exception e)
+                                {
+                                    fail = true;
+
+                                    Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.GenericTypeArguments[0].ToString()}: {e}");
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (fail)
+                        {
+                            return null;
+                        }
+
+                        return list;
+                    }
+                    else if (sourceValue is string hexString && property.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                    {
+                        Array newValue = null;
+
+                        try
+                        {
+                            var bytes = Convert.FromHexString(hexString);
+
+                            if (bytes != null)
+                            {
+                                if (elementType.IsPrimitive &&
+                                    elementType != typeof(bool))
+                                {
+                                    var size = TypeCache.SizeOf(elementType.ToString());
+
+                                    newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length / size);
+                                }
+                                else
+                                {
+                                    newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length);
+                                }
+
+                                if (newValue != null)
+                                {
+                                    DeserializePrimitiveArray(bytes, newValue);
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"[{LogTag}] Failed to deserialize base64 array of {elementType.ToString()}: {e}");
+
+                            return null;
+                        }
+
+                        if (newValue != null)
+                        {
+                            foreach (var element in newValue)
+                            {
+                                list.Add(element);
+                            }
+
+                            return list;
+                        }
+                    }
+
+                    return null;
+                }
+            }
+
+            if (fieldType == typeof(SerializableStapleAssetContainer) &&
+                property.GetValue(fieldInfo.value) is SerializableStapleAssetContainer innerContainer)
+            {
+                var value = DeserializeContainer(innerContainer.ToSerializerContainer(), mode);
+
+                return value;
+            }
+
+            {
+                var v = fieldInfo.value is JsonElement element ? GetJsonValue(type, fieldType, element, mode) : fieldInfo.value;
+
+                if (fieldType.IsEnum && v is string str)
+                {
+                    if (Enum.TryParse(fieldType, str, true, out var enumValue))
+                    {
+                        return enumValue;
+                    }
+
+                    return null;
+                }
+            }
+
+            {
+                var v = fieldInfo.value is JsonElement element ? GetJsonValue(type, fieldType, element, mode) : fieldInfo.value;
+
+                return v;
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"[{LogTag}] Failed to deserialize field {property.Name} for {type.ToString()}: {e}");
 
             return null;
         }
@@ -1421,39 +2349,84 @@ internal static class StapleSerializer
 
             foreach (var pair in container.fields)
             {
-                try
+                bool TryDeserializeField()
                 {
-                    var field = type.GetField(pair.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-                    if(field is null)
+                    try
                     {
-                        continue;
-                    }
+                        var field = type.GetField(pair.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-                    var value = DeserializeField(type, field, field.FieldType, pair.Value, mode);
-
-                    if (field.FieldType == typeof(Entity) && value is int i)
-                    {
-                        var localEntity = Scene.FindEntity(i);
-
-                        if(localEntity.IsValid)
+                        if (field is null)
                         {
-                            field.SetValue(instance, localEntity);
+                            return false;
                         }
 
-                        continue;
-                    }
+                        var value = DeserializeField(type, field, field.FieldType, pair.Value, mode);
 
-                    if (value is null || !value.GetType().IsAssignableTo(field.FieldType))
+                        if (field.FieldType == typeof(Entity) && value is int i)
+                        {
+                            var localEntity = Scene.FindEntity(i);
+
+                            if (localEntity.IsValid)
+                            {
+                                field.SetValue(instance, localEntity);
+                            }
+
+                            return true;
+                        }
+
+                        if (value is null || !value.GetType().IsAssignableTo(field.FieldType))
+                        {
+                            return false;
+                        }
+
+                        field.SetValue(instance, value);
+
+                        return true;
+                    }
+                    catch (Exception e)
                     {
-                        continue;
-                    }
+                        Log.Debug($"[{LogTag}] Failed to deserialize field {pair.Key} for {container.typeName}: {e}");
 
-                    field.SetValue(instance, value);
+                        return false;
+                    }
                 }
-                catch (Exception e)
+                
+                if(!TryDeserializeField())
                 {
-                    Log.Debug($"[{LogTag}] Failed to deserialize field {pair.Key} for {container.typeName}: {e}");
+                    try
+                    {
+                        var property = type.GetProperty(pair.Key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                        if (property is null)
+                        {
+                            continue;
+                        }
+
+                        var value = DeserializeProperty(type, property, property.PropertyType, pair.Value, mode);
+
+                        if (property.PropertyType == typeof(Entity) && value is int i)
+                        {
+                            var localEntity = Scene.FindEntity(i);
+
+                            if (localEntity.IsValid)
+                            {
+                                property.SetValue(instance, localEntity);
+                            }
+
+                            continue;
+                        }
+
+                        if (value is null || !value.GetType().IsAssignableTo(property.PropertyType))
+                        {
+                            continue;
+                        }
+
+                        property.SetValue(instance, value);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[{LogTag}] Failed to deserialize field {pair.Key} for {container.typeName}: {e}");
+                    }
                 }
             }
         }

@@ -10,11 +10,11 @@ internal interface IStapleTypeSerializer
 {
     bool HandlesType(Type type);
 
-    object DeserializeField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo, StapleSerializationMode mode);
+    object DeserializeField(Type type, Type fieldType, StapleSerializerField fieldInfo, StapleSerializationMode mode);
 
-    object DeserializeJsonField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo, JsonElement element, StapleSerializationMode mode);
+    object DeserializeJsonField(Type type, Type fieldType, StapleSerializerField fieldInfo, JsonElement element, StapleSerializationMode mode);
 
-    object SerializeField(object instance, Type type, FieldInfo field, Type fieldType, StapleSerializationMode mode);
+    object SerializeField(object instance, Type type, Type fieldType, StapleSerializationMode mode);
 
-    object SerializeJsonField(object instance, Type type, FieldInfo field, Type fieldType, StapleSerializationMode mode);
+    object SerializeJsonField(object instance, Type type, Type fieldType, StapleSerializationMode mode);
 }

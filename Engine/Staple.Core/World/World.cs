@@ -57,9 +57,14 @@ public partial class World
         public Dictionary<int, IComponent> components = [];
 
         /// <summary>
-        /// Stores component state hashes
+        /// Cache whether a component is versionable
         /// </summary>
-        public Dictionary<int, int> componentStateHashes = [];
+        public Dictionary<int, bool> componentIsVersionable = [];
+
+        /// <summary>
+        /// Stores component versions
+        /// </summary>
+        public Dictionary<int, ulong> componentVersions = [];
 
         /// <summary>
         /// The entity's name
@@ -384,7 +389,8 @@ public partial class World
                     if(TryGetEntity(item.Item1, out var entityInfo))
                     {
                         entityInfo.components.Remove(item.Item2);
-                        entityInfo.componentStateHashes.Remove(item.Item2);
+                        entityInfo.componentVersions.Remove(item.Item2);
+                        entityInfo.componentIsVersionable.Remove(item.Item2);
 
                         needsEmitWorldChange = true;
                     }
@@ -423,7 +429,8 @@ public partial class World
                     }
 
                     info.components.Clear();
-                    info.componentStateHashes.Clear();
+                    info.componentVersions.Clear();
+                    info.componentIsVersionable.Clear();
 
                     removedComponents.RemoveWhere(x => x.Item1 == e);
 
@@ -461,17 +468,17 @@ public partial class World
 
                     foreach(var pair in entity.components)
                     {
-                        var hash = TypeCache.GetComponentHash(pair.Value);
-
-                        if(!entity.componentStateHashes.TryGetValue(pair.Key, out var componentHash) ||
-                            componentHash != hash)
+                        if(!entity.componentIsVersionable.TryGetValue(pair.Key, out var versionable) ||
+                            !versionable ||
+                            !entity.componentVersions.TryGetValue(pair.Key, out var version) ||
+                            version == ((IComponentVersion)pair.Value).Version)
                         {
-                            entity.componentStateHashes.AddOrSetKey(pair.Key, hash);
-
-                            var component = pair.Value;
-
-                            EmitChangedComponentEvent(entity.ToEntity(), ref component);
+                            continue;
                         }
+
+                        var component = pair.Value;
+
+                        EmitChangedComponentEvent(entity.ToEntity(), ref component);
                     }
                 }
             }
@@ -496,7 +503,8 @@ public partial class World
                 }
 
                 entity.components.Clear();
-                entity.componentStateHashes.Clear();
+                entity.componentIsVersionable.Clear();
+                entity.componentVersions.Clear();
             }
 
             entities.Clear();

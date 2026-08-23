@@ -33,7 +33,7 @@ internal class StapleBaseTypeSerializer : IStapleTypeSerializer
         };
     }
 
-    public object SerializeField(object instance, Type type, FieldInfo field, Type fieldType, StapleSerializationMode mode)
+    public object SerializeField(object instance, Type type, Type fieldType, StapleSerializationMode mode)
     {
         return fieldType switch
         {
@@ -51,7 +51,7 @@ internal class StapleBaseTypeSerializer : IStapleTypeSerializer
         };
     }
 
-    public object DeserializeField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo, StapleSerializationMode mode)
+    public object DeserializeField(Type type, Type fieldType, StapleSerializerField fieldInfo, StapleSerializationMode mode)
     {
         switch(fieldType)
         {
@@ -175,7 +175,7 @@ internal class StapleBaseTypeSerializer : IStapleTypeSerializer
         return fieldInfo.value;
     }
 
-    public object SerializeJsonField(object instance, Type type, FieldInfo field, Type fieldType, StapleSerializationMode mode)
+    public object SerializeJsonField(object instance, Type type, Type fieldType, StapleSerializationMode mode)
     {
         return fieldType switch
         {
@@ -193,7 +193,7 @@ internal class StapleBaseTypeSerializer : IStapleTypeSerializer
         };
     }
 
-    public object DeserializeJsonField(Type type, FieldInfo field, Type fieldType, StapleSerializerField fieldInfo,
+    public object DeserializeJsonField(Type type, Type fieldType, StapleSerializerField fieldInfo,
         JsonElement element, StapleSerializationMode mode)
     {
         switch (fieldType)

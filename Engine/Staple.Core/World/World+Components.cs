@@ -48,7 +48,8 @@ public partial class World
                     foreach(var entity in entities.Contents)
                     {
                         entity.components.Remove(key);
-                        entity.componentStateHashes.Remove(key);
+                        entity.componentIsVersionable.Remove(key);
+                        entity.componentVersions.Remove(key);
                     }
                 }
             }
@@ -111,7 +112,12 @@ public partial class World
                 needsEmitWorldChange = true;
 
                 entityInfo.components.Add(hash, component);
-                entityInfo.componentStateHashes.Add(hash, TypeCache.GetComponentHash(component));
+
+                if(TypeCache.ComponentIsVersionable(t.FullName))
+                {
+                    entityInfo.componentIsVersionable.AddOrSetKey(hash, true);
+                    entityInfo.componentVersions.Add(hash, ((IComponentVersion)component).Version);
+                }
 
                 if (!Scene.InstancingComponent)
                 {
@@ -144,7 +150,12 @@ public partial class World
                     if(t.IsValueType)
                     {
                         entityInfo.components.AddOrSetKey(hash, component);
-                        entityInfo.componentStateHashes.AddOrSetKey(hash, TypeCache.GetComponentHash(component));
+
+                        if (TypeCache.ComponentIsVersionable(t.FullName))
+                        {
+                            entityInfo.componentIsVersionable.AddOrSetKey(hash, true);
+                            entityInfo.componentVersions.Add(hash, ((IComponentVersion)component).Version);
+                        }
                     }
                 }
                 catch(Exception e)
@@ -310,8 +321,6 @@ public partial class World
                     }
 
                     entityInfo.components[typeName] = component;
-
-                    entityInfo.componentStateHashes[typeName] = TypeCache.GetComponentHash(component);
                 }
             }
         }

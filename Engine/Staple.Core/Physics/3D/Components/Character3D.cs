@@ -2,7 +2,7 @@
 
 namespace Staple;
 
-public class Character3D : IComponent
+public partial class Character3D : IComponent
 {
     /// <summary>
     /// The actual body instance
@@ -12,25 +12,34 @@ public class Character3D : IComponent
     /// <summary>
     /// Gravity factor of this character
     /// </summary>
-    public float gravityFactor = 1;
+    public partial float gravityFactor { get; set; }
 
     /// <summary>
     /// The friction factor of this character
     /// </summary>
-    public float friction = 0.2f;
+    public partial float friction { get; set; }
 
     /// <summary>
     /// The mass of this character
     /// </summary>
-    public float mass = 80;
+    public partial float mass { get; set; }
 
     /// <summary>
     /// The maximum slope angle this character may move
     /// </summary>
-    public float maxSlopeAngle = 50;
+    public partial float maxSlopeAngle { get; set; }
 
     /// <summary>
     /// The upwards orientation of this character
     /// </summary>
-    public Vector3 upDirection = Vector3.Up;
+    public partial Vector3 upDirection { get; set; }
+
+    public Character3D()
+    {
+        gravityFactor = 1;
+        friction = 0.2f;
+        mass = 80;
+        maxSlopeAngle = 50;
+        upDirection = Vector3.Up;
+    }
 }

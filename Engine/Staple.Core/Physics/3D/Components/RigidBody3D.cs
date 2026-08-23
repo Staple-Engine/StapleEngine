@@ -1,6 +1,6 @@
 ﻿namespace Staple;
 
-public class RigidBody3D : IComponent
+public partial class RigidBody3D : IComponent
 {
     /// <summary>
     /// The actual body instance
@@ -10,50 +10,58 @@ public class RigidBody3D : IComponent
     /// <summary>
     /// The motion type of the body
     /// </summary>
-    public BodyMotionType motionType = BodyMotionType.Dynamic;
+    public partial BodyMotionType motionType { get; set; }
 
     /// <summary>
     /// Whether to freeze rotation in the X axis
     /// </summary>
-    public bool freezeRotationX = false;
+    public partial bool freezeRotationX { get; set; }
 
     /// <summary>
     /// Whether to freeze rotation in the Y axis
     /// </summary>
-    public bool freezeRotationY = false;
+    public partial bool freezeRotationY { get; set; }
 
     /// <summary>
     /// Whether to freeze rotation in the Z axis
     /// </summary>
-    public bool freezeRotationZ = false;
+    public partial bool freezeRotationZ { get; set; }
 
     /// <summary>
     /// Whether this body is acting as a 2D body
     /// </summary>
-    public bool is2DPlane = false;
+    public partial bool is2DPlane { get; set; }
 
     /// <summary>
     /// Gravity factor of this body
     /// </summary>
-    public float gravityFactor = 1.0f;
+    public partial float gravityFactor { get; set; }
 
     /// <summary>
     /// Whether this body is a trigger (doesn't collide, detects events)
     /// </summary>
-    public bool isTrigger = false;
+    public partial bool isTrigger { get; set; }
 
     /// <summary>
     /// The friction factor of this body
     /// </summary>
-    public float friction = 0.2f;
+    public partial float friction { get; set; }
 
     /// <summary>
     /// The restitution factor of this body
     /// </summary>
-    public float restitution = 0;
+    public partial float restitution { get; set; }
 
     /// <summary>
     /// The mass of this body
     /// </summary>
-    public float mass = 80;
+    public partial float mass { get; set; }
+
+    public RigidBody3D()
+    {
+        motionType = BodyMotionType.Dynamic;
+        gravityFactor = 1.0f;
+        friction = 0.2f;
+        mass = 80;
+    }
 }

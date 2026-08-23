@@ -148,6 +148,35 @@ internal class AssetSerializationTests
         public int GetSerializedField() => serializedField;
     }
 
+    internal class SerializePropertyAsset : IStapleAsset
+    {
+        private int hiddenField { get; set; }
+
+        [SerializeField]
+        private int serializedField { get; set; }
+
+        public int invalidField { get; private set; } = 1;
+
+        public void SetHiddenField(int value)
+        {
+            hiddenField = value;
+        }
+
+        public void SetSerializedField(int value)
+        {
+            serializedField = value;
+        }
+
+        public void SetInvalidField(int value)
+        {
+            invalidField = value;
+        }
+
+        public int GetHiddenField() => hiddenField;
+
+        public int GetSerializedField() => serializedField;
+    }
+
     [Test]
     public void TestSerialize()
     {
@@ -499,6 +528,39 @@ internal class AssetSerializationTests
         {
             Assert.That(newAsset.GetHiddenField(), Is.EqualTo(0));
             Assert.That(newAsset.GetSerializedField(), Is.EqualTo(2));
+        }
+    }
+
+    [Test]
+    public void TestSerializeProperty()
+    {
+        StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+
+        var asset = new SerializePropertyAsset();
+
+        asset.SetSerializedField(2);
+        asset.SetHiddenField(1);
+        asset.SetInvalidField(123);
+
+        var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
+
+        Assert.That(result, Is.Not.Null);
+
+        Assert.That(result.typeName, Is.EqualTo(typeof(SerializePropertyAsset).ToString()));
+
+        Assert.That(result.parameters.Count, Is.EqualTo(1));
+
+        var deserialized = AssetSerialization.Deserialize(result, StapleSerializationMode.Binary);
+
+        Assert.That(deserialized, Is.Not.Null);
+
+        Assert.That(deserialized, Is.TypeOf<SerializePropertyAsset>());
+
+        if (deserialized is SerializePropertyAsset newAsset)
+        {
+            Assert.That(newAsset.GetHiddenField(), Is.EqualTo(0));
+            Assert.That(newAsset.GetSerializedField(), Is.EqualTo(2));
+            Assert.That(newAsset.invalidField, Is.EqualTo(1));
         }
     }
 
