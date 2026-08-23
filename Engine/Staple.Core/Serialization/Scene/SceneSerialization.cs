@@ -69,16 +69,16 @@ internal static class SceneSerialization
             {
                 foreach (var pair in component.data)
                 {
-                    var field = type.GetField(pair.Key);
+                    var proxy = new PropertyFieldProxy(type, pair.Key, BindingFlags.Public | BindingFlags.Instance);
 
-                    if (field is null)
+                    if (!proxy.IsValid)
                     {
                         continue;
                     }
 
                     container.fields.Add(pair.Key, new()
                     {
-                        typeName = field.FieldType.ToString(),
+                        typeName = proxy.FieldType.ToString(),
                         value = pair.Value,
                     });
                 }
@@ -87,16 +87,16 @@ internal static class SceneSerialization
             {
                 foreach (var pair in component.parameters)
                 {
-                    var field = type.GetField(pair.Key);
+                    var proxy = new PropertyFieldProxy(type, pair.Key, BindingFlags.Public | BindingFlags.Instance);
 
-                    if (field is null)
+                    if(!proxy.IsValid)
                     {
                         continue;
                     }
 
                     container.fields.Add(pair.Key, new()
                     {
-                        typeName = field.FieldType.ToString(),
+                        typeName = proxy.FieldType.ToString(),
                         value = pair.Value,
                     });
                 }
@@ -482,14 +482,14 @@ internal static class SceneSerialization
                 {
                     try
                     {
-                        var field = componentType.GetField(parameter.Key, BindingFlags.Public | BindingFlags.Instance);
+                        var proxy = new PropertyFieldProxy(componentType, parameter.Key, BindingFlags.Public | BindingFlags.Instance);
 
-                        if (field == null)
+                        if (!proxy.IsValid)
                         {
                             continue;
                         }
 
-                        if(field.FieldType == typeof(Entity) && parameter.Value is int intValue)
+                        if(proxy.FieldType == typeof(Entity) && parameter.Value is int intValue)
                         {
                             Entity targetEntity = default;
 
@@ -500,11 +500,11 @@ internal static class SceneSerialization
 
                             if(targetEntity.IsValid)
                             {
-                                field.SetValue(componentInstance, targetEntity);
+                                proxy.SetValue(componentInstance, targetEntity);
                             }
                         }
-                        else if((field.FieldType == typeof(IComponent) ||
-                            field.FieldType.GetInterface(typeof(IComponent).FullName) != null) &&
+                        else if((proxy.FieldType == typeof(IComponent) ||
+                            proxy.FieldType.GetInterface(typeof(IComponent).FullName) != null) &&
                             parameter.Value is string stringValue)
                         {
                             var pieces = stringValue.Split(":");
@@ -515,7 +515,7 @@ internal static class SceneSerialization
                                 var targetComponentType = TypeCache.GetType(pieces[1]);
 
                                 if(targetComponentType == null ||
-                                    !targetComponentType.IsAssignableTo(field.FieldType))
+                                    !targetComponentType.IsAssignableTo(proxy.FieldType))
                                 {
                                     continue;
                                 }
@@ -533,7 +533,7 @@ internal static class SceneSerialization
                                     continue;
                                 }
 
-                                field.SetValue(componentInstance, targetComponent);
+                                proxy.SetValue(componentInstance, targetComponent);
                             }
                         }
                     }

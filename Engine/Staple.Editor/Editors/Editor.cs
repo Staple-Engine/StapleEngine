@@ -17,6 +17,10 @@ public class Editor
     private static Type[] editorTypes;
     private static Type[] propertyDrawerTypes;
 
+    private bool checkedFields;
+
+    private readonly Dictionary<string, Action> cachedFields = [];
+
     /// <summary>
     /// The original object that is being edited, if any
     /// </summary>
@@ -82,6 +86,9 @@ public class Editor
         }
     }
 
+    /// <summary>
+    /// Called when the editor is destroyed
+    /// </summary>
     public virtual void Destroy()
     {
     }
@@ -93,8 +100,12 @@ public class Editor
             return;
         }
 
-        void Content()
+        if(!checkedFields)
         {
+            checkedFields = true;
+
+            cachedFields.Clear();
+
             var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             foreach (var field in fields)
@@ -104,90 +115,108 @@ public class Editor
                     continue;
                 }
 
-                if(!field.IsPublic && field.GetCustomAttribute<SerializeFieldAttribute>() == null)
+                if (!field.IsPublic && field.GetCustomAttribute<SerializeFieldAttribute>() == null)
                 {
                     continue;
                 }
 
-                if (DrawProperty(field.FieldType, field.Name,
-                    () => field.GetValue(target),
-                    (value) => field.SetValue(target, value),
-                    field.GetCustomAttribute))
+                cachedFields.Add(field.Name, () =>
                 {
-                    continue;
-                }
-
-                var type = field.FieldType;
-                var name = field.Name.ExpandCamelCaseName();
-
-                var header = field.GetCustomAttribute<HeaderAttribute>();
-
-                if(header != null)
-                {
-                    EditorGUI.HeaderLabel(header.caption);
-                }
-
-                PropertyInspector(type, name, $"{targetName}{IDSuffix}",
-                    () => field.GetValue(target),
-                    (value) => field.SetValue(target, value),
-                    (attribute) =>
+                    if (DrawProperty(field.FieldType, field.Name,
+                        () => field.GetValue(target),
+                        (value) => field.SetValue(target, value),
+                        field.GetCustomAttribute))
                     {
-                        if (attribute.IsSubclassOf(typeof(Attribute)))
+                        return;
+                    }
+
+                    var type = field.FieldType;
+                    var name = field.Name.ExpandCamelCaseName();
+
+                    var header = field.GetCustomAttribute<HeaderAttribute>();
+
+                    if (header != null)
+                    {
+                        EditorGUI.HeaderLabel(header.caption);
+                    }
+
+                    PropertyInspector(type, name, $"{targetName}{IDSuffix}",
+                        () => field.GetValue(target),
+                        (value) => field.SetValue(target, value),
+                        (attribute) =>
                         {
-                            return field.GetCustomAttribute(attribute);
-                        }
+                            if (attribute.IsSubclassOf(typeof(Attribute)))
+                            {
+                                return field.GetCustomAttribute(attribute);
+                            }
 
-                        return null;
-                    });
+                            return null;
+                        });
 
-                var tooltip = field.GetCustomAttribute<TooltipAttribute>();
+                    var tooltip = field.GetCustomAttribute<TooltipAttribute>();
 
-                if (tooltip != null && ImGui.IsItemHovered())
-                {
-                    ImGui.SetTooltip(tooltip.caption);
-                }
+                    if (tooltip != null && ImGui.IsItemHovered())
+                    {
+                        ImGui.SetTooltip(tooltip.caption);
+                    }
+                });
             }
-
-            /*
-            var properties = target.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
+            var properties = target.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             foreach (var property in properties)
             {
-                if (property.CanWrite == false ||
+                var hasSerializeFieldAttribute = property.GetCustomAttribute<SerializeFieldAttribute>() != null;
+
+                if (!property.CanRead ||
+                    !property.CanWrite ||
                     property.GetCustomAttribute<HideInInspectorAttribute>() != null ||
-                    property.GetCustomAttribute<NonSerializedAttribute>() != null)
+                    property.GetCustomAttribute<NonSerializedAttribute>() != null ||
+                    property.GetMethod == null ||
+                    (!property.GetMethod.IsPublic && !hasSerializeFieldAttribute) ||
+                    property.SetMethod == null ||
+                    (!property.SetMethod.IsPublic && !hasSerializeFieldAttribute))
                 {
                     continue;
                 }
 
-                if (DrawProperty(property.PropertyType, property.Name,
-                    () => property.GetValue(target),
-                    (value) => property.SetValue(target, value),
-                    property.GetCustomAttribute))
+                cachedFields.Add(property.Name, () =>
                 {
-                    continue;
-                }
+                    if (DrawProperty(property.PropertyType, property.Name,
+                        () => property.GetValue(target),
+                        (value) => property.SetValue(target, value),
+                        property.GetCustomAttribute))
+                    {
+                        return;
+                    }
 
-                var type = property.PropertyType;
-                var name = property.Name.ExpandCamelCaseName();
+                    var type = property.PropertyType;
+                    var name = property.Name.ExpandCamelCaseName();
 
-                PropertyInspector(type, name,
-                    () => property.GetValue(target),
-                    (value) => property.SetValue(target, value),
-                    property.GetCustomAttribute);
+                    PropertyInspector(type, name, property.Name,
+                        () => property.GetValue(target),
+                        (value) => property.SetValue(target, value),
+                        (attribute) =>
+                        {
+                            if (attribute.IsSubclassOf(typeof(Attribute)))
+                            {
+                                return property.GetCustomAttribute(attribute);
+                            }
 
-                var tooltip = property.GetCustomAttribute<TooltipAttribute>();
+                            return null;
+                        });
 
-                if (tooltip != null && ImGui.IsItemHovered())
-                {
-                    ImGui.SetTooltip(tooltip.caption);
-                }
+                    var tooltip = property.GetCustomAttribute<TooltipAttribute>();
+
+                    if (tooltip != null && ImGui.IsItemHovered())
+                    {
+                        ImGui.SetTooltip(tooltip.caption);
+                    }
+                });
             }
-            */
 
             var methods = target.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
-            foreach(var method in methods)
+            foreach (var method in methods)
             {
                 var key = $"{targetName}{IDSuffix}{method.Name}";
 
@@ -219,6 +248,21 @@ public class Editor
             }
         }
 
+        void Content()
+        {
+            foreach(var (name, callback) in cachedFields)
+            {
+                try
+                {
+                    callback();
+                }
+                catch(Exception e)
+                {
+                    Log.Error($"{GetType().FullName}: While processing field {name}:\n{e}");
+                }
+            }
+        }
+
         if (indent)
         {
             EditorGUI.Indent(Content);
@@ -229,7 +273,8 @@ public class Editor
         }
     }
 
-    private void PropertyInspector(Type type, string name, string IDSuffix, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
+    private void PropertyInspector(Type type, string name, string IDSuffix, Func<object> getter, Action<object> setter,
+        Func<Type, Attribute> attributes)
     {
         foreach(var t in propertyDrawerTypes)
         {

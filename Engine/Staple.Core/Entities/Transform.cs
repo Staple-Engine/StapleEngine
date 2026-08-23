@@ -10,6 +10,7 @@ namespace Staple;
 /// Contains rotation, position, scale, and parent entity.
 /// </summary>
 [AutoAssignEntity]
+[DisableWorldVersioningUpdates]
 public class Transform : IComponent, IComponentVersion
 {
     private ulong lastVersion = 0;

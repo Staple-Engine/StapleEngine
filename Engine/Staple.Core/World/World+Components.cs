@@ -113,7 +113,7 @@ public partial class World
 
                 entityInfo.components.Add(hash, component);
 
-                if(TypeCache.ComponentIsVersionable(t.FullName))
+                if(TypeCache.ComponentShouldBeVersionedByWorld(t.FullName))
                 {
                     entityInfo.componentIsVersionable.AddOrSetKey(hash, true);
                     entityInfo.componentVersions.Add(hash, ((IComponentVersion)component).Version);
@@ -151,7 +151,7 @@ public partial class World
                     {
                         entityInfo.components.AddOrSetKey(hash, component);
 
-                        if (TypeCache.ComponentIsVersionable(t.FullName))
+                        if (TypeCache.ComponentShouldBeVersionedByWorld(t.FullName))
                         {
                             entityInfo.componentIsVersionable.AddOrSetKey(hash, true);
                             entityInfo.componentVersions.Add(hash, ((IComponentVersion)component).Version);

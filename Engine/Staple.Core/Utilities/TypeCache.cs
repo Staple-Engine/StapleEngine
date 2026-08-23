@@ -3,6 +3,7 @@ using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 
 namespace Staple.Internal;
 
@@ -32,6 +33,8 @@ public static class TypeCache
 
     internal static FrozenDictionary<string, bool> frozenComponentVersionable;
 
+    internal static FrozenDictionary<string, bool> frozenComponentDisallowsWorldVersioning;
+
     internal static Type[] frozenTypesArray;
 
     internal static readonly Dictionary<string, Type> types = [];
@@ -39,7 +42,10 @@ public static class TypeCache
     internal static readonly Dictionary<string, Func<int, Array>> arrayConstructors = [];
 
     internal static readonly Dictionary<string, Func<int>> sizeOfs = [];
+
     internal static readonly Dictionary<string, bool> componentVersionable = [];
+
+    internal static readonly Dictionary<string, bool> componentDisallowsWorldVersioning = [];
 
     private static readonly Dictionary<string, ComponentCallbacks> componentCallbacks = [];
 
@@ -59,6 +65,7 @@ public static class TypeCache
         subclassCaches.Clear();
         inheritance.Clear();
         componentVersionable.Clear();
+        componentDisallowsWorldVersioning.Clear();
 
         frozenArrayConstructors = null;
         frozenComponentCallbacks = null;
@@ -67,6 +74,7 @@ public static class TypeCache
         frozenTypes = null;
         frozenTypesArray = null;
         frozenComponentVersionable = null;
+        frozenComponentDisallowsWorldVersioning = null;
 
         useFrozenCollections = false;
     }
@@ -86,6 +94,7 @@ public static class TypeCache
 
         frozenTypesArray = [.. types.Values];
         frozenComponentVersionable = componentVersionable.ToFrozenDictionary();
+        frozenComponentDisallowsWorldVersioning = componentDisallowsWorldVersioning.ToFrozenDictionary();
     }
 
     /// <summary>
@@ -328,6 +337,32 @@ public static class TypeCache
     }
 
     /// <summary>
+    /// Checks whether a component doesn't allow <see cref="World"/>-level <see cref="IComponentVersion"/>
+    /// </summary>
+    /// <param name="typeName">The type</param>
+    /// <returns>Whether it disallows it</returns>
+    public static bool ComponentDisallowsWorldVersioning(string typeName)
+    {
+        if (useFrozenCollections ? !frozenComponentDisallowsWorldVersioning.TryGetValue(typeName, out var versionable) :
+            !componentDisallowsWorldVersioning.TryGetValue(typeName, out versionable))
+        {
+            return false;
+        }
+
+        return versionable;
+    }
+
+    /// <summary>
+    /// Checks whether a <see cref="IComponentVersion"/> should be tracked by the <see cref="World"/>
+    /// </summary>
+    /// <param name="typeName">The type name</param>
+    /// <returns>Whether the component should be tracked</returns>
+    public static bool ComponentShouldBeVersionedByWorld(string typeName)
+    {
+        return !ComponentDisallowsWorldVersioning(typeName) && ComponentIsVersionable(typeName);
+    }
+
+    /// <summary>
     /// Registers a type in the type cache
     /// </summary>
     /// <param name="type">The type to register</param>
@@ -350,6 +385,11 @@ public static class TypeCache
             type.IsAssignableTo(typeof(IComponentVersion)))
         {
             componentVersionable.Add(type.ToString(), true);
+
+            if(type.GetCustomAttribute<DisableWorldVersioningUpdatesAttribute>() != null)
+            {
+                componentDisallowsWorldVersioning.Add(type.ToString(), true);
+            }
         }
 
         HashSet<string> inheritanceInfo = [];
