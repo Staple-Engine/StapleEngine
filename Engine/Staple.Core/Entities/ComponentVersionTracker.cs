@@ -25,11 +25,11 @@ public class ComponentVersionTracker<T> where T: IComponent, IComponentVersion
 
         var contents = versions.Contents;
 
-        var version = contents[index];
+        ref var version = ref contents[index];
 
         if(version != componentVersion)
         {
-            contents[index] = componentVersion;
+            version = componentVersion;
 
             return true;
         }

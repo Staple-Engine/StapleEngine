@@ -887,8 +887,6 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         UpdateDepthTextureIfNeeded(false);
 
-        frameAllocator.EnsurePin();
-
         UpdateIndirectCommandBuffer();
 
         UpdateEntityTransformBuffer();
@@ -1902,6 +1900,11 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         var vertexUniformSpan = shaderUniformFrameAllocator.Allocate(state.shaderInstance.vertexMappings.Count);
 
+        foreach(ref var item in vertexUniformSpan)
+        {
+            item.used = false;
+        }
+
         vertexUniformData = (position, vertexUniformSpan.Length);
 
         position = shaderUniformFrameAllocator.position;
@@ -1910,17 +1913,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         fragmentUniformData = (position, fragmentUniformSpan.Length);
 
-        if (state.shaderInstance.renderDataEntry == null)
+        foreach (ref var item in fragmentUniformSpan)
         {
-            foreach (var entry in state.shaderInstance.vertexUniformContainers)
-            {
-                if (entry.Key == StapleRenderDataUniformName)
-                {
-                    state.shaderInstance.renderDataEntry = entry.Value;
-
-                    break;
-                }
-            }
+            item.used = false;
         }
 
         state.shaderInstance.SetValue(StapleRenderDataWorldUniformName, state.world);
@@ -1934,16 +1929,14 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         foreach (var entry in state.shaderInstance.vertexUniformContainers)
         {
+            if (!ShouldPushVertexUniform(entry.Value.binding, entry.Value.buffer))
+            {
+                continue;
+            }
+
             var length = entry.Value.buffer.Length;
 
             ref var uniformEntry = ref vertexUniformSpan[counter++];
-
-            if (!ShouldPushVertexUniform(entry.Value.binding, entry.Value.buffer))
-            {
-                uniformEntry.used = false;
-
-                continue;
-            }
 
             unsafe
             {
@@ -1964,16 +1957,14 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         foreach (var entry in state.shaderInstance.fragmentUniformContainers)
         {
+            if (!ShouldPushFragmentUniform(entry.Value.binding, entry.Value.buffer))
+            {
+                continue;
+            }
+
             var length = entry.Value.buffer.Length;
 
             ref var uniformEntry = ref fragmentUniformSpan[counter++];
-
-            if (!ShouldPushFragmentUniform(entry.Value.binding, entry.Value.buffer))
-            {
-                uniformEntry.used = false;
-
-                continue;
-            }
 
             unsafe
             {

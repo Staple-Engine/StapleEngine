@@ -583,17 +583,14 @@ public partial class World
 
         lock (lockObject)
         {
-            //TODO: Figure out a way without allocations. We can have layers of iterations mixed in due to callbacks.
-            var cache = entityInfo.components.ToArray();
-
-            foreach (var pair in cache)
+            foreach (var container in entityInfo.componentsArray.Contents)
             {
                 if(!entityInfo.alive)
                 {
                     break;
                 }
 
-                ref var component = ref pair.Value.component;
+                ref var component = ref container.component;
 
                 callback(ref component);
             }

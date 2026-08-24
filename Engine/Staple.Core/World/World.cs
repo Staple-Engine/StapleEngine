@@ -69,6 +69,11 @@ public partial class World
         public Dictionary<int, ComponentHolder> components = [];
 
         /// <summary>
+        /// List of components as an array
+        /// </summary>
+        public ExpandableContainer<ComponentHolder> componentsArray = new();
+
+        /// <summary>
         /// The entity's name
         /// </summary>
         public string name;
@@ -415,9 +420,14 @@ public partial class World
                 {
                     if(TryGetEntity(item.Item1, out var entityInfo))
                     {
-                        entityInfo.components.Remove(item.Item2);
+                        if(entityInfo.components.TryGetValue(item.Item2, out var container))
+                        {
+                            entityInfo.componentsArray.Remove(container);
 
-                        needsEmitWorldChange = true;
+                            entityInfo.components.Remove(item.Item2);
+
+                            needsEmitWorldChange = true;
+                        }
                     }
                 }
 
@@ -448,12 +458,15 @@ public partial class World
                         Destroy(child.Entity);
                     }
 
-                    foreach(var pair in info.components)
+                    var components = info.componentsArray.Contents;
+
+                    foreach(var container in components)
                     {
-                        RemoveComponent(e, pair.Value.component.GetType());
+                        RemoveComponent(e, container.component.GetType());
                     }
 
                     info.components.Clear();
+                    info.componentsArray.Clear();
 
                     removedComponents.RemoveWhere(x => x.Item1 == e);
 
@@ -489,14 +502,16 @@ public partial class World
                         continue;
                     }
 
-                    foreach(var pair in entity.components)
+                    var components = entity.componentsArray.Contents;
+
+                    foreach(var container in components)
                     {
-                        if(!entity.ShouldUpdateComponent(pair.Value))
+                        if(!entity.ShouldUpdateComponent(container))
                         {
                             continue;
                         }
 
-                        ref var component = ref pair.Value.component;
+                        ref var component = ref container.component;
 
                         EmitChangedComponentEvent(entity.ToEntity(), ref component);
                     }
@@ -517,12 +532,15 @@ public partial class World
 
                 transform?.Entity = default;
 
-                foreach(var pair in entity.components)
+                var components = entity.componentsArray.Contents;
+
+                foreach(var container in components)
                 {
-                    RemoveComponent(entity.ToEntity(), pair.Value.component.GetType());
+                    RemoveComponent(entity.ToEntity(), container.component.GetType());
                 }
 
                 entity.components.Clear();
+                entity.componentsArray.Clear();
             }
 
             entities.Clear();

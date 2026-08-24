@@ -206,9 +206,12 @@ internal unsafe class SDLGPURenderStaticCommand(SDLGPURendererBackend backend, R
                 continue;
             }
 
-            var target = backend.frameAllocator.Get(uniform.position);
+            var target = backend.frameAllocator.GetSpan(uniform.position, uniform.size);
 
-            SDL3.SDL_PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
+            fixed (void* ptr = target)
+            {
+                SDL3.SDL_PushGPUVertexUniformData(backend.commandBuffer, uniform.binding, (nint)ptr, (uint)uniform.size);
+            }
         }
 
         var fragmentSpan = backend.shaderUniformFrameAllocator.GetSpan(fragmentUniformData.Item1, fragmentUniformData.Item2);
@@ -222,9 +225,12 @@ internal unsafe class SDLGPURenderStaticCommand(SDLGPURendererBackend backend, R
                 continue;
             }
 
-            var target = backend.frameAllocator.Get(uniform.position);
+            var target = backend.frameAllocator.GetSpan(uniform.position, uniform.size);
 
-            SDL3.SDL_PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, target, (uint)uniform.size);
+            fixed(void *ptr = target)
+            {
+                SDL3.SDL_PushGPUFragmentUniformData(backend.commandBuffer, uniform.binding, (nint)ptr, (uint)uniform.size);
+            }
         }
 
         SDL3.SDL_DrawGPUIndexedPrimitivesIndirect(renderPass, backend.indirectCommandBuffer,

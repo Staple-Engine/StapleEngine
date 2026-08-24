@@ -67,7 +67,6 @@ internal partial class ShaderResource
         public readonly Dictionary<StringID, ShaderUniformInfo> uniforms = [];
         public int entityTransformsBufferBinding = -1;
         public int entityTransformIDsBufferBinding = -1;
-        public ShaderUniformData renderDataEntry;
 
         public bool TryGetUniformData(StringID name, out (int, byte[])? vertexData, out (int, byte[])? fragmentData)
         {

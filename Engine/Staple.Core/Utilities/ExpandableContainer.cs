@@ -119,6 +119,31 @@ public class ExpandableContainer<T>
     }
 
     /// <summary>
+    /// Removes an item from the container
+    /// </summary>
+    /// <param name="item">The item to remove</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public void Remove(T item)
+    {
+        for(var i = 0; i < Length; i++)
+        {
+            if (Equals(contents[i], item))
+            {
+                for(int j = i + 1, counter = 0; j < Length; j++, counter++)
+                {
+                    contents[i + counter] = contents[j];
+                }
+
+                contents[Length - 1] = default;
+
+                Length--;
+
+                break;
+            }
+        }
+    }
+
+    /// <summary>
     /// Adds a range of items to the container
     /// </summary>
     /// <param name="items">The items to add</param>

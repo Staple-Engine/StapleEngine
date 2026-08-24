@@ -47,7 +47,12 @@ public partial class World
 
                     foreach(var entity in entities.Contents)
                     {
-                        entity.components.Remove(key);
+                        if(entity.components.TryGetValue(key, out var container))
+                        {
+                            entity.componentsArray.Remove(container);
+
+                            entity.components.Remove(key);
+                        }
                     }
                 }
             }
@@ -111,6 +116,7 @@ public partial class World
             needsEmitWorldChange = true;
 
             entityInfo.components.Add(hash, container);
+            entityInfo.componentsArray.Add(container);
 
             if (!Scene.InstancingComponent)
             {

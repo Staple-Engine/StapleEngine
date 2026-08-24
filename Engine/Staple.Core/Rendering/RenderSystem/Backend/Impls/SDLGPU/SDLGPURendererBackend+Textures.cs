@@ -1476,7 +1476,7 @@ internal partial class SDLGPURendererBackend
         return false;
     }
 
-    internal bool TryGetTextureSamplers(Texture[] vertexTextures, Texture[] fragmentTextures, ShaderResource.ShaderInstance instance,
+    internal bool TryGetTextureSamplers(Span<Texture> vertexTextures, Span<Texture> fragmentTextures, ShaderResource.ShaderInstance instance,
         out Span<SDL_GPUTextureSamplerBinding> vertexSamplers, out Span<SDL_GPUTextureSamplerBinding> fragmentSamplers)
     {
         var vertexSamplerCount = instance.vertexTextureBindings.Count;
