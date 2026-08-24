@@ -1,5 +1,6 @@
 ﻿using SDL;
 using System;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -205,25 +206,27 @@ internal unsafe class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderS
 
             var firstBinding = 9999;
 
-            foreach (var pair in state.vertexStorageBuffers)
+            var sourceBuffers = CollectionsMarshal.AsSpan(state.vertexStorageBuffers);
+
+            foreach (ref var buffer in sourceBuffers)
             {
-                if (firstBinding > pair.Binding)
+                if (firstBinding > buffer.Binding)
                 {
-                    firstBinding = pair.Binding;
+                    firstBinding = buffer.Binding;
                 }
             }
 
-            foreach (var pair in state.vertexStorageBuffers)
+            foreach (ref var buffer in sourceBuffers)
             {
-                if (pair.Buffer.Disposed ||
-                    pair.Buffer is not SDLGPUVertexBuffer v ||
+                if (buffer.Buffer.Disposed ||
+                    buffer.Buffer is not SDLGPUVertexBuffer v ||
                     !backend.TryGetVertexBuffer(v.handle, out var resource) ||
                     resource.buffer == null)
                 {
                     return;
                 }
 
-                buffers[pair.Binding - firstBinding + startBufferIndex] = resource.buffer;
+                buffers[buffer.Binding - firstBinding + startBufferIndex] = resource.buffer;
 
                 counter++;
             }
@@ -245,25 +248,27 @@ internal unsafe class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderS
 
             var firstBinding = 9999;
 
-            foreach (var pair in state.fragmentStorageBuffers)
+            var sourceBuffers = CollectionsMarshal.AsSpan(state.fragmentStorageBuffers);
+
+            foreach (ref var buffer in sourceBuffers)
             {
-                if (firstBinding > pair.Binding)
+                if (firstBinding > buffer.Binding)
                 {
-                    firstBinding = pair.Binding;
+                    firstBinding = buffer.Binding;
                 }
             }
 
-            foreach (var pair in state.fragmentStorageBuffers)
+            foreach (ref var buffer in sourceBuffers)
             {
-                if (pair.Buffer.Disposed ||
-                    pair.Buffer is not SDLGPUVertexBuffer v ||
+                if (buffer.Buffer.Disposed ||
+                    buffer.Buffer is not SDLGPUVertexBuffer v ||
                     !backend.TryGetVertexBuffer(v.handle, out var resource) ||
                     resource.buffer == null)
                 {
                     return;
                 }
 
-                buffers[pair.Binding - firstBinding] = resource.buffer;
+                buffers[buffer.Binding - firstBinding] = resource.buffer;
 
                 counter++;
             }
@@ -276,10 +281,8 @@ internal unsafe class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderS
 
         var vertexSpan = backend.shaderUniformFrameAllocator.GetSpan(vertexUniformData.Item1, vertexUniformData.Item2);
 
-        for (var i = 0; i < vertexSpan.Length; i++)
+        foreach(ref var uniform in vertexSpan)
         {
-            ref var uniform = ref vertexSpan[i];
-
             if (uniform.used == false)
             {
                 continue;
@@ -295,10 +298,8 @@ internal unsafe class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderS
 
         var fragmentSpan = backend.shaderUniformFrameAllocator.GetSpan(fragmentUniformData.Item1, fragmentUniformData.Item2);
 
-        for (var i = 0; i < fragmentSpan.Length; i++)
+        foreach (ref var uniform in fragmentSpan)
         {
-            ref var uniform = ref fragmentSpan[i];
-
             if (uniform.used == false)
             {
                 continue;

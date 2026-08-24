@@ -27,7 +27,7 @@ public class MemoryAllocator
             buffer.Resize(newSize, true);
         }
 
-        var outValue = buffer.Contents.Slice(position, size);
+        var outValue = buffer.RawContents.AsSpan(position, size);
 
         position += size;
 
@@ -41,7 +41,7 @@ public class MemoryAllocator
 
     public Span<byte> GetSpan(int position, int size)
     {
-        return buffer.Contents.Slice(position, size);
+        return buffer.RawContents.AsSpan(position, size);
     }
 }
 
@@ -71,7 +71,7 @@ public class MemoryAllocator<T> where T: unmanaged
             buffer.Resize(newSize, true);
         }
 
-        var outValue = buffer.Contents.Slice(position, size);
+        var outValue = buffer.RawContents.AsSpan(position, size);
 
         position += size;
 
@@ -85,6 +85,6 @@ public class MemoryAllocator<T> where T: unmanaged
 
     public Span<T> GetSpan(int position, int size)
     {
-        return buffer.Contents.Slice(position, size);
+        return buffer.RawContents.AsSpan(position, size);
     }
 }

@@ -1011,16 +1011,21 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
     private bool ShouldPushVertexUniform(int binding, Span<byte> data)
     {
-        if(binding < 0 || binding >= lastVertexShaderUniformHashes.Length)
+        //Disabled: Assume we're doing this from known-good data.
+        /*
+        if (binding < 0 || binding >= lastVertexShaderUniformHashes.Length)
         {
             return false;
         }
+        */
 
         var hash = UniformDataHash(data);
 
-        if (lastVertexShaderUniformHashes[binding] != hash)
+        ref var existingHash = ref lastVertexShaderUniformHashes[binding];
+
+        if (existingHash != hash)
         {
-            lastVertexShaderUniformHashes[binding] = hash;
+            existingHash = hash;
 
             return true;
         }
@@ -1030,16 +1035,21 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
     private bool ShouldPushFragmentUniform(int binding, Span<byte> data)
     {
+        //Disabled: Assume we're doing this from known-good data.
+        /*
         if (binding < 0 || binding >= lastFragmentShaderUniformHashes.Length)
         {
             return false;
         }
+        */
 
         var hash = UniformDataHash(data);
 
-        if (lastFragmentShaderUniformHashes[binding] != hash)
+        ref var existingHash = ref lastFragmentShaderUniformHashes[binding];
+
+        if (existingHash != hash)
         {
-            lastFragmentShaderUniformHashes[binding] = hash;
+            existingHash = hash;
 
             return true;
         }
