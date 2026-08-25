@@ -28,7 +28,7 @@ public partial class World
             foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive ||
-                    (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
+                    (!includeDisabled && !IsEntityEnabled(entity.entityValue, true)))
                 {
                     continue;
                 }
@@ -50,7 +50,7 @@ public partial class World
 
                 try
                 {
-                    outValue.Add((entity.ToEntity(), t));
+                    outValue.Add((entity.entityValue, t));
                 }
                 catch (Exception e)
                 {
@@ -89,7 +89,7 @@ public partial class World
             foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive ||
-                    (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
+                    (!includeDisabled && !IsEntityEnabled(entity.entityValue, true)))
                 {
                     continue;
                 }
@@ -123,7 +123,7 @@ public partial class World
 
                 try
                 {
-                    outValue.Add((entity.ToEntity(), t, t2));
+                    outValue.Add((entity.entityValue, t, t2));
                 }
                 catch (Exception e)
                 {
@@ -166,7 +166,7 @@ public partial class World
             foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive ||
-                    (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
+                    (!includeDisabled && !IsEntityEnabled(entity.entityValue, true)))
                 {
                     continue;
                 }
@@ -211,7 +211,7 @@ public partial class World
 
                 try
                 {
-                    outValue.Add((entity.ToEntity(), t, t2, t3));
+                    outValue.Add((entity.entityValue, t, t2, t3));
                 }
                 catch (Exception e)
                 {
@@ -258,7 +258,7 @@ public partial class World
             foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive ||
-                    (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
+                    (!includeDisabled && !IsEntityEnabled(entity.entityValue, true)))
                 {
                     continue;
                 }
@@ -314,7 +314,7 @@ public partial class World
 
                 try
                 {
-                    outValue.Add((entity.ToEntity(), t, t2, t3, t4));
+                    outValue.Add((entity.entityValue, t, t2, t3, t4));
                 }
                 catch (Exception e)
                 {
@@ -365,7 +365,7 @@ public partial class World
             foreach (var entity in cachedEntityList.Contents)
             {
                 if (!entity.alive ||
-                    (!includeDisabled && !IsEntityEnabled(entity.ToEntity(), true)))
+                    (!includeDisabled && !IsEntityEnabled(entity.entityValue, true)))
                 {
                     continue;
                 }
@@ -432,7 +432,7 @@ public partial class World
 
                 try
                 {
-                    outValue.Add((entity.ToEntity(), t, t2, t3, t4, t5));
+                    outValue.Add((entity.entityValue, t, t2, t3, t4, t5));
                 }
                 catch (Exception e)
                 {
@@ -467,14 +467,7 @@ public partial class World
                 return default;
             }
 
-            return new Entity()
-            {
-                Identifier = new()
-                {
-                    ID = e.ID,
-                    generation = e.generation,
-                },
-            };
+            return e.entityValue;
         }
     }
 
@@ -497,14 +490,7 @@ public partial class World
 
                 if(pair.name == name)
                 {
-                    return new Entity()
-                    {
-                        Identifier = new()
-                        {
-                            ID = pair.ID,
-                            generation = pair.generation,
-                        },
-                    };
+                    return pair.entityValue;
                 }
             }
         }
@@ -557,14 +543,7 @@ public partial class World
                     continue;
                 }
 
-                callback(new Entity()
-                {
-                    Identifier = new()
-                    {
-                        ID = entity.ID,
-                        generation = entity.generation,
-                    }
-                });
+                callback(entity.entityValue);
             }
         }
     }

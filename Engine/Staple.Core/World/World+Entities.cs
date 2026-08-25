@@ -148,7 +148,7 @@ public partial class World
 
                 if(other.alive)
                 {
-                    throw new System.InvalidOperationException("Somehow creating an entity into an alive entity! This should not be possible!");
+                    throw new InvalidOperationException("Somehow creating an entity into an alive entity! This should not be possible!");
                 }
 
                 other.name = DefaultEntityName;
@@ -159,16 +159,11 @@ public partial class World
                 other.enabled = true;
                 other.enabledInHierarchy = true;
 
+                other.UpdateEntityValue();
+
                 needsEmitWorldChange = true;
 
-                return new Entity()
-                {
-                    Identifier = new()
-                    {
-                        ID = other.ID,
-                        generation = other.generation,
-                    },
-                };
+                return other.entityValue;
             }
 
             var newEntity = new EntityInfo()
@@ -179,6 +174,8 @@ public partial class World
                 enabledInHierarchy = true,
                 name = DefaultEntityName,
             };
+
+            newEntity.UpdateEntityValue();
 
             var current = entities.Length;
 
@@ -191,11 +188,15 @@ public partial class World
                 entities.Resize(entities.Length * 2, true);
             }
 
-            entities.Contents[current] = newEntity;
+            var contents = entities.Contents;
+            
+            contents[current] = newEntity;
 
             for(var i = current + 1; i < entities.Length; i++)
             {
-                entities.Contents[i] = new()
+                ref var entity = ref contents[i];
+
+                entity = new()
                 {
                     ID = i + 1,
                     alive = false,
@@ -204,19 +205,14 @@ public partial class World
                     name = DefaultEntityName,
                 };
 
+                entity.UpdateEntityValue();
+
                 deadEntities.Add(i);
             }
 
             needsEmitWorldChange = true;
 
-            return new Entity()
-            {
-                Identifier = new()
-                {
-                    ID = newEntity.ID,
-                    generation = newEntity.generation,
-                },
-            };
+            return newEntity.entityValue;
         }
     }
 

@@ -605,7 +605,9 @@ public sealed partial class RenderSystem
 
             for(var i = 0; i < entities.Length; i++)
             {
-                renderableSpan[i] = entities[i].ToEntity().GetComponent<Renderable>();
+                ref var entity = ref entities[i];
+
+                renderableSpan[i] = World.Current.GetComponent<Renderable>(entity);
                 renderableMaterialHashesContents[i] = renderableSpan[i]?.MaterialState ?? 0;
             }
         }
@@ -633,11 +635,9 @@ public sealed partial class RenderSystem
 
             var renderable = renderablesContents[i];
 
-            var e = entity.ToEntity();
-
-            if (!entityTransformTracker.ShouldUpdateComponent(e, in entity.transform))
+            if (!entityTransformTracker.ShouldUpdateComponent(i, in entity.transform))
             {
-                if(renderable != null && entityRenderableTracker.ShouldUpdateComponent(e, in renderable))
+                if(renderable != null && entityRenderableTracker.ShouldUpdateComponent(i, in renderable))
                 {
                     UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
                 }
@@ -666,7 +666,7 @@ public sealed partial class RenderSystem
                 length++;
             }
 
-            if (renderable != null && entityRenderableTracker.ShouldUpdateComponent(e, in renderable))
+            if (renderable != null && entityRenderableTracker.ShouldUpdateComponent(i, in renderable))
             {
                 UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
             }

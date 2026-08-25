@@ -314,13 +314,12 @@ public partial class World
     /// <summary>
     /// Attempts to get a component from an entity
     /// </summary>
-    /// <param name="entity">The entity to get from</param>
+    /// <param name="entityInfo">The entity to get from</param>
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
-    public IComponent GetComponent(Entity entity, Type t)
+    internal IComponent GetComponent(EntityInfo entityInfo, Type t)
     {
-        if (!typeof(IComponent).IsAssignableFrom(t) ||
-            !TryGetEntity(entity, out var entityInfo))
+        if (!typeof(IComponent).IsAssignableFrom(t))
         {
             return default;
         }
@@ -342,6 +341,34 @@ public partial class World
 
             return default;
         }
+    }
+
+    /// <summary>
+    /// Attempts to get a component from an entity
+    /// </summary>
+    /// <param name="entity">The entity to get from</param>
+    /// <param name="t">The component type</param>
+    /// <returns>The component instance, or default</returns>
+    public IComponent GetComponent(Entity entity, Type t)
+    {
+        if (!typeof(IComponent).IsAssignableFrom(t) ||
+            !TryGetEntity(entity, out var entityInfo))
+        {
+            return default;
+        }
+
+        return GetComponent(entityInfo, t);
+    }
+
+    /// <summary>
+    /// Attempts to get a component from an entity
+    /// </summary>
+    /// <typeparam name="T">The component type</typeparam>
+    /// <param name="entity">The entity to get from</param>
+    /// <returns>The component instance, or default</returns>
+    internal T GetComponent<T>(EntityInfo entity) where T : IComponent
+    {
+        return (T)GetComponent(entity, typeof(T));
     }
 
     /// <summary>
@@ -785,14 +812,7 @@ public partial class World
                         entity.components.TryGetValue(typeName, out var c) &&
                         c.component == component)
                     {
-                        return new Entity()
-                        {
-                            Identifier = new()
-                            {
-                                ID = entity.ID,
-                                generation = entity.generation,
-                            }
-                        };
+                        return entity.entityValue;
                     }
                 }
             }

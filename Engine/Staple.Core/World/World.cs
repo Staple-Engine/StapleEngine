@@ -1,6 +1,7 @@
 ﻿using Staple.Internal;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -31,6 +32,22 @@ public partial class World
         public IComponentVersion versionableComponent = versionable ? (IComponentVersion)component : null;
         public bool versionable = versionable;
         public ulong version = version;
+
+        public bool ShouldUpdate
+        {
+            get
+            {
+                if (!versionable ||
+                    versionableComponent.Version == version)
+                {
+                    return false;
+                }
+
+                version = versionableComponent.Version;
+
+                return true;
+            }
+        }
     }
 
     /// <summary>
@@ -114,38 +131,18 @@ public partial class World
         public readonly HashSet<int> emittedChangeComponents = [];
 
         /// <summary>
-        /// Converts this <see cref="EntityInfo"/> into an <see cref="Entity"/>
+        /// Cached entity value
         /// </summary>
-        /// <returns>The <see cref="Entity"/></returns>
-        public Entity ToEntity()
-        {
-            return new()
-            {
-                Identifier = new()
-                {
-                    generation = generation,
-                    ID = ID,
-                }
-            };
-        }
+        public Entity entityValue;
 
         /// <summary>
-        /// Checks whether a component needs to be updated
+        /// Updates the <see cref="EntityInfo"/>'s <see cref="entityValue"/>
         /// </summary>
-        /// <param name="holder">The component holder</param>
-        /// <param name="value">The component we're checking</param>
-        /// <returns>Whether it needs to be updated</returns>
-        public bool ShouldUpdateComponent(ComponentHolder holder)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void UpdateEntityValue()
         {
-            if(!holder.versionable ||
-                holder.versionableComponent.Version == holder.version)
-            {
-                return false;
-            }
-
-            holder.version = holder.versionableComponent.Version;
-
-            return true;
+            entityValue.Identifier.ID = ID;
+            entityValue.Identifier.generation = generation;
         }
 
         public override string ToString()
@@ -506,14 +503,14 @@ public partial class World
 
                     foreach(var container in components)
                     {
-                        if(!entity.ShouldUpdateComponent(container))
+                        if(!container.ShouldUpdate)
                         {
                             continue;
                         }
 
                         ref var component = ref container.component;
 
-                        EmitChangedComponentEvent(entity.ToEntity(), ref component);
+                        EmitChangedComponentEvent(entity.entityValue, ref component);
                     }
                 }
             }
@@ -528,7 +525,7 @@ public partial class World
 
             foreach (var entity in entities.Contents)
             {
-                var transform = GetComponent<Transform>(entity.ToEntity());
+                var transform = GetComponent<Transform>(entity.entityValue);
 
                 transform?.Entity = default;
 
@@ -536,7 +533,7 @@ public partial class World
 
                 foreach(var container in components)
                 {
-                    RemoveComponent(entity.ToEntity(), container.component.GetType());
+                    RemoveComponent(entity.entityValue, container.component.GetType());
                 }
 
                 entity.components.Clear();
