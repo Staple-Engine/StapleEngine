@@ -538,10 +538,33 @@ internal partial class StapleEditor
             return;
         }
 
+        var availableBackends = string.Join('\n', PlayerBackendManager.BackendNames.Select(x => $"\t\t\t{x}"));
+
         for(var i = 0; i < args.Length; i++)
         {
             switch(args[i].ToLowerInvariant())
             {
+                case "-help":
+
+                    Log.Info(string.Join('\n', [
+                        "Staple Editor",
+                        "Help:",
+                        "\t-build: set editor to build mode to build a project",
+                        "\t-project [path]: specify the project path",
+                        "\t-o [path]: specify the output path",
+                        "\t-buildtarget [target]: Specify the backend to use for the build target\n" +
+                        "\t\tAvailable backends:",
+                        availableBackends,
+                        "\t-builddebug: Sets the build to debug mode",
+                        "\t-buildnative: Use NativeAOT when able",
+                        "\t-builddebugredists: Use debug redistributables",
+                        "\t-buildsinglefile: For non-NativeAOT builds, makes a single file for the managed (.NET) side of the built app instead of all required DLLs"
+                    ]));
+
+                    Environment.Exit(0);
+
+                    break;
+
                 case "-build":
 
                     editorMode = EditorMode.Build;
