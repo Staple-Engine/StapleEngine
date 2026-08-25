@@ -367,7 +367,9 @@ public partial class ProjectManager
                     _ => "",
                 };
 
-                File.Move(Path.Combine(outPath, $"Player{projectExtension}"), Path.Combine(outPath, $"{Path.GetFileName(outPath)}{projectExtension}"), true);
+                var fileName = Path.GetFileName((outPath.EndsWith('/') || outPath.EndsWith('\\')) ? outPath[..^1] : outPath);
+
+                File.Move(Path.Combine(outPath, $"Player{projectExtension}"), Path.Combine(outPath, $"{fileName}{projectExtension}"), true);
 
                 if (debug)
                 {

@@ -727,7 +727,7 @@ internal partial class StapleEditor
                         $"\n\tDebug redists: {BoolString(buildPlayerDebugRedists)}" +
                         $"\n\tSingle File: {BoolString(buildPlayerSingleFile)}");
 
-                    ProjectManager.Instance.BuildPlayer(backend, projectAppSettings, buildOutputDirectory,
+                    ProjectManager.Instance.BuildPlayer(backend, projectAppSettings, Path.GetFullPath(buildOutputDirectory),
                         buildPlayerDebug, buildPlayerNativeAOT, buildPlayerDebugRedists, false, buildPlayerSingleFile,
                         (percent, message) => Log.Info($"[{(int)(percent * 100)}%] {message}"),
                         (message) => Log.Info(message),
