@@ -412,25 +412,68 @@ public sealed class Physics3D : ISubsystem
     /// Casts a ray and gets a collision result
     /// </summary>
     /// <param name="ray">The ray to cast</param>
-    /// <param name="body">The body that was hit</param>
-    /// <param name="fraction">The multiplier to hit the body from the ray position</param>
+    /// <param name="hit">The result of the raycast</param>
     /// <param name="layerMask">The layer mask to use, or LayerMask.Everything.value</param>
     /// <param name="triggerQuery">Whether to hit triggers</param>
     /// <param name="maxDistance">The maximum distance to hit</param>
     /// <returns>Whether we hit something</returns>
-    public bool RayCast(Ray ray, out IBody3D body, out float fraction, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance)
+    public bool RayCast(Ray ray, out RaycastHit3D hit, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance)
     {
         if (!implIsValid)
         {
-            body = default;
-            fraction = default;
+            hit = default;
 
             return false;
         }
 
         using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
-        return Impl.RayCast(ray, out body, out fraction, layerMask, triggerQuery, maxDistance);
+        return Impl.RayCast(ray, out hit, layerMask, triggerQuery, maxDistance);
+    }
+
+    /// <summary>
+    /// Casts a ray and gets a collision result
+    /// </summary>
+    /// <param name="ray">The ray to cast</param>
+    /// <param name="layerMask">The layer mask to use, or LayerMask.Everything.value</param>
+    /// <param name="triggerQuery">Whether to hit triggers</param>
+    /// <param name="maxDistance">The maximum distance to hit</param>
+    /// <param name="sortMode">How to sort the results</param>
+    /// <returns>An array of all hits</returns>
+    public RaycastHit3D[] RayCastAll(Ray ray, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance,
+        RenderableSortMode sortMode = RenderableSortMode.None)
+    {
+        if (!implIsValid)
+        {
+            return [];
+        }
+
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
+        return Impl.RayCastAll(ray, layerMask, triggerQuery, maxDistance, sortMode);
+    }
+
+    /// <summary>
+    /// Casts a ray and gets a collision result
+    /// </summary>
+    /// <param name="ray">The ray to cast</param>
+    /// <param name="hits">A container for all results</param>
+    /// <param name="layerMask">The layer mask to use, or LayerMask.Everything.value</param>
+    /// <param name="triggerQuery">Whether to hit triggers</param>
+    /// <param name="maxDistance">The maximum distance to hit</param>
+    /// <param name="sortMode">How to sort the results</param>
+    /// <returns>How many elements were used for <see cref="hits"/></returns>
+    public int RayCastNoAlloc(Ray ray, Span<RaycastHit3D> hits, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance,
+        RenderableSortMode sortMode = RenderableSortMode.None)
+    {
+        if (!implIsValid)
+        {
+            return 0;
+        }
+
+        using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
+
+        return Impl.RayCastNoAlloc(ray, hits, layerMask, triggerQuery, maxDistance, sortMode);
     }
 
     /// <summary>

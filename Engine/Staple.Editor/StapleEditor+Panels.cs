@@ -806,7 +806,14 @@ internal partial class StapleEditor
     {
         ImGui.Begin("Viewport", ImGuiWindowFlags.NoBackground);
 
+        var wasHovering = mouseIsHoveringImGui;
+
         mouseIsHoveringImGui = !(viewportType == ViewportType.Scene && ImGui.IsItemActive());
+
+        if(wasHovering != mouseIsHoveringImGui && !mouseIsHoveringImGui)
+        {
+            needsPicking = true;
+        }
 
         var horizontalSpace = EditorGUI.RemainingHorizontalSpace();
 

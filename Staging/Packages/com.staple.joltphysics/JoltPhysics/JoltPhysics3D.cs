@@ -1186,7 +1186,7 @@ public class JoltPhysics3D : IPhysics3D
         }
     }
 
-    public bool RayCast(Ray ray, out IBody3D body, out float fraction, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance)
+    public bool RayCast(Ray ray, out RaycastHit3D raycastHit, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance)
     {
         var broadPhaseFilter = new JoltPhysicsBroadPhaseLayerFilter();
 
@@ -1227,7 +1227,8 @@ public class JoltPhysics3D : IPhysics3D
             var closestDistance = 99999.0f;
             var lastBody = default(IBody3D);
 
-            fraction = default;
+            IBody3D body = null;
+            var fraction = 0.0f;
 
             foreach(var hit in results)
             {
@@ -1255,13 +1256,139 @@ public class JoltPhysics3D : IPhysics3D
 
             body = lastBody;
 
+            raycastHit = new(body, fraction, ray.position + ray.direction * fraction);
+
             return true;
         }
 
-        body = default;
-        fraction = default;
+        raycastHit = default;
 
         return false;
+    }
+
+    public RaycastHit3D[] RayCastAll(Ray ray, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance, RenderableSortMode sortMode)
+    {
+        var broadPhaseFilter = new JoltPhysicsBroadPhaseLayerFilter();
+
+        var objectLayerFilter = new JoltPhysicsObjectLayerFilter()
+        {
+            layerMask = new()
+            {
+                value = layerMask.value,
+            }
+        };
+
+        var bodyFilter = new JoltPhysicsBodyFilter()
+        {
+            triggerQuery = triggerQuery,
+        };
+
+        var result = false;
+
+        var r = new JoltPhysicsSharp.Ray(ray.position, ray.direction * maxDistance);
+        var results = new List<RayCastResult>();
+
+        lock (threadLock)
+        {
+            if (locked)
+            {
+                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay(r, new RayCastSettings(), CollisionCollectorType.AllHit, results,
+                    broadPhaseFilter, objectLayerFilter, bodyFilter);
+            }
+            else
+            {
+                result = physicsSystem.NarrowPhaseQuery.CastRay(r, new RayCastSettings(), CollisionCollectorType.AllHit, results,
+                    broadPhaseFilter, objectLayerFilter, bodyFilter);
+            }
+        }
+
+        if (result)
+        {
+            var outValue = new List<RaycastHit3D>();
+
+            foreach(var hit in results)
+            {
+                if (TryFindBody(hit.BodyID, out var body))
+                {
+                    outValue.Add(new(body, hit.Fraction, ray.position + ray.direction * hit.Fraction));
+                }
+            }
+
+            var arrayResult = outValue.ToArray();
+
+            Physics.SortRaycastHits3D(arrayResult, sortMode);
+
+            return arrayResult;
+        }
+
+        return [];
+    }
+
+    public int RayCastNoAlloc(Ray ray, Span<RaycastHit3D> hits, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance,
+        RenderableSortMode sortMode)
+    {
+        if(hits.Length == 0)
+        {
+            return 0;
+        }
+
+        var broadPhaseFilter = new JoltPhysicsBroadPhaseLayerFilter();
+
+        var objectLayerFilter = new JoltPhysicsObjectLayerFilter()
+        {
+            layerMask = new()
+            {
+                value = layerMask.value,
+            }
+        };
+
+        var bodyFilter = new JoltPhysicsBodyFilter()
+        {
+            triggerQuery = triggerQuery,
+        };
+
+        var result = false;
+
+        var r = new JoltPhysicsSharp.Ray(ray.position, ray.direction * maxDistance);
+        var results = new List<RayCastResult>();
+
+        lock (threadLock)
+        {
+            if (locked)
+            {
+                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay(r, new RayCastSettings(), CollisionCollectorType.AllHit, results,
+                    broadPhaseFilter, objectLayerFilter, bodyFilter);
+            }
+            else
+            {
+                result = physicsSystem.NarrowPhaseQuery.CastRay(r, new RayCastSettings(), CollisionCollectorType.AllHit, results,
+                    broadPhaseFilter, objectLayerFilter, bodyFilter);
+            }
+        }
+
+        if (result)
+        {
+            var counter = 0;
+
+            foreach (var hit in results)
+            {
+                if(counter >= hits.Length)
+                {
+                    return counter;
+                }
+
+                if (TryFindBody(hit.BodyID, out var body))
+                {
+                    hits[counter++] = new(body, hit.Fraction, ray.position + ray.direction * hit.Fraction);
+                }
+            }
+
+            Physics.SortRaycastHits3D(hits[..counter], sortMode);
+
+            return counter;
+        }
+
+        return 0;
     }
 
     public float GravityFactor(IBody3D body)

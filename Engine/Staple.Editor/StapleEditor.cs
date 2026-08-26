@@ -327,6 +327,8 @@ internal partial class StapleEditor
 
     public bool mouseIsHoveringImGui = false;
 
+    public bool needsPicking = false;
+
     private bool hadFocus = true;
 
     private bool transforming = false;
@@ -387,9 +389,31 @@ internal partial class StapleEditor
     #endregion
 
     #region Physics
+    /// <summary>
+    /// All removed physics bodies for cleanup
+    /// </summary>
     private readonly HashSet<Entity> removedPhysicsBodies = [];
 
+    /// <summary>
+    /// Entity to wrapper pick body
+    /// </summary>
     private readonly Dictionary<Entity, EntityBody> pickEntityBodies = [];
+
+    /// <summary>
+    /// Wrapper pick entity to actual entity
+    /// </summary>
+    private readonly Dictionary<Entity, Entity> entityToPickBodies = [];
+
+    /// <summary>
+    /// Cache for physics raycasts
+    /// </summary>
+    private readonly RaycastHit3D[] physicsRaycastResults = new RaycastHit3D[10];
+
+    /// <summary>
+    /// Sorted physics bodies for origin picking
+    /// </summary>
+    private readonly ExpandableContainer<IBody3D> sortedPhysicsBodies = new(); 
+
     #endregion
 
     #region Editor
@@ -1310,23 +1334,76 @@ internal partial class StapleEditor
             ImGuiProxy.instance.EndFrame();
 
             if (World.Current != null &&
-                Input.GetMouseButton(MouseButton.Left) &&
-                !mouseIsHoveringImGui &&
+                Input.GetMouseButtonDown(MouseButton.Left) &&
                 !ImGuizmo.IsUsingAny() &&
-                viewportType == ViewportType.Scene)
+                viewportType == ViewportType.Scene &&
+                needsPicking)
             {
+                needsPicking = false;
+
                 var ray = Camera.ScreenPointToRay(Input.MousePosition, default, camera, cameraTransform);
 
-                if (Physics3D.Instance.RayCast(ray, out var body, out _, new LayerMask(LayerMask.GetMask(Physics3D.PhysicsPickLayer)),
-                    PhysicsTriggerQuery.Ignore, 1000))
-                {
-                    foreach(var pair in pickEntityBodies)
-                    {
-                        if(pair.Value.body == body)
-                        {
-                            SetSelectedEntity(pair.Key);
+                var count = Physics3D.Instance.RayCastNoAlloc(ray, physicsRaycastResults, new LayerMask(LayerMask.GetMask(Physics3D.PhysicsPickLayer)),
+                    PhysicsTriggerQuery.Ignore, 1000, RenderableSortMode.FrontToBack);
 
-                            break;
+                if (count > 0)
+                {
+                    var results = physicsRaycastResults.AsSpan(0, count);
+
+                    sortedPhysicsBodies.Resize(pickEntityBodies.Count, false);
+
+                    var physicsBodies = sortedPhysicsBodies.Contents;
+
+                    var counter = 0;
+
+                    foreach(var (_, container) in pickEntityBodies)
+                    {
+                        physicsBodies[counter++] = container.body;
+                    }
+
+                    Physics.SortBodies3D(ray.position, sortedPhysicsBodies.Contents, RenderableSortMode.FrontToBack);
+
+                    if(selectedEntity.IsValid && pickEntityBodies.TryGetValue(selectedEntity, out var existing))
+                    {
+                        static int GetEntityIndex(Entity entity, Span<IBody3D> physicsBodies)
+                        {
+                            for (var i = 0; i < physicsBodies.Length; i++)
+                            {
+                                if (physicsBodies[i].Entity == entity)
+                                {
+                                    return i;
+                                }
+                            }
+
+                            return -1;
+                        }
+
+                        var selectedEntityIndex = GetEntityIndex(existing.body.Entity, physicsBodies);
+
+                        SetSelectedEntity(default);
+
+                        foreach(var hit in results)
+                        {
+                            var index = GetEntityIndex(hit.body.Entity, physicsBodies);
+
+                            if (index > selectedEntityIndex && entityToPickBodies.TryGetValue(hit.body.Entity, out var selected))
+                            {
+                                SetSelectedEntity(selected);
+
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!selectedEntity.IsValid)
+                    {
+                        if (entityToPickBodies.TryGetValue(physicsRaycastResults[0].body.Entity, out var e))
+                        {
+                            SetSelectedEntity(e);
+                        }
+                        else
+                        {
+                            SetSelectedEntity(default);
                         }
                     }
                 }

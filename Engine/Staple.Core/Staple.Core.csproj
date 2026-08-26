@@ -187,6 +187,7 @@
 		<Compile Include="Physics\3D\IPhysicsReceiver3D.cs" />
 		<Compile Include="Physics\3D\Components\RigidBody3D.cs" />
 		<Compile Include="Hooks\StapleHooks.cs" />
+		<Compile Include="Physics\3D\RaycastHit3D.cs" />
 		<Compile Include="Rendering\Animation\ISkinModifier.cs" />
 		<Compile Include="Rendering\Animation\SkinnedAnimationController.cs" />
 		<Compile Include="Rendering\Animation\SkinnedMeshAttachment.cs" />
@@ -240,6 +241,7 @@
 		<Compile Include="Rendering\RenderSystem\Backend\RenderState.cs" />
 		<Compile Include="Rendering\RenderSystem\GenericRenderQueue.cs" />
 		<Compile Include="Rendering\RenderSystem\IRenderQueue.cs" />
+		<Compile Include="Rendering\RenderSystem\RenderableSortMode.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderEntry.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderStats.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderSystem+Internal.cs" />

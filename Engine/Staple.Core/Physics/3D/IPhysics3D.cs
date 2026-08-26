@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 
 namespace Staple.Internal;
 
@@ -214,13 +215,37 @@ public interface IPhysics3D
     /// Casts a ray and gets a collision result
     /// </summary>
     /// <param name="ray">The ray to cast</param>
-    /// <param name="body">The body that was hit</param>
-    /// <param name="fraction">The multiplier to hit the body from the ray position</param>
+    /// <param name="hit">The result of the raycast</param>
     /// <param name="layerMask">The layer mask to use, or LayerMask.Everything.value</param>
     /// <param name="triggerQuery">Whether to hit triggers</param>
     /// <param name="maxDistance">The maximum distance to hit</param>
     /// <returns>Whether we hit something</returns>
-    bool RayCast(Ray ray, out IBody3D body, out float fraction, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance);
+    bool RayCast(Ray ray, out RaycastHit3D hit, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance);
+
+    /// <summary>
+    /// Casts a ray and gets a collision result
+    /// </summary>
+    /// <param name="ray">The ray to cast</param>
+    /// <param name="layerMask">The layer mask to use, or LayerMask.Everything.value</param>
+    /// <param name="triggerQuery">Whether to hit triggers</param>
+    /// <param name="maxDistance">The maximum distance to hit</param>
+    /// <param name="sortMode">How to sort the results</param>
+    /// <returns>An array of all hits</returns>
+    RaycastHit3D[] RayCastAll(Ray ray, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance,
+        RenderableSortMode sortMode);
+
+    /// <summary>
+    /// Casts a ray and gets a collision result
+    /// </summary>
+    /// <param name="ray">The ray to cast</param>
+    /// <param name="hits">A container for all results</param>
+    /// <param name="layerMask">The layer mask to use, or LayerMask.Everything.value</param>
+    /// <param name="triggerQuery">Whether to hit triggers</param>
+    /// <param name="maxDistance">The maximum distance to hit</param>
+    /// <param name="sortMode">How to sort the results</param>
+    /// <returns>How many elements were used for <see cref="hits"/></returns>
+    int RayCastNoAlloc(Ray ray, Span<RaycastHit3D> hits, LayerMask layerMask, PhysicsTriggerQuery triggerQuery, float maxDistance,
+        RenderableSortMode sortMode);
 
     /// <summary>
     /// Gets the gravity factor for a body

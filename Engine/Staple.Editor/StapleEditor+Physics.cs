@@ -25,6 +25,7 @@ internal partial class StapleEditor
         }
 
         pickEntityBodies.Clear();
+        entityToPickBodies.Clear();
 
         componentIcons.Clear();
 
@@ -79,6 +80,7 @@ internal partial class StapleEditor
             Physics3D.Instance.DestroyBody(pair.body);
 
             pickEntityBodies.Remove(entity);
+            entityToPickBodies.Remove(wrapper);
         }
 
         if(!wrapper.IsValid)
@@ -98,6 +100,8 @@ internal partial class StapleEditor
                 body = body,
                 bounds = bounds,
             });
+
+            entityToPickBodies.Add(body.Entity, entity);
         }
         else
         {
@@ -109,7 +113,6 @@ internal partial class StapleEditor
     /// Replaces an entity's body in the scene if needed
     /// </summary>
     /// <param name="entity">The entity to replace</param>
-    /// <param name="transform">The entity's transform</param>
     /// <param name="bounds">The entity's bounds</param>
     public void ReplaceEntityBodyIfNeeded(Entity entity, AABB bounds)
     {
@@ -137,6 +140,8 @@ internal partial class StapleEditor
         }
 
         var e = pair.body.Entity;
+
+        entityToPickBodies.Remove(e);
 
         Physics3D.Instance.DestroyBody(pair.body);
 
@@ -180,7 +185,11 @@ internal partial class StapleEditor
 
         foreach (var entity in removedPhysicsBodies)
         {
-            Physics3D.Instance.DestroyBody(pickEntityBodies[entity].body);
+            var body = pickEntityBodies[entity].body;
+
+            entityToPickBodies.Remove(body.Entity);
+
+            Physics3D.Instance.DestroyBody(body);
 
             pickEntityBodies.Remove(entity);
         }

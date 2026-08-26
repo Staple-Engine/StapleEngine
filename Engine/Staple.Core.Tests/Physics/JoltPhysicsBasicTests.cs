@@ -23,22 +23,22 @@ internal class JoltPhysicsBasicTests
 
         var ray = new Ray(new Vector3(0, 0, 10), new Vector3(0, 0, -1));
 
-        Assert.That(Physics3D.Instance.RayCast(ray, out _, out _, LayerMask.Everything, PhysicsTriggerQuery.Ignore, 10), Is.True);
+        Assert.That(Physics3D.Instance.RayCast(ray, out _, LayerMask.Everything, PhysicsTriggerQuery.Ignore, 10), Is.True);
 
         ray.position = new Vector3(0, 0, -10);
         ray.direction = new Vector3(0, 0, 1);
 
-        Assert.That(Physics3D.Instance.RayCast(ray, out _, out _, LayerMask.Everything, PhysicsTriggerQuery.Ignore, 10), Is.True);
+        Assert.That(Physics3D.Instance.RayCast(ray, out _, LayerMask.Everything, PhysicsTriggerQuery.Ignore, 10), Is.True);
 
         ray.position = new Vector3(-10, 0, 0);
         ray.direction = new Vector3(1, 0, 0);
 
-        Assert.That(Physics3D.Instance.RayCast(ray, out _, out _, LayerMask.Everything, PhysicsTriggerQuery.Ignore, 10), Is.True);
+        Assert.That(Physics3D.Instance.RayCast(ray, out _, LayerMask.Everything, PhysicsTriggerQuery.Ignore, 10), Is.True);
 
         ray.position = new Vector3(10, 0, 0);
         ray.direction = new Vector3(-1, 0, 0);
 
-        Assert.That(Physics3D.Instance.RayCast(ray, out _, out _, LayerMask.Everything, PhysicsTriggerQuery.Ignore, 10), Is.True);
+        Assert.That(Physics3D.Instance.RayCast(ray, out _, LayerMask.Everything, PhysicsTriggerQuery.Ignore, 10), Is.True);
     }
 
     [Test]
