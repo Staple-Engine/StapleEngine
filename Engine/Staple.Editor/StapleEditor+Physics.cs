@@ -163,4 +163,26 @@ internal partial class StapleEditor
             Physics3D.Instance.RecreateBody(pair.Item1);
         }
     }
+
+    public void CleanInvalidRigidBodies()
+    {
+        removedPhysicsBodies.Clear();
+
+        foreach (var pair in pickEntityBodies)
+        {
+            if (pair.Key.IsValid)
+            {
+                continue;
+            }
+
+            removedPhysicsBodies.Add(pair.Key);
+        }
+
+        foreach (var entity in removedPhysicsBodies)
+        {
+            Physics3D.Instance.DestroyBody(pickEntityBodies[entity].body);
+
+            pickEntityBodies.Remove(entity);
+        }
+    }
 }

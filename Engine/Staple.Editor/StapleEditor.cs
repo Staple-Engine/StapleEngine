@@ -386,9 +386,13 @@ internal partial class StapleEditor
     internal Action<object> dropTargetObjectPickerAction;
     #endregion
 
-    #region Editor
-    private readonly Dictionary<Entity, EntityBody> pickEntityBodies = [];
+    #region Physics
+    private readonly HashSet<Entity> removedPhysicsBodies = [];
 
+    private readonly Dictionary<Entity, EntityBody> pickEntityBodies = [];
+    #endregion
+
+    #region Editor
     private readonly Dictionary<string, Editor> cachedEditors = [];
 
     private readonly Dictionary<int, GizmoEditor> cachedGizmoEditors = [];

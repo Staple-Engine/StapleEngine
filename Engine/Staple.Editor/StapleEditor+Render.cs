@@ -130,6 +130,8 @@ internal partial class StapleEditor
         RenderSystem.Instance.UpdateEntityTransforms(World.Current);
         RenderSystem.RenderStats.Clear();
 
+        CleanInvalidRigidBodies();
+
         foreach (var systemInfo in renderSystem.renderSystems)
         {
             systemInfo.system.Prepare();

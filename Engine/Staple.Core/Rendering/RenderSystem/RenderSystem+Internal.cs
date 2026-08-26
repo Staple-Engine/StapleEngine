@@ -635,9 +635,9 @@ public sealed partial class RenderSystem
 
             var renderable = renderablesContents[i];
 
-            if (!entityTransformTracker.ShouldUpdateComponent(i, in entity.transform))
+            if (!entityTransformTracker.ShouldUpdateComponent(i, entity.generation, in entity.transform))
             {
-                if(renderable != null && entityRenderableTracker.ShouldUpdateComponent(i, in renderable))
+                if(renderable != null && entityRenderableTracker.ShouldUpdateComponent(i, entity.generation, in renderable))
                 {
                     UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
                 }
@@ -666,7 +666,7 @@ public sealed partial class RenderSystem
                 length++;
             }
 
-            if (renderable != null && entityRenderableTracker.ShouldUpdateComponent(i, in renderable))
+            if (renderable != null && entityRenderableTracker.ShouldUpdateComponent(i, entity.generation, in renderable))
             {
                 UpdateEntitySpatialData(i, entity.transform, renderable, processedSpatialEntities.Contents, lastSpatialEntities.Contents);
             }

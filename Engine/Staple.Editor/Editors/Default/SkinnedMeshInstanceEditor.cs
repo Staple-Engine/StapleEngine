@@ -3,7 +3,6 @@
 [CustomEditor(typeof(SkinnedMeshInstance))]
 internal class SkinnedMeshInstanceEditor : Editor
 {
-
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
