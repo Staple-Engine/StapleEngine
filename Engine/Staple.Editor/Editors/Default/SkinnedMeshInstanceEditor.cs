@@ -3,6 +3,7 @@
 [CustomEditor(typeof(SkinnedMeshInstance))]
 internal class SkinnedMeshInstanceEditor : Editor
 {
+
     public override void OnInspectorGUI()
     {
         base.OnInspectorGUI();
@@ -20,22 +21,24 @@ internal class SkinnedMeshInstanceEditor : Editor
                 null, null,
                 (row, column) =>
                 {
+                    ref var name = ref instance.blendShapeNames[row];
+
                     if (column == 0)
                     {
-                        EditorGUI.Label(instance.blendShapeNames[row] ?? $"Blendshape {row + 1}");
+                        EditorGUI.Label(name ?? $"Blendshape {row + 1}");
 
                         return;
                     }
 
-                    var previousValue = instance.blendShapeWeights[row];
+                    ref var weight = ref instance.blendShapeWeights[row];
 
-                    instance.blendShapeWeights[row] = EditorGUI.FloatSlider("", $"{GetType().FullName}.BlendShapes{row}", previousValue, -1, 1);
+                    var previousValue = weight;
 
-                    EditorGUI.SameLine();
+                    weight = EditorGUI.FloatField("", $"{GetType().FullName}.BlendShapes{row}", previousValue);
 
-                    if (instance.blendShapeWeights[row] != previousValue)
+                    if (weight != previousValue)
                     {
-                        instance.SetBlendShapeWeight(instance.blendShapeNames[row], instance.blendShapeWeights[row]);
+                        instance.SetBlendShapeWeight(name, weight);
                     }
                 },
                 null);

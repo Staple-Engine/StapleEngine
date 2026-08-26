@@ -32,19 +32,22 @@ internal class SkinnedMeshRendererEditor : Editor
                             return;
                         }
 
-                        var newValue = blendShapeWeights[row];
+                        var previousValue = blendShapeWeights[row];
 
-                        blendShapeWeights[row] = newValue = EditorGUI.FloatSlider("",
-                            $"{GetType().FullName}.{name}{row}", newValue, -1, 1);
+                        var newValue = EditorGUI.FloatField("",
+                            $"{GetType().FullName}.{name}{row}", previousValue);
 
                         EditorGUI.SameLine();
 
-                        var originalValue = blendShape.channels[row].weight;
+                        var originalValue = channel.weight;
 
-                        if (newValue != originalValue)
+                        if (newValue != previousValue)
                         {
-                            renderer.instance?.Content?.SetBlendShapeWeight(blendShape.channels[row].name, newValue);
+                            renderer.instance?.Content?.SetBlendShapeWeight(channel.name, newValue);
+                        }
 
+                        if(newValue != originalValue)
+                        {
                             EditorGUI.Button("R", $"{GetType().FullName}.{name}{row}.Revert",
                                 () =>
                                 {
