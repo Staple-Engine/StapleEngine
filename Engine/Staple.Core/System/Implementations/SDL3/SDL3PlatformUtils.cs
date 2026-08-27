@@ -212,6 +212,8 @@ internal static class SDL3PlatformUtils
             throw new ArgumentException("Type should be open or save file!", nameof(type));
         }
 
+        var index = fileCounter++;
+
         ThreadHelper.Dispatch(() =>
         {
             var fileOpenData = new FileOpenData()
@@ -224,8 +226,6 @@ internal static class SDL3PlatformUtils
                 success = success,
                 failure = failure,
             };
-
-            var index = fileCounter++;
 
             container.Add(index, fileOpenData);
 

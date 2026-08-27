@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using NfdSharp;
 using Staple.Internal;
 using Staple.PackageManagement;
 using Staple.ProjectManagement;
@@ -15,23 +14,27 @@ internal partial class StapleEditor
 {
     private void ImGuiNewProject()
     {
-        var result = Nfd.PickFolder("", out var projectPath);
+        Platform.platformProvider.ShowOpenFolderDialog("Create new project", null, null, null, false,
+            (result) =>
+            {
+                var projectPath = result[0];
 
-        if (result == Nfd.NfdResult.NFD_OKAY)
-        {
-            CreateProject(projectPath);
-            LoadProject(projectPath);
-        }
+                CreateProject(projectPath);
+                LoadProject(projectPath);
+            },
+            null);
     }
 
     private void ImGuiOpenProject()
     {
-        var result = Nfd.PickFolder("", out var projectPath);
+        Platform.platformProvider.ShowOpenFolderDialog("Open project", null, null, null, false,
+            (result) =>
+            {
+                var projectPath = result[0];
 
-        if (result == Nfd.NfdResult.NFD_OKAY)
-        {
-            LoadProject(projectPath);
-        }
+                LoadProject(projectPath);
+            },
+            null);
     }
 
     /// <summary>

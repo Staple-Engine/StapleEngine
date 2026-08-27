@@ -1,6 +1,5 @@
 ﻿using Hexa.NET.ImGui;
 using Newtonsoft.Json;
-using NfdSharp;
 using Staple.Jobs;
 using Staple.ProjectManagement;
 using System;
@@ -163,66 +162,64 @@ internal class BuildWindow : EditorWindow
 
         EditorGUI.Button("Build", "BuildWindowBuild", () =>
         {
-            var result = Nfd.PickFolder(Path.GetFullPath(StapleEditor.instance.lastPickedBuildDirectories.TryGetValue(backend.platform, out var p) ? p : basePath),
-                out var path);
-
-            if (result == Nfd.NfdResult.NFD_OKAY)
-            {
-                StapleEditor.instance.lastPickedBuildDirectories.AddOrSetKey(backend.platform, path);
-
-                StapleEditor.instance.UpdateLastSession();
-
-                StapleEditor.instance.StartBackgroundTask(JobScheduler.Schedule(new ActionJob(() =>
+            Platform.platformProvider.ShowOpenFolderDialog($"Pick folder to build {StapleEditor.instance.projectAppSettings.appName}", null, null,
+                Path.GetFullPath(StapleEditor.instance.lastPickedBuildDirectories.TryGetValue(backend.platform, out var p) ? p : basePath), false,
+                (result) =>
                 {
-                    ProjectManager.Instance.BuildPlayer(backend, StapleEditor.instance.projectAppSettings, path,
-                        StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
-                        StapleEditor.instance.buildPlayerDebugRedists, false, StapleEditor.instance.buildPlayerSingleFile,
-                        StapleEditor.instance.SetBackgroundProgress,
-                        (message) => StapleEditor.instance.ShowMessageBox(message, "OK", null),
-                        (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish, StagingRefreshFlags.None),
-                        () =>
-                        {
-                            Log.Info("Player built successfully!");
-                        });
-                })));
-            }
-            else
-            {
-                Log.Error($"Failed to open file dialog: {Nfd.GetError()}");
-            }
+                    var path = result[0];
+
+                    StapleEditor.instance.lastPickedBuildDirectories.AddOrSetKey(backend.platform, path);
+
+                    StapleEditor.instance.UpdateLastSession();
+
+                    StapleEditor.instance.StartBackgroundTask(JobScheduler.Schedule(new ActionJob(() =>
+                    {
+                        ProjectManager.Instance.BuildPlayer(backend, StapleEditor.instance.projectAppSettings, path,
+                            StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
+                            StapleEditor.instance.buildPlayerDebugRedists, false, StapleEditor.instance.buildPlayerSingleFile,
+                            StapleEditor.instance.SetBackgroundProgress,
+                            (message) => StapleEditor.instance.ShowMessageBox(message, "OK", null),
+                            (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish, StagingRefreshFlags.None),
+                            () =>
+                            {
+                                Log.Info("Player built successfully!");
+
+                                StapleEditor.instance.ShowMessageBox("Player built successfully!", "OK", null);
+                            });
+                    })));
+                },
+                null);
         });
 
         EditorGUI.SameLine();
 
         EditorGUI.Button("Build (Assets Only)", "BuildWindowBuildAssets", () =>
         {
-            var result = Nfd.PickFolder(Path.GetFullPath(StapleEditor.instance.lastPickedBuildDirectories.TryGetValue(backend.platform, out var p) ? p : basePath),
-                out var path);
-
-            if (result == Nfd.NfdResult.NFD_OKAY)
-            {
-                StapleEditor.instance.lastPickedBuildDirectories.AddOrSetKey(backend.platform, path);
-
-                StapleEditor.instance.UpdateLastSession();
-
-                StapleEditor.instance.StartBackgroundTask(JobScheduler.Schedule(new ActionJob(() =>
+            Platform.platformProvider.ShowOpenFolderDialog($"Pick folder to build assets for {StapleEditor.instance.projectAppSettings.appName}",
+                null, null, Path.GetFullPath(StapleEditor.instance.lastPickedBuildDirectories.TryGetValue(backend.platform, out var p) ? p : basePath),
+                false,
+                (result) =>
                 {
-                    ProjectManager.Instance.BuildPlayer(backend, StapleEditor.instance.projectAppSettings, path,
-                        StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
-                        StapleEditor.instance.buildPlayerDebugRedists, true, StapleEditor.instance.buildPlayerSingleFile,
-                        StapleEditor.instance.SetBackgroundProgress,
-                        (message) => StapleEditor.instance.ShowMessageBox(message, "OK", null),
-                        (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish, StagingRefreshFlags.None),
-                        () =>
-                        {
-                            Log.Info("Player built successfully!");
-                        });
-                })));
-            }
-            else
-            {
-                Log.Error($"Failed to open file dialog: {Nfd.GetError()}");
-            }
+                    var path = result[0];
+                    StapleEditor.instance.lastPickedBuildDirectories.AddOrSetKey(backend.platform, path);
+
+                    StapleEditor.instance.UpdateLastSession();
+
+                    StapleEditor.instance.StartBackgroundTask(JobScheduler.Schedule(new ActionJob(() =>
+                    {
+                        ProjectManager.Instance.BuildPlayer(backend, StapleEditor.instance.projectAppSettings, path,
+                            StapleEditor.instance.buildPlayerDebug, StapleEditor.instance.buildPlayerNativeAOT,
+                            StapleEditor.instance.buildPlayerDebugRedists, true, StapleEditor.instance.buildPlayerSingleFile,
+                            StapleEditor.instance.SetBackgroundProgress,
+                            (message) => StapleEditor.instance.ShowMessageBox(message, "OK", null),
+                            (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish, StagingRefreshFlags.None),
+                            () =>
+                            {
+                                Log.Info("Player built successfully!");
+                            });
+                    })));
+                },
+                null);
         });
     }
 }

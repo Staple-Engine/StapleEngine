@@ -1,5 +1,4 @@
-﻿using NfdSharp;
-using Staple.PackageManagement;
+﻿using Staple.PackageManagement;
 
 namespace Staple.Editor;
 
@@ -29,13 +28,22 @@ internal class EditorSettingsWindow : EditorWindow
         {
             var extension = Platform.IsWindows ? ".exe" : "";
 
-            if (Nfd.OpenDialog(Platform.IsWindows ? "exe" : "", gitExternalPath, out var path) == Nfd.NfdResult.NFD_OKAY)
-            {
-                if(path.EndsWith($"git{extension}"))
+            Platform.platformProvider.ShowOpenFileDialog("Browse for Git executable", null, null, gitExternalPath,
+                new()
                 {
-                    gitExternalPath = path;
-                }
-            }
+                    { Platform.IsWindows ? "Executables" : "All", Platform.IsWindows ? "exe" : "*" },
+                },
+                false,
+                (results) =>
+                {
+                    var path = results[0];
+
+                    if (path.EndsWith($"git{extension}"))
+                    {
+                        gitExternalPath = path;
+                    }
+                },
+                null);
         });
 
         autoRecompile = EditorGUI.Toggle("Auto Recompile", "EditorSettingsWindow.AutoRecompile", autoRecompile);

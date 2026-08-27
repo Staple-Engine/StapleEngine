@@ -1,5 +1,4 @@
-﻿using NfdSharp;
-using Staple.PackageManagement;
+﻿using Staple.PackageManagement;
 using System.Linq;
 using System.Numerics;
 
@@ -37,12 +36,21 @@ internal class PackageManagerWindow : EditorWindow
             {
                 EditorGUI.MenuItem("From Folder", "PackageManager.AddFolder", () =>
                 {
-                    if(Nfd.OpenDialog("json", "", out var path) == Nfd.NfdResult.NFD_OKAY)
-                    {
-                        PackageManager.instance.InstallLocalPackage(path,
-                            () => EditorUtils.RefreshAssets(true, null), 
-                            () => StapleEditor.instance.ResetAssetPaths());
-                    }
+                    Platform.platformProvider.ShowOpenFileDialog("Open package manifest", null, null, null,
+                        new()
+                        {
+                            { "JSON", "json" },
+                        },
+                        false,
+                        (result) =>
+                        {
+                            var path = result[0];
+
+                            PackageManager.instance.InstallLocalPackage(path,
+                                () => EditorUtils.RefreshAssets(true, null),
+                                () => StapleEditor.instance.ResetAssetPaths());
+                        },
+                        null);
                 });
 
                 EditorGUI.MenuItem("From Git", "PackageManager.AddGit", () =>
