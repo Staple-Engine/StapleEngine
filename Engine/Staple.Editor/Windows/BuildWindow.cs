@@ -215,7 +215,9 @@ internal class BuildWindow : EditorWindow
                             (platform, finish) => StapleEditor.instance.RefreshStaging(platform, finish, StagingRefreshFlags.None),
                             () =>
                             {
-                                Log.Info("Player built successfully!");
+                                Log.Info("Assets built successfully!");
+
+                                StapleEditor.instance.ShowMessageBox("Assets built successfully!", "OK", null);
                             });
                     })));
                 },

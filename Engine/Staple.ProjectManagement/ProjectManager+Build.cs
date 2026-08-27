@@ -289,6 +289,8 @@ public partial class ProjectManager
 
             if (assetsOnly)
             {
+                success?.Invoke();
+
                 return;
             }
 
