@@ -73,7 +73,10 @@ internal static class SDL3PlatformUtils
 
         if (fileList == null)
         {
-            fileData.failure?.Invoke();
+            ThreadHelper.Dispatch(() =>
+            {
+                fileData.failure?.Invoke();
+            });
 
             return;
         }
@@ -102,12 +105,18 @@ internal static class SDL3PlatformUtils
 
         if(files.Count == 0)
         {
-            fileData.failure?.Invoke();
+            ThreadHelper.Dispatch(() =>
+            {
+                fileData.failure?.Invoke();
+            });
 
             return;
         }
 
-        fileData.success?.Invoke(CollectionsMarshal.AsSpan(files));
+        ThreadHelper.Dispatch(() =>
+        {
+            fileData.success?.Invoke(CollectionsMarshal.AsSpan(files));
+        });
     }
 
     [UnmanagedCallersOnly(CallConvs = new Type[] { typeof(CallConvCdecl) })]
@@ -126,7 +135,10 @@ internal static class SDL3PlatformUtils
 
         if (fileList == null)
         {
-            folderData.failure?.Invoke();
+            ThreadHelper.Dispatch(() =>
+            {
+                folderData.failure?.Invoke();
+            });
 
             return;
         }
@@ -155,12 +167,18 @@ internal static class SDL3PlatformUtils
 
         if (files.Count == 0)
         {
-            folderData.failure?.Invoke();
+            ThreadHelper.Dispatch(() =>
+            {
+                folderData.failure?.Invoke();
+            });
 
             return;
         }
 
-        folderData.success?.Invoke(CollectionsMarshal.AsSpan(files));
+        ThreadHelper.Dispatch(() =>
+        {
+            folderData.success?.Invoke(CollectionsMarshal.AsSpan(files));
+        });
     }
 
     [UnmanagedCallersOnly(CallConvs = new Type[] { typeof(CallConvCdecl) })]
@@ -194,123 +212,129 @@ internal static class SDL3PlatformUtils
             throw new ArgumentException("Type should be open or save file!", nameof(type));
         }
 
-        var fileOpenData = new FileOpenData()
+        ThreadHelper.Dispatch(() =>
         {
-            filterData = new SDL_DialogFileFilter[filters.Count],
-            filterExtensions = new byte[filters.Count][],
-            filterNames = new byte[filters.Count][],
-            filterNameHandles = new GCHandle[filters.Count],
-            filterExtensionHandles = new GCHandle[filters.Count],
-            success = success,
-            failure = failure,
-        };
+            var fileOpenData = new FileOpenData()
+            {
+                filterData = new SDL_DialogFileFilter[filters.Count],
+                filterExtensions = new byte[filters.Count][],
+                filterNames = new byte[filters.Count][],
+                filterNameHandles = new GCHandle[filters.Count],
+                filterExtensionHandles = new GCHandle[filters.Count],
+                success = success,
+                failure = failure,
+            };
 
-        var index = fileCounter++;
+            var index = fileCounter++;
 
-        container.Add(index, fileOpenData);
+            container.Add(index, fileOpenData);
 
-        var counter = 0;
+            var counter = 0;
 
-        foreach (var (t, e) in filters)
-        {
-            fileOpenData.filterNames[counter] = Encoding.UTF8.GetBytes(t);
-            fileOpenData.filterExtensions[counter] = Encoding.UTF8.GetBytes(e);
-            fileOpenData.filterNameHandles[counter] = GCHandle.Alloc(fileOpenData.filterNames[counter], GCHandleType.Pinned);
-            fileOpenData.filterExtensionHandles[counter] = GCHandle.Alloc(fileOpenData.filterExtensions[counter], GCHandleType.Pinned);
+            foreach (var (t, e) in filters)
+            {
+                fileOpenData.filterNames[counter] = Encoding.UTF8.GetBytes(t);
+                fileOpenData.filterExtensions[counter] = Encoding.UTF8.GetBytes(e);
+                fileOpenData.filterNameHandles[counter] = GCHandle.Alloc(fileOpenData.filterNames[counter], GCHandleType.Pinned);
+                fileOpenData.filterExtensionHandles[counter] = GCHandle.Alloc(fileOpenData.filterExtensions[counter], GCHandleType.Pinned);
+
+                unsafe
+                {
+                    fileOpenData.filterData[counter].name = (byte*)fileOpenData.filterNameHandles[counter].AddrOfPinnedObject();
+                    fileOpenData.filterData[counter].pattern = (byte*)fileOpenData.filterExtensionHandles[counter].AddrOfPinnedObject();
+                }
+
+                counter++;
+            }
+
+            fileOpenData.filterDataHandle = GCHandle.Alloc(fileOpenData.filterData, GCHandleType.Pinned);
+
+            var prop = SDL3.SDL_CreateProperties();
+
+            fileOpenData.props = prop;
+
+            SDL3.SDL_SetPointerProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_FILTERS_POINTER, fileOpenData.filterDataHandle.AddrOfPinnedObject());
+            SDL3.SDL_SetNumberProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_NFILTERS_NUMBER, fileOpenData.filterData.Length);
+            SDL3.SDL_SetBooleanProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_MANY_BOOLEAN, allowMultiple);
+
+            if (!string.IsNullOrEmpty(startPath))
+            {
+                SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_LOCATION_STRING, startPath);
+            }
+
+            if (!string.IsNullOrEmpty(title))
+            {
+                SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_TITLE_STRING, title);
+            }
+
+            if (!string.IsNullOrEmpty(okTitle))
+            {
+                SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_ACCEPT_STRING, okTitle);
+            }
+
+            if (!string.IsNullOrEmpty(cancelTitle))
+            {
+                SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_CANCEL_STRING, cancelTitle);
+            }
 
             unsafe
             {
-                fileOpenData.filterData[counter].name = (byte*)fileOpenData.filterNameHandles[counter].AddrOfPinnedObject();
-                fileOpenData.filterData[counter].pattern = (byte*)fileOpenData.filterExtensionHandles[counter].AddrOfPinnedObject();
+                SDL3.SDL_ShowFileDialogWithProperties(type, type switch
+                {
+                    SDL_FileDialogType.SDL_FILEDIALOG_OPENFILE => &FileOpenCallback,
+                    _ => &FileSaveCallback,
+                },
+                index, prop);
             }
-
-            counter++;
-        }
-
-        fileOpenData.filterDataHandle = GCHandle.Alloc(fileOpenData.filterData, GCHandleType.Pinned);
-
-        var prop = SDL3.SDL_CreateProperties();
-
-        fileOpenData.props = prop;
-
-        SDL3.SDL_SetPointerProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_FILTERS_POINTER, fileOpenData.filterDataHandle.AddrOfPinnedObject());
-        SDL3.SDL_SetNumberProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_NFILTERS_NUMBER, fileOpenData.filterData.Length);
-        SDL3.SDL_SetBooleanProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_MANY_BOOLEAN, allowMultiple);
-
-        if (!string.IsNullOrEmpty(startPath))
-        {
-            SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_LOCATION_STRING, startPath);
-        }
-
-        if (!string.IsNullOrEmpty(title))
-        {
-            SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_TITLE_STRING, title);
-        }
-
-        if (!string.IsNullOrEmpty(okTitle))
-        {
-            SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_ACCEPT_STRING, okTitle);
-        }
-
-        if (!string.IsNullOrEmpty(cancelTitle))
-        {
-            SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_CANCEL_STRING, cancelTitle);
-        }
-
-        unsafe
-        {
-            SDL3.SDL_ShowFileDialogWithProperties(type, type switch
-            {
-                SDL_FileDialogType.SDL_FILEDIALOG_OPENFILE => &FileOpenCallback,
-                _ => &FileSaveCallback,
-            },
-            index, prop);
-        }
+        });
     }
 
     public static void ShowOpenFolderDialog(string title, string okTitle, string cancelTitle, string startPath, bool allowMultiple,
         Action<Span<string>> success, Action failure)
     {
-        var folderOpenData = new FolderOpenData()
+        ThreadHelper.Dispatch(() =>
         {
-            success = success,
-            failure = failure,
-        };
+            var folderOpenData = new FolderOpenData()
+            {
+                success = success,
+                failure = failure,
+            };
 
-        var index = folderOpenCounter++;
+            var index = folderOpenCounter++;
 
-        folderOpenCallbacks.Add(index, folderOpenData);
+            folderOpenCallbacks.Add(index, folderOpenData);
 
-        var prop = SDL3.SDL_CreateProperties();
+            var prop = SDL3.SDL_CreateProperties();
 
-        folderOpenData.props = prop;
+            folderOpenData.props = prop;
 
-        SDL3.SDL_SetBooleanProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_MANY_BOOLEAN, allowMultiple);
+            SDL3.SDL_SetBooleanProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_MANY_BOOLEAN, allowMultiple);
 
-        if (!string.IsNullOrEmpty(startPath))
-        {
-            SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_LOCATION_STRING, startPath);
-        }
+            if (!string.IsNullOrEmpty(startPath))
+            {
+                SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_LOCATION_STRING, startPath);
+            }
 
-        if (!string.IsNullOrEmpty(title))
-        {
-            SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_TITLE_STRING, title);
-        }
+            if (!string.IsNullOrEmpty(title))
+            {
+                SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_TITLE_STRING, title);
+            }
 
-        if (!string.IsNullOrEmpty(okTitle))
-        {
-            SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_ACCEPT_STRING, okTitle);
-        }
+            if (!string.IsNullOrEmpty(okTitle))
+            {
+                SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_ACCEPT_STRING, okTitle);
+            }
 
-        if (!string.IsNullOrEmpty(cancelTitle))
-        {
-            SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_CANCEL_STRING, cancelTitle);
-        }
+            if (!string.IsNullOrEmpty(cancelTitle))
+            {
+                SDL3.SDL_SetStringProperty(prop, SDL3.SDL_PROP_FILE_DIALOG_CANCEL_STRING, cancelTitle);
+            }
 
-        unsafe
-        {
-            SDL3.SDL_ShowFileDialogWithProperties(SDL_FileDialogType.SDL_FILEDIALOG_OPENFOLDER, &FolderCallback, index, prop);
-        }
+            unsafe
+            {
+                SDL3.SDL_ShowFileDialogWithProperties(SDL_FileDialogType.SDL_FILEDIALOG_OPENFOLDER, &FolderCallback, index, prop);
+            }
+        });
     }
 
     public static void ShowOpenFileDialog(string title, string okTitle, string cancelTitle, string startPath,
