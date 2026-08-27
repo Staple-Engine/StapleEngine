@@ -95,7 +95,7 @@ internal static class SDL3PlatformUtils
 
                                 if (SDL3.SDL_ShowMessageBox(&messageBoxData, &buttonID))
                                 {
-                                    if (buttonID == 0)
+                                    if (buttonID == 0 || buttonData.Length == 1)
                                     {
                                         onOK?.Invoke();
                                     }
