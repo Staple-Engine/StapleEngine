@@ -1,6 +1,7 @@
 ﻿using Android.Content.Res;
 using Android.OS;
 using Staple.Internal;
+using System.Collections.Generic;
 using System.IO;
 
 namespace Staple;
@@ -137,4 +138,22 @@ internal class AndroidPlatformProvider : IPlatformProvider
 
     public void ShowMessageBox(MessageBoxType type, string title, string message, string okTitle, string cancelTitle, System.Action onOK,
         System.Action onCancel) => SDL3PlatformUtils.ShowMessageBox(type, title, message, okTitle, cancelTitle, onOK, onCancel);
+
+    public void ShowOpenFileDialog(string title, string okTitle, string cancelTitle, string startPath, Dictionary<string, string> filters,
+        bool allowMultiple, System.Action<System.Span<string>> success, System.Action failure)
+    {
+        SDL3PlatformUtils.ShowOpenFileDialog(title, okTitle, cancelTitle, startPath, filters, allowMultiple, success, failure);
+    }
+
+    public void ShowSaveFileDialog(string title, string okTitle, string cancelTitle, string startPath, Dictionary<string, string> filters,
+        System.Action<System.Span<string>> success, System.Action failure)
+    {
+        SDL3PlatformUtils.ShowSaveFileDialog(title, okTitle, cancelTitle, startPath, filters, success, failure);
+    }
+
+    public void ShowOpenFolderDialog(string title, string okTitle, string cancelTitle, string startPath, bool allowMultiple,
+        System.Action<System.Span<string>> success, System.Action failure)
+    {
+        SDL3PlatformUtils.ShowOpenFolderDialog(title, okTitle, cancelTitle, startPath, allowMultiple, success, failure);
+    }
 }
