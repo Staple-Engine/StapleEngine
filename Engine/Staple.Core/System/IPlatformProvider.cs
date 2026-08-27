@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace Staple.Internal;
 
@@ -30,4 +32,17 @@ internal interface IPlatformProvider
     /// </summary>
     /// <param name="message">The message to write</param>
     void ConsoleLog(object message);
+
+    /// <summary>
+    /// Shows a message box
+    /// </summary>
+    /// <param name="type">The type of message box</param>
+    /// <param name="title">The title of the message box</param>
+    /// <param name="message">The message of the message box</param>
+    /// <param name="okTitle">The title of the OK button</param>
+    /// <param name="cancelTitle">The title of the cancel button (optional)</param>
+    /// <param name="onOK">A callback when clicking OK (optional)</param>
+    /// <param name="onCancel">A callback when clicking cancel (optional)</param>
+    void ShowMessageBox(MessageBoxType type, string title, string message, string okTitle, string cancelTitle = null,
+        Action onOK = null, Action onCancel = null);
 }

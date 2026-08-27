@@ -291,7 +291,9 @@
 		<Compile Include="Serialization\Serializer\StapleSerializerField.cs" />
 		<Compile Include="Serialization\Text\SerializableTextAsset.cs" />
 		<Compile Include="Serialization\Text\TextAssetMetadata.cs" />
+		<Compile Include="System\Implementations\SDL3\SDL3PlatformUtils.cs" />
 		<Compile Include="System\IPlatformProvider.cs" />
+		<Compile Include="System\MessageBoxType.cs" />
 		<Compile Include="Utilities\CallbackGatherer.cs" />
 		<Compile Include="Utilities\CubicMeshBuilder.cs" />
 		<Compile Include="Rendering\Mesh\MeshAsset.cs" />

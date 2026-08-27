@@ -134,4 +134,7 @@ internal class AndroidPlatformProvider : IPlatformProvider
             return stream;
         }
     }
+
+    public void ShowMessageBox(MessageBoxType type, string title, string message, string okTitle, string cancelTitle, System.Action onOK,
+        System.Action onCancel) => SDL3PlatformUtils.ShowMessageBox(type, title, message, okTitle, cancelTitle, onOK, onCancel);
 }
