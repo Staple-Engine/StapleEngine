@@ -54,11 +54,17 @@ public sealed partial class RenderSystem
     internal static Vector3 SpatialPartitionSizeHalfVector = new(SpatialPartitionSize / 2.0f, SpatialPartitionSize / 2.0f,
         SpatialPartitionSize / 2.0f);
 
+    public class RenderSystemQueueData
+    {
+        public IRenderQueue queue;
+        public readonly ComponentVersionTracker<Transform> transformTracker = new();
+    }
+
     public class RenderSystemRenderQueue
     {
         public RenderSystemInfo renderSystem;
 
-        public readonly Dictionary<int, IRenderQueue> queue = [];
+        public readonly Dictionary<int, RenderSystemQueueData> queue = [];
     }
 
     public class RenderSystemCameraSet
@@ -764,7 +770,7 @@ public sealed partial class RenderSystem
 
                     foreach (var pair in system.queue)
                     {
-                        pair.Value.Clear();
+                        pair.Value.queue.Clear();
                     }
                 }
 
@@ -802,34 +808,36 @@ public sealed partial class RenderSystem
 
                                 var priority = material.RenderQueueIndex;
 
-                                if (!content.queue.TryGetValue(priority, out var queue) ||
-                                    queue == null ||
-                                    queue.GetType() != systemInfo.system.QueueType)
+                                if (!content.queue.TryGetValue(priority, out var container) ||
+                                    container.queue.GetType() != systemInfo.system.QueueType)
                                 {
-                                    queue = systemInfo.system.CreateRenderQueue();
+                                    container ??= new();
 
-                                    content.queue.AddOrSetKey(priority, queue);
+                                    container.queue = systemInfo.system.CreateRenderQueue();
+
+                                    content.queue.AddOrSetKey(priority, container);
                                 }
 
                                 collected.renderIndices.Add(priority);
 
-                                queue.Add(entityInfo.Item1, entityInfo.Item2, renderable);
+                                container.queue.Add(entityInfo.Item1, entityInfo.Item2, renderable);
                             }
                         }
                         else
                         {
-                            if (!content.queue.TryGetValue(0, out var queue) ||
-                                queue == null ||
-                                queue.GetType() != systemInfo.system.QueueType)
+                            if (!content.queue.TryGetValue(0, out var container) ||
+                                container.queue.GetType() != systemInfo.system.QueueType)
                             {
-                                queue = systemInfo.system.CreateRenderQueue();
+                                container ??= new();
 
-                                content.queue.AddOrSetKey(0, queue);
+                                container.queue = systemInfo.system.CreateRenderQueue();
+
+                                content.queue.AddOrSetKey(0, container);
                             }
 
                             collected.renderIndices.Add(0);
 
-                            queue.Add(entityInfo.Item1, entityInfo.Item2, component);
+                            container.queue.Add(entityInfo.Item1, entityInfo.Item2, component);
                         }
                     }
                 }
@@ -911,7 +919,7 @@ public sealed partial class RenderSystem
 
                     foreach (var pair in system.queue)
                     {
-                        pair.Value.Clear();
+                        pair.Value.queue.Clear();
                     }
                 }
 
@@ -949,34 +957,36 @@ public sealed partial class RenderSystem
 
                                 var priority = material.RenderQueueIndex;
 
-                                if (!content.queue.TryGetValue(priority, out var queue) ||
-                                    queue == null ||
-                                    queue.GetType() != systemInfo.system.QueueType)
+                                if (!content.queue.TryGetValue(priority, out var container) ||
+                                    container.queue.GetType() != systemInfo.system.QueueType)
                                 {
-                                    queue = systemInfo.system.CreateRenderQueue();
+                                    container ??= new();
 
-                                    content.queue.AddOrSetKey(priority, queue);
+                                    container.queue = systemInfo.system.CreateRenderQueue();
+
+                                    content.queue.AddOrSetKey(priority, container);
                                 }
 
                                 collected.renderIndices.Add(priority);
 
-                                queue.Add(entityInfo.Item1, entityInfo.Item2, renderable);
+                                container.queue.Add(entityInfo.Item1, entityInfo.Item2, renderable);
                             }
                         }
                         else
                         {
-                            if (!content.queue.TryGetValue(0, out var queue) ||
-                                queue == null ||
-                                queue.GetType() != systemInfo.system.QueueType)
+                            if (!content.queue.TryGetValue(0, out var container) ||
+                                container.queue.GetType() != systemInfo.system.QueueType)
                             {
-                                queue = systemInfo.system.CreateRenderQueue();
+                                container ??= new();
 
-                                content.queue.AddOrSetKey(0, queue);
+                                container.queue = systemInfo.system.CreateRenderQueue();
+
+                                content.queue.AddOrSetKey(0, container);
                             }
 
                             collected.renderIndices.Add(0);
 
-                            queue.Add(entityInfo.Item1, entityInfo.Item2, component);
+                            container.queue.Add(entityInfo.Item1, entityInfo.Item2, component);
                         }
                     }
                 }

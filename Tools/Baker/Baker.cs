@@ -662,10 +662,7 @@ static partial class Program
         {
         }
 
-        //Guid collision fix
-        Thread.Sleep(25);
-
-        var guid = Guid.NewGuid().ToString();
+        var guid = GuidGenerator.Generate().ToString();
 
         try
         {

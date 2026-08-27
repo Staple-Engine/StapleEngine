@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.InteropServices;
 
 namespace Staple;
@@ -62,5 +63,20 @@ public class GenericRenderQueue<T> : IRenderQueue where T: IComponent
         {
             callback(i.entity, i.transform, i.component as Renderable);
         }
+    }
+
+    public void Sort(Vector3 origin, RenderableSortMode sortMode)
+    {
+        items.Sort((a, b) =>
+        {
+            var distA = Vector3.DistanceSquared(origin, a.transform.Position);
+            var distB = Vector3.DistanceSquared(origin, b.transform.Position);
+
+            return sortMode switch
+            {
+                RenderableSortMode.BackToFront => distB.CompareTo(distA),
+                _ => distA.CompareTo(distB),
+            };
+        });
     }
 }

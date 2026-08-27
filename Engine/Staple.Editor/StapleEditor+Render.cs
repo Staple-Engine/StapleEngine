@@ -165,10 +165,21 @@ internal partial class StapleEditor
                 {
                     foreach (var system in renderQueue.renderQueue.Contents)
                     {
-                        if (!system.queue.TryGetValue(renderIndex, out var queue) ||
-                            queue.Empty)
+                        if (!system.queue.TryGetValue(renderIndex, out var container) ||
+                            container.queue.Empty)
                         {
                             continue;
+                        }
+
+                        var queue = container.queue;
+
+                        if(cameraTransform.Version != cameraTransformVersion)
+                        {
+                            var renderQueue = RenderSystem.GetRenderQueue(renderIndex);
+
+                            var sortMode = RenderSystem.RenderQueueSortMode(renderQueue);
+
+                            queue.Sort(cameraTransform.Position, sortMode);
                         }
 
                         try
@@ -258,5 +269,7 @@ internal partial class StapleEditor
         {
             renderQueue.WorldChanged(World.Current);
         }
+
+        cameraTransformVersion = cameraTransform.Version;
     }
 }

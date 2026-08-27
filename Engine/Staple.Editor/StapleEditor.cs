@@ -204,7 +204,7 @@ internal partial class StapleEditor
 
                 foreach (var pair in system.queue)
                 {
-                    pair.Value.Clear();
+                    pair.Value.queue.Clear();
                 }
             }
 
@@ -249,34 +249,36 @@ internal partial class StapleEditor
 
                             var priority = material.RenderQueueIndex;
 
-                            if (!content.queue.TryGetValue(priority, out var queue) ||
-                                queue == null ||
-                                queue.GetType() != systemInfo.system.QueueType)
+                            if (!content.queue.TryGetValue(priority, out var container) ||
+                                container.queue.GetType() != systemInfo.system.QueueType)
                             {
-                                queue = systemInfo.system.CreateRenderQueue();
+                                container ??= new();
 
-                                content.queue.AddOrSetKey(priority, queue);
+                                container.queue = systemInfo.system.CreateRenderQueue();
+
+                                content.queue.AddOrSetKey(priority, container);
                             }
 
                             renderIndices.Add(priority);
 
-                            queue.Add(entity, transform, renderable);
+                            container.queue.Add(entity, transform, renderable);
                         }
                     }
                     else
                     {
-                        if (!content.queue.TryGetValue(0, out var queue) ||
-                            queue == null ||
-                            queue.GetType() != systemInfo.system.QueueType)
+                        if (!content.queue.TryGetValue(0, out var container) ||
+                            container.queue.GetType() != systemInfo.system.QueueType)
                         {
-                            queue = systemInfo.system.CreateRenderQueue();
+                            container ??= new();
 
-                            content.queue.AddOrSetKey(0, queue);
+                            container.queue = systemInfo.system.CreateRenderQueue();
+
+                            content.queue.AddOrSetKey(0, container);
                         }
 
                         renderIndices.Add(0);
 
-                        queue.Add(entity, transform, component);
+                        container.queue.Add(entity, transform, component);
                     }
                 }
             }
@@ -348,6 +350,8 @@ internal partial class StapleEditor
     private bool debugSpatialInfo = false;
 
     private float cameraSpeedUp = 2.0f;
+
+    private ulong cameraTransformVersion;
     #endregion
 
     #region Entities

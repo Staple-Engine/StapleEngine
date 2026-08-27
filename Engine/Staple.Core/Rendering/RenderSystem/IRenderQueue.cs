@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 
 namespace Staple;
 
@@ -30,4 +31,11 @@ public interface IRenderQueue
     /// </summary>
     /// <param name="callback">A callback that will be called for each renderable in the render queue</param>
     void IterateRenderables(Action<Entity, Transform, Renderable> callback);
+
+    /// <summary>
+    /// Sorts the renderables, based on an origin point and a sort mode
+    /// </summary>
+    /// <param name="origin">The origin point</param>
+    /// <param name="sortMode">The sort mode</param>
+    void Sort(Vector3 origin, RenderableSortMode sortMode);
 }

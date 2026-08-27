@@ -63,6 +63,43 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     public static readonly RenderSystem Instance = new();
 
     /// <summary>
+    /// Gets the render queue from a render index
+    /// </summary>
+    /// <param name="renderIndex">The render index</param>
+    /// <returns>The render queue</returns>
+    public static MaterialRenderQueue GetRenderQueue(int renderIndex)
+    {
+        if(renderIndex < (int)MaterialRenderQueue.AlphaTest)
+        {
+            return MaterialRenderQueue.Opaque;
+        }
+        else if (renderIndex < (int)MaterialRenderQueue.Transparent)
+        {
+            return MaterialRenderQueue.AlphaTest;
+        }
+        else if(renderIndex < (int)MaterialRenderQueue.Overlay)
+        {
+            return MaterialRenderQueue.Transparent;
+        }
+
+        return MaterialRenderQueue.Overlay;
+    }
+
+    /// <summary>
+    /// Gets the sort mode for a specific render queue
+    /// </summary>
+    /// <param name="renderQueue">The render queue</param>
+    /// <returns>The sort mode</returns>
+    public static RenderableSortMode RenderQueueSortMode(MaterialRenderQueue renderQueue)
+    {
+        return renderQueue switch
+        {
+            MaterialRenderQueue.Opaque => RenderableSortMode.FrontToBack,
+            _ => RenderableSortMode.BackToFront,
+        };
+    }
+
+    /// <summary>
     /// Registers a render system into this subsystem
     /// </summary>
     /// <param name="system">The system to add</param>
@@ -236,10 +273,21 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
         {
             foreach (var system in set.renderSystems.Contents)
             {
-                if (!system.queue.TryGetValue(renderIndex, out var queue) ||
-                    queue.Empty)
+                if (!system.queue.TryGetValue(renderIndex, out var container) ||
+                    container.queue.Empty)
                 {
                     continue;
+                }
+
+                var queue = container.queue;
+
+                if(container.transformTracker.ShouldUpdateComponent(CurrentCamera.transform.Entity, CurrentCamera.transform))
+                {
+                    var renderQueue = GetRenderQueue(renderIndex);
+
+                    var sortMode = RenderQueueSortMode(renderQueue);
+
+                    queue.Sort(CurrentCamera.transform.Position, sortMode);
                 }
 
                 system.renderSystem.system.Prepare();
@@ -361,18 +409,19 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
                     var priority = material.RenderQueueIndex;
 
-                    if (!systemInfo.queue.TryGetValue(priority, out var queue) ||
-                        queue == null ||
-                        queue.GetType() != systemInfo.renderSystem.system.QueueType)
+                    if (!systemInfo.queue.TryGetValue(priority, out var container) ||
+                        container.queue.GetType() != systemInfo.renderSystem.system.QueueType)
                     {
-                        queue = systemInfo.renderSystem.system.CreateRenderQueue();
+                        container ??= new();
 
-                        systemInfo.queue.AddOrSetKey(priority, queue);
+                        container.queue = systemInfo.renderSystem.system.CreateRenderQueue();
+
+                        systemInfo.queue.AddOrSetKey(priority, container);
                     }
 
                     renderIndices.Add(priority);
 
-                    queue.Add(e, t, renderable);
+                    container.queue.Add(e, t, renderable);
                 }
             }
 
@@ -389,10 +438,21 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             foreach (var system in systems)
             {
                 if (system.renderSystem.system.UsesOwnRenderProcess ||
-                    !system.queue.TryGetValue(renderIndex, out var queue) ||
-                    queue.Empty)
+                    !system.queue.TryGetValue(renderIndex, out var container) ||
+                    container.queue.Empty)
                 {
                     continue;
+                }
+
+                var queue = container.queue;
+
+                if (container.transformTracker.ShouldUpdateComponent(CurrentCamera.transform.Entity, CurrentCamera.transform))
+                {
+                    var renderQueue = GetRenderQueue(renderIndex);
+
+                    var sortMode = RenderQueueSortMode(renderQueue);
+
+                    queue.Sort(CurrentCamera.transform.Position, sortMode);
                 }
 
                 system.renderSystem.system.Prepare();
