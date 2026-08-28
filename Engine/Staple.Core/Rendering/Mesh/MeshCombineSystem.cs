@@ -263,11 +263,11 @@ public sealed class MeshCombineSystem : RenderSystemBase
 
             combine.localBounds = new(entry.transform.LocalPosition +
                 combine.combinedMeshBounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
-                localSize * entry.transform.LocalScale);
+                localSize * entry.transform.NormalizedLocalScale);
 
             combine.UpdateBounds(new(entry.transform.Position +
                 combine.combinedMeshBounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
-                globalSize * entry.transform.Scale));
+                globalSize * entry.transform.NormalizedScale));
         }
     }
 

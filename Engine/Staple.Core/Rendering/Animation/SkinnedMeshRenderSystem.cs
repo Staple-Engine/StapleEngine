@@ -184,10 +184,10 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
                 renderer.localBounds = new(entry.transform.LocalPosition +
                     renderer.mesh.bounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
-                    localSize * entry.transform.LocalScale);
+                    localSize * entry.transform.NormalizedLocalScale);
 
                 renderer.UpdateBounds(new(entry.transform.Position + renderer.mesh.bounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
-                    globalSize * entry.transform.Scale));
+                    globalSize * entry.transform.NormalizedScale));
             }
         }
     }

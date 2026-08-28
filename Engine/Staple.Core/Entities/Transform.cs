@@ -52,6 +52,11 @@ public class Transform : IComponent, IComponentVersion
     private Vector3 scale = Vector3.One;
 
     /// <summary>
+    /// Normalized local scale
+    /// </summary>
+    private Vector3 normalizedScale = Vector3.One;
+
+    /// <summary>
     /// Global transform matrix
     /// </summary>
     private Matrix4x4 finalMatrix = Matrix4x4.Identity;
@@ -65,6 +70,11 @@ public class Transform : IComponent, IComponentVersion
     /// Global scale
     /// </summary>
     private Vector3 finalScale = Vector3.One;
+
+    /// <summary>
+    /// Normalized global scale
+    /// </summary>
+    private Vector3 finalNormalizedScale = Vector3.One;
 
     /// <summary>
     /// Global rotation
@@ -163,8 +173,17 @@ public class Transform : IComponent, IComponentVersion
             }
 
             scale = target;
+
+            normalizedScale.X = Math.Abs(scale.X);
+            normalizedScale.Y = Math.Abs(scale.Y);
+            normalizedScale.Z = Math.Abs(scale.Z);
         }
     }
+
+    /// <summary>
+    /// The normalized world-space scale. Any negative values are flipped to positive.
+    /// </summary>
+    public Vector3 NormalizedScale => finalNormalizedScale;
 
     /// <summary>
     /// The local-space scale
@@ -181,8 +200,17 @@ public class Transform : IComponent, IComponentVersion
             }
 
             scale = value;
+
+            normalizedScale.X = Math.Abs(scale.X);
+            normalizedScale.Y = Math.Abs(scale.Y);
+            normalizedScale.Z = Math.Abs(scale.Z);
         }
     }
+
+    /// <summary>
+    /// The normalized local-space scale. Any negative values are flipped to positive.
+    /// </summary>
+    public Vector3 NormalizedLocalScale => normalizedScale;
 
     /// <summary>
     /// The world-space rotation
@@ -374,6 +402,10 @@ public class Transform : IComponent, IComponentVersion
                 finalRotation = rotation;
                 finalScale = scale;
             }
+
+            finalNormalizedScale.X = Math.Abs(finalScale.X);
+            finalNormalizedScale.Y = Math.Abs(finalScale.Y);
+            finalNormalizedScale.Z = Math.Abs(finalScale.Z);
         }
     }
 
@@ -482,6 +514,56 @@ public class Transform : IComponent, IComponentVersion
     public void Rotate(Vector3 angles, bool relativeToWorld = false)
     {
         Rotation = Rotation.Rotate(angles, relativeToWorld);
+    }
+
+    /// <summary>
+    /// Orients this transform towards a direction
+    /// </summary>
+    /// <param name="forward">The direction</param>
+    /// <param name="up">The world up direction</param>
+    /// <remarks><see cref="forward"/> doesn't need to be normalized</remarks>
+    public void LookAt(Vector3 forward, Vector3 up)
+    {
+        var scale = Scale;
+
+        if (scale.X < 0)
+        {
+            forward.X *= -1;
+        }
+
+        if (scale.Y < 0)
+        {
+            forward.Y *= -1;
+        }
+
+        if (scale.Z < 0)
+        {
+            forward.Z *= -1;
+        }
+
+        var targetRotation = Quaternion.LookAt(forward, Vector3.Up);
+
+        Rotation = targetRotation;
+    }
+
+    /// <summary>
+    /// Orients this transform towards a target
+    /// </summary>
+    /// <param name="target">The target</param>
+    /// <param name="up">The world up direction</param>
+    public void LookAt(Transform target, Vector3 up)
+    {
+        LookAtPosition(target.Position, up);
+    }
+
+    /// <summary>
+    /// Orients this transform towards a world position
+    /// </summary>
+    /// <param name="position">The world position</param>
+    /// <param name="up">The world up direction</param>
+    public void LookAtPosition(Vector3 position, Vector3 up)
+    {
+        LookAt((position - Position), up);
     }
 
     public override string ToString()
