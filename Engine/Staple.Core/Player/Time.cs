@@ -83,6 +83,11 @@ public static class Time
     {
         var delta = timer.ElapsedTime;
 
+        if(delta <= 0)
+        {
+            delta = 0.0001f;
+        }
+
         unscaledTime += delta;
 
         if (delta > maximumDeltaTime)
