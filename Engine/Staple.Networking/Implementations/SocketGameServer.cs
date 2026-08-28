@@ -1,3 +1,4 @@
+using Staple.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -52,7 +53,7 @@ public sealed class SocketGameServer : IGameServer
     public NetworkCompressionType compressionType;
 
     private readonly Lock lockObject = new();
-    private DateTime networkBatcherTimer = DateTime.Now;
+    private readonly TimeTracker networkBatcherTimer = new();
     private bool useNetworkBatching = false;
     private static readonly byte[] receiveBuffer = new byte[MaxBufferSize];
 
@@ -338,9 +339,9 @@ public sealed class SocketGameServer : IGameServer
         {
             lock (lockObject)
             {
-                if ((DateTime.Now - networkBatcherTimer).TotalSeconds >= TimeBetweenBatches)
+                if (networkBatcherTimer.ElapsedTimeNoReset >= TimeBetweenBatches)
                 {
-                    networkBatcherTimer = DateTime.Now;
+                    networkBatcherTimer.Reset();
 
                     SendBatchMessages();
                 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 
@@ -11,11 +12,11 @@ public static class ThreadHelper
 {
     private readonly struct DelayedAction(float delay, Action action)
     {
-        public readonly DateTime time = DateTime.Now;
+        public readonly TimeTracker time = new();
         public readonly float delay = delay;
         public readonly Action action = action;
 
-        public bool CanTrigger(DateTime currentTime) => currentTime >= time.AddSeconds(delay);
+        public bool CanTrigger() => time.ElapsedTimeNoReset >= delay;
     }
 
     private static Thread mainThread;
@@ -88,13 +89,11 @@ public static class ThreadHelper
 
             if (pendingDelayedActions.Count > 0)
             {
-                var currentTime = DateTime.Now;
-
                 for (var i = pendingDelayedActions.Count - 1; i >= 0; i--)
                 {
                     var action = pendingDelayedActions[i];
 
-                    if (action.CanTrigger(currentTime))
+                    if (action.CanTrigger())
                     {
                         current = action.action;
 

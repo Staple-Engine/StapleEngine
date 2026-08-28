@@ -689,7 +689,7 @@ internal class RenderWindow
             return;
         }
 
-        Time.UpdateClock(current, lastTime);
+        Time.UpdateClock();
 
         lastTime = current;
 

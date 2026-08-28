@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Staple.Internal;
@@ -161,7 +162,7 @@ public sealed class ResourcePak : IDisposable
     private readonly List<FileInfo> files = [];
     private Stream backend;
 
-    public IEnumerable<FileInfo> Files => files;
+    public Span<FileInfo> Files => CollectionsMarshal.AsSpan(files);
 
     public int FileCount => files.Count;
 

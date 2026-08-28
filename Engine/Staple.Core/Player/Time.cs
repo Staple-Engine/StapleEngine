@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Staple.Utilities;
 
 namespace Staple;
 
@@ -73,14 +74,14 @@ public static class Time
     private static Vector3 frameDelta;
     private static float frameDeltaTimer;
 
+    private static readonly TimeTracker timer = new();
+
     /// <summary>
     /// Updates the clock
     /// </summary>
-    /// <param name="current">The current time</param>
-    /// <param name="last">The previous time</param>
-    internal static void UpdateClock(DateTime current, DateTime last)
+    internal static void UpdateClock()
     {
-        var delta = (float)(current - last).TotalSeconds;
+        var delta = timer.ElapsedTime;
 
         unscaledTime += delta;
 

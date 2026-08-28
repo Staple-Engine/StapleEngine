@@ -15,7 +15,6 @@ public class Init : ModuleInitializer
 
     public override void InitializeModule()
     {
-        return;
     }
 
     public override void CleanupModule()
