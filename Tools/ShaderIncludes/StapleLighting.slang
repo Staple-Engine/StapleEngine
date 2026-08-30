@@ -80,7 +80,7 @@ public float3 StapleLightNormal(float3 normal, float4x4 modelView)
 {
     float4x4 inverseMatrix = transpose(inverse(modelView));
 
-    return normalize(mul(normal, float3x3(inverseMatrix)));
+    return normalize(mul(float3x3(inverseMatrix), normal));
 }
 
 public float StapleLightScaling(float nDotL)
