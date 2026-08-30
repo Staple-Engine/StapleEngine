@@ -43,8 +43,8 @@ struct VertexOutput
 {
 	float4 position : SV_Position;
 	float3 worldPosition;
-#ifdef LIT
-	float3 lightNormal;
+#if defined(LIT)
+	float3 worldNormal;
 #endif
 	float2 coords;
 	float3 normal;
@@ -120,13 +120,13 @@ VertexOutput VertexMain(Input input)
 #endif
 
 #ifdef LIT
-	output.lightNormal = StapleLightNormal(input.normal, model);
+	output.worldNormal = StapleLightNormal(input.normal, model);
 #endif
 
 	output.instanceID = input.instanceID;
 	
 #if defined(LIT) && defined(PER_VERTEX_LIGHTING)
-	output.color = float4(diffuseColor.rgb * StapleProcessLights(output.worldPosition, output.lightNormal), diffuseColor.a);
+	output.color = float4(diffuseColor.rgb * StapleProcessLights(output.worldPosition, output.worldNormal), diffuseColor.a);
 	
 	#ifdef VERTEX_COLORS
 		output.color = input.color * output.color;
@@ -172,16 +172,14 @@ float4 FragmentMain(VertexOutput input) : SV_Target
 #elif defined(LIT)
 
 #ifdef NORMALMAP
-	float3x3 tbn = float3x3(normalize(input.tangent), normalize(input.bitangent), normalize(input.normal));
+	float3 normalMapNormal = StapleGetTangentNormal(input.worldNormal, input.tangent, input.bitangent, input.coords, normalTexture);
 
-	float3 normalMapNormal = normalize(normalTexture.Sample(input.coords).xyz * 2.0 - 1.0);
-
-	float3 light = StapleProcessLightsTangent(input.worldPosition, normalMapNormal, tbn);
+	float3 light = StapleProcessLights(input.worldPosition, normalMapNormal);
 #else
-	float3 light = StapleProcessLights(input.worldPosition, normalize(input.lightNormal));
+	float3 light = StapleProcessLights(input.worldPosition, normalize(input.worldNormal));
 #endif
  
-	return float4(light, 1) * diffuse;
+	return float4(light, diffuse.a) * diffuse;
 #else
 	return diffuse;
 #endif

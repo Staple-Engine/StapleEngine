@@ -113,20 +113,6 @@ internal class MaterialResource
                 }
 
                 parameter.intValue = value;
-
-                if (parameter.shaderHandle.Variant == null)
-                {
-                    return;
-                }
-
-                if (parameter.intValue <= 0)
-                {
-                    disableShaderKeyword(parameter.shaderHandle.Variant);
-                }
-                else
-                {
-                    enableShaderKeyword(parameter.shaderHandle.Variant);
-                }
             }
             else
             {
@@ -139,20 +125,20 @@ internal class MaterialResource
                 };
 
                 parameters.AddOrSetKey(name, parameter);
+            }
 
-                if (parameter.shaderHandle.Variant == null)
-                {
-                    return;
-                }
+            if (parameter.shaderHandle.Variant == null)
+            {
+                return;
+            }
 
-                if (parameter.intValue <= 0)
-                {
-                    disableShaderKeyword(parameter.shaderHandle.Variant);
-                }
-                else
-                {
-                    enableShaderKeyword(parameter.shaderHandle.Variant);
-                }
+            if (parameter.intValue <= 0)
+            {
+                disableShaderKeyword(parameter.shaderHandle.Variant);
+            }
+            else
+            {
+                enableShaderKeyword(parameter.shaderHandle.Variant);
             }
         }
         else
@@ -189,20 +175,6 @@ internal class MaterialResource
                 }
 
                 parameter.floatValue = value;
-
-                if (parameter.shaderHandle.Variant == null)
-                {
-                    return;
-                }
-
-                if (parameter.floatValue <= 0)
-                {
-                    disableShaderKeyword(parameter.shaderHandle.Variant);
-                }
-                else
-                {
-                    enableShaderKeyword(parameter.shaderHandle.Variant);
-                }
             }
             else
             {
@@ -215,20 +187,20 @@ internal class MaterialResource
                 };
 
                 parameters.AddOrSetKey(name, parameter);
+            }
 
-                if (parameter.shaderHandle.Variant == null)
-                {
-                    return;
-                }
+            if (parameter.shaderHandle.Variant == null)
+            {
+                return;
+            }
 
-                if (parameter.floatValue <= 0)
-                {
-                    disableShaderKeyword(parameter.shaderHandle.Variant);
-                }
-                else
-                {
-                    enableShaderKeyword(parameter.shaderHandle.Variant);
-                }
+            if (parameter.floatValue <= 0)
+            {
+                disableShaderKeyword(parameter.shaderHandle.Variant);
+            }
+            else
+            {
+                enableShaderKeyword(parameter.shaderHandle.Variant);
             }
         }
         else
@@ -389,6 +361,8 @@ internal class MaterialResource
     public void SetTexture(string name, Texture value, StringID shaderVariantKey,
         Action<string> enableShaderKeyword, Action<string> disableShaderKeyword, Texture whiteTexture)
     {
+        var original = value;
+
         if (parameters.TryGetValue(name, out var parameter))
         {
             if (parameter.type != MaterialParameterType.Texture)
@@ -420,8 +394,6 @@ internal class MaterialResource
         }
         else
         {
-            var original = value;
-
             value ??= whiteTexture;
 
             parameter = new MaterialResourceParameter()
@@ -434,21 +406,21 @@ internal class MaterialResource
             };
 
             parameters.AddOrSetKey(name, parameter);
+        }
 
-            if (parameter.shaderHandle.Variant == null)
-            {
-                return;
-            }
+        if (parameter.shaderHandle.Variant == null)
+        {
+            return;
+        }
 
-            //Textures are replaced with White by default - Ensure we only enable variants if it's not White
-            if (parameter.hasTexture && (original != null || value.Guid.Guid != "WHITE"))
-            {
-                enableShaderKeyword(parameter.shaderHandle.Variant);
-            }
-            else
-            {
-                disableShaderKeyword(parameter.shaderHandle.Variant);
-            }
+        //Textures are replaced with White by default - Ensure we only enable variants if it's not White
+        if (parameter.hasTexture && (original != null || value.Guid.Guid != "WHITE"))
+        {
+            enableShaderKeyword(parameter.shaderHandle.Variant);
+        }
+        else
+        {
+            disableShaderKeyword(parameter.shaderHandle.Variant);
         }
     }
 

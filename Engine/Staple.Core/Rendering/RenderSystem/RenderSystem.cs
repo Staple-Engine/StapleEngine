@@ -446,14 +446,12 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
                 var queue = container.queue;
 
-                if (container.transformTracker.ShouldUpdateComponent(CurrentCamera.transform.Entity, CurrentCamera.transform))
-                {
-                    var renderQueue = GetRenderQueue(renderIndex);
+                //Assume RenderEntity is never gonna be able to use cached render orders
+                var renderQueue = GetRenderQueue(renderIndex);
 
-                    var sortMode = RenderQueueSortMode(renderQueue);
+                var sortMode = RenderQueueSortMode(renderQueue);
 
-                    queue.Sort(CurrentCamera.transform.Position, sortMode);
-                }
+                queue.Sort(CurrentCamera.transform.Position, sortMode);
 
                 system.renderSystem.system.Prepare();
 
