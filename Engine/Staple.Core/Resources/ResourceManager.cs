@@ -2287,62 +2287,71 @@ internal class ResourceManager : IWorldChangeReceiver
                 asset = LoadMeshAsset(guid, ignoreCache);
             }
 
-            if (asset == null || asset.Meshes.Length == 0)
+            if (asset == null)
             {
-                if (asset != null && asset.Meshes.Length == 0)
-                {
-                    Log.Error($"Failed to load mesh {original}: Asset contains no mesh data", LogTag);
-
-                    ReportFailedAssetLoad(original, original);
-                }
-
-                return null;
-            }
-
-            var meshIndex = 0;
-
-            if (!string.IsNullOrEmpty(indexString))
-            {
-                if (!int.TryParse(indexString, out meshIndex))
-                {
-                    meshIndex = Array.FindIndex(asset.Meshes, x => x.name == indexString);
-                }
-            }
-
-            if (meshIndex < 0 || meshIndex >= asset.Meshes.Length)
-            {
-                Log.Error($"Failed to load mesh {original}: Invalid mesh index {meshIndex}", LogTag);
-
                 ReportFailedAssetLoad(original, original);
 
                 return null;
             }
 
-            var m = asset.Meshes[meshIndex];
+            Mesh mesh = null;
 
-            var mesh = new Mesh(true, false)
+            if(asset.Meshes.Length > 0)
             {
-                meshTopology = m.topology,
-                indexFormat = MeshIndexFormat.UInt32,
-                bounds = m.transformedBounds,
+                var meshIndex = 0;
 
+                if (!string.IsNullOrEmpty(indexString))
+                {
+                    if (!int.TryParse(indexString, out meshIndex))
+                    {
+                        meshIndex = Array.FindIndex(asset.Meshes, x => x.name == indexString);
+                    }
+                }
+
+                if (meshIndex < 0 || meshIndex >= asset.Meshes.Length)
+                {
+                    Log.Error($"Failed to load mesh {original}: Invalid mesh index {meshIndex}", LogTag);
+
+                    ReportFailedAssetLoad(original, original);
+
+                    return null;
+                }
+
+                var m = asset.Meshes[meshIndex];
+
+                mesh = new Mesh(true, false)
+                {
+                    meshTopology = m.topology,
+                    indexFormat = MeshIndexFormat.UInt32,
+                    bounds = m.transformedBounds,
+
+                    meshAsset = asset,
+                    meshAssetIndex = meshIndex,
+                };
+
+                foreach (var submesh in m.submeshes)
+                {
+                    mesh.AddSubmesh(submesh.startVertex, submesh.startIndex, submesh.indexCount);
+                }
+
+                mesh.changed = true;
+
+                if (!mesh.HasBoneIndices)
+                {
+                    mesh.MarkStaticMesh();
+                }
+
+                mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{meshIndex}" : original;
+
+                return (mesh, mesh.meshAsset.meshResource);
+            }
+
+            mesh = new Mesh(true, false)
+            {
                 meshAsset = asset,
-                meshAssetIndex = meshIndex,
             };
 
-            foreach (var submesh in m.submeshes)
-            {
-                mesh.AddSubmesh(submesh.startVertex, submesh.startIndex, submesh.indexCount);
-            }
-
-            mesh.changed = true;
-
-            if (!mesh.HasBoneIndices)
-            {
-                mesh.MarkStaticMesh();
-            }
-
-            mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{meshIndex}" : original;
+            mesh.Guid.Guid = asset.Guid.Guid;
 
             return (mesh, mesh.meshAsset.meshResource);
         }

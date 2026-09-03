@@ -23,6 +23,8 @@ public partial struct Entity
 
         var newEntity = Create(rename ? $"{source.Name} (Clone)" : source.Name, typeof(Transform));
 
+        newEntity.Enabled = source.Enabled;
+
         newEntity.SetLayer(source.Layer);
 
         var transform = newEntity.GetComponent<Transform>();

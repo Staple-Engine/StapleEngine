@@ -62,8 +62,6 @@ internal class SkinnedMeshAnimatorEditor : Editor
         if(animator.animation != null &&
             animator.mesh != null &&
             animator.mesh.meshAsset != null &&
-            animator.mesh.meshAssetIndex >= 0 &&
-            animator.mesh.meshAssetIndex < animator.mesh.meshAsset.Meshes.Length &&
             animator.mesh.meshAsset.Animations.TryGetValue(animator.animation, out var animation))
         {
             var newPlaytime = EditorGUI.FloatField("Play Time (seconds)", "SkinnedMeshAnimatorPlayTime", animator.playTime);

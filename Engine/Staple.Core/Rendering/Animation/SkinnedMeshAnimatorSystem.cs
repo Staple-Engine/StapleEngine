@@ -51,8 +51,6 @@ public sealed class SkinnedMeshAnimatorSystem : RenderSystemBase
 
             if (animator.mesh == null ||
                 animator.mesh.meshAsset == null ||
-                animator.mesh.meshAssetIndex < 0 ||
-                animator.mesh.meshAssetIndex >= animator.mesh.meshAsset.Meshes.Length ||
                 (animator.animation?.Length ?? 0) == 0 ||
                 !animator.mesh.meshAsset.Animations.ContainsKey(animator.animation))
             {
