@@ -302,7 +302,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                             cachedBlendShapeBuffers.Add(key, renderer.blendShapeBuffer);
                         }
 
-                        if((renderer.instance?.Length ?? 0) > 0 &&
+                        if((renderer.instance?.Contents.Length ?? 0) > 0 &&
                             (renderer.blendShapeWeights?.Count ?? 0) == (renderer.blendShapeNames?.Length ?? 0) &&
                             (renderer.blendShapeWeights?.Count ?? 0) > 0)
                         {

@@ -72,9 +72,9 @@ public sealed class CullingVolumeSystem : RenderSystemBase
                     {
                         var validRenderers = 0;
 
-                        foreach (var renderer in volume.renderers.Contents)
+                        foreach (var (_, renderer) in volume.renderers.Contents)
                         {
-                            if (!renderer.Item2.enabled || renderer.Item2.forceRenderingOff)
+                            if (!renderer.enabled || renderer.forceRenderingOff)
                             {
                                 continue;
                             }
@@ -84,14 +84,16 @@ public sealed class CullingVolumeSystem : RenderSystemBase
 
                         volume.boundsCoordinates.Clear();
 
-                        for (int i = 0, index = 0; i < volume.renderers.Length; i++)
-                        {
-                            var renderer = volume.renderers[i];
+                        var renderers = volume.renderers.Contents;
 
-                            if (renderer.Item2.enabled && !renderer.Item2.forceRenderingOff)
+                        for (int i = 0, index = 0; i < renderers.Length; i++)
+                        {
+                            var (_, renderer) = renderers[i];
+
+                            if (renderer.enabled && !renderer.forceRenderingOff)
                             {
-                                volume.boundsCoordinates.Add(renderer.Item2.bounds.min);
-                                volume.boundsCoordinates.Add(renderer.Item2.bounds.max);
+                                volume.boundsCoordinates.Add(renderer.bounds.min);
+                                volume.boundsCoordinates.Add(renderer.bounds.max);
 
                                 index += 2;
                             }

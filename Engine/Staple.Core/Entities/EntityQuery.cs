@@ -1,4 +1,5 @@
 ﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 
 namespace Staple;
@@ -39,11 +40,27 @@ public enum EntityQueryMode
 public sealed class EntityQuery<T> : ISceneQuery
     where T : IComponent
 {
+    public struct EntityItem(Entity entity, T item)
+    {
+        public Entity entity = entity;
+        public T item = item;
+
+        public readonly bool IsValid => entity.IsValid && item != null;
+
+        public void Deconstruct(out Entity e, out T i)
+        {
+            e = entity;
+            i = item;
+        }
+    }
+
     private readonly EntityQueryMode queryMode;
     private readonly Entity target;
     private readonly bool getEntities;
 
-    public int Length => Contents.Length;
+    private readonly ExpandableContainer<T> contents = new();
+
+    private readonly ExpandableContainer<EntityItem> contentEntities = new();
 
     /// <summary>
     /// Contained content. Only valid if we have a single element.
@@ -53,26 +70,24 @@ public sealed class EntityQuery<T> : ISceneQuery
     /// <summary>
     /// Contained content. Only valid if we have a single element.
     /// </summary>
-    public T[] Contents { get; private set; } = [];
+    public Span<T> Contents => contents.Contents;
 
     /// <summary>
     /// The content with its entity, if available.
     /// </summary>
-    public (Entity, T) ContentEntity { get; private set; }
+    public EntityItem ContentEntity { get; private set; }
 
     /// <summary>
     /// The content with its entity, if available.
     /// </summary>
-    public (Entity, T)[] ContentEntities { get; private set; } = [];
-
-    public T this[int index] => Contents[index];
+    public Span<EntityItem> ContentEntities => contentEntities.Contents;
 
     /// <summary>
     /// Gets an entity and component at a specific index
     /// </summary>
     /// <param name="index">The index to get at</param>
     /// <returns>The entity and component as a tuple, if valid</returns>
-    public (Entity, T) ContentEntityAt(int index) => index >= 0 && index < ContentEntities.Length ? ContentEntities[index] : default;
+    public ref EntityItem ContentEntityAt(int index) => ref ContentEntities[index];
 
     /// <summary>
     /// Creates an entity query for a specific entity.
@@ -99,8 +114,8 @@ public sealed class EntityQuery<T> : ISceneQuery
         Content = default;
         ContentEntity = default;
 
-        Contents = [];
-        ContentEntities = [];
+        contents.Clear();
+        contentEntities.Clear();
     }
 
     public void WorldChanged(World world)
@@ -108,49 +123,157 @@ public sealed class EntityQuery<T> : ISceneQuery
         Content = default;
         ContentEntity = default;
 
-        Contents = [];
-        ContentEntities = [];
+        contents.Clear();
+        contentEntities.Clear();
 
         if (!target.IsValid)
         {
             return;
         }
 
-        var items = queryMode switch
+        switch (queryMode)
         {
-            EntityQueryMode.Self => [target.GetComponent<T>()],
-            EntityQueryMode.Parent => [target.GetComponentInParent<T>()],
-            EntityQueryMode.SelfAndParent => [target.GetComponent<T>(), target.GetComponentInParent<T>()],
-            EntityQueryMode.Children => target.GetComponentsInChildren<T>(false),
-            EntityQueryMode.SelfAndChildren => target.GetComponentsInChildren<T>(true),
-            _ => [],
-        };
+            case EntityQueryMode.Self:
 
-        var count = 0;
+                {
+                    if (target.TryGetComponent<T>(out var t))
+                    {
+                        contents.Add(t);
+                    }
+                }
 
-        for(var i = 0; i < items.Length; i++)
-        {
-            if (items[i] == null)
-            {
-                continue;
-            }
+                break;
 
-            count++;
+            case EntityQueryMode.Parent:
+
+                {
+                    var transform = target.GetComponent<Transform>();
+
+                    if (transform?.Parent != null)
+                    {
+                        var current = transform.Parent;
+
+                        while (current != null)
+                        {
+                            if (current.Entity.TryGetComponent<T>(out var t))
+                            {
+                                contents.Add(t);
+
+                                break;
+                            }
+
+                            current = current.Parent;
+                        }
+                    }
+                }
+
+                break;
+
+            case EntityQueryMode.SelfAndParent:
+
+                {
+                    if (target.TryGetComponent<T>(out var t))
+                    {
+                        contents.Add(t);
+                    }
+
+                    var transform = target.GetComponent<Transform>();
+
+                    if (transform?.Parent != null)
+                    {
+                        var current = transform.Parent;
+
+                        while (current != null)
+                        {
+                            if (current.Entity.TryGetComponent<T>(out t))
+                            {
+                                contents.Add(t);
+
+                                break;
+                            }
+
+                            current = current.Parent;
+                        }
+                    }
+                }
+
+                break;
+
+            case EntityQueryMode.Children:
+
+                {
+                    var transform = target.GetComponent<Transform>();
+
+                    void Recursive(Transform transform)
+                    {
+                        if (transform == null)
+                        {
+                            return;
+                        }
+
+                        if (transform.Entity.TryGetComponent<T>(out var t))
+                        {
+                            contents.Add(t);
+                        }
+
+                        foreach (var child in transform.Children)
+                        {
+                            Recursive(child);
+                        }
+                    }
+
+                    if (transform != null)
+                    {
+                        foreach (var child in transform.Children)
+                        {
+                            Recursive(child);
+                        }
+                    }
+                }
+
+                break;
+
+            case EntityQueryMode.SelfAndChildren:
+
+                {
+                    if (target.TryGetComponent<T>(out var t))
+                    {
+                        contents.Add(t);
+                    }
+
+                    var transform = target.GetComponent<Transform>();
+
+                    void Recursive(Transform transform)
+                    {
+                        if (transform == null)
+                        {
+                            return;
+                        }
+
+                        if (transform.Entity.TryGetComponent<T>(out var t))
+                        {
+                            contents.Add(t);
+                        }
+
+                        foreach (var child in transform.Children)
+                        {
+                            Recursive(child);
+                        }
+                    }
+
+                    if (transform != null)
+                    {
+                        foreach (var child in transform.Children)
+                        {
+                            Recursive(child);
+                        }
+                    }
+                }
+
+                break;
         }
 
-        Contents = new T[count];
-
-        for(int i = 0, counter = 0; i < items.Length; i++)
-        {
-            if (items[i] == null)
-            {
-                continue;
-            }
-
-            Contents[counter++] = items[i];
-        }
-
-        if(count == 1 && Contents[0] != null)
+        if (Contents.Length == 1)
         {
             Content = Contents[0];
         }
@@ -159,15 +282,20 @@ public sealed class EntityQuery<T> : ISceneQuery
         {
             return;
         }
-        
-        ContentEntities = new (Entity, T)[count];
 
-        for(var i = 0; i < items.Length; i++)
+        foreach (ref var item in Contents)
         {
-            ContentEntities[i] = (world.GetComponentEntity(Contents[i]), Contents[i]);
+            var entity = world.GetComponentEntity(item);
+
+            if (!entity.IsValid)
+            {
+                continue;
+            }
+
+            contentEntities.Add(new(entity, item));
         }
 
-        if(count == 1 && Contents[0] != null)
+        if (contentEntities.Length == 1)
         {
             ContentEntity = ContentEntities[0];
         }
@@ -184,40 +312,70 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
     where T : IComponent
     where T2 : IComponent
 {
+    public struct Item(T first, T2 second)
+    {
+        public T first = first;
+        public T2 second = second;
+
+        public readonly bool IsValid => first != null && second != null;
+
+        public void Deconstruct(out T f, out T2 s)
+        {
+            f = first;
+            s = second;
+        }
+    }
+
+    public struct EntityItem(Entity entity, T first, T2 second)
+    {
+        public Entity entity = entity;
+        public T first = first;
+        public T2 second = second;
+
+        public readonly bool IsValid => entity.IsValid && first != null && second != null;
+
+        public void Deconstruct(out Entity e, out T f, out T2 s)
+        {
+            e = entity;
+            f = first;
+            s = second;
+        }
+    }
+
     private readonly EntityQueryMode queryMode;
     private readonly Entity target;
     private readonly bool getEntities;
 
-    public int Length => Contents.Length;
+    private readonly ExpandableContainer<Item> contents = new();
+
+    private readonly ExpandableContainer<EntityItem> contentEntities = new();
 
     /// <summary>
     /// Contained content. Only valid if we have a single element.
     /// </summary>
-    public (T, T2) Content { get; private set; }
+    public Item Content { get; private set; }
 
     /// <summary>
     /// Contained content. Only valid if we have a single element.
     /// </summary>
-    public (T, T2)[] Contents { get; private set; } = [];
+    public Span<Item> Contents => contents.Contents;
 
     /// <summary>
     /// The content with its entity, if available.
     /// </summary>
-    public (Entity, T, T2) ContentEntity { get; private set; }
+    public EntityItem ContentEntity { get; private set; }
 
     /// <summary>
     /// The content with its entity, if available.
     /// </summary>
-    public (Entity, T, T2)[] ContentEntities { get; private set; } = [];
-
-    public (T, T2) this[int index] => Contents[index];
+    public Span<EntityItem> ContentEntities => contentEntities.Contents;
 
     /// <summary>
     /// Gets an entity and component at a specific index
     /// </summary>
     /// <param name="index">The index to get at</param>
     /// <returns>The entity and component as a tuple, if valid</returns>
-    public (Entity, T, T2) ContentEntityAt(int index) => index >= 0 && index < ContentEntities.Length ? ContentEntities[index] : default;
+    public ref EntityItem ContentEntityAt(int index) => ref ContentEntities[index];
 
     /// <summary>
     /// Creates an entity query for a specific entity.
@@ -244,8 +402,8 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
         Content = default;
         ContentEntity = default;
 
-        Contents = [];
-        ContentEntities = [];
+        contents.Clear();
+        contentEntities.Clear();
     }
 
     public void WorldChanged(World world)
@@ -253,15 +411,13 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
         Content = default;
         ContentEntity = default;
 
-        Contents = [];
-        ContentEntities = [];
+        contents.Clear();
+        contentEntities.Clear();
 
         if (!target.IsValid)
         {
             return;
         }
-
-        var items = new List<(T, T2)>();
 
         switch(queryMode)
         {
@@ -270,7 +426,7 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
                 {
                     if (target.TryGetComponent<T>(out var t) && target.TryGetComponent<T2>(out var t2))
                     {
-                        items.Add((t, t2));
+                        contents.Add(new(t, t2));
                     }
                 }
 
@@ -287,9 +443,10 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
 
                         while(current != null)
                         {
-                            if(current.Entity.TryGetComponent<T>(out var t) && current.Entity.TryGetComponent<T2>(out var t2))
+                            if(current.Entity.TryGetComponent<T>(out var t) &&
+                                current.Entity.TryGetComponent<T2>(out var t2))
                             {
-                                items.Add((t, t2));
+                                contents.Add(new(t, t2));
 
                                 break;
                             }
@@ -306,7 +463,7 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
                 {
                     if (target.TryGetComponent<T>(out var t) && target.TryGetComponent<T2>(out var t2))
                     {
-                        items.Add((t, t2));
+                        contents.Add(new(t, t2));
                     }
 
                     var transform = target.GetComponent<Transform>();
@@ -317,9 +474,10 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
 
                         while (current != null)
                         {
-                            if (current.Entity.TryGetComponent<T>(out t) && current.Entity.TryGetComponent<T2>(out t2))
+                            if (current.Entity.TryGetComponent<T>(out t) &&
+                                current.Entity.TryGetComponent<T2>(out t2))
                             {
-                                items.Add((t, t2));
+                                contents.Add(new(t, t2));
 
                                 break;
                             }
@@ -343,12 +501,13 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
                             return;
                         }
 
-                        if (transform.Entity.TryGetComponent<T>(out var t) && transform.Entity.TryGetComponent<T2>(out var t2))
+                        if (transform.Entity.TryGetComponent<T>(out var t) &&
+                            transform.Entity.TryGetComponent<T2>(out var t2))
                         {
-                            items.Add((t, t2));
+                            contents.Add(new(t, t2));
                         }
 
-                        foreach(var child in transform.Children)
+                        foreach (var child in transform.Children)
                         {
                             Recursive(child);
                         }
@@ -370,7 +529,7 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
                 {
                     if (target.TryGetComponent<T>(out var t) && target.TryGetComponent<T2>(out var t2))
                     {
-                        items.Add((t, t2));
+                        contents.Add(new(t, t2));
                     }
 
                     var transform = target.GetComponent<Transform>();
@@ -382,9 +541,10 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
                             return;
                         }
 
-                        if (transform.Entity.TryGetComponent<T>(out var t) && transform.Entity.TryGetComponent<T2>(out var t2))
+                        if (transform.Entity.TryGetComponent<T>(out var t) &&
+                            transform.Entity.TryGetComponent<T2>(out var t2))
                         {
-                            items.Add((t, t2));
+                            contents.Add(new(t, t2));
                         }
 
                         foreach (var child in transform.Children)
@@ -405,8 +565,6 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
                 break;
         }
 
-        Contents = items.ToArray();
-
         if (Contents.Length == 1)
         {
             Content = Contents[0];
@@ -417,16 +575,19 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
             return;
         }
 
-        ContentEntities = new (Entity, T, T2)[items.Count];
-
-        for (var i = 0; i < items.Count; i++)
+        foreach(ref var item in Contents)
         {
-            var item = items[i];
+            var entity = world.GetComponentEntity(item.first);
 
-            ContentEntities[i] = (world.GetComponentEntity(item.Item1), item.Item1, item.Item2);
+            if(!entity.IsValid)
+            {
+                continue;
+            }
+
+            contentEntities.Add(new(entity, item.first, item.second));
         }
 
-        if (items.Count == 1)
+        if (contentEntities.Length == 1)
         {
             ContentEntity = ContentEntities[0];
         }
