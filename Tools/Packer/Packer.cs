@@ -330,7 +330,7 @@ static class Program
                             }
 
                             var localPath = Path.GetRelativePath(basePath, file).Replace(Path.DirectorySeparatorChar, '/');
-                            var guid = PackerUtils.ExtractGuid(file, out var typeName) ?? Guid.NewGuid().ToString();
+                            var guid = PackerUtils.ExtractGuid(file.ToLowerInvariant(), out var typeName) ?? Guid.NewGuid().ToString();
 
                             if(fileGuids.Any(x => x == guid))
                             {
