@@ -849,10 +849,6 @@ internal partial class StapleEditor
 
                 var io = ImGui.GetIO();
 
-                io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
-                io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
-                io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
-
                 EditorGUI.io = io;
                 EditorGUI.editor = this;
 

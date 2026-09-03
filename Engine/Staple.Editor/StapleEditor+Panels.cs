@@ -224,6 +224,10 @@ internal partial class StapleEditor
             ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus | ImGuiWindowFlags.NoNavFocus |
             ImGuiWindowFlags.NoBackground;
 
+        ImGui.SetNextWindowPos(Vector2.Zero);
+
+        ImGui.SetNextWindowSize(Screen.Size);
+
         ImGui.Begin("Dockspace", windowFlags);
 
         var dockID = ImGui.GetID("Dockspace");

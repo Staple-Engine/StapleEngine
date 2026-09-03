@@ -109,6 +109,10 @@ internal class ImGuiProxy
 
         io.ConfigWindowsMoveFromTitleBarOnly = true;
 
+        io.ConfigFlags |= ImGuiConfigFlags.DockingEnable;
+        io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+        io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
+
         unsafe
         {
             var setPtr = Marshal.GetFunctionPointerForDelegate(SetClipboardText);
