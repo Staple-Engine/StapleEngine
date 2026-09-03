@@ -7,8 +7,7 @@ namespace Staple.Utilities;
 /// </summary>
 public class TimeTracker
 {
-    private float timeStamp;
-    private float timeMultiplier = 1.0f / (float)Stopwatch.Frequency;
+    private long timeStamp;
 
     /// <summary>
     /// The time since our last check. Resets the tracked time.
@@ -19,16 +18,14 @@ public class TimeTracker
         {
             if(timeStamp == 0)
             {
-                timeStamp = Stopwatch.GetTimestamp() * timeMultiplier;
+                timeStamp = Stopwatch.GetTimestamp();
             }
 
-            var current = Stopwatch.GetTimestamp() * timeMultiplier;
+            var elapsed = Stopwatch.GetElapsedTime(timeStamp);
 
-            var difference = current - timeStamp;
+            timeStamp = Stopwatch.GetTimestamp();
 
-            timeStamp = current;
-
-            return difference;
+            return (float)elapsed.TotalSeconds;
         }
     }
 
@@ -41,14 +38,12 @@ public class TimeTracker
         {
             if (timeStamp == 0)
             {
-                timeStamp = Stopwatch.GetTimestamp() * timeMultiplier;
+                timeStamp = Stopwatch.GetTimestamp();
             }
 
-            var current = Stopwatch.GetTimestamp() * timeMultiplier;
+            var elapsed = Stopwatch.GetElapsedTime(timeStamp);
 
-            var difference = current - timeStamp;
-
-            return difference;
+            return (float)elapsed.TotalSeconds;
         }
     }
 
@@ -57,6 +52,6 @@ public class TimeTracker
     /// </summary>
     public void Reset()
     {
-        timeStamp = Stopwatch.GetTimestamp() * timeMultiplier;
+        timeStamp = Stopwatch.GetTimestamp();
     }
 }
