@@ -186,7 +186,8 @@ static class Program
                                         {
                                             var textureData = PackerUtils.LoadTexture(pack, entry);
 
-                                            if(textureData == null)
+                                            if(textureData == null ||
+                                                (textureData.mips?.Length ?? 0) == 0)
                                             {
                                                 descriptionString = $" (Broken texture)";
                                             }
@@ -194,8 +195,11 @@ static class Program
                                             {
                                                 var cpuDataString = textureData.cpuData?.data != null ? "CPU Readable " : "";
 
+                                                var width = textureData.mips[0].width;
+                                                var height = textureData.mips[0].height;
+
                                                 descriptionString =
-                                                    $" ({cpuDataString}{textureData.width}x{textureData.height} {textureData.metadata.Format} texture)";
+                                                    $" ({cpuDataString}{width}x{height} {textureData.metadata.Format} texture)";
                                             }
                                         }
 
@@ -218,7 +222,7 @@ static class Program
                             Console.WriteLine($"\t{entry.path} ({entry.guid}, {entry.size}){descriptionString}");
                         }
 
-                        Console.WriteLine($"{pack.Files.Count()} files");
+                        Console.WriteLine($"{pack.Files.Length} files");
                     }
                     catch (Exception)
                     {
@@ -476,7 +480,26 @@ static class Program
                             {
                             }
 
-                            var usePath = resourcePak.Files.Count(x => x.guid == file.guid) > 1;
+                            var usePath = false;
+
+                            {
+                                var counter = 0;
+
+                                foreach (ref var f in resourcePak.Files)
+                                {
+                                    if (f.guid == file.guid)
+                                    {
+                                        counter++;
+
+                                        usePath = counter > 1;
+
+                                        if(usePath)
+                                        {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
 
                             Stream fileStream = null;
 
@@ -504,32 +527,37 @@ static class Program
                             {
                                 var textureData = PackerUtils.LoadTexture(resourcePak, file);
 
-                                if(textureData == null)
+                                if(textureData == null ||
+                                    (textureData.mips?.Length ?? 0) == 0)
                                 {
                                     continue;
                                 }
+
+                                var width = textureData.mips[0].width;
+                                var height = textureData.mips[0].height;
+                                var data = textureData.mips[0].data;
 
                                 var dumpPath = textureData.metadata.Format switch
                                 {
                                     TextureFormat.RGBA8 or TextureFormat.BGRA8 => Path.Combine(outputPath, file.path),
                                     _ => Path.Combine(outputPath,
-                                        $"{file.path}_{textureData.width}_{textureData.height}_{textureData.metadata.Format}.raw")
+                                        $"{file.path}_{width}_{height}_{textureData.metadata.Format}.raw")
                                 };
 
                                 if(dumpPath.EndsWith(".raw", StringComparison.OrdinalIgnoreCase))
                                 {
                                     using var outStream = File.OpenWrite(dumpPath);
 
-                                    outStream.Write(textureData.data);
+                                    outStream.Write(data);
                                 }
                                 else
                                 {
                                     var rawTextureData = new RawTextureData()
                                     {
                                         colorComponents = StandardTextureColorComponents.RGBA,
-                                        data = textureData.data,
-                                        width = textureData.width,
-                                        height = textureData.height,
+                                        data = data,
+                                        width = width,
+                                        height = height,
                                     };
 
                                     var outData = rawTextureData.EncodePNG();
@@ -541,7 +569,7 @@ static class Program
                             }
                         }
 
-                        Console.WriteLine($"Extracted {resourcePak.Files.Count()} files");
+                        Console.WriteLine($"Extracted {resourcePak.Files.Length} files");
                     }
                     catch(Exception e)
                     {

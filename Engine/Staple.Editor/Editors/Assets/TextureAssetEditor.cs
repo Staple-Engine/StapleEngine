@@ -154,7 +154,8 @@ internal class TextureAssetEditor : AssetEditor
                                     item.premultiplyAlpha = premultiplyAlpha;
                                 }
                             });
-                        }, null);
+                        },
+                        null);
                 }
 
                 return true;

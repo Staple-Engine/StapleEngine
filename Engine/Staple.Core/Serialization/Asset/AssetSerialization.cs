@@ -298,4 +298,41 @@ public static partial class AssetSerialization
 
         return null;
     }
+    
+    /// <summary>
+    /// Gets the block size for a specific texture format. A texture should always be sized by a multiple of this block size
+    /// </summary>
+    /// <param name="format">The format</param>
+    /// <returns>The block size</returns>
+    public static int GetTextureBlockSize(TextureFormat format)
+    {
+        return format switch
+        {
+            TextureFormat.R8 or TextureFormat.R8U or TextureFormat.R8I or TextureFormat.A8 => 1,
+
+            TextureFormat.B5G6R5 or TextureFormat.BGRA4 or TextureFormat.BGR5A1 or
+            TextureFormat.R16F or TextureFormat.RG8 or TextureFormat.RG8S or TextureFormat.RG8U or TextureFormat.RG8I or
+            TextureFormat.R16 or TextureFormat.R16S or TextureFormat.R16U or TextureFormat.R16I or TextureFormat.D16 => 2,
+
+            TextureFormat.RGBA8 or TextureFormat.BGRA8 or TextureFormat.R32F or TextureFormat.RG16F or
+            TextureFormat.RG11B10F or TextureFormat.RGBA8S or TextureFormat.RGBA8U or TextureFormat.RGBA16I or
+            TextureFormat.RGB10A2 or TextureFormat.RG16U or TextureFormat.RG16I or TextureFormat.RG16 or
+            TextureFormat.RG16S or TextureFormat.D24 or TextureFormat.D32F or TextureFormat.R32U or TextureFormat.R32I or
+            TextureFormat.D24S8 => 4,
+
+            TextureFormat.BC1 or TextureFormat.BC4 or TextureFormat.RGBA16F or TextureFormat.RGBA16 or TextureFormat.RGBA16S or
+            TextureFormat.RGBA16U or TextureFormat.RGBA16I or TextureFormat.RG32F or TextureFormat.RG32U or TextureFormat.RG32I => 8,
+
+            TextureFormat.BC2 or TextureFormat.BC3 or TextureFormat.BC5 or TextureFormat.BC6H or TextureFormat.BC7 or
+            TextureFormat.RGBA32F or TextureFormat.RGBA32I or TextureFormat.RGBA32U or TextureFormat.ASTC4x4 or TextureFormat.ASTC5x4 or
+            TextureFormat.ASTC5x5 or TextureFormat.ASTC6x5 or TextureFormat.ASTC6x6 or TextureFormat.ASTC8x5 or TextureFormat.ASTC8x6 or
+            TextureFormat.ASTC8x8 or TextureFormat.ASTC10x5 or TextureFormat.ASTC10x6 or TextureFormat.ASTC10x8 or TextureFormat.ASTC10x10 or
+            TextureFormat.ASTC12x10 or TextureFormat.ASTC12x12 or TextureFormat.ASTC4x4F or TextureFormat.ASTC5x4F or TextureFormat.ASTC5x5F or
+            TextureFormat.ASTC6x5F or TextureFormat.ASTC6x6F or TextureFormat.ASTC8x5F or TextureFormat.ASTC8x6F or TextureFormat.ASTC8x8F or
+            TextureFormat.ASTC10x5F or TextureFormat.ASTC10x6F or TextureFormat.ASTC10x8F or TextureFormat.ASTC10x10F or
+            TextureFormat.ASTC12x10F or TextureFormat.ASTC12x12F => 16,
+
+            _ => -1,
+        };
+    }
 }

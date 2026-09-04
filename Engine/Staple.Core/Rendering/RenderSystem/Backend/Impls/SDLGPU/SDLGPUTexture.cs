@@ -42,4 +42,14 @@ internal class SDLGPUTexture(ResourceHandle<Texture> handle, int width, int heig
 
         backend.UpdateTexture(handle, data);
     }
+
+    public void Update(Span<TextureMipData> mips)
+    {
+        if (Disposed || !handle.IsValid)
+        {
+            return;
+        }
+
+        backend.UpdateTexture(handle, mips);
+    }
 }

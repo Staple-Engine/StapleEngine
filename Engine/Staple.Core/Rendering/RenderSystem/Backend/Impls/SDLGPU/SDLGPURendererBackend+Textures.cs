@@ -152,20 +152,24 @@ internal partial class SDLGPURendererBackend
         {
             var format = asset.metadata.Format;
 
-            if (!TryGetTextureFormat(format, flags, out var textureFormat))
+            if ((asset.mips?.Length ?? 0) == 0 ||
+                !TryGetTextureFormat(format, flags, out var textureFormat))
             {
                 return null;
             }
 
+            var width = asset.mips[0].width;
+            var height = asset.mips[0].height;
+
             var info = new SDL_GPUTextureCreateInfo()
             {
                 format = textureFormat,
-                width = (uint)asset.width,
-                height = (uint)asset.height,
+                width = (uint)width,
+                height = (uint)height,
                 type = GetTextureType(flags),
                 usage = GetTextureUsage(flags),
                 layer_count_or_depth = 1,
-                num_levels = 1,
+                num_levels = (uint)asset.mips.Length,
             };
 
             var texture = SDL3.SDL_CreateGPUTexture(device, &info);
@@ -175,7 +179,7 @@ internal partial class SDLGPURendererBackend
                 return null;
             }
 
-            var handle = ReserveTextureResource(textures, texture, asset.width, asset.height, format, flags);
+            var handle = ReserveTextureResource(textures, texture, width, height, format, flags);
 
             if (!handle.IsValid)
             {
@@ -184,9 +188,9 @@ internal partial class SDLGPURendererBackend
                 return null;
             }
 
-            var outValue = new SDLGPUTexture(handle, asset.width, asset.height, format, flags, this, GetSamplerForTexture(flags));
+            var outValue = new SDLGPUTexture(handle, width, height, format, flags, this, GetSamplerForTexture(flags));
 
-            outValue.Update(asset.data);
+            outValue.Update(asset.mips);
 
             return outValue;
         }
@@ -332,6 +336,11 @@ internal partial class SDLGPURendererBackend
     public void UpdateTexture(ResourceHandle<Texture> handle, Span<byte> data)
     {
         AddCommand(new SDLGPUUpdateTextureCommand(this, handle, data.ToArray()));
+    }
+
+    public void UpdateTexture(ResourceHandle<Texture> handle, Span<TextureMipData> data)
+    {
+        AddCommand(new SDLGPUUpdateTextureMipsCommand(this, handle, data.ToArray()));
     }
 
     public void ReadTexture(ITexture texture, Action<byte[]> onComplete)

@@ -225,6 +225,7 @@
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPURenderTransientUIntCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUUpdateIndexBufferCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUUpdateTextureCommand.cs" />
+		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUUpdateTextureMipsCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\Commands\SDLGPUUpdateVertexBufferCommand.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPURendererBackend+Buffers.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\Impls\SDLGPU\SDLGPUIndexBuffer.cs" />

@@ -38,19 +38,26 @@ public class SerializableTextureCPUData
 }
 
 [MessagePackObject]
+public struct TextureMipData
+{
+    [Key(0)]
+    public byte[] data;
+
+    [Key(1)]
+    public int width;
+
+    [Key(2)]
+    public int height;
+}
+
+[MessagePackObject]
 public class SerializableTexture
 {
     [Key(0)]
     public TextureMetadata metadata;
 
     [Key(1)]
-    public byte[] data;
-
-    [Key(2)]
-    public int width;
-
-    [Key(3)]
-    public int height;
+    public TextureMipData[] mips;
 
     [Key(4)]
     public SerializableTextureCPUData cpuData;

@@ -10,6 +10,11 @@ internal class TextureAssetCreateMethod(string path, SerializableTexture asset, 
     {
         unsafe
         {
+            if((asset?.mips?.Length ?? 0) == 0)
+            {
+                return false;
+            }
+
             Texture.ProcessFlags(ref flags, asset.metadata);
 
             texture.impl?.Destroy();

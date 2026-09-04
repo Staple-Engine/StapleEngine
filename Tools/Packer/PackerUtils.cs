@@ -340,7 +340,26 @@ static class PackerUtils
 
     public static SerializableTexture LoadTexture(ResourcePak resourcePak, ResourcePak.FileInfo file)
     {
-        var usePath = resourcePak.Files.Count(x => x.guid == file.guid) > 1;
+        var usePath = false;
+
+        {
+            var counter = 0;
+
+            foreach (ref var f in resourcePak.Files)
+            {
+                if(f.guid == file.guid)
+                {
+                    counter++;
+
+                    usePath = counter > 1;
+
+                    if(usePath)
+                    {
+                        break;
+                    }
+                }
+            }
+        }
 
         using var stream = usePath ? resourcePak.Open(file.path) : resourcePak.OpenGuid(file.guid);
 

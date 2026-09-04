@@ -109,7 +109,7 @@ static partial class Program
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"\t\tError: Failed to read file");
+                    Console.WriteLine($"\t\tError: Failed to read file for {inputFile}");
 
                     return;
                 }
@@ -121,7 +121,7 @@ static partial class Program
                 }
                 catch (Exception)
                 {
-                    Console.WriteLine($"\t\tError: Metadata is corrupted");
+                    Console.WriteLine($"\t\tError: Metadata for {inputFile} is corrupted");
 
                     return;
                 }
@@ -169,14 +169,14 @@ static partial class Program
                     }
                     catch (Exception e)
                     {
-                        Console.WriteLine($"\t\tFailed to load image data: {e}");
+                        Console.WriteLine($"\t\tFailed to load image data for {inputFile}: {e}");
 
                         return;
                     }
 
                     if (textureData == null)
                     {
-                        Console.WriteLine($"\t\tFailed to load image data");
+                        Console.WriteLine($"\t\tFailed to load image data for {inputFile}");
 
                         return;
                     }
@@ -208,7 +208,7 @@ static partial class Program
                     }
                     catch (Exception)
                     {
-                        Console.WriteLine("\t\tFailed to process: I/O Error");
+                        Console.WriteLine($"\t\tFailed to process {inputFile}: I/O Error");
 
                         return;
                     }
@@ -653,18 +653,51 @@ static partial class Program
                                 return;
                             }
 
-                            var textureData = KTX.ktxTexture_GetData(t);
-                            var size = KTX.ktxTexture_GetDataSize(t);
                             var width = t->baseWidth;
                             var height = t->baseHeight;
 
-                            var finalData = new Span<byte>(textureData, (int)size).ToArray();
+                            var mips = new List<TextureMipData>();
+
+                            KTX.ktxTexture_IterateLevels(t, (mipLevel, face, width, height, depth, faceLodSize, pixels, userData) =>
+                            {
+                                var data = new byte[faceLodSize];
+
+                                new Span<byte>(pixels, (int)faceLodSize).CopyTo(data);
+
+                                mips.Add(new()
+                                {
+                                    width = (int)width,
+                                    height = (int)height,
+                                    data = data,
+                                });
+
+                                return ktx_error_code_e.KTX_SUCCESS;
+                            },
+                            null);
 
                             KTX.ktxTexture_Destroy(t);
 
-                            texture.width = (int)width;
-                            texture.height = (int)height;
-                            texture.data = finalData;
+                            if(mips.Count == 0)
+                            {
+                                Console.WriteLine($"\t\tError: Failed to process {inputFile}: No mips generfated");
+
+                                try
+                                {
+                                    if (replacedInput)
+                                    {
+                                        File.Delete(inputFile);
+                                    }
+
+                                    File.Delete(outputFileTemp);
+                                }
+                                catch (Exception)
+                                {
+                                }
+
+                                return;
+                            }
+
+                            texture.mips = [.. mips];
                         }
                     }
 
@@ -704,7 +737,7 @@ static partial class Program
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"\t\tError: Failed to save texture: {e}");
+                    Console.WriteLine($"\t\tError: Failed to process {inputFile}: {e}");
 
                     try
                     {
