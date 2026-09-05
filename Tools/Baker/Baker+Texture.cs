@@ -658,8 +658,16 @@ static partial class Program
 
                             var mips = new List<TextureMipData>();
 
+                            var blockSize = AssetSerialization.GetTextureBlockSize(format);
+
                             KTX.ktxTexture_IterateLevels(t, (mipLevel, face, width, height, depth, faceLodSize, pixels, userData) =>
                             {
+                                //Ensure we get at least mip 0 even if not the right block size
+                                if(mipLevel != 0 && (width % blockSize != 0 || height % blockSize != 0))
+                                {
+                                    return ktx_error_code_e.KTX_SUCCESS;
+                                }
+
                                 var data = new byte[faceLodSize];
 
                                 new Span<byte>(pixels, (int)faceLodSize).CopyTo(data);

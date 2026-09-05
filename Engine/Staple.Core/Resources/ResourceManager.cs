@@ -1528,7 +1528,7 @@ internal class ResourceManager : IWorldChangeReceiver
             return outValue;
         }
 
-        var resource = LoadShaderResource(path);
+        var resource = LoadShaderResource(guid);
 
         if (resource == null)
         {

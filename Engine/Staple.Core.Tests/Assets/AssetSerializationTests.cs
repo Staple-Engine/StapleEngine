@@ -789,4 +789,18 @@ internal class AssetSerializationTests
 
         Assert.That(result.parameters[nameof(HexDebugAsset.values)].value, Is.EqualTo("ABCDEF01"));
     }
+
+    [Test]
+    public void TestTextureBlockSize()
+    {
+        foreach(var format in Enum.GetValues<TextureFormat>())
+        {
+            Assert.That(AssetSerialization.GetTextureBlockSize(format), Is.GreaterThan(0), $"{format}");
+        }
+
+        foreach (var format in Enum.GetValues<TextureMetadataFormat>())
+        {
+            Assert.That(AssetSerialization.GetTextureBlockSize(format), Is.GreaterThan(0), $"{format}");
+        }
+    }
 }

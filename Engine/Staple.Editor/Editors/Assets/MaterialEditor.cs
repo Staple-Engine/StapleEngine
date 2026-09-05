@@ -220,7 +220,7 @@ internal class MaterialEditor : AssetEditor
 
                     var attribute = ShaderUniformAttributeType.None;
 
-                    if (activeShader.TryGetUniformAttributeType(parameter.Key, out attribute) &&
+                    if ((activeShader?.TryGetUniformAttributeType(parameter.Key, out attribute) ?? false) &&
                         attribute == ShaderUniformAttributeType.HideInInspector)
                     {
                         continue;
@@ -484,7 +484,9 @@ internal class MaterialEditor : AssetEditor
 
                             material.shader = s.Guid.Guid;
 
-                            material.parameters = [];
+                            var previousParameters = new Dictionary<string, MaterialParameter>(material.parameters);
+
+                            material.parameters.Clear();
 
                             static MaterialParameterType ParameterType(ShaderUniformType type)
                             {
@@ -503,6 +505,43 @@ internal class MaterialEditor : AssetEditor
                                     */
                                     _ => (MaterialParameterType)(-1),
                                 };
+                            }
+
+                            foreach (var uniform in s.shaderResource.metadata.uniforms)
+                            {
+                                if (uniform.type == ShaderUniformType.Float &&
+                                    uniform.name.EndsWith("Set") && s.shaderResource.metadata.uniforms
+                                        .Any(x => x.type == ShaderUniformType.Texture &&
+                                            x.name == uniform.name[..^"Set".Length]))
+                                {
+                                    continue;
+                                }
+
+                                var type = ParameterType(uniform.type);
+
+                                if (type == (MaterialParameterType)(-1))
+                                {
+                                    continue;
+                                }
+
+                                if(previousParameters.TryGetValue(uniform.name, out var original) &&
+                                    original.type == type &&
+                                    original.source == MaterialParameterSource.Uniform)
+                                {
+                                    material.parameters.Add(uniform.name, original);
+                                }
+                                else
+                                {
+                                    var parameter = new MaterialParameter()
+                                    {
+                                        type = type,
+                                        source = MaterialParameterSource.Uniform,
+                                    };
+
+                                    InitializeMaterialParameter(parameter, uniform);
+
+                                    material.parameters.Add(uniform.name, parameter);
+                                }
                             }
 
                             ResourceManager.instance.IterateMaterials(material.guid,
@@ -536,8 +575,6 @@ internal class MaterialEditor : AssetEditor
 
                                         InitializeMaterialParameter(parameter, uniform);
 
-                                        material.parameters.Add(uniform.name, parameter);
-
                                         ApplyMaterialInstanceParameter(uniform.name, parameter, materialInstance);
                                     }
 
@@ -564,8 +601,6 @@ internal class MaterialEditor : AssetEditor
                                             source = MaterialParameterSource.Instance,
                                         };
 
-                                        material.parameters.Add(uniform.name, parameter);
-
                                         ApplyMaterialInstanceParameter(uniform.name, parameter, materialInstance);
                                     }
                                 });
@@ -575,6 +610,7 @@ internal class MaterialEditor : AssetEditor
                         else
                         {
                             material.shader = "";
+                            material.parameters.Clear();
 
                             activeShader = null;
 
