@@ -1653,17 +1653,14 @@ public sealed partial class Mesh : IGuidAsset
             parent = parentEntity.GetComponent<Transform>();
         }
 
-        var meshEntity = Entity.Create(name, typeof(Transform), typeof(CullingVolume));
-        var meshTransform = meshEntity.GetComponent<Transform>();
+        var meshEntity = Entity.Create(name, out Transform meshTransform, out CullingVolume _);
 
         meshTransform.SetParent(parent);
 
         if (!options.HasFlag(MeshInstanceOptions.DontAdjust) &&
             mesh.meshAsset?.AdjustmentTransform is MeshAdjustmentTransform adjustment)
         {
-            var adjustmentEntity = Entity.Create("StapleAdjustment", typeof(Transform));
-
-            var adjustmentTransform = adjustmentEntity.GetComponent<Transform>();
+            var adjustmentEntity = Entity.Create("StapleAdjustment", out Transform adjustmentTransform);
 
             adjustmentTransform.SetParent(parent);
 
@@ -1735,17 +1732,14 @@ public sealed partial class Mesh : IGuidAsset
             parent = parentEntity.GetComponent<Transform>();
         }
 
-        var baseEntity = Entity.Create(name, typeof(Transform), typeof(CullingVolume));
-        var baseTransform = baseEntity.GetComponent<Transform>();
+        var baseEntity = Entity.Create(name, out Transform baseTransform, out CullingVolume _);
 
         baseTransform.SetParent(parent);
 
         if (!options.HasFlag(MeshInstanceOptions.DontAdjust) &&
             asset.AdjustmentTransform is MeshAdjustmentTransform adjustment)
         {
-            var adjustmentEntity = Entity.Create("StapleAdjustment", typeof(Transform));
-
-            var adjustmentTransform = adjustmentEntity.GetComponent<Transform>();
+            var adjustmentEntity = Entity.Create("StapleAdjustment", out Transform adjustmentTransform);
 
             adjustmentTransform.SetParent(parent);
 
@@ -1773,9 +1767,7 @@ public sealed partial class Mesh : IGuidAsset
             {
                 var node = asset.Nodes[i];
 
-                var nodeParent = Entity.Create(node.name, typeof(Transform));
-
-                var nodeTransform = nodeParent.GetComponent<Transform>();
+                var nodeParent = Entity.Create(node.name, out Transform nodeTransform);
 
                 if(i == 0 && node.name == "StapleRoot")
                 {
@@ -1786,7 +1778,8 @@ public sealed partial class Mesh : IGuidAsset
 
                 var parentIndex = node.parent?.index ?? -1;
 
-                var nodeTarget = parentIndex >= 0 ? parents[parentIndex] : (i > 0 && stapleRootNodeTransform != null ? stapleRootNodeTransform : baseTransform);
+                var nodeTarget = parentIndex >= 0 ? parents[parentIndex] : (i > 0 && stapleRootNodeTransform != null ?
+                    stapleRootNodeTransform : baseTransform);
 
                 nodeTransform.SetParent(nodeTarget);
 
@@ -1803,9 +1796,7 @@ public sealed partial class Mesh : IGuidAsset
 
                     var mesh = asset.Meshes[index];
 
-                    var meshEntity = Entity.Create(mesh.name, typeof(Transform));
-
-                    var meshTransform = meshEntity.GetComponent<Transform>();
+                    var meshEntity = Entity.Create(mesh.name, out Transform meshTransform);
 
                     var isSkinned = mesh.bones.Length > 0;
 
@@ -1855,9 +1846,7 @@ public sealed partial class Mesh : IGuidAsset
             {
                 var mesh = asset.Meshes[i];
 
-                var meshEntity = Entity.Create(mesh.name, typeof(Transform));
-
-                var meshTransform = meshEntity.GetComponent<Transform>();
+                var meshEntity = Entity.Create(mesh.name, out Transform meshTransform);
 
                 var isSkinned = mesh.bones.Length > 0;
 

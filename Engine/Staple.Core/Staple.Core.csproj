@@ -130,6 +130,7 @@
 		<Compile Include="Audio\Readers\WaveAudioStream.cs" />
 		<Compile Include="Entities\CallbackComponent.cs" />
 		<Compile Include="Entities\ComponentVersionTracker.cs" />
+		<Compile Include="Entities\ExecuteInEditModeEventType.cs" />
 		<Compile Include="Entities\IComponentVersion.cs" />
 		<Compile Include="Entities\Entity+Components.cs" />
 		<Compile Include="Entities\Entity+Instantiate.cs" />
@@ -140,6 +141,7 @@
 		<Compile Include="Entities\EntityPrimitiveType.cs" />
 		<Compile Include="Entities\EntityQuery.cs" />
 		<Compile Include="Entities\IComponentDisposable.cs" />
+		<Compile Include="Entities\IExecuteInEditMode.cs" />
 		<Compile Include="Entities\Prefab.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\FastNoiseLite\FastNoiseLite.cs" />

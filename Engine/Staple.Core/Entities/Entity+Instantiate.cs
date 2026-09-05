@@ -21,13 +21,11 @@ public partial struct Entity
             return default;
         }
 
-        var newEntity = Create(rename ? $"{source.Name} (Clone)" : source.Name, typeof(Transform));
+        var newEntity = Create(rename ? $"{source.Name} (Clone)" : source.Name, out Transform transform);
 
         newEntity.Enabled = source.Enabled;
 
         newEntity.SetLayer(source.Layer);
-
-        var transform = newEntity.GetComponent<Transform>();
 
         transform.SetParent(parent);
 
@@ -76,12 +74,10 @@ public partial struct Entity
             return default;
         }
 
-        var newEntity = Create(rename ? $"{source.Name} (Clone)" : source.Name, typeof(Transform));
+        var newEntity = Create(rename ? $"{source.Name} (Clone)" : source.Name, out Transform transform);
 
         newEntity.Enabled = source.Enabled;
         newEntity.SetLayer(source.Layer);
-
-        var transform = newEntity.GetComponent<Transform>();
 
         if (parent != null)
         {

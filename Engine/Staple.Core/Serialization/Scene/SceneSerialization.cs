@@ -23,7 +23,7 @@ internal static class SceneSerialization
 
         Scene.InstancingComponent = true;
 
-        var entity = Entity.Create(sceneObject.name);
+        var entity = Entity.Create<Transform>(sceneObject.name, out var transform);
 
         if ((sceneObject.prefabGuid?.Length ?? 0) > 0)
         {
@@ -31,8 +31,6 @@ internal static class SceneSerialization
         }
 
         entity.HierarchyVisibility = sceneObject.hierarchyVisibility;
-
-        var transform = entity.AddComponent<Transform>();
 
         entity.Enabled = sceneObject.enabled;
 
@@ -118,15 +116,29 @@ internal static class SceneSerialization
         {
             entity.IterateComponents((ref c) =>
             {
-                if(Platform.IsPlaying && c is CallbackComponent callback)
+                if(c is CallbackComponent callback)
                 {
-                    try
+                    if(Platform.IsPlaying)
                     {
-                        callback.Awake();
+                        try
+                        {
+                            callback.Awake();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                        }
                     }
-                    catch (Exception e)
+                    else if (callback is IExecuteInEditMode executor)
                     {
-                        Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                        try
+                        {
+                            executor.ExecuteInEditModeEvent(ExecuteInEditModeEventType.Awake);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                        }
                     }
                 }
 

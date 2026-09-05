@@ -151,18 +151,31 @@ public partial class World
                 }
             }
 
-            if(Platform.IsPlaying &&
-                !Scene.InstancingComponent &&
+            if(!Scene.InstancingComponent &&
                 callableComponentTypes.Count != 0 &&
                 container.component is CallbackComponent callback)
             {
-                try
+                if(Platform.IsPlaying)
                 {
-                    callback.Awake();
+                    try
+                    {
+                        callback.Awake();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                    }
                 }
-                catch (Exception e)
+                else if(callback is IExecuteInEditMode executor)
                 {
-                    Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                    try
+                    {
+                        executor.ExecuteInEditModeEvent(ExecuteInEditModeEventType.Awake);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                    }
                 }
             }
 
@@ -286,17 +299,30 @@ public partial class World
                         entityInfo.transform = null;
                     }
 
-                    if (Platform.IsPlaying &&
-                        callableComponentTypes.Count != 0 &&
+                    if (callableComponentTypes.Count != 0 &&
                         container.component is CallbackComponent callable)
                     {
-                        try
+                        if(Platform.IsPlaying)
                         {
-                            callable.OnDestroy();
+                            try
+                            {
+                                callable.OnDestroy();
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Debug($"{entity.Name} ({callable.GetType().FullName}): Exception thrown while handling OnDestroy: {e}");
+                            }
                         }
-                        catch (Exception e)
+                        else if(callable is IExecuteInEditMode executor)
                         {
-                            Log.Debug($"{entity.Name} ({callable.GetType().FullName}): Exception thrown while handling OnDestroy: {e}");
+                            try
+                            {
+                                executor.ExecuteInEditModeEvent(ExecuteInEditModeEventType.Destroy);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Debug($"{entity.Name} ({callable.GetType().FullName}): Exception thrown while handling OnDestroy: {e}");
+                            }
                         }
                     }
 

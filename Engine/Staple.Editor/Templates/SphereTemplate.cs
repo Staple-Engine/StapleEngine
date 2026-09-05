@@ -6,10 +6,6 @@ public class SphereTemplate : IEntityTemplate
 
     public Entity Create()
     {
-        var entity = Entity.CreatePrimitive(EntityPrimitiveType.Sphere);
-
-        entity.Name = Name;
-
-        return entity;
+        return Entity.CreatePrimitive(Name, EntityPrimitiveType.Sphere);
     }
 }

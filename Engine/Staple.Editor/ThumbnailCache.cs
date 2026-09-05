@@ -453,9 +453,10 @@ internal class ThumbnailCache
                             return;
                         }
 
-                        var tempEntity = Entity.CreatePrimitive(EntityPrimitiveType.Sphere);
+                        var tempEntity = Entity.CreatePrimitive("TEMP", EntityPrimitiveType.Sphere, false, out var _, out MeshRenderer meshRenderer,
+                            out _);
 
-                        if (!tempEntity.IsValid || !tempEntity.TryGetComponent<MeshRenderer>(out var meshRenderer))
+                        if (!tempEntity.IsValid)
                         {
                             Cleanup();
 
@@ -464,10 +465,7 @@ internal class ThumbnailCache
                             return;
                         }
 
-                        tempEntity.Name = "TEMP";
-
-                        meshRenderer.materials = Enumerable.Repeat(material, meshRenderer.materials.Count)
-                            .ToList();
+                        meshRenderer.materials = [.. Enumerable.Repeat(material, meshRenderer.materials.Count)];
 
                         tempEntity.SetLayer((uint)LayerMask.NameToLayer(StapleEditor.RenderTargetLayerName), true);
 

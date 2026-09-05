@@ -414,4 +414,36 @@ public static class EditorUtils
 
         return cachePath;
     }
+
+    public static void GetSceneCamera(out Camera camera, out Transform cameraTransform)
+    {
+        var instance = StapleEditor.instance;
+
+        camera = instance.camera;
+        cameraTransform = instance.cameraTransform;
+    }
+
+    internal static void ExecuteEditorEvent(ExecuteInEditModeEventType eventType)
+    {
+        World.Current?.IterateCallableComponents((contents) =>
+        {
+            for (var i = 0; i < contents.Length; i++)
+            {
+                var (entity, callable) = contents[i];
+
+                if (callable is IExecuteInEditMode executor)
+                {
+                    try
+                    {
+                        executor.ExecuteInEditModeEvent(eventType);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"{entity.Name} ({callable.GetType().FullName}): Exception thrown while handling {eventType}: {e}");
+                    }
+                }
+            }
+        },
+        false);
+    }
 }

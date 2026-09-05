@@ -6,10 +6,6 @@ public class CubeTemplate : IEntityTemplate
 
     public Entity Create()
     {
-        var entity = Entity.CreatePrimitive(EntityPrimitiveType.Cube);
-
-        entity.Name = Name;
-
-        return entity;
+        return Entity.CreatePrimitive(Name, EntityPrimitiveType.Cube);
     }
 }

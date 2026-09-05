@@ -6,9 +6,7 @@ public class PointLightTemplate : IEntityTemplate
 
     public Entity Create()
     {
-        var entity = Entity.Create(Name, typeof(Transform), typeof(Light));
-
-        var light = entity.GetComponent<Light>();
+        var entity = Entity.Create(Name, out Transform _, out Light light);
 
         light.type = LightType.Point;
 

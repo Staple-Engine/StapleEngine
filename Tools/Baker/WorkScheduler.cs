@@ -40,7 +40,7 @@ internal class WorkScheduler
             workCount++;
         }
 
-        Task.Run(() =>
+        ThreadPool.QueueUserWorkItem((_) =>
         {
             try
             {
@@ -55,7 +55,7 @@ internal class WorkScheduler
             {
                 taskCount--;
 
-                if(logCompletion)
+                if (logCompletion)
                 {
                     Console.WriteLine($"[{workCount - taskCount}/{workCount}] {fileName}");
                 }

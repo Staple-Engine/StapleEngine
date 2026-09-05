@@ -580,9 +580,9 @@ public partial class World
     /// Iterates through every callable component type
     /// </summary>
     /// <param name="callback">A callback to execute with the component</param>
-    internal void IterateCallableComponents(CallableComponentCallback callback)
+    internal void IterateCallableComponents(CallableComponentCallback callback, bool checkPlaying = true)
     {
-        if (!Platform.IsPlaying)
+        if (checkPlaying && !Platform.IsPlaying)
         {
             return;
         }

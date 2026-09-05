@@ -1227,7 +1227,7 @@ public class JoltPhysics3D : IPhysics3D
             var closestDistance = 99999.0f;
             var lastBody = default(IBody3D);
 
-            IBody3D body = null;
+            IBody3D body;
             var fraction = 0.0f;
 
             foreach(var hit in results)
@@ -1256,7 +1256,7 @@ public class JoltPhysics3D : IPhysics3D
 
             body = lastBody;
 
-            raycastHit = new(body, fraction, ray.position + ray.direction * fraction);
+            raycastHit = new(body, fraction, ray.position + ray.direction * fraction * maxDistance);
 
             return true;
         }
@@ -1310,7 +1310,7 @@ public class JoltPhysics3D : IPhysics3D
             {
                 if (TryFindBody(hit.BodyID, out var body))
                 {
-                    outValue.Add(new(body, hit.Fraction, ray.position + ray.direction * hit.Fraction));
+                    outValue.Add(new(body, hit.Fraction * maxDistance, ray.position + ray.direction * hit.Fraction * maxDistance));
                 }
             }
 
@@ -1379,7 +1379,7 @@ public class JoltPhysics3D : IPhysics3D
 
                 if (TryFindBody(hit.BodyID, out var body))
                 {
-                    hits[counter++] = new(body, hit.Fraction, ray.position + ray.direction * hit.Fraction);
+                    hits[counter++] = new(body, hit.Fraction * maxDistance, ray.position + ray.direction * hit.Fraction * maxDistance);
                 }
             }
 

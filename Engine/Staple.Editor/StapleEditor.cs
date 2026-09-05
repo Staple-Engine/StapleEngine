@@ -317,9 +317,9 @@ internal partial class StapleEditor
 
     private ViewportType viewportType = ViewportType.Scene;
 
-    private readonly Camera camera = new();
+    internal readonly Camera camera = new();
 
-    private readonly Transform cameraTransform = new();
+    internal readonly Transform cameraTransform = new();
 
     internal Material wireframeMaterial;
 
@@ -1328,6 +1328,8 @@ internal partial class StapleEditor
                 }
             }
 
+            EditorUtils.ExecuteEditorEvent(ExecuteInEditModeEventType.Update);
+
             EditorGUI.OnFrameEnd();
 
             ProgressPopup(io);
@@ -1446,6 +1448,10 @@ internal partial class StapleEditor
                 {
                     EntitySystemManager.Instance.UpdateFixed();
                 });
+            }
+            else
+            {
+                EditorUtils.ExecuteEditorEvent(ExecuteInEditModeEventType.FixedUpdate);
             }
         };
 

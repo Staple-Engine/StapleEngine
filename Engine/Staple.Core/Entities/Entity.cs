@@ -153,6 +153,215 @@ public partial struct Entity
     }
 
     /// <summary>
+    /// Creates an entity with specific component types
+    /// </summary>
+    /// <param name="A">The first component instance</param>
+    /// <returns>The entity, or default</returns>
+    /// <typeparam name="T">The first component type</typeparam>
+    public static Entity Create<T>(out T A) where T: IComponent
+    {
+        if (World.Current == null)
+        {
+            A = default;
+
+            return default;
+        }
+
+        var entity = World.Current.CreateEntity();
+
+        if (!entity.IsValid)
+        {
+            A = default;
+
+            return default;
+        }
+
+        A = entity.AddComponent<T>();
+
+        return entity;
+    }
+
+    /// <summary>
+    /// Creates an entity with specific component types
+    /// </summary><
+    /// <param name="A">The first component instance</param>
+    /// <param name="B">The second component instance</param>
+    /// <returns>The entity, or default</returns>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    public static Entity Create<T, T2>(out T A, out T2 B)
+        where T : IComponent
+        where T2 : IComponent
+    {
+        if (World.Current == null)
+        {
+            A = default;
+            B = default;
+
+            return default;
+        }
+
+        var entity = World.Current.CreateEntity();
+
+        if (!entity.IsValid)
+        {
+            A = default;
+            B = default;
+
+            return default;
+        }
+
+        A = entity.AddComponent<T>();
+        B = entity.AddComponent<T2>();
+
+        return entity;
+    }
+
+    /// <summary>
+    /// Creates an entity with specific component types
+    /// </summary><
+    /// <param name="A">The first component instance</param>
+    /// <param name="B">The second component instance</param>
+    /// <param name="C">The third component instance</param>
+    /// <returns>The entity, or default</returns>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    /// <typeparam name="T3">The third component type</typeparam>
+    public static Entity Create<T, T2, T3>(out T A, out T2 B, out T3 C)
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+    {
+        if (World.Current == null)
+        {
+            A = default;
+            B = default;
+            C = default;
+
+            return default;
+        }
+
+        var entity = World.Current.CreateEntity();
+
+        if (!entity.IsValid)
+        {
+            A = default;
+            B = default;
+            C = default;
+
+            return default;
+        }
+
+        A = entity.AddComponent<T>();
+        B = entity.AddComponent<T2>();
+        C = entity.AddComponent<T3>();
+
+        return entity;
+    }
+
+    /// <summary>
+    /// Creates an entity with specific component types
+    /// </summary><
+    /// <param name="A">The first component instance</param>
+    /// <param name="B">The second component instance</param>
+    /// <param name="C">The third component instance</param>
+    /// <param name="D">The fourth component instance</param>
+    /// <returns>The entity, or default</returns>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    /// <typeparam name="T3">The third component type</typeparam>
+    /// <typeparam name="T4">The fourth component type</typeparam>
+    public static Entity Create<T, T2, T3, T4>(out T A, out T2 B, out T3 C, out T4 D)
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+        where T4 : IComponent
+    {
+        if (World.Current == null)
+        {
+            A = default;
+            B = default;
+            C = default;
+            D = default;
+
+            return default;
+        }
+
+        var entity = World.Current.CreateEntity();
+
+        if (!entity.IsValid)
+        {
+            A = default;
+            B = default;
+            C = default;
+            D = default;
+
+            return default;
+        }
+
+        A = entity.AddComponent<T>();
+        B = entity.AddComponent<T2>();
+        C = entity.AddComponent<T3>();
+        D = entity.AddComponent<T4>();
+
+        return entity;
+    }
+
+    /// <summary>
+    /// Creates an entity with specific component types
+    /// </summary><
+    /// <param name="A">The first component instance</param>
+    /// <param name="B">The second component instance</param>
+    /// <param name="C">The third component instance</param>
+    /// <param name="D">The fourth component instance</param>
+    /// <param name="E">The fifth component instance</param>
+    /// <returns>The entity, or default</returns>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    /// <typeparam name="T3">The third component type</typeparam>
+    /// <typeparam name="T4">The fourth component type</typeparam>
+    /// <typeparam name="T5">The fifth component type</typeparam>
+    public static Entity Create<T, T2, T3, T4, T5>(out T A, out T2 B, out T3 C, out T4 D, out T5 E)
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+        where T4 : IComponent
+        where T5 : IComponent
+    {
+        if (World.Current == null)
+        {
+            A = default;
+            B = default;
+            C = default;
+            D = default;
+            E = default;
+
+            return default;
+        }
+
+        var entity = World.Current.CreateEntity();
+
+        if (!entity.IsValid)
+        {
+            A = default;
+            B = default;
+            C = default;
+            D = default;
+            E = default;
+
+            return default;
+        }
+
+        A = entity.AddComponent<T>();
+        B = entity.AddComponent<T2>();
+        C = entity.AddComponent<T3>();
+        D = entity.AddComponent<T4>();
+        E = entity.AddComponent<T5>();
+
+        return entity;
+    }
+
+    /// <summary>
     /// Creates an entity with a name and specific component types
     /// </summary>
     /// <param name="name">The entity name</param>
@@ -183,44 +392,240 @@ public partial struct Entity
     }
 
     /// <summary>
+    /// Creates an entity with a specific name and specific component types
+    /// </summary><
+    /// <param name="A">The first component instance</param>
+    /// <returns>The entity, or default</returns>
+    /// <typeparam name="T">The first component type</typeparam>
+    public static Entity Create<T>(string name, out T A)
+        where T : IComponent
+    {
+        var entity = Create(out A);
+
+        if (entity.IsValid)
+        {
+            entity.Name = name;
+        }
+
+        return entity;
+    }
+
+    /// <summary>
+    /// Creates an entity with a specific name and specific component types
+    /// </summary><
+    /// <param name="A">The first component instance</param>
+    /// <param name="B">The second component instance</param>
+    /// <returns>The entity, or default</returns>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    public static Entity Create<T, T2>(string name, out T A, out T2 B)
+        where T : IComponent
+        where T2 : IComponent
+    {
+        var entity = Create(out A, out B);
+
+        if (entity.IsValid)
+        {
+            entity.Name = name;
+        }
+
+        return entity;
+    }
+
+    /// <summary>
+    /// Creates an entity with a specific name and specific component types
+    /// </summary><
+    /// <param name="A">The first component instance</param>
+    /// <param name="B">The second component instance</param>
+    /// <param name="C">The third component instance</param>
+    /// <returns>The entity, or default</returns>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    /// <typeparam name="T3">The third component type</typeparam>
+    public static Entity Create<T, T2, T3>(string name, out T A, out T2 B, out T3 C)
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+    {
+        var entity = Create(out A, out B, out C);
+
+        if (entity.IsValid)
+        {
+            entity.Name = name;
+        }
+
+        return entity;
+    }
+
+    /// <summary>
+    /// Creates an entity with a specific name and specific component types
+    /// </summary><
+    /// <param name="A">The first component instance</param>
+    /// <param name="B">The second component instance</param>
+    /// <param name="C">The third component instance</param>
+    /// <param name="D">The fourth component instance</param>
+    /// <returns>The entity, or default</returns>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    /// <typeparam name="T3">The third component type</typeparam>
+    /// <typeparam name="T4">The fourth component type</typeparam>
+    public static Entity Create<T, T2, T3, T4>(string name, out T A, out T2 B, out T3 C, out T4 D)
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+        where T4 : IComponent
+    {
+        var entity = Create(out A, out B, out C, out D);
+
+        if (entity.IsValid)
+        {
+            entity.Name = name;
+        }
+
+        return entity;
+    }
+
+    /// <summary>
+    /// Creates an entity with a specific name and specific component types
+    /// </summary><
+    /// <param name="A">The first component instance</param>
+    /// <param name="B">The second component instance</param>
+    /// <param name="C">The third component instance</param>
+    /// <param name="D">The fourth component instance</param>
+    /// <param name="E">The fifth component instance</param>
+    /// <returns>The entity, or default</returns>
+    /// <typeparam name="T">The first component type</typeparam>
+    /// <typeparam name="T2">The second component type</typeparam>
+    /// <typeparam name="T3">The third component type</typeparam>
+    /// <typeparam name="T4">The fourth component type</typeparam>
+    /// <typeparam name="T5">The fifth component type</typeparam>
+    public static Entity Create<T, T2, T3, T4, T5>(string name, out T A, out T2 B, out T3 C, out T4 D, out T5 E)
+        where T : IComponent
+        where T2 : IComponent
+        where T3 : IComponent
+        where T4 : IComponent
+        where T5 : IComponent
+    {
+        var entity = Create(out A, out B, out C, out D, out E);
+
+        if(entity.IsValid)
+        {
+            entity.Name = name;
+        }
+
+        return entity;
+    }
+
+    /// <summary>
     /// Creates an entity for a geometry primitive
     /// </summary>
     /// <param name="type">The type of primitive</param>
+    /// <param name="addColliders">Whether to add colliders to the entity</param>
     /// <returns>The entity</returns>
-    public static Entity CreatePrimitive(EntityPrimitiveType type)
+    public static Entity CreatePrimitive(EntityPrimitiveType type, bool addColliders = true)
     {
-        var e = Create(type.ToString(), typeof(Transform), typeof(MeshRenderer));
+        return CreatePrimitive(type, addColliders, out var _, out var _, out var _);
+    }
 
-        var r = e.GetComponent<MeshRenderer>();
+    /// <summary>
+    /// Creates an entity for a geometry primitive
+    /// </summary>
+    /// <param name="type">The type of primitive</param>
+    /// <param name="addColliders">Whether to add colliders to the entity</param>
+    /// <param name="transform">The transform of the primitive, if any</param>
+    /// <param name="meshRenderer">The mesh renderer of the primitive, if any</param>
+    /// <param name="collider">The mesh collider, if any</param>
+    /// <returns>The entity</returns>
+    public static Entity CreatePrimitive(EntityPrimitiveType type, bool addColliders, out Transform transform, out MeshRenderer meshRenderer,
+        out Collider3D collider)
+    {
+        collider = default;
 
-        switch(type)
+        var e = Create(type.ToString(), out transform, out meshRenderer);
+
+        switch (type)
         {
             case EntityPrimitiveType.Cube:
 
-                r.mesh = Mesh.Cube;
+                meshRenderer.mesh = Mesh.Cube;
 
-                e.AddComponent<BoxCollider3D>();
+                if (addColliders)
+                {
+                    collider = e.AddComponent<BoxCollider3D>();
+                }
 
                 break;
 
             case EntityPrimitiveType.Quad:
 
-                r.mesh = Mesh.Quad;
+                meshRenderer.mesh = Mesh.Quad;
 
-                e.AddComponent<MeshCollider3D>().mesh = r.mesh;
+                if (addColliders)
+                {
+                    var c = e.AddComponent<MeshCollider3D>();
+                    
+                    c.mesh = meshRenderer.mesh;
+
+                    collider = c;
+                }
 
                 break;
 
             case EntityPrimitiveType.Sphere:
 
-                r.mesh = Mesh.Sphere;
+                meshRenderer.mesh = Mesh.Sphere;
 
-                e.AddComponent<SphereCollider3D>();
+                if (addColliders)
+                {
+                    collider = e.AddComponent<SphereCollider3D>();
+                }
 
                 break;
         }
 
-        r.materials = [ResourceManager.instance.LoadMaterial($"Hidden/Materials/Checkerboard.{AssetSerialization.MaterialExtension}")];
+        meshRenderer.materials = [ResourceManager.instance.LoadMaterial($"Hidden/Materials/Checkerboard.{AssetSerialization.MaterialExtension}")];
+
+        return e;
+    }
+
+    /// <summary>
+    /// Creates an entity for a geometry primitive
+    /// </summary>
+    /// <param name="name">The name of the primitive</param>
+    /// <param name="type">The type of primitive</param>
+    /// <param name="addColliders">Whether to add colliders to the entity</param>
+    /// <returns>The entity</returns>
+    public static Entity CreatePrimitive(string name, EntityPrimitiveType type, bool addColliders = true)
+    {
+        var e = CreatePrimitive(type, addColliders);
+
+        if(e.IsValid)
+        {
+            e.Name = name;
+        }
+
+        return e;
+    }
+
+    /// <summary>
+    /// Creates an entity for a geometry primitive
+    /// </summary>
+    /// <param name="name">The name of the primitive</param>
+    /// <param name="type">The type of primitive</param>
+    /// <param name="addColliders">Whether to add colliders to the entity</param>
+    /// <param name="transform">The transform of the primitive, if any</param>
+    /// <param name="meshRenderer">The mesh renderer of the primitive, if any</param>
+    /// <param name="collider">The mesh collider, if any</param>
+    /// <returns>The entity</returns>
+    public static Entity CreatePrimitive(string name, EntityPrimitiveType type, bool addColliders, out Transform transform,
+        out MeshRenderer meshRenderer, out Collider3D collider)
+    {
+        var e = CreatePrimitive(type, addColliders, out transform, out meshRenderer, out collider);
+
+        if (e.IsValid)
+        {
+            e.Name = name;
+        }
 
         return e;
     }

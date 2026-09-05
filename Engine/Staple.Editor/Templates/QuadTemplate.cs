@@ -6,10 +6,6 @@ public class QuadTemplate : IEntityTemplate
 
     public Entity Create()
     {
-        var entity = Entity.CreatePrimitive(EntityPrimitiveType.Quad);
-
-        entity.Name = Name;
-
-        return entity;
+        return Entity.CreatePrimitive(Name, EntityPrimitiveType.Quad);
     }
 }

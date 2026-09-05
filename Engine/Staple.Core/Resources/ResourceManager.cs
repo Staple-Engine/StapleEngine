@@ -997,6 +997,43 @@ internal class ResourceManager : IWorldChangeReceiver
                 }
             }
 
+            if (!Scene.InstancingComponent)
+            {
+                foreach (var pair in localIDs)
+                {
+                    var entity = pair.Value.Entity;
+
+                    entity.IterateComponents((ref component) =>
+                    {
+                        if (component is CallbackComponent callback)
+                        {
+                            if (Platform.IsPlaying)
+                            {
+                                try
+                                {
+                                    callback.Awake();
+                                }
+                                catch (Exception e)
+                                {
+                                    Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                                }
+                            }
+                            else if (callback is IExecuteInEditMode executor)
+                            {
+                                try
+                                {
+                                    executor.ExecuteInEditModeEvent(ExecuteInEditModeEventType.Awake);
+                                }
+                                catch (Exception e)
+                                {
+                                    Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+
             loadingScene = false;
 
             return scene;
@@ -1204,15 +1241,29 @@ internal class ResourceManager : IWorldChangeReceiver
 
                 entity.IterateComponents((ref c) =>
                 {
-                    if (Platform.IsPlaying && c is CallbackComponent callback)
+                    if (c is CallbackComponent callback)
                     {
-                        try
+                        if(Platform.IsPlaying)
                         {
-                            callback.Awake();
+                            try
+                            {
+                                callback.Awake();
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                            }
                         }
-                        catch (Exception e)
+                        else if(callback is IExecuteInEditMode executor)
                         {
-                            Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                            try
+                            {
+                                executor.ExecuteInEditModeEvent(ExecuteInEditModeEventType.Awake);
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                            }
                         }
                     }
 
