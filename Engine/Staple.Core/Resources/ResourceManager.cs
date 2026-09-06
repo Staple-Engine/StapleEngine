@@ -1005,29 +1005,15 @@ internal class ResourceManager : IWorldChangeReceiver
 
                     entity.IterateComponents((ref component) =>
                     {
-                        if (component is CallbackComponent callback)
+                        if (component is CallbackComponent callback && callback.ShouldExecuteEvents)
                         {
-                            if (Platform.IsPlaying)
+                            try
                             {
-                                try
-                                {
-                                    callback.Awake();
-                                }
-                                catch (Exception e)
-                                {
-                                    Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
-                                }
+                                callback.Awake();
                             }
-                            else if (callback is IExecuteInEditMode executor)
+                            catch (Exception e)
                             {
-                                try
-                                {
-                                    executor.ExecuteInEditModeEvent(ExecuteInEditModeEventType.Awake);
-                                }
-                                catch (Exception e)
-                                {
-                                    Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
-                                }
+                                Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
                             }
                         }
                     });
@@ -1241,29 +1227,15 @@ internal class ResourceManager : IWorldChangeReceiver
 
                 entity.IterateComponents((ref c) =>
                 {
-                    if (c is CallbackComponent callback)
+                    if (c is CallbackComponent callback && callback.ShouldExecuteEvents)
                     {
-                        if(Platform.IsPlaying)
+                        try
                         {
-                            try
-                            {
-                                callback.Awake();
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
-                            }
+                            callback.Awake();
                         }
-                        else if(callback is IExecuteInEditMode executor)
+                        catch (Exception e)
                         {
-                            try
-                            {
-                                executor.ExecuteInEditModeEvent(ExecuteInEditModeEventType.Awake);
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
-                            }
+                            Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
                         }
                     }
 

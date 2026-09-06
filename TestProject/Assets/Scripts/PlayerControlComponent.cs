@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace TestGame;
 
-public class PlayerControlComponent : IComponent, IInputReceiver
+public class PlayerControlComponent : InputReceiver
 {
     public float speed = 50;
     public bool is3D = false;
@@ -11,11 +11,11 @@ public class PlayerControlComponent : IComponent, IInputReceiver
     internal Vector2 movement;
     internal Vector2 rotation;
 
-    public void OnAxis(InputActionContext context, float value)
+    public override void OnAxis(InputActionContext context, float value)
     {
     }
 
-    public void OnDualAxis(InputActionContext context, Vector2 value)
+    public override void OnDualAxis(InputActionContext context, Vector2 value)
     {
         switch(context.name.ToLowerInvariant())
         {
@@ -33,7 +33,7 @@ public class PlayerControlComponent : IComponent, IInputReceiver
         }
     }
 
-    public void OnPressed(InputActionContext context)
+    public override void OnPressed(InputActionContext context)
     {
     }
 }

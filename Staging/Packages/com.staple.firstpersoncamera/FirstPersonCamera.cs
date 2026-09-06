@@ -18,7 +18,6 @@ public class FirstPersonCamera : CallbackComponent
     public Entity focus;
 
     private Vector2 angles;
-    private Transform transform;
     private IBody3D body;
 
     protected virtual Vector2 GetLookMovement()
@@ -34,14 +33,12 @@ public class FirstPersonCamera : CallbackComponent
 
     public override void Start()
     {
-        transform = entity.GetComponent<Transform>();
-
         Cursor.LockState = CursorLockMode.Locked;
         Cursor.Visible = false;
 
         body = Physics.GetBody3D(focus);
 
-        if(body == null && Physics.GetBody3D(entity) != null)
+        if(body == null && Physics.GetBody3D(Entity) != null)
         {
             Log.Error($"First Person Camera: Warning: There's no body in the Focus entity, but the camera entity has it. Please use a focus entity.");
         }
@@ -64,11 +61,11 @@ public class FirstPersonCamera : CallbackComponent
             {
                 body.Rotation = Quaternion.Euler(0, angles.Y, 0);
 
-                transform.LocalRotation = Quaternion.Euler(angles.X, 0, 0);
+                Transform.LocalRotation = Quaternion.Euler(angles.X, 0, 0);
             }
             else
             {
-                transform.Rotation = Quaternion.Euler(angles.X, angles.Y, 0);
+                Transform.Rotation = Quaternion.Euler(angles.X, angles.Y, 0);
             }
         }
 
@@ -76,7 +73,7 @@ public class FirstPersonCamera : CallbackComponent
         {
             var movement = GetCharacterMovement();
 
-            var forward = transform.Forward;
+            var forward = Transform.Forward;
 
             forward.Y = 0.0f;
 
@@ -85,7 +82,7 @@ public class FirstPersonCamera : CallbackComponent
                 forward = forward.Normalized;
             }
 
-            var right = transform.Right;
+            var right = Transform.Right;
 
             right.Y = 0.0f;
 
@@ -104,7 +101,7 @@ public class FirstPersonCamera : CallbackComponent
             }
             else
             {
-                transform.Position += velocity * Time.deltaTime;
+                Transform.Position += velocity * Time.deltaTime;
             }
         }
     }

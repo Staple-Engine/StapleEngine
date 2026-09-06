@@ -2,7 +2,7 @@ using Staple;
 
 namespace TestGame;
 
-public class CircularMovementComponent : IComponent
+public class CircularMovementComponent : Component
 {
     public float t;
     public float speed;

@@ -415,6 +415,12 @@ public static class EditorUtils
         return cachePath;
     }
 
+    /// <summary>
+    /// Gets the editor's scene camera and transform
+    /// </summary>
+    /// <param name="camera">The camera</param>
+    /// <param name="cameraTransform">The camera's transform</param>
+    /// <remarks>The camera and its transform won't have a valid entity</remarks>
     public static void GetSceneCamera(out Camera camera, out Transform cameraTransform)
     {
         var instance = StapleEditor.instance;
@@ -423,7 +429,7 @@ public static class EditorUtils
         cameraTransform = instance.cameraTransform;
     }
 
-    internal static void ExecuteEditorEvent(ExecuteInEditModeEventType eventType)
+    internal static void ExecuteEditorEvent(Action<CallbackComponent> callback, string eventType)
     {
         World.Current?.IterateCallableComponents((contents) =>
         {
@@ -431,11 +437,11 @@ public static class EditorUtils
             {
                 var (entity, callable) = contents[i];
 
-                if (callable is IExecuteInEditMode executor)
+                if (callable.ShouldExecuteEvents)
                 {
                     try
                     {
-                        executor.ExecuteInEditModeEvent(eventType);
+                        callback(callable);
                     }
                     catch (Exception e)
                     {

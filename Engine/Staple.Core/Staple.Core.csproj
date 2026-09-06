@@ -110,6 +110,7 @@
 		<Compile Include="Attributes\OnAssetsReimportedAttribute.cs" />
 		<Compile Include="Attributes\PropertyAttribute.cs" />
 		<Compile Include="Attributes\RangeAttribute.cs" />
+		<Compile Include="Attributes\RequireComponentAttribute.cs" />
 		<Compile Include="Attributes\SerializeAsHexAttribute.cs" />
 		<Compile Include="Attributes\SerializeFieldAttribute.cs" />
 		<Compile Include="Attributes\SerializeInEditorAttribute.cs" />
@@ -130,7 +131,6 @@
 		<Compile Include="Entities\CallbackComponent.cs" />
 		<Compile Include="Entities\Component.cs" />
 		<Compile Include="Entities\ComponentVersionTracker.cs" />
-		<Compile Include="Entities\ExecuteInEditModeEventType.cs" />
 		<Compile Include="Entities\IComponentVersion.cs" />
 		<Compile Include="Entities\Entity+Components.cs" />
 		<Compile Include="Entities\Entity+Instantiate.cs" />
@@ -141,7 +141,6 @@
 		<Compile Include="Entities\EntityPrimitiveType.cs" />
 		<Compile Include="Entities\EntityQuery.cs" />
 		<Compile Include="Entities\IComponentDisposable.cs" />
-		<Compile Include="Entities\IExecuteInEditMode.cs" />
 		<Compile Include="Entities\Prefab.cs" />
 		<Compile Include="External\Dr_Libs\Dr_Libs.cs" />
 		<Compile Include="External\FastNoiseLite\FastNoiseLite.cs" />

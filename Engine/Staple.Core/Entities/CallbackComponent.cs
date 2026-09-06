@@ -11,6 +11,17 @@ namespace Staple;
 public class CallbackComponent : Component
 {
     /// <summary>
+    /// Flag for knowing when to emit the Start() event
+    /// There are better ways to do this, but for now this works!
+    /// </summary>
+    internal bool STAPLE_JUST_ADDED = true;
+
+    /// <summary>
+    /// Whether this <see cref="CallbackComponent"/> should execute its events
+    /// </summary>
+    internal bool ShouldExecuteEvents => (Platform.IsPlaying || (Platform.IsEditor && executeInEditor));
+
+    /// <summary>
     /// Whether this component should execute while in the editor
     /// </summary>
     [NonSerialized]

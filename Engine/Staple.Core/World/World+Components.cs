@@ -120,40 +120,9 @@ public partial class World
 
             container.component.Entity = entity;
 
-            if (!Scene.InstancingComponent)
-            {
-                EmitAddComponentEvent(entity, ref container.component);
-            }
+            var requiredComponents = t.GetCustomAttributes<RequireComponentAttribute>();
 
-            if(!Scene.InstancingComponent &&
-                callableComponentTypes.Count != 0 &&
-                container.component is CallbackComponent callback)
-            {
-                if(Platform.IsPlaying)
-                {
-                    try
-                    {
-                        callback.Awake();
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
-                    }
-                }
-                else if(callback is IExecuteInEditMode executor)
-                {
-                    try
-                    {
-                        executor.ExecuteInEditModeEvent(ExecuteInEditModeEventType.Awake);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
-                    }
-                }
-            }
-
-            if(container.component is Transform transform)
+            if (container.component is Transform transform)
             {
                 entityInfo.transform = transform;
             }
@@ -161,6 +130,67 @@ public partial class World
             if (entityInfo.transform != null)
             {
                 container.component.Transform = entityInfo.transform;
+            }
+
+            foreach (var req in requiredComponents)
+            {
+                var instance = GetComponent(entity, req.type);
+
+                if(instance == null)
+                {
+                    instance = AddComponent(entity, req.type);
+                }
+
+                if(instance == null)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(req.field))
+                {
+                    try
+                    {
+                        var field = t.GetField(req.field, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                        if(field != null)
+                        {
+                            field.SetValue(component, instance);
+                        }
+                        else
+                        {
+                            var property = t.GetProperty(req.field, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                            if(property != null && property.CanWrite)
+                            {
+                                property.SetValue(component, instance);
+                            }
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        Log.Debug($"{entity.Name} ({t.FullName}): Failed to apply required component {req.type.FullName} to field or property {req.field}: {e}");
+                    }
+                }
+            }
+
+            if (!Scene.InstancingComponent)
+            {
+                EmitAddComponentEvent(entity, ref container.component);
+            }
+
+            if(!Scene.InstancingComponent &&
+                callableComponentTypes.Count != 0 &&
+                container.component is CallbackComponent callback &&
+                callback.ShouldExecuteEvents)
+            {
+                try
+                {
+                    callback.Awake();
+                }
+                catch (Exception e)
+                {
+                    Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                }
             }
 
             return container.component;
@@ -284,29 +314,16 @@ public partial class World
                     }
 
                     if (callableComponentTypes.Count != 0 &&
-                        container.component is CallbackComponent callable)
+                        container.component is CallbackComponent callback &&
+                        callback.ShouldExecuteEvents)
                     {
-                        if(Platform.IsPlaying)
+                        try
                         {
-                            try
-                            {
-                                callable.OnDestroy();
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Debug($"{entity.Name} ({callable.GetType().FullName}): Exception thrown while handling OnDestroy: {e}");
-                            }
+                            callback.OnDestroy();
                         }
-                        else if(callable is IExecuteInEditMode executor)
+                        catch (Exception e)
                         {
-                            try
-                            {
-                                executor.ExecuteInEditModeEvent(ExecuteInEditModeEventType.Destroy);
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Debug($"{entity.Name} ({callable.GetType().FullName}): Exception thrown while handling OnDestroy: {e}");
-                            }
+                            Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling OnDestroy: {e}");
                         }
                     }
 

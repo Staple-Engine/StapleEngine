@@ -2,6 +2,6 @@
 
 namespace TestGame;
 
-public class HighlightableComponent : IComponent
+public class HighlightableComponent : Component
 {
 }

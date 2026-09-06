@@ -42,9 +42,9 @@ public class HighlightableSystem : IEntitySystemUpdate
             renderer.color = Color.White;
         }
 
-        if (Physics.RayCast3D(new Ray(worldPosition, c.transform.Forward), out var body, out _, LayerMask.Everything, maxDistance: 5))
+        if (Physics.RayCast3D(new Ray(worldPosition, c.transform.Forward), out var hit, LayerMask.Everything, maxDistance: 5))
         {
-            var entity = body.Entity;
+            var entity = hit.body.Entity;
 
             var renderer = entity.GetComponent<SpriteRenderer>();
 
