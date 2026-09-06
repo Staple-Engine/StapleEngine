@@ -158,7 +158,7 @@ internal static class SceneSerialization
     /// <param name="target">The target entity</param>
     public static void InstantiateEntityComponents(Entity source, Entity target)
     {
-        source.IterateComponents((ref IComponent component) =>
+        source.IterateComponents((ref Component component) =>
         {
             if(component is Transform)
             {
@@ -167,7 +167,7 @@ internal static class SceneSerialization
 
             var container = StapleSerializer.SerializeContainer(component, StapleSerializationMode.Binary);
 
-            var clone = (IComponent)StapleSerializer.DeserializeContainer(container, StapleSerializationMode.Binary);
+            var clone = (Component)StapleSerializer.DeserializeContainer(container, StapleSerializationMode.Binary);
 
             if(clone is null)
             {
@@ -188,7 +188,7 @@ internal static class SceneSerialization
     {
         var components = new List<SceneComponent>();
 
-        entity.IterateComponents((ref IComponent component) =>
+        entity.IterateComponents((ref Component component) =>
         {
             if (component == null || component.GetType() == typeof(Transform))
             {
@@ -515,8 +515,8 @@ internal static class SceneSerialization
                                 proxy.SetValue(componentInstance, targetEntity);
                             }
                         }
-                        else if((proxy.FieldType == typeof(IComponent) ||
-                            proxy.FieldType.GetInterface(typeof(IComponent).FullName) != null) &&
+                        else if((proxy.FieldType == typeof(Component) ||
+                            proxy.FieldType.IsSubclassOf(typeof(Component))) &&
                             parameter.Value is string stringValue)
                         {
                             var pieces = stringValue.Split(":");

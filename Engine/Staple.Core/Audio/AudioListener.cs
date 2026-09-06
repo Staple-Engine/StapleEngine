@@ -6,7 +6,7 @@ namespace Staple;
 /// Audio listener component.
 /// Used for 3D movement especially.
 /// </summary>
-public sealed class AudioListener : IComponent
+public sealed class AudioListener : Component
 {
     /// <summary>
     /// Whether this audio listener is spatial (3D)

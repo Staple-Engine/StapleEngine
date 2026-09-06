@@ -61,7 +61,7 @@ public class GameNetworkManagerBase : CallbackComponent
         }
         else
         {
-            entity.Destroy();
+            Entity.Destroy();
         }
     }
 

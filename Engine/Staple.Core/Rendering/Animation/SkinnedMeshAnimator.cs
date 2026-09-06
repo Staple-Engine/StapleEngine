@@ -5,7 +5,7 @@ namespace Staple;
 /// <summary>
 /// Skinned mesh animator component
 /// </summary>
-public sealed class SkinnedMeshAnimator : IComponent
+public sealed class SkinnedMeshAnimator : Component
 {
     /// <summary>
     /// The mesh to use
@@ -60,7 +60,7 @@ public sealed class SkinnedMeshAnimator : IComponent
     /// <summary>
     /// List of modifiers
     /// </summary>
-    internal EntityQuery<Transform, ISkinModifier> modifiers;
+    internal EntityQuery<Transform, SkinModifier> modifiers;
 
     /// <summary>
     /// Sets the current animation

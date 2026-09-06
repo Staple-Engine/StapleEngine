@@ -960,8 +960,8 @@ internal class ResourceManager : IWorldChangeReceiver
                                     field.SetValue(componentInstance, targetEntity);
                                 }
                             }
-                            else if ((field.FieldType == typeof(IComponent) ||
-                                field.FieldType.GetInterface(typeof(IComponent).FullName) != null) &&
+                            else if ((field.FieldType == typeof(Component) ||
+                                field.FieldType.IsSubclassOf(typeof(Component))) &&
                                 element.ValueKind == JsonValueKind.String)
                             {
                                 var pieces = element.GetString().Split(":");
@@ -1198,8 +1198,8 @@ internal class ResourceManager : IWorldChangeReceiver
                                     field.SetValue(componentInstance, targetEntity);
                                 }
                             }
-                            else if ((field.FieldType == typeof(IComponent) ||
-                                field.FieldType.GetInterface(typeof(IComponent).FullName) != null) &&
+                            else if ((field.FieldType == typeof(Component) ||
+                                field.FieldType.IsSubclassOf(typeof(Component))) &&
                                 parameter.Value is string stringValue)
                             {
                                 var pieces = stringValue.Split(":");

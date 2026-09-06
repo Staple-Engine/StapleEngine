@@ -21,7 +21,7 @@ public sealed class InputActions : IStapleAsset, IGuidAsset
     /// Registers all actions in this asset for a specific observer
     /// </summary>
     /// <returns>A list of action IDs to unregister later, if needed</returns>
-    internal int[] RegisterActions(IInputReceiver receiver)
+    internal int[] RegisterActions(InputReceiver receiver)
     {
         if ((actions?.Count ?? 0) == 0)
         {

@@ -6,7 +6,7 @@ namespace Staple;
 /// Represents a volume that will be checked for culling (prevent rendering of its contents if needed).
 /// This is useful for simplifying culling tests among a group of renderables
 /// </summary>
-public sealed class CullingVolume : IComponent
+public sealed class CullingVolume : Component
 {
     /// <summary>
     /// The type of culling to perform

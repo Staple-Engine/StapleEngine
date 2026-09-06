@@ -8,17 +8,12 @@ namespace Staple;
 /// Renderable base component
 /// </summary>
 [AbstractComponent]
-public class Renderable : IComponent, IComponentVersion
+public class Renderable : Component, IComponentVersion
 {
     /// <summary>
     /// The version state of this renderable. Should be updated as you change properties like bounds.
     /// </summary>
     public ulong Version { get; protected set; }
-
-    /// <summary>
-    /// Whether the render is enabled for this
-    /// </summary>
-    public bool enabled = true;
 
     /// <summary>
     /// Whether to force the rendering to be disabled

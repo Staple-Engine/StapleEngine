@@ -101,7 +101,6 @@
 		<Compile Include="Assets\TextAsset.cs" />
 		<Compile Include="Assets\TextAssetResource.cs" />
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
-		<Compile Include="Attributes\AutoAssignEntityAttribute.cs" />
 		<Compile Include="Attributes\ButtonAttribute.cs" />
 		<Compile Include="Attributes\ComponentIconAttribute.cs" />
 		<Compile Include="Attributes\DisableWorldVersioningUpdatesAttribute.cs" />
@@ -129,6 +128,7 @@
 		<Compile Include="Audio\Readers\OggAudioStream.cs" />
 		<Compile Include="Audio\Readers\WaveAudioStream.cs" />
 		<Compile Include="Entities\CallbackComponent.cs" />
+		<Compile Include="Entities\Component.cs" />
 		<Compile Include="Entities\ComponentVersionTracker.cs" />
 		<Compile Include="Entities\ExecuteInEditModeEventType.cs" />
 		<Compile Include="Entities\IComponentVersion.cs" />
@@ -322,7 +322,6 @@
 		<Compile Include="Rendering\Camera\CameraType.cs" />
 		<Compile Include="Entities\Entity.cs" />
 		<Compile Include="Entities\EntitySystemManager.cs" />
-		<Compile Include="Entities\IComponent.cs" />
 		<Compile Include="Entities\IEntitySystem.cs" />
 		<Compile Include="Rendering\Mesh\MeshRenderer.cs" />
 		<Compile Include="Rendering\Renderable.cs" />

@@ -37,7 +37,7 @@ internal partial class StapleEditor
             {
                 var gotIcon = false;
 
-                entity.IterateComponents((ref IComponent component) =>
+                entity.IterateComponents((ref Component component) =>
                 {
                     if(gotIcon)
                     {

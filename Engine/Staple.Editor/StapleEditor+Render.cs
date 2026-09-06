@@ -238,7 +238,7 @@ internal partial class StapleEditor
                 {
                     var counter = 0;
 
-                    selectedEntity.IterateComponents((ref IComponent component) =>
+                    selectedEntity.IterateComponents((ref Component component) =>
                     {
                         if (cachedGizmoEditors.TryGetValue(counter++, out var editor))
                         {

@@ -3,7 +3,7 @@
 namespace Staple;
 
 [AbstractComponent]
-public class Collider3D : IComponent
+public class Collider3D : Component
 {
     /// <summary>
     /// The position of the collider in local space

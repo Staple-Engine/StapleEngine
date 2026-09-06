@@ -477,7 +477,7 @@ internal partial class StapleEditor
                                 {
                                     World.Current?.Iterate((entity) =>
                                     {
-                                        World.Current.IterateComponents(entity, (ref IComponent component) =>
+                                        World.Current.IterateComponents(entity, (ref Component component) =>
                                         {
                                             if (component is IComponentDisposable disposable)
                                             {

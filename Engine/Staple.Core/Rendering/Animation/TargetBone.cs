@@ -2,7 +2,7 @@
 
 namespace Staple;
 
-public class TargetBone : IComponent, ISkinModifier
+public class TargetBone : SkinModifier
 {
     public enum Interpolation
     {
@@ -22,7 +22,7 @@ public class TargetBone : IComponent, ISkinModifier
 
     public float adjustmentSpeed = 5;
 
-    public void Apply(Transform bone, bool wasReset)
+    public override void Apply(Transform bone, bool wasReset)
     {
         var target = targetTransform?.Position ?? targetPoint;
 

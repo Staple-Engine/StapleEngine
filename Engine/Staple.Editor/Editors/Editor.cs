@@ -1011,10 +1011,10 @@ public class Editor
 
                 break;
 
-            case Type t when t.IsAssignableTo(typeof(IComponent)):
+            case Type t when t.IsAssignableTo(typeof(Component)):
 
                 {
-                    var value = (IComponent)getter();
+                    var value = (Component)getter();
 
                     setter(EditorGUI.ComponentField(name, t, value, IDSuffix));
                 }

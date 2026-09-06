@@ -68,7 +68,7 @@ public partial class World
     public T AddComponent
         <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         T>
-        (Entity entity) where T : IComponent
+        (Entity entity) where T : Component
     {
         return (T)AddComponent(entity, typeof(T));
     }
@@ -79,7 +79,7 @@ public partial class World
     /// <param name="entity">The entity to add the component to</param>
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
-    public IComponent AddComponent(Entity entity,
+    public Component AddComponent(Entity entity,
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type t)
     {
@@ -104,7 +104,7 @@ public partial class World
                 return container.component;
             }
 
-            var component = ObjectCreation.CreateObject<IComponent>(t);
+            var component = ObjectCreation.CreateObject<Component>(t);
 
             if (component == default)
             {
@@ -118,37 +118,11 @@ public partial class World
             entityInfo.components.Add(hash, container);
             entityInfo.componentsArray.Add(container);
 
+            container.component.Entity = entity;
+
             if (!Scene.InstancingComponent)
             {
                 EmitAddComponentEvent(entity, ref container.component);
-            }
-
-            if (t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
-            {
-                try
-                {
-                    var field = t.GetField("Entity") ?? t.GetField("entity");
-
-                    field?.SetValue(container.component, entity);
-
-                    var property = t.GetProperty("Entity") ?? t.GetProperty("entity");
-
-                    if(property != null)
-                    {
-                        if(property.CanWrite)
-                        {
-                            property.SetValue(container.component, entity);
-                        }
-                        else
-                        {
-                            Log.Debug($"[{t.FullName}]: Can't auto assign entity: Property isn't writable");
-                        }
-                    }
-                }
-                catch(Exception e)
-                {
-                    Log.Debug($"[{t.FullName}]: Failed to auto assign entity: {e}");
-                }
             }
 
             if(!Scene.InstancingComponent &&
@@ -184,6 +158,11 @@ public partial class World
                 entityInfo.transform = transform;
             }
 
+            if (entityInfo.transform != null)
+            {
+                container.component.Transform = entityInfo.transform;
+            }
+
             return container.component;
         }
     }
@@ -208,7 +187,7 @@ public partial class World
             {
                 foreach (var targetInterface in target.GetInterfaces())
                 {
-                    if (targetInterface != typeof(IComponent) && targetInterface.IsAssignableTo(typeof(IComponent)))
+                    if (targetInterface != typeof(Component) && targetInterface.IsAssignableTo(typeof(Component)))
                     {
                         var targetHash = targetInterface.FullName.GetHashCode();
 
@@ -224,8 +203,8 @@ public partial class World
                 }
 
                 if (target.BaseType == null ||
-                    target.BaseType == typeof(IComponent) ||
-                    !target.BaseType.IsAssignableTo(typeof(IComponent)))
+                    target.BaseType == typeof(Component) ||
+                    !target.BaseType.IsAssignableTo(typeof(Component)))
                 {
                     return;
                 }
@@ -260,7 +239,7 @@ public partial class World
     /// </summary>
     /// <typeparam name="T">The type to remove</typeparam>
     /// <param name="entity">The entity to remove the component from</param>
-    public void RemoveComponent<T>(Entity entity) where T : IComponent
+    public void RemoveComponent<T>(Entity entity) where T : Component
     {
         RemoveComponent(entity, typeof(T));
     }
@@ -297,6 +276,11 @@ public partial class World
                     if(t == typeof(Transform))
                     {
                         entityInfo.transform = null;
+
+                        foreach(var c in entityInfo.componentsArray.Contents)
+                        {
+                            c.component.Transform = null;
+                        }
                     }
 
                     if (callableComponentTypes.Count != 0 &&
@@ -343,9 +327,9 @@ public partial class World
     /// <param name="entityInfo">The entity to get from</param>
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
-    internal IComponent GetComponent(EntityInfo entityInfo, Type t)
+    internal Component GetComponent(EntityInfo entityInfo, Type t)
     {
-        if (!typeof(IComponent).IsAssignableFrom(t))
+        if (!typeof(Component).IsAssignableFrom(t))
         {
             return default;
         }
@@ -375,9 +359,9 @@ public partial class World
     /// <param name="entity">The entity to get from</param>
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
-    public IComponent GetComponent(Entity entity, Type t)
+    public Component GetComponent(Entity entity, Type t)
     {
-        if (!typeof(IComponent).IsAssignableFrom(t) ||
+        if (!typeof(Component).IsAssignableFrom(t) ||
             !TryGetEntity(entity, out var entityInfo))
         {
             return default;
@@ -392,7 +376,7 @@ public partial class World
     /// <typeparam name="T">The component type</typeparam>
     /// <param name="entity">The entity to get from</param>
     /// <returns>The component instance, or default</returns>
-    internal T GetComponent<T>(EntityInfo entity) where T : IComponent
+    internal T GetComponent<T>(EntityInfo entity) where T : Component
     {
         return (T)GetComponent(entity, typeof(T));
     }
@@ -403,7 +387,7 @@ public partial class World
     /// <typeparam name="T">The component type</typeparam>
     /// <param name="entity">The entity to get from</param>
     /// <returns>The component instance, or default</returns>
-    public T GetComponent<T>(Entity entity) where T : IComponent
+    public T GetComponent<T>(Entity entity) where T : Component
     {
         return (T)GetComponent(entity, typeof(T));
     }
@@ -415,7 +399,7 @@ public partial class World
     /// <param name="t">The type</param>
     /// <param name="component">The component</param>
     /// <returns>Whether the component was found</returns>
-    internal bool TryGetComponentNoLock(EntityInfo info, Type t, out IComponent component)
+    internal bool TryGetComponentNoLock(EntityInfo info, Type t, out Component component)
     {
         if (!componentCompatibilityCache.TryGetValue(t.FullName.GetHashCode(), out var compatibility))
         {
@@ -446,9 +430,9 @@ public partial class World
     /// <param name="t">The component type</param>
     /// <param name="component">The component instance</param>
     /// <returns>Whether the component was found</returns>
-    public bool TryGetComponent(Entity entity, Type t, out IComponent component)
+    public bool TryGetComponent(Entity entity, Type t, out Component component)
     {
-        if (!typeof(IComponent).IsAssignableFrom(t) ||
+        if (!typeof(Component).IsAssignableFrom(t) ||
             !TryGetEntity(entity, out var entityInfo))
         {
             component = default;
@@ -469,9 +453,9 @@ public partial class World
     /// <param name="component">The component instance</param>
     /// <typeparam name="T">The component type</typeparam>
     /// <returns>Whether the component was found</returns>
-    public bool TryGetComponent<T>(Entity entity, out T component) where T: IComponent
+    public bool TryGetComponent<T>(Entity entity, out T component) where T: Component
     {
-        if(TryGetComponent(entity, typeof(T), out IComponent c))
+        if(TryGetComponent(entity, typeof(T), out Component c))
         {
             component = (T)c;
 
@@ -490,7 +474,7 @@ public partial class World
     /// <remarks>If the component doesn't exist, a new instance will be created and replaced with the new one</remarks>
     /// <param name="entity">The entity to update</param>
     /// <param name="component">The component instance to replace</param>
-    public void SetComponent(Entity entity, IComponent component)
+    public void SetComponent(Entity entity, Component component)
     {
         if (!TryGetEntity(entity, out var entityInfo) ||
             component is null)
@@ -519,37 +503,10 @@ public partial class World
 
                 removedComponents.Remove((entity, typeName.GetHashCode()));
 
-                var t = component.GetType();
-
-                if (t.GetCustomAttribute<AutoAssignEntityAttribute>() != null)
-                {
-                    try
-                    {
-                        var field = t.GetField("Entity") ?? t.GetField("entity");
-
-                        field?.SetValue(component, entity);
-
-                        var property = t.GetProperty("Entity") ?? t.GetProperty("entity");
-
-                        if (property != null)
-                        {
-                            if (property.CanWrite)
-                            {
-                                property.SetValue(component, entity);
-                            }
-                            else
-                            {
-                                Log.Debug($"[{t.FullName}]: Can't auto assign entity: Property isn't writable");
-                            }
-                        }
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Debug($"[{t.FullName}]: Failed to auto assign entity: {e}");
-                    }
-                }
-
                 entityInfo.components[typeName].component = component;
+
+                component.Entity = entity;
+                component.Transform = entityInfo.transform;
 
                 needsEmitWorldChange = true;
             }
@@ -564,7 +521,7 @@ public partial class World
     public static void AddComponentAddedCallback([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type componentType,
         OnComponentChangedCallback callback)
     {
-        if(componentType.GetInterface(typeof(IComponent).FullName) == null)
+        if(!componentType.IsSubclassOf(typeof(Component)))
         {
             return;
         }
@@ -595,7 +552,7 @@ public partial class World
     public static void AddComponentChangedCallback([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type componentType,
         OnComponentChangedCallback callback)
     {
-        if (componentType.GetInterface(typeof(IComponent).FullName) == null)
+        if (!componentType.IsSubclassOf(typeof(Component)))
         {
             return;
         }
@@ -626,7 +583,7 @@ public partial class World
     public static void AddComponentRemovedCallback([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.Interfaces)] Type componentType,
         OnComponentChangedCallback callback)
     {
-        if (componentType.GetInterface(typeof(IComponent).FullName) == null)
+        if (!componentType.IsSubclassOf(typeof(Component)))
         {
             return;
         }
@@ -654,7 +611,7 @@ public partial class World
     /// </summary>
     /// <param name="entity">The entity to emit for</param>
     /// <param name="component">The component that was added</param>
-    internal void EmitAddComponentEvent(Entity entity, ref IComponent component)
+    internal void EmitAddComponentEvent(Entity entity, ref Component component)
     {
         var hash = component?.GetType().FullName.GetHashCode() ?? 0;
 
@@ -709,7 +666,7 @@ public partial class World
     /// </summary>
     /// <param name="entity">The entity to emit for</param>
     /// <param name="component">The component that was added</param>
-    internal void EmitChangedComponentEvent(Entity entity, ref IComponent component)
+    internal void EmitChangedComponentEvent(Entity entity, ref Component component)
     {
         var hash = component?.GetType().FullName.GetHashCode() ?? 0;
 
@@ -761,7 +718,7 @@ public partial class World
     /// </summary>
     /// <param name="entity">The entity the component was removed from</param>
     /// <param name="component">The component being removed</param>
-    internal void EmitRemoveComponentEvent(Entity entity, ref IComponent component)
+    internal void EmitRemoveComponentEvent(Entity entity, ref Component component)
     {
         var hash = component?.GetType().FullName.GetHashCode() ?? 0;
 
@@ -816,7 +773,7 @@ public partial class World
     /// </summary>
     /// <param name="component">The component to check</param>
     /// <returns>The entity, if valid</returns>
-    public Entity GetComponentEntity(IComponent component)
+    public Entity GetComponentEntity(Component component)
     {
         if(component == null)
         {
@@ -853,7 +810,7 @@ public partial class World
     /// <param name="component">The component to check</param>
     /// <param name="entity">The entity, if valid</param>
     /// <returns>Whether the entity was found</returns>
-    public bool TryGetComponentEntity(IComponent component, out Entity entity)
+    public bool TryGetComponentEntity(Component component, out Entity entity)
     {
         entity = GetComponentEntity(component);
 

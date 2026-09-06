@@ -3,7 +3,7 @@
 /// <summary>
 /// Light component
 /// </summary>
-public sealed class Light : IComponent
+public sealed class Light : Component
 {
     /// <summary>
     /// Light type

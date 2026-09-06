@@ -2,7 +2,7 @@
 
 namespace Staple;
 
-public partial class Character3D : IComponent
+public partial class Character3D : Component
 {
     /// <summary>
     /// The actual body instance

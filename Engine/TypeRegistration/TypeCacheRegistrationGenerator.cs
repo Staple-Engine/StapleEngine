@@ -160,7 +160,22 @@ namespace StapleCodeGeneration
                         sizableTypes.Add(typeName);
                     }
 
-                    if (t.AllInterfaces.Any(x => x.ContainingNamespace?.Name == "Staple" && x.Name == "IComponent"))
+                    bool BaseTypeIsStapleComponent(INamedTypeSymbol symbol)
+                    {
+                        if (symbol.ContainingNamespace?.Name == "Staple" && symbol.Name == "Component")
+                        {
+                            return true;
+                        }
+
+                        if (symbol.BaseType != null)
+                        {
+                            return BaseTypeIsStapleComponent(symbol.BaseType);
+                        }
+
+                        return false;
+                    }
+
+                    if (BaseTypeIsStapleComponent(t))
                     {
                         componentTypes.Add(typeName);
                     }

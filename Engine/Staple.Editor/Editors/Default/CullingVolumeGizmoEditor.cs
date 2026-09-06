@@ -3,7 +3,7 @@
 [CustomEditor(typeof(CullingVolume))]
 internal class CullingVolumeGizmoEditor : GizmoEditor
 {
-    public override void OnGizmo(Entity entity, Transform transform, IComponent component)
+    public override void OnGizmo(Entity entity, Transform transform, Component component)
     {
         if (component is not CullingVolume volume ||
             volume.type != CullingVolume.CullingType.Bounds)

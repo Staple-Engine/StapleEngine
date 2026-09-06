@@ -14,9 +14,9 @@ public static class TypeCache
 {
     public class ComponentCallbacks
     {
-        public Func<Entity, IComponent> add;
+        public Func<Entity, Component> add;
         public Action<Entity> remove;
-        public Func<Entity, IComponent> get;
+        public Func<Entity, Component> get;
     }
 
     internal static bool useFrozenCollections = false;
@@ -200,7 +200,7 @@ public static class TypeCache
     /// <param name="entity">The entity</param>
     /// <param name="typeName">The component type name</param>
     /// <returns>The component or default</returns>
-    public static IComponent AddComponent(Entity entity, string typeName)
+    public static Component AddComponent(Entity entity, string typeName)
     {
         if(useFrozenCollections ? !frozenComponentCallbacks.TryGetValue(typeName, out var callback) :
             !componentCallbacks.TryGetValue(typeName, out callback))
@@ -249,7 +249,7 @@ public static class TypeCache
     /// <param name="entity">The entity</param>
     /// <param name="typeName">The component type name</param>
     /// <returns>The component or default</returns>
-    public static IComponent GetComponent(Entity entity, string typeName)
+    public static Component GetComponent(Entity entity, string typeName)
     {
         if (useFrozenCollections ? !frozenComponentCallbacks.TryGetValue(typeName, out var callback) :
             !componentCallbacks.TryGetValue(typeName, out callback))
@@ -381,7 +381,7 @@ public static class TypeCache
         types.Add(type.ToString(), type);
         sizeOfs.Add(type.ToString(), sizeOf);
 
-        if(type.IsAssignableTo(typeof(IComponent)) &&
+        if(type.IsAssignableTo(typeof(Component)) &&
             type.IsAssignableTo(typeof(IComponentVersion)))
         {
             componentVersionable.Add(type.ToString(), true);
@@ -418,7 +418,7 @@ public static class TypeCache
             arrayConstructors.Add(type.ToString(), createArray);
         }
 
-        if (callbacks != null && type.IsAssignableTo(typeof(IComponent)))
+        if (callbacks != null && type.IsAssignableTo(typeof(Component)))
         {
             componentCallbacks.Add(type.ToString(), callbacks);
         }

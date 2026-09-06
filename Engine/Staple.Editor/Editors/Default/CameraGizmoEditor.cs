@@ -3,7 +3,7 @@
 [CustomEditor(typeof(Camera))]
 internal class CameraGizmoEditor : GizmoEditor
 {
-    public override void OnGizmo(Entity entity, Transform transform, IComponent component)
+    public override void OnGizmo(Entity entity, Transform transform, Component component)
     {
         if (component is not Camera camera)
         {

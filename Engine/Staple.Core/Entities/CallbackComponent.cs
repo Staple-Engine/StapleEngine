@@ -1,4 +1,6 @@
-﻿namespace Staple;
+﻿using System;
+
+namespace Staple;
 
 /// <summary>
 /// Component with callable unity-style events.
@@ -6,19 +8,14 @@
 /// Just remember, it's less effective than using a system if there's a lot of entities doing things!
 /// </summary>
 [AbstractComponent]
-[AutoAssignEntity]
-public class CallbackComponent : IComponent
+public class CallbackComponent : Component
 {
     /// <summary>
-    /// Flag for knowing when to emit the Start() event
-    /// There are better ways to do this, but for now this works!
+    /// Whether this component should execute while in the editor
     /// </summary>
-    internal bool STAPLE_JUST_ADDED = true;
-
-    /// <summary>
-    /// The entity this belongs to
-    /// </summary>
-    public Entity entity { get; internal set; }
+    [NonSerialized]
+    [HideInInspector]
+    public bool executeInEditor;
 
     /// <summary>
     /// Called when this component is added to its object

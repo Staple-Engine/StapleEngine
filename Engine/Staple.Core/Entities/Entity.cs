@@ -158,7 +158,7 @@ public partial struct Entity
     /// <param name="A">The first component instance</param>
     /// <returns>The entity, or default</returns>
     /// <typeparam name="T">The first component type</typeparam>
-    public static Entity Create<T>(out T A) where T: IComponent
+    public static Entity Create<T>(out T A) where T: Component
     {
         if (World.Current == null)
         {
@@ -190,8 +190,8 @@ public partial struct Entity
     /// <typeparam name="T">The first component type</typeparam>
     /// <typeparam name="T2">The second component type</typeparam>
     public static Entity Create<T, T2>(out T A, out T2 B)
-        where T : IComponent
-        where T2 : IComponent
+        where T : Component
+        where T2 : Component
     {
         if (World.Current == null)
         {
@@ -228,9 +228,9 @@ public partial struct Entity
     /// <typeparam name="T2">The second component type</typeparam>
     /// <typeparam name="T3">The third component type</typeparam>
     public static Entity Create<T, T2, T3>(out T A, out T2 B, out T3 C)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
     {
         if (World.Current == null)
         {
@@ -272,10 +272,10 @@ public partial struct Entity
     /// <typeparam name="T3">The third component type</typeparam>
     /// <typeparam name="T4">The fourth component type</typeparam>
     public static Entity Create<T, T2, T3, T4>(out T A, out T2 B, out T3 C, out T4 D)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
-        where T4 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
+        where T4 : Component
     {
         if (World.Current == null)
         {
@@ -322,11 +322,11 @@ public partial struct Entity
     /// <typeparam name="T4">The fourth component type</typeparam>
     /// <typeparam name="T5">The fifth component type</typeparam>
     public static Entity Create<T, T2, T3, T4, T5>(out T A, out T2 B, out T3 C, out T4 D, out T5 E)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
-        where T4 : IComponent
-        where T5 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
+        where T4 : Component
+        where T5 : Component
     {
         if (World.Current == null)
         {
@@ -398,7 +398,7 @@ public partial struct Entity
     /// <returns>The entity, or default</returns>
     /// <typeparam name="T">The first component type</typeparam>
     public static Entity Create<T>(string name, out T A)
-        where T : IComponent
+        where T : Component
     {
         var entity = Create(out A);
 
@@ -419,8 +419,8 @@ public partial struct Entity
     /// <typeparam name="T">The first component type</typeparam>
     /// <typeparam name="T2">The second component type</typeparam>
     public static Entity Create<T, T2>(string name, out T A, out T2 B)
-        where T : IComponent
-        where T2 : IComponent
+        where T : Component
+        where T2 : Component
     {
         var entity = Create(out A, out B);
 
@@ -443,9 +443,9 @@ public partial struct Entity
     /// <typeparam name="T2">The second component type</typeparam>
     /// <typeparam name="T3">The third component type</typeparam>
     public static Entity Create<T, T2, T3>(string name, out T A, out T2 B, out T3 C)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
     {
         var entity = Create(out A, out B, out C);
 
@@ -470,10 +470,10 @@ public partial struct Entity
     /// <typeparam name="T3">The third component type</typeparam>
     /// <typeparam name="T4">The fourth component type</typeparam>
     public static Entity Create<T, T2, T3, T4>(string name, out T A, out T2 B, out T3 C, out T4 D)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
-        where T4 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
+        where T4 : Component
     {
         var entity = Create(out A, out B, out C, out D);
 
@@ -500,11 +500,11 @@ public partial struct Entity
     /// <typeparam name="T4">The fourth component type</typeparam>
     /// <typeparam name="T5">The fifth component type</typeparam>
     public static Entity Create<T, T2, T3, T4, T5>(string name, out T A, out T2 B, out T3 C, out T4 D, out T5 E)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
-        where T4 : IComponent
-        where T5 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
+        where T4 : Component
+        where T5 : Component
     {
         var entity = Create(out A, out B, out C, out D, out E);
 

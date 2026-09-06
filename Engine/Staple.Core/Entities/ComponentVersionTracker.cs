@@ -7,7 +7,7 @@ namespace Staple;
 /// Tracks the version of <see cref="IComponentVersion"/> components
 /// </summary>
 /// <typeparam name="T">The component</typeparam>
-public class ComponentVersionTracker<T> where T: IComponent, IComponentVersion
+public class ComponentVersionTracker<T> where T: Component, IComponentVersion
 {
     private readonly ExpandableContainer<ulong> versions = new();
     private readonly ExpandableContainer<int> generations = new();

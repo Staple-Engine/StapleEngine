@@ -131,68 +131,72 @@ public class AudioSystem : ISubsystem
             return;
         }
 
-        World.AddComponentAddedCallback(typeof(AudioListener), (World world, Entity entity, ref IComponent component) =>
-        {
-            if(!entity.TryGetComponent<Transform>(out var transform))
+        World.AddComponentAddedCallback(typeof(AudioListener),
+            (World world, Entity entity, ref Component component) =>
             {
-                return;
-            }
+                if(!entity.TryGetComponent<Transform>(out var transform))
+                {
+                    return;
+                }
 
-            var listener = component as AudioListener;
+                var listener = component as AudioListener;
 
-            listener.audioListener = ObjectCreation.CreateObject<IAudioListener>(AudioListenerImpl);
+                listener.audioListener = ObjectCreation.CreateObject<IAudioListener>(AudioListenerImpl);
 
-            if(listener.audioListener != null)
+                if(listener.audioListener != null)
+                {
+                    listener.audioListener.Position = transform.Position;
+                    listener.audioListener.Orientation = transform.Rotation;
+                }
+            });
+
+        World.AddComponentAddedCallback(typeof(AudioSource),
+            (World world, Entity entity, ref Component component) =>
             {
-                listener.audioListener.Position = transform.Position;
-                listener.audioListener.Orientation = transform.Rotation;
-            }
-        });
+                var source = component as AudioSource;
 
-        World.AddComponentAddedCallback(typeof(AudioSource), (World world, Entity entity, ref IComponent component) =>
-        {
-            var source = component as AudioSource;
+                source.audioSource = ObjectCreation.CreateObject<IAudioSource>(AudioSourceImpl);
 
-            source.audioSource = ObjectCreation.CreateObject<IAudioSource>(AudioSourceImpl);
+                if(source.audioSource == null || !source.audioSource.Init())
+                {
+                    Log.Debug($"Failed to create audio source for entity {entity}", LogTag);
 
-            if(source.audioSource == null || !source.audioSource.Init())
+                    source.audioSource = null;
+
+                    return;
+                }
+
+                audioSources.Add(new AudioSourceInfo()
+                {
+                    source = new WeakReference<AudioSource>(source),
+                    entity = entity,
+                });
+            });
+
+        World.AddComponentRemovedCallback(typeof(AudioListener),
+            (World world, Entity entity, ref Component component) =>
             {
-                Log.Debug($"Failed to create audio source for entity {entity}", LogTag);
+                var listener = component as AudioListener;
+
+                listener.audioListener = null;
+            });
+
+        World.AddComponentRemovedCallback(typeof(AudioSource),
+            (World world, Entity entity, ref Component component) =>
+            {
+                var source = component as AudioSource;
+
+                source.audioSource?.Destroy();
 
                 source.audioSource = null;
 
-                return;
-            }
+                var existing = audioSources.FirstOrDefault(x => x.entity == entity);
 
-            audioSources.Add(new AudioSourceInfo()
-            {
-                source = new WeakReference<AudioSource>(source),
-                entity = entity,
+                if (existing != null)
+                {
+                    audioSources.Remove(existing);
+                }
             });
-        });
-
-        World.AddComponentRemovedCallback(typeof(AudioListener), (World world, Entity entity, ref IComponent component) =>
-        {
-            var listener = component as AudioListener;
-
-            listener.audioListener = null;
-        });
-
-        World.AddComponentRemovedCallback(typeof(AudioSource), (World world, Entity entity, ref IComponent component) =>
-        {
-            var source = component as AudioSource;
-
-            source.audioSource?.Destroy();
-
-            source.audioSource = null;
-
-            var existing = audioSources.FirstOrDefault(x => x.entity == entity);
-
-            if (existing != null)
-            {
-                audioSources.Remove(existing);
-            }
-        });
 
         backgroundLoadThread = new(() =>
         {

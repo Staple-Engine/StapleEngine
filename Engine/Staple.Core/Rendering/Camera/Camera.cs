@@ -8,7 +8,7 @@ namespace Staple;
 /// Camera component
 /// </summary>
 [ComponentIcon("Camera.png")]
-public sealed class Camera : IComponent
+public sealed class Camera : Component
 {
     /// <summary>
     /// Contains information on a spatial partition entry

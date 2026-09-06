@@ -6,9 +6,9 @@
 /// <param name="entity">The entity we're rendering with</param>
 /// <param name="transform">The transform of the entity</param>
 /// <param name="component">The component</param>
-public readonly struct RenderEntry(Entity entity, Transform transform, IComponent component)
+public readonly struct RenderEntry(Entity entity, Transform transform, Component component)
 {
     public readonly Entity entity = entity;
     public readonly Transform transform = transform;
-    public readonly IComponent component = component;
+    public readonly Component component = component;
 }

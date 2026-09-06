@@ -2,11 +2,11 @@
 
 namespace Staple;
 
-public interface IInputReceiver : IComponent
+public abstract class InputReceiver : Component
 {
-    void OnPressed(InputActionContext context);
+    public abstract void OnPressed(InputActionContext context);
 
-    void OnAxis(InputActionContext context, float value);
+    public abstract void OnAxis(InputActionContext context, float value);
 
-    void OnDualAxis(InputActionContext context, Vector2 value);
+    public abstract void OnDualAxis(InputActionContext context, Vector2 value);
 }

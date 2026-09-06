@@ -5,7 +5,7 @@ namespace Staple.Editor;
 [CustomEditor(typeof(Light))]
 internal class LightGizmoEditor : GizmoEditor
 {
-    public override void OnGizmo(Entity entity, Transform transform, IComponent component)
+    public override void OnGizmo(Entity entity, Transform transform, Component component)
     {
         var start = transform.Position;
         var end = transform.Position + transform.Forward;

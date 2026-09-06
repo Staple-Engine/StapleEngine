@@ -4,7 +4,7 @@ using System.Numerics;
 
 namespace Staple;
 
-public class SkinnedMeshInstance : IComponent, IComponentDisposable
+public class SkinnedMeshInstance : Component, IComponentDisposable
 {
     /// <summary>
     /// The mesh asset used for this
@@ -39,7 +39,7 @@ public class SkinnedMeshInstance : IComponent, IComponentDisposable
     /// <summary>
     /// List of modifiers
     /// </summary>
-    internal EntityQuery<Transform, ISkinModifier> modifiers;
+    internal EntityQuery<Transform, SkinModifier> modifiers;
 
     /// <summary>
     /// Whether we have an animator

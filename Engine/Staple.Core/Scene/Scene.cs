@@ -58,7 +58,7 @@ public sealed class Scene
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T)[] Query<T>(bool includeDisabled = false) where T : IComponent
+    public static (Entity, T)[] Query<T>(bool includeDisabled = false) where T : Component
     {
         return World.Current?.Query<T>(includeDisabled);
     }
@@ -71,8 +71,8 @@ public sealed class Scene
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
     public static (Entity, T, T2)[] Query<T, T2>(bool includeDisabled = false)
-        where T : IComponent
-        where T2 : IComponent
+        where T : Component
+        where T2 : Component
     {
         return World.Current?.Query<T, T2>(includeDisabled);
     }
@@ -86,9 +86,9 @@ public sealed class Scene
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
     public static (Entity, T, T2, T3)[] Query<T, T2, T3>(bool includeDisabled = false)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
     {
         return World.Current?.Query<T, T2, T3>(includeDisabled);
     }
@@ -103,10 +103,10 @@ public sealed class Scene
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
     public static (Entity, T, T2, T3, T4)[] Query<T, T2, T3, T4>(bool includeDisabled = false)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
-        where T4 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
+        where T4 : Component
     {
         return World.Current?.Query<T, T2, T3, T4>(includeDisabled);
     }
@@ -122,11 +122,11 @@ public sealed class Scene
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
     public static (Entity, T, T2, T3, T4, T5)[] Query<T, T2, T3, T4, T5>(bool includeDisabled = false)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
-        where T4 : IComponent
-        where T5 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
+        where T4 : Component
+        where T5 : Component
     {
         return World.Current?.Query<T, T2, T3, T4, T5>(includeDisabled);
     }
@@ -160,7 +160,7 @@ public sealed class Scene
     /// <param name="componentType">The component's type</param>
     /// <param name="component">The returned component if successful</param>
     /// <returns>Whether the entity and component were found</returns>
-    public static bool TryFindEntityComponent(string name, bool allowDisabled, Type componentType, out IComponent component)
+    public static bool TryFindEntityComponent(string name, bool allowDisabled, Type componentType, out Component component)
     {
         if(World.Current == null)
         {
@@ -180,7 +180,7 @@ public sealed class Scene
     /// <param name="allowDisabled">Whether to allow finding disabled entities</param>
     /// <param name="component">The returned component if successful</param>
     /// <returns>Whether the entity and component were found</returns>
-    public static bool TryFindEntityComponent<T>(string name, bool allowDisabled, out T component) where T : IComponent
+    public static bool TryFindEntityComponent<T>(string name, bool allowDisabled, out T component) where T : Component
     {
         if (World.Current == null)
         {

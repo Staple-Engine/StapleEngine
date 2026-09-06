@@ -18,7 +18,7 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
             Type t when t == typeof(Vector2Int) || t == typeof(Vector3Int) || t == typeof(Vector4Int) => true,
             Type t when t == typeof(IGuidAsset) || t.GetInterface(typeof(IGuidAsset).FullName) != null => true,
             Type t when t == typeof(Entity) => true,
-            Type t when t == typeof(IComponent) || t.GetInterface(typeof(IComponent).FullName) != null => true,
+            Type t when t == typeof(Component) || t.IsSubclassOf(typeof(Component)) => true,
             Type t when t == typeof(Sprite) => true,
             _ => false,
         };
@@ -140,14 +140,13 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
 
                 break;
 
-            case Type t when t == typeof(IComponent) ||
-                t.GetInterface(typeof(IComponent).FullName) != null:
+            case Type t when t == typeof(Component) ||
+                t.IsSubclassOf(typeof(Component)):
 
                 {
-                    if(instance is IComponent component &&
-                        (World.Current?.TryGetComponentEntity(component, out var e) ?? false))
+                    if(instance is Component component)
                     {
-                        return $"{e.Identifier.ID}:{component.GetType().ToString()}";
+                        return $"{component.Entity.Identifier.ID}:{component.GetType().ToString()}";
                     }
                 }
 
@@ -348,8 +347,8 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
 
                 break;
 
-            case Type t when t == typeof(IComponent) ||
-                t.GetInterface(typeof(IComponent).FullName) != null:
+            case Type t when t == typeof(Component) ||
+                t.IsSubclassOf(typeof(Component)):
 
                 {
                     if (fieldInfo.value is string s)
@@ -511,11 +510,11 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
 
                 break;
 
-            case Type t when t == typeof(IComponent) ||
-                t.GetInterface(typeof(IComponent).FullName) != null:
+            case Type t when t == typeof(Component) ||
+                t.IsSubclassOf(typeof(Component)):
 
                 {
-                    if (instance is IComponent component &&
+                    if (instance is Component component &&
                         (World.Current?.TryGetComponentEntity(component, out var e) ?? false))
                     {
                         return $"{e.Identifier.ID}:{t.ToString()}";
@@ -663,8 +662,8 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
 
                 return element.GetNumberValue<int>();
 
-            case Type t when (t == typeof(IComponent) ||
-                t.GetInterface(typeof(IComponent).FullName) != null) &&
+            case Type t when (t == typeof(Component) ||
+                t.IsSubclassOf(typeof(Component))) &&
                 element.ValueKind == JsonValueKind.String:
 
                 return element.GetString();

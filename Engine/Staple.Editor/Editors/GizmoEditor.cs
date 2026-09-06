@@ -18,7 +18,7 @@ public abstract class GizmoEditor
     /// <param name="entity">The entity</param>
     /// <param name="transform">The entity transform</param>
     /// <param name="component">The component</param>
-    public abstract void OnGizmo(Entity entity, Transform transform, IComponent component);
+    public abstract void OnGizmo(Entity entity, Transform transform, Component component);
 
     internal static void UpdateEditorTypes()
     {
@@ -35,7 +35,7 @@ public abstract class GizmoEditor
     /// </summary>
     /// <param name="component">The component</param>
     /// <returns>The editor, or null</returns>
-    public static GizmoEditor CreateGizmoEditor(IComponent component)
+    public static GizmoEditor CreateGizmoEditor(Component component)
     {
         Type editorType = null;
 

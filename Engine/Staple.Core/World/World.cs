@@ -16,19 +16,19 @@ public partial class World
 
     internal static readonly string LogTag = "World";
 
-    public delegate void IterateComponentCallback(ref IComponent component);
+    public delegate void IterateComponentCallback(ref Component component);
 
-    public delegate void OnComponentChangedCallback(World world, Entity entity, ref IComponent component);
+    public delegate void OnComponentChangedCallback(World world, Entity entity, ref Component component);
 
     public delegate void CallableComponentCallback(Span<(Entity, CallbackComponent)> content);
 
     /// <summary>
     /// Contains data about a component
     /// </summary>
-    internal class ComponentHolder(int hash, IComponent component, bool versionable, ulong version)
+    internal class ComponentHolder(int hash, Component component, bool versionable, ulong version)
     {
         public int hash = hash;
-        public IComponent component = component;
+        public Component component = component;
         public IComponentVersion versionableComponent = versionable ? (IComponentVersion)component : null;
         public bool versionable = versionable;
         public ulong version = version;

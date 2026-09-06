@@ -874,7 +874,7 @@ internal partial class StapleEditor
                         //Ensure the components are properly initialized
                         World.Current.Iterate((entity) =>
                         {
-                            World.Current.IterateComponents(entity, (ref IComponent component) =>
+                            World.Current.IterateComponents(entity, (ref Component component) =>
                             {
                                 World.Current.EmitAddComponentEvent(entity, ref component);
                             });
@@ -1079,7 +1079,7 @@ internal partial class StapleEditor
 
             var counter = 0;
 
-            selectedEntity.IterateComponents((ref IComponent component) =>
+            selectedEntity.IterateComponents((ref Component component) =>
             {
                 counter++;
 
@@ -1678,7 +1678,7 @@ internal partial class StapleEditor
 
                             World.Current?.Iterate((entity) =>
                             {
-                                World.Current.IterateComponents(entity, (ref IComponent component) =>
+                                World.Current.IterateComponents(entity, (ref Component component) =>
                                 {
                                     if (component is IComponentDisposable disposable)
                                     {

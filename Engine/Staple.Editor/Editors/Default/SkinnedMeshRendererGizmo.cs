@@ -5,7 +5,7 @@ namespace Staple.Editor;
 [CustomEditor(typeof(SkinnedMeshRenderer))]
 internal class SkinnedMeshRendererGizmo : GizmoEditor
 {
-    public override void OnGizmo(Entity entity, Transform transform, IComponent component)
+    public override void OnGizmo(Entity entity, Transform transform, Component component)
     {
         if(component is not SkinnedMeshRenderer renderer)
         {

@@ -1,6 +1,6 @@
 ﻿namespace Staple;
 
-public sealed class EntityInput : IComponent
+public sealed class EntityInput : Component
 {
     public InputActions actions;
 

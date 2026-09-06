@@ -9,9 +9,8 @@ namespace Staple;
 /// Transform component.
 /// Contains rotation, position, scale, and parent entity.
 /// </summary>
-[AutoAssignEntity]
 [DisableWorldVersioningUpdates]
-public class Transform : IComponent, IComponentVersion
+public class Transform : Component, IComponentVersion
 {
     private ulong lastVersion = 0;
     internal ulong version;
@@ -85,11 +84,6 @@ public class Transform : IComponent, IComponentVersion
     /// The parent of this transform, if any.
     /// </summary>
     public Transform Parent { get; private set; }
-
-    /// <summary>
-    /// The entity this transform belongs to
-    /// </summary>
-    public Entity Entity { get; internal set; }
 
     /// <summary>
     /// Gets the transform's Global Transformation Matrix

@@ -4,7 +4,7 @@
 /// Skinned mesh attachment component.
 /// Automatically syncs the entity's transform with a bone for the specified mesh.
 /// </summary>
-public sealed class SkinnedMeshAttachment : IComponent
+public sealed class SkinnedMeshAttachment : Component
 {
     /// <summary>
     /// The main mesh that contains the skeleton

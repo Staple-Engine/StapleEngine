@@ -680,7 +680,7 @@ public sealed class Physics3D : ISubsystem
         }
 
         World.AddComponentAddedCallback(typeof(RigidBody3D),
-            (World world, Entity entity, ref IComponent component) =>
+            (World world, Entity entity, ref Component component) =>
             {
                 if(!Platform.IsPlaying)
                 {
@@ -695,7 +695,7 @@ public sealed class Physics3D : ISubsystem
             });
 
         World.AddComponentChangedCallback(typeof(RigidBody3D),
-            (World world, Entity entity, ref IComponent component) =>
+            (World world, Entity entity, ref Component component) =>
             {
                 if (!Platform.IsPlaying)
                 {
@@ -708,7 +708,7 @@ public sealed class Physics3D : ISubsystem
             });
 
         World.AddComponentAddedCallback(typeof(Character3D),
-            (World world, Entity entity, ref IComponent component) =>
+            (World world, Entity entity, ref Component component) =>
             {
                 if (!Platform.IsPlaying)
                 {
@@ -723,7 +723,7 @@ public sealed class Physics3D : ISubsystem
             });
 
         World.AddComponentChangedCallback(typeof(Character3D),
-            (World world, Entity entity, ref IComponent component) =>
+            (World world, Entity entity, ref Component component) =>
             {
                 if (!Platform.IsPlaying)
                 {
@@ -736,7 +736,7 @@ public sealed class Physics3D : ISubsystem
             });
 
         World.AddComponentRemovedCallback(typeof(RigidBody3D),
-            (World world, Entity entity, ref IComponent component) =>
+            (World world, Entity entity, ref Component component) =>
             {
                 if (!Platform.IsPlaying)
                 {
@@ -753,7 +753,7 @@ public sealed class Physics3D : ISubsystem
             });
 
         World.AddComponentRemovedCallback(typeof(Character3D),
-            (World world, Entity entity, ref IComponent component) =>
+            (World world, Entity entity, ref Component component) =>
             {
                 if (!Platform.IsPlaying)
                 {

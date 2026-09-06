@@ -67,7 +67,7 @@ internal static class StapleSerializer
             return true;
         }
 
-        if(type.IsAssignableTo(typeof(IComponent)))
+        if(type.IsAssignableTo(typeof(Component)))
         {
             return true;
         }

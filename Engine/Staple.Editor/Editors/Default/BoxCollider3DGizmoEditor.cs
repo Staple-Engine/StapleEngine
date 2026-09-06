@@ -3,7 +3,7 @@
 [CustomEditor(typeof(BoxCollider3D))]
 internal class BoxCollider3DGizmoEditor : GizmoEditor
 {
-    public override void OnGizmo(Entity entity, Transform transform, IComponent component)
+    public override void OnGizmo(Entity entity, Transform transform, Component component)
     {
         if(component is not BoxCollider3D box)
         {

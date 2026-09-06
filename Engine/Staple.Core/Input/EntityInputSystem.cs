@@ -2,7 +2,7 @@
 
 public sealed class EntityInputSystem : IEntitySystemLifecycle, IEntitySystemFixedUpdate
 {
-    private readonly SceneQuery<EntityInput, IInputReceiver> inputs = new();
+    private readonly SceneQuery<EntityInput, InputReceiver> inputs = new();
 
     public void FixedUpdate(float deltaTime)
     {

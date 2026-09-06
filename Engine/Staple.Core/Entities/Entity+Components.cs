@@ -11,7 +11,7 @@ public partial struct Entity
     /// </summary>
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
-    public readonly IComponent AddComponent(
+    public readonly Component AddComponent(
         [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
         Type t)
     {
@@ -30,7 +30,7 @@ public partial struct Entity
     /// <returns>The component instance, or default</returns>
     public readonly T AddComponent
         <[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>
-        () where T : IComponent
+        () where T : Component
     {
         if (World.Current == null)
         {
@@ -53,7 +53,7 @@ public partial struct Entity
     /// Removes a component from this entity
     /// </summary>
     /// <typeparam name="T">The type to remove</typeparam>
-    public readonly void RemoveComponent<T>() where T : IComponent
+    public readonly void RemoveComponent<T>() where T : Component
     {
         World.Current?.RemoveComponent<T>(this);
     }
@@ -63,7 +63,7 @@ public partial struct Entity
     /// </summary>
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
-    public readonly IComponent GetComponent(Type t)
+    public readonly Component GetComponent(Type t)
     {
         if (World.Current == null)
         {
@@ -78,7 +78,7 @@ public partial struct Entity
     /// </summary>
     /// <typeparam name="T">The component type</typeparam>
     /// <returns>The component instance, or default</returns>
-    public readonly T GetComponent<T>() where T : IComponent
+    public readonly T GetComponent<T>() where T : Component
     {
         if (World.Current == null)
         {
@@ -94,14 +94,14 @@ public partial struct Entity
     /// <param name="t">The component type</param>
     /// <param name="includeSelf">Whether to include components from this entity</param>
     /// <returns>The component instance, or default</returns>
-    public readonly IComponent[] GetComponentsInChildren(Type t, bool includeSelf = true)
+    public readonly Component[] GetComponentsInChildren(Type t, bool includeSelf = true)
     {
         if (World.Current == null)
         {
             return default;
         }
 
-        var result = new List<IComponent>();
+        var result = new List<Component>();
 
         if(includeSelf && TryGetComponent(t, out var c))
         {
@@ -147,7 +147,7 @@ public partial struct Entity
     /// <typeparam name="T">The component type</typeparam>
     /// <param name="includeSelf">Whether to include components from this entity</param>
     /// <returns>The component instance, or default</returns>
-    public readonly T[] GetComponentsInChildren<T>(bool includeSelf = false) where T : IComponent
+    public readonly T[] GetComponentsInChildren<T>(bool includeSelf = false) where T : Component
     {
         if (World.Current == null)
         {
@@ -200,7 +200,7 @@ public partial struct Entity
     /// <typeparam name="T">The component type</typeparam>
     /// <param name="includeSelf">Whether to include components from this entity</param>
     /// <returns>A list of entities and component instance tuples, or empty</returns>
-    public readonly (Entity, T)[] GetComponentEntitiesInChildren<T>(bool includeSelf = false) where T : IComponent
+    public readonly (Entity, T)[] GetComponentEntitiesInChildren<T>(bool includeSelf = false) where T : Component
     {
         if (World.Current == null)
         {
@@ -252,7 +252,7 @@ public partial struct Entity
     /// </summary>
     /// <param name="t">The component type</param>
     /// <returns>The component instance, or default</returns>
-    public readonly IComponent GetComponentInParent(Type t)
+    public readonly Component GetComponentInParent(Type t)
     {
         if (World.Current == null)
         {
@@ -279,7 +279,7 @@ public partial struct Entity
     /// </summary>
     /// <typeparam name="T">The component type</typeparam>
     /// <returns>The component instance, or default</returns>
-    public readonly T GetComponentInParent<T>() where T : IComponent
+    public readonly T GetComponentInParent<T>() where T : Component
     {
         if (World.Current == null)
         {
@@ -307,7 +307,7 @@ public partial struct Entity
     /// <param name="t">The component type</param>
     /// <param name="component">The component instance</param>
     /// <returns>Whether the component was found</returns>
-    public readonly bool TryGetComponent(Type t, out IComponent component)
+    public readonly bool TryGetComponent(Type t, out Component component)
     {
         if (World.Current == null)
         {
@@ -325,7 +325,7 @@ public partial struct Entity
     /// <param name="component">The component instance</param>
     /// <typeparam name="T">The component type</typeparam>
     /// <returns>Whether the component was found</returns>
-    public readonly bool TryGetComponent<T>(out T component) where T : IComponent
+    public readonly bool TryGetComponent<T>(out T component) where T : Component
     {
         if (World.Current == null)
         {
@@ -342,7 +342,7 @@ public partial struct Entity
     /// This is required if the component type is a struct.
     /// </summary>
     /// <param name="component">The component instance to replace</param>
-    public readonly void SetComponent(IComponent component)
+    public readonly void SetComponent(Component component)
     {
         if (World.Current == null)
         {
@@ -358,7 +358,7 @@ public partial struct Entity
     /// <param name="component">The component</param>
     /// <param name="entity">The entity</param>
     /// <returns>Whether the entity was found</returns>
-    public static bool TryGetComponentEntity(IComponent component, out Entity entity)
+    public static bool TryGetComponentEntity(Component component, out Entity entity)
     {
         if(World.Current == null)
         {

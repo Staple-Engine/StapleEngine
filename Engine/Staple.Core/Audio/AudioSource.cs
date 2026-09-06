@@ -5,7 +5,7 @@ namespace Staple;
 /// <summary>
 /// A source of audio. Plays audio clips.
 /// </summary>
-public sealed class AudioSource : IComponent
+public sealed class AudioSource : Component
 {
     /// <summary>
     /// The audio clip to use

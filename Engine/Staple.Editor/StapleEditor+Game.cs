@@ -208,7 +208,7 @@ internal partial class StapleEditor
                     {
                         registeredAssetTypes.AddOrSetKey(v.FullName, v);
                     }
-                    else if (typeof(IComponent).IsAssignableFrom(v) &&
+                    else if (typeof(Component).IsAssignableFrom(v) &&
                         v.GetCustomAttribute<AbstractComponentAttribute>() == null)
                     {
                         registeredComponents.Add(v);

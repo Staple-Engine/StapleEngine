@@ -1620,8 +1620,8 @@ public static class EditorGUI
                     }
                 }
             }
-            else if(type == typeof(IComponent) ||
-                type.IsAssignableTo(typeof(IComponent)))
+            else if(type == typeof(Component) ||
+                type.IsAssignableTo(typeof(Component)))
             {
                 var payload = ImGui.AcceptDragDropPayload("ENTITY");
 
@@ -1807,7 +1807,7 @@ public static class EditorGUI
     /// <param name="value">The current value of the component</param>
     /// <param name="key">A unique key for this UI element</param>
     /// <returns>The new value of the component, if any</returns>
-    public static IComponent ComponentField(string name, Type type, IComponent value, string key)
+    public static Component ComponentField(string name, Type type, Component value, string key)
     {
         Label($"{name} ({type.Name})");
 
@@ -1826,7 +1826,7 @@ public static class EditorGUI
         {
             if (v.GetType() == type)
             {
-                value = (IComponent)v;
+                value = (Component)v;
             }
         });
 

@@ -9,7 +9,7 @@ namespace Staple;
 /// Generic render queue for more efficient data checks
 /// </summary>
 /// <typeparam name="T">The component type</typeparam>
-public class GenericRenderQueue<T> : IRenderQueue where T: IComponent
+public class GenericRenderQueue<T> : IRenderQueue where T: Component
 {
     /// <summary>
     /// An item of this render queue

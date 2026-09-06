@@ -4,7 +4,7 @@ using System;
 namespace Staple;
 
 public class SceneQuery<T>: ISceneQuery
-    where T: IComponent
+    where T: Component
 {
     private readonly bool includeDisabled;
 
@@ -28,8 +28,8 @@ public class SceneQuery<T>: ISceneQuery
 }
 
 public class SceneQuery<T, T2>: ISceneQuery
-    where T: IComponent
-    where T2: IComponent
+    where T: Component
+    where T2: Component
 {
     private readonly bool includeDisabled;
 
@@ -53,9 +53,9 @@ public class SceneQuery<T, T2>: ISceneQuery
 }
 
 public class SceneQuery<T, T2, T3> : ISceneQuery
-    where T : IComponent
-    where T2 : IComponent
-    where T3: IComponent
+    where T : Component
+    where T2 : Component
+    where T3: Component
 {
     private readonly bool includeDisabled;
 
@@ -79,10 +79,10 @@ public class SceneQuery<T, T2, T3> : ISceneQuery
 }
 
 public class SceneQuery<T, T2, T3, T4> : ISceneQuery
-    where T : IComponent
-    where T2 : IComponent
-    where T3 : IComponent
-    where T4 : IComponent
+    where T : Component
+    where T2 : Component
+    where T3 : Component
+    where T4 : Component
 {
     private readonly bool includeDisabled;
 
@@ -106,11 +106,11 @@ public class SceneQuery<T, T2, T3, T4> : ISceneQuery
 }
 
 public class SceneQuery<T, T2, T3, T4, T5> : ISceneQuery
-    where T : IComponent
-    where T2 : IComponent
-    where T3 : IComponent
-    where T4 : IComponent
-    where T5 : IComponent
+    where T : Component
+    where T2 : Component
+    where T3 : Component
+    where T4 : Component
+    where T5 : Component
 {
     private readonly bool includeDisabled;
 

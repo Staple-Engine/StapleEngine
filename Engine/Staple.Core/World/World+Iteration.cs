@@ -12,7 +12,7 @@ public partial class World
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T)[] Query<T>(bool includeDisabled) where T : IComponent
+    public (Entity, T)[] Query<T>(bool includeDisabled) where T : Component
     {
         var tName = typeof(T).FullName.GetHashCode();
 
@@ -70,8 +70,8 @@ public partial class World
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
     public (Entity, T, T2)[] Query<T, T2>(bool includeDisabled)
-        where T : IComponent
-        where T2 : IComponent
+        where T : Component
+        where T2 : Component
     {
         var tName = typeof(T).FullName.GetHashCode();
         var t2Name = typeof(T2).FullName.GetHashCode();
@@ -144,9 +144,9 @@ public partial class World
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
     public (Entity, T, T2, T3)[] Query<T, T2, T3>(bool includeDisabled)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
     {
         var tName = typeof(T).FullName.GetHashCode();
         var t2Name = typeof(T2).FullName.GetHashCode();
@@ -233,10 +233,10 @@ public partial class World
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
     public (Entity, T, T2, T3, T4)[] Query<T, T2, T3, T4>(bool includeDisabled)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
-        where T4 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
+        where T4 : Component
     {
         var tName = typeof(T).FullName.GetHashCode();
         var t2Name = typeof(T2).FullName.GetHashCode();
@@ -337,11 +337,11 @@ public partial class World
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
     public (Entity, T, T2, T3, T4, T5)[] Query<T, T2, T3, T4, T5>(bool includeDisabled)
-        where T : IComponent
-        where T2 : IComponent
-        where T3 : IComponent
-        where T4 : IComponent
-        where T5 : IComponent
+        where T : Component
+        where T2 : Component
+        where T3 : Component
+        where T4 : Component
+        where T5 : Component
     {
         var tName = typeof(T).FullName.GetHashCode();
         var t2Name = typeof(T2).FullName.GetHashCode();
@@ -506,7 +506,7 @@ public partial class World
     /// <param name="componentType">The component's type</param>
     /// <param name="component">The returned component if successful</param>
     /// <returns>Whether the entity and component were found</returns>
-    public bool TryFindEntityComponent(string name, bool allowDisabled, Type componentType, out IComponent component)
+    public bool TryFindEntityComponent(string name, bool allowDisabled, Type componentType, out Component component)
     {
         var e = FindEntity(name, allowDisabled);
 
@@ -521,7 +521,7 @@ public partial class World
     /// <param name="allowDisabled">Whether to allow finding disabled entities</param>
     /// <param name="component">The returned component if successful</param>
     /// <returns>Whether the entity and component were found</returns>
-    public bool TryFindEntityComponent<T>(string name, bool allowDisabled, out T component) where T: IComponent
+    public bool TryFindEntityComponent<T>(string name, bool allowDisabled, out T component) where T: Component
     {
         var e = FindEntity(name, allowDisabled);
 

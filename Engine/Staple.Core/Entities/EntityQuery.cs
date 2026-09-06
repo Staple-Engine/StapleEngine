@@ -38,7 +38,7 @@ public enum EntityQueryMode
 /// </summary>
 /// <typeparam name="T">A type of component to get</typeparam>
 public sealed class EntityQuery<T> : ISceneQuery
-    where T : IComponent
+    where T : Component
 {
     public struct EntityItem(Entity entity, T item)
     {
@@ -309,8 +309,8 @@ public sealed class EntityQuery<T> : ISceneQuery
 /// <typeparam name="T">A type of component to get</typeparam>
 /// <typeparam name="T2">A type of component to get</typeparam>
 public sealed class EntityQuery<T, T2> : ISceneQuery
-    where T : IComponent
-    where T2 : IComponent
+    where T : Component
+    where T2 : Component
 {
     public struct Item(T first, T2 second)
     {
