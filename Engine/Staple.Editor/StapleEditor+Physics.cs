@@ -116,7 +116,9 @@ internal partial class StapleEditor
     /// <param name="bounds">The entity's bounds</param>
     public void ReplaceEntityBodyIfNeeded(Entity entity, AABB bounds)
     {
-        if(bounds.extents.LengthSquared() == 0 || playMode != PlayMode.Stopped)
+        if(bounds.extents.LengthSquared() == 0 ||
+            playMode != PlayMode.Stopped ||
+            entity.HierarchyVisibility != EntityHierarchyVisibility.None)
         {
             return;
         }
@@ -175,7 +177,8 @@ internal partial class StapleEditor
 
         foreach (var pair in pickEntityBodies)
         {
-            if (pair.Key.IsValid)
+            if (pair.Key.IsValid &&
+                pair.Key.HierarchyVisibility == EntityHierarchyVisibility.None)
             {
                 continue;
             }
