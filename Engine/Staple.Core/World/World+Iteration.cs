@@ -575,6 +575,37 @@ public partial class World
     }
 
     /// <summary>
+    /// Iterates through the <see cref="CallbackComponent"/> components of an entity
+    /// </summary>
+    /// <param name="entity">The entity to iterate</param>
+    /// <param name="callback">A callback to handle the component</param>
+    internal void IterateCallableComponents(Entity entity, CallableComponentCallback callback)
+    {
+        if (!TryGetEntity(entity, out var entityInfo))
+        {
+            return;
+        }
+
+        lock (lockObject)
+        {
+            foreach (var container in entityInfo.componentsArray.Contents)
+            {
+                if (!entityInfo.alive)
+                {
+                    break;
+                }
+
+                if(container.component is not CallbackComponent c)
+                {
+                    continue;
+                }
+
+                callback(c);
+            }
+        }
+    }
+
+    /// <summary>
     /// Iterates through every callable component type
     /// </summary>
     /// <param name="callback">A callback to execute with the component</param>

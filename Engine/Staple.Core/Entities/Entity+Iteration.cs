@@ -10,4 +10,13 @@ public partial struct Entity
     {
         World.Current?.IterateComponents(this, callback);
     }
+
+    /// <summary>
+    /// Iterates through the <see cref="CallbackComponent"/> components of this entity
+    /// </summary>
+    /// <param name="callback">A callback to handle the component</param>
+    public readonly void IterateCallableComponents(World.CallableComponentCallback callback)
+    {
+        World.Current?.IterateCallableComponents(this, callback);
+    }
 }

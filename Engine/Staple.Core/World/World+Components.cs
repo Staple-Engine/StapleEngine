@@ -182,17 +182,18 @@ public partial class World
 
             if(!Scene.InstancingComponent &&
                 callableComponentTypes.Count != 0 &&
-                container.component is CallbackComponent callback &&
-                callback.Enabled &&
-                callback.ShouldExecuteEvents)
+                container.component is CallbackComponent callback)
             {
-                try
+                if(callback.ShouldExecuteEvents)
                 {
-                    callback.Awake();
-                }
-                catch (Exception e)
-                {
-                    Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                    try
+                    {
+                        callback.Awake();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                    }
                 }
             }
 

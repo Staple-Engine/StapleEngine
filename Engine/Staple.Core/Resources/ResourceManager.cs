@@ -1003,9 +1003,9 @@ internal class ResourceManager : IWorldChangeReceiver
                 {
                     var entity = pair.Value.Entity;
 
-                    entity.IterateComponents((component) =>
+                    entity.IterateCallableComponents((callback) =>
                     {
-                        if (component is CallbackComponent callback && callback.Enabled && callback.ShouldExecuteEvents)
+                        if (callback.ShouldExecuteEvents)
                         {
                             try
                             {
@@ -1227,7 +1227,7 @@ internal class ResourceManager : IWorldChangeReceiver
 
                 entity.IterateComponents((c) =>
                 {
-                    if (c is CallbackComponent callback && callback.Enabled && callback.ShouldExecuteEvents)
+                    if (c is CallbackComponent callback && callback.ShouldExecuteEvents)
                     {
                         try
                         {

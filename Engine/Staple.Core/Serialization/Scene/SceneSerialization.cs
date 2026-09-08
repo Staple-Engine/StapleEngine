@@ -114,9 +114,9 @@ internal static class SceneSerialization
 
         if (activate)
         {
-            entity.IterateComponents((c) =>
+            entity.IterateCallableComponents((callback) =>
             {
-                if(c is CallbackComponent callback && callback.Enabled && callback.ShouldExecuteEvents)
+                if(callback.ShouldExecuteEvents)
                 {
                     try
                     {
