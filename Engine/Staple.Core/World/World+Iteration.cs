@@ -579,7 +579,7 @@ public partial class World
     /// </summary>
     /// <param name="entity">The entity to iterate</param>
     /// <param name="callback">A callback to handle the component</param>
-    internal void IterateCallableComponents(Entity entity, CallableComponentCallback callback)
+    internal void IterateCallableComponents(Entity entity, SingleCallableComponentCallback callback)
     {
         if (!TryGetEntity(entity, out var entityInfo))
         {

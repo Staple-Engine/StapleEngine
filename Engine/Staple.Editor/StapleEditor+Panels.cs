@@ -863,6 +863,12 @@ internal partial class StapleEditor
                                 (component) =>
                                 {
                                     World.Current.EmitAddComponentEvent(component);
+
+                                    if(component is CallbackComponent callback &&
+                                        callback.ShouldExecuteEvents)
+                                    {
+                                        callback.Awake();
+                                    }
                                 });
                         });
 

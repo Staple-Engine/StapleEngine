@@ -21,6 +21,7 @@ public partial class World
     public delegate void OnComponentChangedCallback(World world, Component component);
 
     public delegate void CallableComponentCallback(Span<CallbackComponent> content);
+    public delegate void SingleCallableComponentCallback(CallbackComponent component);
 
     /// <summary>
     /// Contains data about a component

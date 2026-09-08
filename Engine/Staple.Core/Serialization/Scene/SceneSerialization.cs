@@ -114,21 +114,24 @@ internal static class SceneSerialization
 
         if (activate)
         {
-            entity.IterateCallableComponents((callback) =>
+            entity.IterateComponents((component) =>
             {
-                if(callback.ShouldExecuteEvents)
+                World.Current?.EmitAddComponentEvent(component);
+
+                if (component is CallbackComponent callback)
                 {
-                    try
+                    if (callback.ShouldExecuteEvents)
                     {
-                        callback.Awake();
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                        try
+                        {
+                            callback.Awake();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                        }
                     }
                 }
-
-                World.Current?.EmitAddComponentEvent(c);
             });
         }
 

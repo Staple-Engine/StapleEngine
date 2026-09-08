@@ -1001,20 +1001,20 @@ internal class ResourceManager : IWorldChangeReceiver
             {
                 foreach (var pair in localIDs)
                 {
-                    var entity = pair.Value.Entity;
-
-                    entity.IterateCallableComponents((callback) =>
+                    pair.Value.Entity.IterateCallableComponents((callback) =>
                     {
-                        if (callback.ShouldExecuteEvents)
+                        if (!callback.ShouldExecuteEvents)
                         {
-                            try
-                            {
-                                callback.Awake();
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
-                            }
+                            return;
+                        }
+
+                        try
+                        {
+                            callback.Awake();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"{callback.Entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
                         }
                     });
                 }
@@ -1227,19 +1227,22 @@ internal class ResourceManager : IWorldChangeReceiver
 
                 entity.IterateComponents((c) =>
                 {
-                    if (c is CallbackComponent callback && callback.ShouldExecuteEvents)
+                    World.Current?.EmitAddComponentEvent(c);
+
+                    if (c is CallbackComponent callback)
                     {
-                        try
+                        if(callback.ShouldExecuteEvents)
                         {
-                            callback.Awake();
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                            try
+                            {
+                                callback.Awake();
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Debug($"{entity.Name} ({callback.GetType().FullName}): Exception thrown while handling Awake: {e}");
+                            }
                         }
                     }
-
-                    World.Current?.EmitAddComponentEvent(c);
                 });
             }
 
