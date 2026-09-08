@@ -1813,7 +1813,7 @@ public static class EditorGUI
 
         SameLine();
 
-        if (value.Entity.IsValid)
+        if (value?.Entity.IsValid ?? false)
         {
             Label($"{value.Entity.Name} ({value.GetType().Name})");
         }
