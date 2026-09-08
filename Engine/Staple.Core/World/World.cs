@@ -16,11 +16,11 @@ public partial class World
 
     internal static readonly string LogTag = "World";
 
-    public delegate void IterateComponentCallback(ref Component component);
+    public delegate void IterateComponentCallback(Component component);
 
-    public delegate void OnComponentChangedCallback(World world, Entity entity, ref Component component);
+    public delegate void OnComponentChangedCallback(World world, Component component);
 
-    public delegate void CallableComponentCallback(Span<(Entity, CallbackComponent)> content);
+    public delegate void CallableComponentCallback(Span<CallbackComponent> content);
 
     /// <summary>
     /// Contains data about a component
@@ -151,17 +151,6 @@ public partial class World
         }
     }
 
-    /// <summary>
-    /// Contains camera entity information
-    /// Used by the SortedCameras property
-    /// </summary>
-    public struct CameraInfo
-    {
-        public Entity entity;
-        public Camera camera;
-        public Transform transform;
-    }
-
     private class WorldChangeBox : ObservableBox
     {
         protected override void EmitAction(object observer)
@@ -220,12 +209,12 @@ public partial class World
     /// <summary>
     /// Gets all available cameras sorted by depth
     /// </summary>
-    public Span<CameraInfo> SortedCameras => sortedCameras.Contents;
+    public Span<Camera> SortedCameras => sortedCameras.Contents;
 
     /// <summary>
     /// Gets all entities with a valid transform that don't have a parent
     /// </summary>
-    public Span<(Entity, Transform)> RootEntities => rootEntities.Contents;
+    public Span<Transform> RootEntities => rootEntities.Contents;
 
     private readonly Lock lockObject = new();
     private static readonly Lock globalLockObject = new();
@@ -238,16 +227,18 @@ public partial class World
     private SceneQuery<CallbackComponent> callableComponents;
     private SceneQuery<Camera, Transform> cameras;
 
-    private readonly List<CameraInfo> sortedCamerasBacking = [];
-    private readonly List<(Entity, Transform)> rootEntitiesBacking = [];
+    private readonly List<Camera> sortedCamerasBacking = [];
+    private readonly List<Transform> rootEntitiesBacking = [];
 
     internal readonly ExpandableContainer<EntityInfo> entities = new();
-    internal readonly ExpandableContainer<CameraInfo> sortedCameras = new();
-    internal readonly ExpandableContainer<(Entity, Transform)> rootEntities = new();
+    internal readonly ExpandableContainer<Camera> sortedCameras = new();
+    internal readonly ExpandableContainer<Transform> rootEntities = new();
 
     private readonly ExpandableContainer<EntityInfo> cachedEntityList = new();
     private bool needsEmitWorldChange = false;
     private readonly SortedSet<int> deadEntities = [];
+
+    private readonly HashSet<Component> updatedComponents = [];
 
     private int entityCount;
     private static readonly WorldChangeBox worldChangeReceivers = new();
@@ -342,19 +333,14 @@ public partial class World
         {
             world.sortedCamerasBacking.Clear();
 
-            var cameras = Scene.Query<Camera, Transform>(false);
+            var cameras = Scene.Query<Camera>(false);
 
-            foreach ((Entity e, Camera c, Transform t) in cameras)
+            foreach (Camera camera in cameras)
             {
-                world.sortedCamerasBacking.Add(new()
-                {
-                    camera = c,
-                    entity = e,
-                    transform = t,
-                });
+                world.sortedCamerasBacking.Add(camera);
             }
 
-            world.sortedCamerasBacking.Sort((x, y) => x.camera.depth.CompareTo(y.camera.depth));
+            world.sortedCamerasBacking.Sort((x, y) => x.depth.CompareTo(y.depth));
 
             if(world.sortedCameras.Length != world.sortedCamerasBacking.Count)
             {
@@ -368,11 +354,11 @@ public partial class World
 
                 world.rootEntitiesBacking.Clear();
 
-                foreach(var (e, t) in transforms)
+                foreach(var t in transforms)
                 {
                     if(t.Parent == null)
                     {
-                        world.rootEntitiesBacking.Add((e, t));
+                        world.rootEntitiesBacking.Add(t);
                     }
                 }
 
@@ -492,28 +478,18 @@ public partial class World
             }
             else
             {
-                foreach(var entity in cachedEntityList.Contents)
+                foreach(var c in updatedComponents)
                 {
-                    if(!entity.alive)
+                    if(!(c?.Entity.IsValid ?? false))
                     {
                         continue;
                     }
 
-                    var components = entity.componentsArray.Contents;
-
-                    foreach(var container in components)
-                    {
-                        if(!container.ShouldUpdate)
-                        {
-                            continue;
-                        }
-
-                        ref var component = ref container.component;
-
-                        EmitChangedComponentEvent(entity.entityValue, ref component);
-                    }
+                    EmitChangedComponentEvent(c);
                 }
             }
+
+            updatedComponents.Clear();
         }
     }
 
@@ -525,9 +501,7 @@ public partial class World
 
             foreach (var entity in entities.Contents)
             {
-                var transform = GetComponent<Transform>(entity.entityValue);
-
-                transform?.Entity = default;
+                entity.transform?.Entity = default;
 
                 var components = entity.componentsArray.Contents;
 
@@ -544,6 +518,7 @@ public partial class World
             cachedEntityList.Clear();
             destroyedEntities.Clear();
             removedComponents.Clear();
+            updatedComponents.Clear();
 
             if (needsEmitWorldChange)
             {
@@ -552,5 +527,14 @@ public partial class World
                 EmitWorldChangedEvent(false);
             }
         }
+    }
+
+    /// <summary>
+    /// Reports that a component was changed and queues it for an <see cref="EmitChangedComponentEvent(Component)"/>
+    /// </summary>
+    /// <param name="component">The component</param>
+    public void ReportChangedComponent(Component component)
+    {
+        updatedComponents.Add(component);
     }
 }

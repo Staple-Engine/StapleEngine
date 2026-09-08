@@ -143,9 +143,8 @@ using System.Runtime.InteropServices;
 
 namespace {namespaceName}
 {{
-    {typeAccessibility} partial class {typeName} : Staple.IComponentVersion
+    {typeAccessibility} partial class {typeName}
     {{
-        public ulong Version {{ get; internal set; }}
 ";
 
                         foreach (var property in properties)
@@ -164,9 +163,9 @@ namespace {namespaceName}
         get;
         set
         {{
-            Version++;
-
             field = value;
+
+            World.Current?.ReportChangedComponent(this);
         }}
     }}
 
@@ -176,9 +175,9 @@ namespace {namespaceName}
             get;
             set
             {{
-                Version++;
-
                 field = value;
+
+                World.Current?.ReportChangedComponent(this);
             }}
         }}
 

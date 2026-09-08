@@ -515,9 +515,9 @@ internal class StapleTypesSerializer : IStapleTypeSerializer
 
                 {
                     if (instance is Component component &&
-                        (World.Current?.TryGetComponentEntity(component, out var e) ?? false))
+                        component.Entity.IsValid)
                     {
-                        return $"{e.Identifier.ID}:{t.ToString()}";
+                        return $"{component.Entity.Identifier.ID}:{t.ToString()}";
                     }
                 }
 

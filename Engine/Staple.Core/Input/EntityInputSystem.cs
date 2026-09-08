@@ -6,7 +6,7 @@ public sealed class EntityInputSystem : IEntitySystemLifecycle, IEntitySystemFix
 
     public void FixedUpdate(float deltaTime)
     {
-        foreach(var (_, input, receiver) in inputs.Contents)
+        foreach(var (input, receiver) in inputs.Contents)
         {
             if(input.prevActions != input.actions)
             {

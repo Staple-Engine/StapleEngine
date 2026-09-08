@@ -23,7 +23,7 @@ internal class RefTests
         handle.Dispose();
 
         Assert.That(handle.IsValid, Is.False);
-        Assert.That(handle.content, Is.EqualTo(1));
+        Assert.That(handle.content, Is.EqualTo(0));
         Assert.That(disposed, Is.True);
     }
 

@@ -114,9 +114,9 @@ internal static class SceneSerialization
 
         if (activate)
         {
-            entity.IterateComponents((ref c) =>
+            entity.IterateComponents((c) =>
             {
-                if(c is CallbackComponent callback && callback.ShouldExecuteEvents)
+                if(c is CallbackComponent callback && callback.Enabled && callback.ShouldExecuteEvents)
                 {
                     try
                     {
@@ -128,7 +128,7 @@ internal static class SceneSerialization
                     }
                 }
 
-                World.Current?.EmitAddComponentEvent(entity, ref c);
+                World.Current?.EmitAddComponentEvent(c);
             });
         }
 
@@ -144,7 +144,7 @@ internal static class SceneSerialization
     /// <param name="target">The target entity</param>
     public static void InstantiateEntityComponents(Entity source, Entity target)
     {
-        source.IterateComponents((ref Component component) =>
+        source.IterateComponents((Component component) =>
         {
             if(component is Transform)
             {
@@ -174,7 +174,7 @@ internal static class SceneSerialization
     {
         var components = new List<SceneComponent>();
 
-        entity.IterateComponents((ref Component component) =>
+        entity.IterateComponents((component) =>
         {
             if (component == null || component.GetType() == typeof(Transform))
             {

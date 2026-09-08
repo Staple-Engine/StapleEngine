@@ -307,7 +307,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
                         if (shouldCheckVisibility)
                         {
-                            renderable.isVisible = renderable.enabled &&
+                            renderable.isVisible = renderable.Enabled &&
                                 !renderable.forceRenderingOff;
 
                             if (renderable.isVisible && cull)

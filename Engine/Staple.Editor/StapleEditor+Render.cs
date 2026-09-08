@@ -190,10 +190,9 @@ internal partial class StapleEditor
                             {
                                 queue.IterateRenderables((entity, transform, renderable) =>
                                 {
-                                    if (renderable.enabled)
+                                    if (renderable.Enabled)
                                     {
-                                        renderable.isVisible = renderable.enabled &&
-                                            !renderable.forceRenderingOff &&
+                                        renderable.isVisible = !renderable.forceRenderingOff &&
                                             renderable.cullingState != CullingState.Invisible;
 
                                         if (renderable.isVisible)
@@ -238,7 +237,7 @@ internal partial class StapleEditor
                 {
                     var counter = 0;
 
-                    selectedEntity.IterateComponents((ref Component component) =>
+                    selectedEntity.IterateComponents((component) =>
                     {
                         if (cachedGizmoEditors.TryGetValue(counter++, out var editor))
                         {

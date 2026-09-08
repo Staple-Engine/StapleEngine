@@ -31,14 +31,14 @@ public sealed class LightSystem
     /// <summary>
     /// Override the lights used by the light system
     /// </summary>
-    public static (Entity, Transform, Light)[] OverrideLights = null;
+    public static Light[] OverrideLights = null;
 
     /// <summary>
     /// Override the ambient color
     /// </summary>
     public static Color? OverrideAmbientColor = null;
 
-    private readonly SceneQuery<Transform, Light> lightQuery = new();
+    private readonly SceneQuery<Light> lightQuery = new();
 
     private readonly Vector4[] cachedLightTypePositions = new Vector4[MaxLights];
     private readonly Color[] cachedLightDiffuse = new Color[MaxLights];
@@ -58,7 +58,7 @@ public sealed class LightSystem
 
     public Color AmbientColor => OverrideAmbientColor ?? AppSettings.Active.ambientLight;
 
-    public (Entity, Transform, Light)[] Lights => OverrideLights ?? lightQuery.Contents;
+    public Span<Light> Lights => OverrideLights != null ? OverrideLights.AsSpan() : lightQuery.Contents;
 
     public static readonly LightSystem Instance = new();
 
@@ -140,7 +140,8 @@ public sealed class LightSystem
 
         for (var i = 0; i < lightCount; i++)
         {
-            var (_, t, light) = targets[i];
+            var light = targets[i];
+            var t = light.Transform;
             var p = t.Position;
             var forward = t.Forward;
 

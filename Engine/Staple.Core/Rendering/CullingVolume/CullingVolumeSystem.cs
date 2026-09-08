@@ -46,8 +46,8 @@ public sealed class CullingVolumeSystem : RenderSystemBase
         {
             var volume = entry.component;
 
-            volume.renderers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
-            volume.children ??= new(entry.entity, EntityQueryMode.Children, false);
+            volume.renderers ??= new(entry.entity, EntityQueryMode.SelfAndChildren);
+            volume.children ??= new(entry.entity, EntityQueryMode.Children);
 
             volume.needsUpdate = true;
         }
@@ -74,7 +74,7 @@ public sealed class CullingVolumeSystem : RenderSystemBase
 
                         foreach (var (_, renderer) in volume.renderers.Contents)
                         {
-                            if (!renderer.enabled || renderer.forceRenderingOff)
+                            if (!renderer.Enabled || renderer.forceRenderingOff)
                             {
                                 continue;
                             }
@@ -90,7 +90,7 @@ public sealed class CullingVolumeSystem : RenderSystemBase
                         {
                             var (_, renderer) = renderers[i];
 
-                            if (renderer.enabled && !renderer.forceRenderingOff)
+                            if (renderer.Enabled && !renderer.forceRenderingOff)
                             {
                                 volume.boundsCoordinates.Add(renderer.bounds.min);
                                 volume.boundsCoordinates.Add(renderer.bounds.max);

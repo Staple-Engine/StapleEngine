@@ -306,7 +306,12 @@ internal sealed class EntitySystemManager : ISubsystem
             {
                 for(var i = 0; i < contents.Length; i++)
                 {
-                    var (entity, component) = contents[i];
+                    ref var component = ref contents[i];
+
+                    if(!component.Enabled)
+                    {
+                        continue;
+                    }
 
                     try
                     {
@@ -314,7 +319,7 @@ internal sealed class EntitySystemManager : ISubsystem
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling FixedUpdate: {e}",
+                        Log.Debug($"{component.Entity.Name} ({component.GetType().FullName}): Exception thrown while handling FixedUpdate: {e}",
                             LogTag);
                     }
                 }
@@ -344,7 +349,12 @@ internal sealed class EntitySystemManager : ISubsystem
             {
                 for(var i = 0; i < contents.Length; i++)
                 {
-                    var (entity, component) = contents[i];
+                    ref var component = ref contents[i];
+
+                    if (!component.Enabled)
+                    {
+                        continue;
+                    }
 
                     if (component.STAPLE_JUST_ADDED)
                     {
@@ -356,7 +366,7 @@ internal sealed class EntitySystemManager : ISubsystem
                         }
                         catch (Exception e)
                         {
-                            Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Start: {e}",
+                            Log.Debug($"{component.Entity.Name} ({component.GetType().FullName}): Exception thrown while handling Start: {e}",
                                 LogTag);
                         }
                     }
@@ -367,7 +377,7 @@ internal sealed class EntitySystemManager : ISubsystem
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling Update: {e}",
+                        Log.Debug($"{component.Entity.Name} ({component.GetType().FullName}): Exception thrown while handling Update: {e}",
                             LogTag);
                     }
                 }
@@ -377,7 +387,12 @@ internal sealed class EntitySystemManager : ISubsystem
             {
                 for (var i = 0; i < contents.Length; i++)
                 {
-                    var (entity, component) = contents[i];
+                    ref var component = ref contents[i];
+
+                    if (!component.Enabled)
+                    {
+                        continue;
+                    }
 
                     try
                     {
@@ -385,7 +400,7 @@ internal sealed class EntitySystemManager : ISubsystem
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"{entity.Name} ({component.GetType().FullName}): Exception thrown while handling LateUpdate: {e}",
+                        Log.Debug($"{component.Entity.Name} ({component.GetType().FullName}): Exception thrown while handling LateUpdate: {e}",
                             LogTag);
                     }
                 }

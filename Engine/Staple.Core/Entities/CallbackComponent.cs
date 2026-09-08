@@ -19,7 +19,7 @@ public class CallbackComponent : Component
     /// <summary>
     /// Whether this <see cref="CallbackComponent"/> should execute its events
     /// </summary>
-    internal bool ShouldExecuteEvents => (Platform.IsPlaying || (Platform.IsEditor && executeInEditor));
+    internal bool ShouldExecuteEvents => Enabled && (Platform.IsPlaying || (Platform.IsEditor && executeInEditor));
 
     /// <summary>
     /// Whether this component should execute while in the editor

@@ -64,9 +64,9 @@ public sealed class MeshCombineSystem : RenderSystemBase
         {
             var combine = entry.component;
 
-            combine.renderers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, true);
+            combine.renderers ??= new(entry.entity, EntityQueryMode.SelfAndChildren);
 
-            foreach (var (_, renderer) in combine.renderers.Contents)
+            foreach (var renderer in combine.renderers.Contents)
             {
                 renderer.cullingState = CullingState.Invisible;
             }
@@ -79,10 +79,10 @@ public sealed class MeshCombineSystem : RenderSystemBase
 
                 Matrix4x4.Invert(entry.transform.Matrix, out var worldTransform);
 
-                foreach (var (e, t, renderer) in combine.renderers.ContentEntities)
+                foreach (var renderer in combine.renderers.Contents)
                 {
                     //For now support only one material
-                    if (!renderer.enabled ||
+                    if (!renderer.Enabled ||
                         renderer.mesh == null ||
                         (renderer.materials?.Count ?? 0) == 0 ||
                         !(renderer.materials[0]?.IsValid ?? false) ||
@@ -110,7 +110,7 @@ public sealed class MeshCombineSystem : RenderSystemBase
                         combinableMeshes.Add(key, container);
                     }
 
-                    container.Add((renderer.mesh, t, renderer.materials[0]));
+                    container.Add((renderer.mesh, renderer.Transform, renderer.materials[0]));
                 }
 
                 var combinedMeshBounds = new List<Vector3>();
@@ -242,9 +242,9 @@ public sealed class MeshCombineSystem : RenderSystemBase
 
                         if(Platform.IsPlaying)
                         {
-                            foreach(var (e, _, _) in combine.renderers.ContentEntities)
+                            foreach(var renderer in combine.renderers.Contents)
                             {
-                                e.RemoveComponent<MeshRenderer>();
+                                renderer.Entity.RemoveComponent<MeshRenderer>();
                             }
                         }
 

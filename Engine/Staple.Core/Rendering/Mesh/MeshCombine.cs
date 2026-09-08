@@ -17,7 +17,7 @@ public sealed class MeshCombine : Renderable, IComponentDisposable
     internal readonly List<Material> combinedMaterials = [];
     internal AABB combinedMeshBounds;
 
-    internal EntityQuery<Transform, MeshRenderer> renderers;
+    internal EntityQuery<MeshRenderer> renderers;
     internal bool processed;
 
     public void DisposeComponent()

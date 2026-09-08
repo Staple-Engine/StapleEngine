@@ -249,7 +249,7 @@ public sealed partial class RenderSystem
         {
             foreach(var info in world.sortedCameras.Contents)
             {
-                info.camera.OnStartFrame();
+                info.OnStartFrame();
             }
         }
     }
@@ -731,10 +731,10 @@ public sealed partial class RenderSystem
 
                 foreach (var entityInfo in entityQuery.Contents)
                 {
-                    var renderable = entityInfo.Item1.GetComponent<Renderable>();
+                    var renderable = entityInfo.Entity.GetComponent<Renderable>();
 
-                    renderableContents[entityInfo.Item1.Identifier.ID - 1] = renderable;
-                    renderableMaterialHashesContents[entityInfo.Item1.Identifier.ID - 1] = renderable?.MaterialState ?? 0;
+                    renderableContents[entityInfo.Entity.Identifier.ID - 1] = renderable;
+                    renderableMaterialHashesContents[entityInfo.Entity.Identifier.ID - 1] = renderable?.MaterialState ?? 0;
                 }
             }
 
@@ -747,7 +747,7 @@ public sealed partial class RenderSystem
 
             var renderSystemContent = CollectionsMarshal.AsSpan(renderSystems);
 
-            foreach (var cameraInfo in cameras)
+            foreach (var camera in cameras)
             {
                 renderQueue.AddDefault();
 
@@ -755,8 +755,8 @@ public sealed partial class RenderSystem
 
                 collected ??= new();
 
-                collected.camera = cameraInfo.camera;
-                collected.transform = cameraInfo.transform;
+                collected.camera = camera;
+                collected.transform = camera.Transform;
                 collected.renderSystems.Resize(renderSystems.Count, true);
                 collected.renderIndices.Clear();
 
@@ -774,11 +774,11 @@ public sealed partial class RenderSystem
                     }
                 }
 
-                foreach (var entityInfo in entityQuery.Contents)
+                foreach (var transform in entityQuery.Contents)
                 {
-                    var layer = entityInfo.Item1.Layer;
+                    var layer = transform.Entity.Layer;
 
-                    if (!cameraInfo.camera.cullingLayers.HasLayer(layer))
+                    if (!camera.cullingLayers.HasLayer(layer))
                     {
                         continue;
                     }
@@ -788,7 +788,7 @@ public sealed partial class RenderSystem
                         var systemInfo = renderSystemContent[i];
 
                         if (systemInfo.system.UsesOwnRenderProcess ||
-                            !entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                            !transform.Entity.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                         {
                             continue;
                         }
@@ -820,7 +820,7 @@ public sealed partial class RenderSystem
 
                                 collected.renderIndices.Add(priority);
 
-                                container.queue.Add(entityInfo.Item1, entityInfo.Item2, renderable);
+                                container.queue.Add(transform.Entity, transform, renderable);
                             }
                         }
                         else
@@ -837,7 +837,7 @@ public sealed partial class RenderSystem
 
                             collected.renderIndices.Add(0);
 
-                            container.queue.Add(entityInfo.Item1, entityInfo.Item2, component);
+                            container.queue.Add(transform.Entity, transform, component);
                         }
                     }
                 }
@@ -871,12 +871,12 @@ public sealed partial class RenderSystem
                 var renderableContents = renderables.Contents;
                 var renderableMaterialHashesContents = renderableMaterialHashes.Contents;
 
-                foreach (var entityInfo in entityQuery.Contents)
+                foreach (var transform in entityQuery.Contents)
                 {
-                    var renderable = entityInfo.Item1.GetComponent<Renderable>();
+                    var renderable = transform.Entity.GetComponent<Renderable>();
 
-                    renderableContents[entityInfo.Item1.Identifier.ID - 1] = renderable;
-                    renderableMaterialHashesContents[entityInfo.Item1.Identifier.ID - 1] = renderable?.MaterialState ?? 0;
+                    renderableContents[transform.Entity.Identifier.ID - 1] = renderable;
+                    renderableMaterialHashesContents[transform.Entity.Identifier.ID - 1] = renderable?.MaterialState ?? 0;
                 }
             }
 
@@ -894,7 +894,7 @@ public sealed partial class RenderSystem
 
             var renderSystemContent = CollectionsMarshal.AsSpan(renderSystems);
 
-            foreach (var cameraInfo in cameras)
+            foreach (var camera in cameras)
             {
                 renderQueue.AddDefault();
 
@@ -902,8 +902,8 @@ public sealed partial class RenderSystem
 
                 collected ??= new();
 
-                collected.camera = cameraInfo.camera;
-                collected.transform = cameraInfo.transform;
+                collected.camera = camera;
+                collected.transform = camera.Transform;
                 collected.renderSystems.Resize(renderSystems.Count, true);
                 collected.renderIndices.Clear();
 
@@ -923,11 +923,11 @@ public sealed partial class RenderSystem
                     }
                 }
 
-                foreach (var entityInfo in entityQuery.Contents)
+                foreach (var transform in entityQuery.Contents)
                 {
-                    var layer = entityInfo.Item1.Layer;
+                    var layer = transform.Entity.Layer;
 
-                    if (!cameraInfo.camera.cullingLayers.HasLayer(layer))
+                    if (!camera.cullingLayers.HasLayer(layer))
                     {
                         continue;
                     }
@@ -937,7 +937,7 @@ public sealed partial class RenderSystem
                         var systemInfo = renderSystemContent[i];
 
                         if (systemInfo.system.UsesOwnRenderProcess ||
-                            !entityInfo.Item1.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                            !transform.Entity.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
                         {
                             continue;
                         }
@@ -969,7 +969,7 @@ public sealed partial class RenderSystem
 
                                 collected.renderIndices.Add(priority);
 
-                                container.queue.Add(entityInfo.Item1, entityInfo.Item2, renderable);
+                                container.queue.Add(transform.Entity, transform, renderable);
                             }
                         }
                         else
@@ -986,7 +986,7 @@ public sealed partial class RenderSystem
 
                             collected.renderIndices.Add(0);
 
-                            container.queue.Add(entityInfo.Item1, entityInfo.Item2, component);
+                            container.queue.Add(transform.Entity, transform, component);
                         }
                     }
                 }

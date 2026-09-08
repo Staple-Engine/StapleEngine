@@ -16,7 +16,6 @@ public class AudioSystem : ISubsystem
     private class AudioSourceInfo
     {
         public WeakReference<AudioSource> source;
-        public Entity entity;
         public AudioClip clip;
         public float volume;
         public float pitch;
@@ -91,7 +90,7 @@ public class AudioSystem : ISubsystem
     /// <summary>
     /// List of audio listeners
     /// </summary>
-    private SceneQuery<Transform, AudioListener> audioListeners;
+    private SceneQuery<AudioListener> audioListeners;
 
     /// <summary>
     /// Thread event for background work
@@ -132,9 +131,9 @@ public class AudioSystem : ISubsystem
         }
 
         World.AddComponentAddedCallback(typeof(AudioListener),
-            (World world, Entity entity, ref Component component) =>
+            (World world, Component component) =>
             {
-                if(!entity.TryGetComponent<Transform>(out var transform))
+                if(component.Transform == null)
                 {
                     return;
                 }
@@ -145,13 +144,13 @@ public class AudioSystem : ISubsystem
 
                 if(listener.audioListener != null)
                 {
-                    listener.audioListener.Position = transform.Position;
-                    listener.audioListener.Orientation = transform.Rotation;
+                    listener.audioListener.Position = component.Transform.Position;
+                    listener.audioListener.Orientation = component.Transform.Rotation;
                 }
             });
 
         World.AddComponentAddedCallback(typeof(AudioSource),
-            (World world, Entity entity, ref Component component) =>
+            (World world, Component component) =>
             {
                 var source = component as AudioSource;
 
@@ -159,7 +158,7 @@ public class AudioSystem : ISubsystem
 
                 if(source.audioSource == null || !source.audioSource.Init())
                 {
-                    Log.Debug($"Failed to create audio source for entity {entity}", LogTag);
+                    Log.Debug($"Failed to create audio source for entity {component.Entity}", LogTag);
 
                     source.audioSource = null;
 
@@ -169,12 +168,11 @@ public class AudioSystem : ISubsystem
                 audioSources.Add(new AudioSourceInfo()
                 {
                     source = new WeakReference<AudioSource>(source),
-                    entity = entity,
                 });
             });
 
         World.AddComponentRemovedCallback(typeof(AudioListener),
-            (World world, Entity entity, ref Component component) =>
+            (World world, Component component) =>
             {
                 var listener = component as AudioListener;
 
@@ -182,7 +180,7 @@ public class AudioSystem : ISubsystem
             });
 
         World.AddComponentRemovedCallback(typeof(AudioSource),
-            (World world, Entity entity, ref Component component) =>
+            (World world, Component component) =>
             {
                 var source = component as AudioSource;
 
@@ -190,7 +188,7 @@ public class AudioSystem : ISubsystem
 
                 source.audioSource = null;
 
-                var existing = audioSources.FirstOrDefault(x => x.entity == entity);
+                var existing = audioSources.FirstOrDefault(x => x.source.TryGetTarget(out var s) && s.Entity == component.Entity);
 
                 if (existing != null)
                 {
@@ -235,14 +233,14 @@ public class AudioSystem : ISubsystem
 
         Transform listenerTransform = null;
         
-        foreach((Entity _, Transform transform, AudioListener listener) in audioListeners.Contents)
+        foreach(var listener in audioListeners.Contents)
         {
-            listenerTransform ??= transform;
+            listenerTransform ??= listener.Transform;
 
             if (listener.spatial)
             {
-                listener.audioListener.Position = transform.Position;
-                listener.audioListener.Orientation = transform.Rotation;
+                listener.audioListener.Position = listener.Transform.Position;
+                listener.audioListener.Orientation = listener.Transform.Rotation;
             }
             else
             {
@@ -334,7 +332,7 @@ public class AudioSystem : ISubsystem
 
             if (source.spatial)
             {
-                var transform = item.entity.GetComponent<Transform>();
+                var transform = source.Transform;
 
                 source.audioSource.Position = transform.Position;
             }

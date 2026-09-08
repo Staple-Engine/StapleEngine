@@ -526,16 +526,14 @@ internal partial class StapleEditor
 
             var entityIcon = projectBrowser.GetEditorResource("EntityIcon");
 
-            void Recursive(Transform transform)
+            void Recursive(EntityNodeContainer container)
             {
-                if(skip ||
-                    transform == null ||
-                    transform.Entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName) ||
-                    transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.Hide ||
-                    transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
+                if(skip)
                 {
                     return;
                 }
+
+                var transform = container.transform;
 
                 var entityName = transform.Entity.Name;
 
@@ -603,19 +601,9 @@ internal partial class StapleEditor
                 EditorGUI.TreeNodeIcon(entityIcon, hasPrefab ? PrefabColor : Color.White, entityName,
                     $"{transform.Entity}", transform.ChildCount == 0, ref open, () =>
                 {
-                    foreach (var child in transform.Children)
+                    foreach (var child in container.children)
                     {
-                        var childEntity = World.Current.FindEntity(child.Entity.Identifier.ID);
-
-                        if (childEntity.IsValid)
-                        {
-                            var t = childEntity.GetComponent<Transform>();
-
-                            if (t != null)
-                            {
-                                Recursive(t);
-                            }
-                        }
+                        Recursive(child);
 
                         if (skip)
                         {
@@ -740,12 +728,9 @@ internal partial class StapleEditor
                 HandleReorder(false);
             }
 
-            foreach(var (entity, transform) in Scene.RootEntities)
+            foreach(var container in entityNodes)
             {
-                if (transform.Parent == null)
-                {
-                    Recursive(transform);
-                }
+                Recursive(container);
             }
         }
 
@@ -874,10 +859,11 @@ internal partial class StapleEditor
                         //Ensure the components are properly initialized
                         World.Current.Iterate((entity) =>
                         {
-                            World.Current.IterateComponents(entity, (ref Component component) =>
-                            {
-                                World.Current.EmitAddComponentEvent(entity, ref component);
-                            });
+                            World.Current.IterateComponents(entity,
+                                (component) =>
+                                {
+                                    World.Current.EmitAddComponentEvent(component);
+                                });
                         });
 
                         forceCursorVisible = false;
@@ -1079,7 +1065,7 @@ internal partial class StapleEditor
 
             var counter = 0;
 
-            selectedEntity.IterateComponents((ref Component component) =>
+            selectedEntity.IterateComponents((component) =>
             {
                 counter++;
 
@@ -1678,13 +1664,14 @@ internal partial class StapleEditor
 
                             World.Current?.Iterate((entity) =>
                             {
-                                World.Current.IterateComponents(entity, (ref Component component) =>
-                                {
-                                    if (component is IComponentDisposable disposable)
+                                World.Current.IterateComponents(entity,
+                                    (component) =>
                                     {
-                                        disposable.DisposeComponent();
-                                    }
-                                });
+                                        if (component is IComponentDisposable disposable)
+                                        {
+                                            disposable.DisposeComponent();
+                                        }
+                                    });
                             });
 
                             ResourceManager.instance.Clear();
@@ -1873,7 +1860,7 @@ internal partial class StapleEditor
         {
             var renderable = renderables[i];
 
-            if(renderable.enabled)
+            if(renderable.Enabled)
             {
                 minMax.Add(renderable.bounds.min);
                 minMax.Add(renderable.bounds.min);

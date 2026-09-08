@@ -40,27 +40,10 @@ public enum EntityQueryMode
 public sealed class EntityQuery<T> : ISceneQuery
     where T : Component
 {
-    public struct EntityItem(Entity entity, T item)
-    {
-        public Entity entity = entity;
-        public T item = item;
-
-        public readonly bool IsValid => entity.IsValid && item != null;
-
-        public void Deconstruct(out Entity e, out T i)
-        {
-            e = entity;
-            i = item;
-        }
-    }
-
     private readonly EntityQueryMode queryMode;
     private readonly Entity target;
-    private readonly bool getEntities;
 
     private readonly ExpandableContainer<T> contents = new();
-
-    private readonly ExpandableContainer<EntityItem> contentEntities = new();
 
     /// <summary>
     /// Contained content. Only valid if we have a single element.
@@ -73,33 +56,14 @@ public sealed class EntityQuery<T> : ISceneQuery
     public Span<T> Contents => contents.Contents;
 
     /// <summary>
-    /// The content with its entity, if available.
-    /// </summary>
-    public EntityItem ContentEntity { get; private set; }
-
-    /// <summary>
-    /// The content with its entity, if available.
-    /// </summary>
-    public Span<EntityItem> ContentEntities => contentEntities.Contents;
-
-    /// <summary>
-    /// Gets an entity and component at a specific index
-    /// </summary>
-    /// <param name="index">The index to get at</param>
-    /// <returns>The entity and component as a tuple, if valid</returns>
-    public ref EntityItem ContentEntityAt(int index) => ref ContentEntities[index];
-
-    /// <summary>
     /// Creates an entity query for a specific entity.
     /// </summary>
     /// <param name="target">The target entity</param>
     /// <param name="queryMode">The query mode</param>
-    /// <param name="getEntities">Whether to get the component entities as well</param>
-    public EntityQuery(Entity target, EntityQueryMode queryMode, bool getEntities)
+    public EntityQuery(Entity target, EntityQueryMode queryMode)
     {
         this.target = target;
         this.queryMode = queryMode;
-        this.getEntities = getEntities;
 
         World.AddSceneQuery(this);
     }
@@ -112,19 +76,15 @@ public sealed class EntityQuery<T> : ISceneQuery
         World.RemoveSceneQuery(this);
 
         Content = default;
-        ContentEntity = default;
 
         contents.Clear();
-        contentEntities.Clear();
     }
 
     public void WorldChanged(World world)
     {
         Content = default;
-        ContentEntity = default;
 
         contents.Clear();
-        contentEntities.Clear();
 
         if (!target.IsValid)
         {
@@ -277,28 +237,6 @@ public sealed class EntityQuery<T> : ISceneQuery
         {
             Content = Contents[0];
         }
-
-        if (!getEntities)
-        {
-            return;
-        }
-
-        foreach (ref var item in Contents)
-        {
-            var entity = world.GetComponentEntity(item);
-
-            if (!entity.IsValid)
-            {
-                continue;
-            }
-
-            contentEntities.Add(new(entity, item));
-        }
-
-        if (contentEntities.Length == 1)
-        {
-            ContentEntity = ContentEntities[0];
-        }
     }
 }
 
@@ -326,29 +264,10 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
         }
     }
 
-    public struct EntityItem(Entity entity, T first, T2 second)
-    {
-        public Entity entity = entity;
-        public T first = first;
-        public T2 second = second;
-
-        public readonly bool IsValid => entity.IsValid && first != null && second != null;
-
-        public void Deconstruct(out Entity e, out T f, out T2 s)
-        {
-            e = entity;
-            f = first;
-            s = second;
-        }
-    }
-
     private readonly EntityQueryMode queryMode;
     private readonly Entity target;
-    private readonly bool getEntities;
 
     private readonly ExpandableContainer<Item> contents = new();
-
-    private readonly ExpandableContainer<EntityItem> contentEntities = new();
 
     /// <summary>
     /// Contained content. Only valid if we have a single element.
@@ -361,33 +280,14 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
     public Span<Item> Contents => contents.Contents;
 
     /// <summary>
-    /// The content with its entity, if available.
-    /// </summary>
-    public EntityItem ContentEntity { get; private set; }
-
-    /// <summary>
-    /// The content with its entity, if available.
-    /// </summary>
-    public Span<EntityItem> ContentEntities => contentEntities.Contents;
-
-    /// <summary>
-    /// Gets an entity and component at a specific index
-    /// </summary>
-    /// <param name="index">The index to get at</param>
-    /// <returns>The entity and component as a tuple, if valid</returns>
-    public ref EntityItem ContentEntityAt(int index) => ref ContentEntities[index];
-
-    /// <summary>
     /// Creates an entity query for a specific entity.
     /// </summary>
     /// <param name="target">The target entity</param>
     /// <param name="queryMode">The query mode</param>
-    /// <param name="getEntities">Whether to get the component entities as well</param>
-    public EntityQuery(Entity target, EntityQueryMode queryMode, bool getEntities)
+    public EntityQuery(Entity target, EntityQueryMode queryMode)
     {
         this.target = target;
         this.queryMode = queryMode;
-        this.getEntities = getEntities;
 
         World.AddSceneQuery(this);
     }
@@ -400,19 +300,15 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
         World.RemoveSceneQuery(this);
 
         Content = default;
-        ContentEntity = default;
 
         contents.Clear();
-        contentEntities.Clear();
     }
 
     public void WorldChanged(World world)
     {
         Content = default;
-        ContentEntity = default;
 
         contents.Clear();
-        contentEntities.Clear();
 
         if (!target.IsValid)
         {
@@ -568,28 +464,6 @@ public sealed class EntityQuery<T, T2> : ISceneQuery
         if (Contents.Length == 1)
         {
             Content = Contents[0];
-        }
-
-        if (!getEntities)
-        {
-            return;
-        }
-
-        foreach(ref var item in Contents)
-        {
-            var entity = world.GetComponentEntity(item.first);
-
-            if(!entity.IsValid)
-            {
-                continue;
-            }
-
-            contentEntities.Add(new(entity, item.first, item.second));
-        }
-
-        if (contentEntities.Length == 1)
-        {
-            ContentEntity = ContentEntities[0];
         }
     }
 }

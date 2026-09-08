@@ -1813,9 +1813,9 @@ public static class EditorGUI
 
         SameLine();
 
-        if (World.Current.TryGetComponentEntity(value, out var target))
+        if (value.Entity.IsValid)
         {
-            Label($"{target.Name} ({value.GetType().Name})");
+            Label($"{value.Entity.Name} ({value.GetType().Name})");
         }
         else
         {

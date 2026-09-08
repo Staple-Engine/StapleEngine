@@ -92,7 +92,7 @@ public sealed class SkinnedMeshAnimatorSystem : RenderSystemBase
 
                 if(animator.evaluator?.Evaluate() ?? false)
                 {
-                    animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
+                    animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren);
 
                     foreach(var (t, modifier) in animator.modifiers.Contents)
                     {
@@ -108,7 +108,7 @@ public sealed class SkinnedMeshAnimatorSystem : RenderSystemBase
 
                     animator.evaluator = null;
 
-                    animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren, false);
+                    animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren);
 
                     foreach (var (t, modifier) in animator.modifiers.Contents)
                     {

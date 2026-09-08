@@ -81,32 +81,9 @@ public class Renderable : Component, IComponentVersion
         {
             var hashCode = new HashCode();
 
-            hashCode.Add(materials.Count);
-
             foreach(var material in materials)
             {
-                if(!(material?.IsValid ?? false))
-                {
-                    hashCode.Add(false);
-
-                    continue;
-                }
-
-                var metadata = material.materialResource.metadata;
-
-                hashCode.Add(metadata.guid);
-                hashCode.Add(metadata.cullingMode);
-                hashCode.Add(metadata.enabledShaderVariants.Count);
-
-                foreach(var variant in metadata.enabledShaderVariants)
-                {
-                    hashCode.Add(variant);
-                }
-
-                hashCode.Add(metadata.overrideShaderRenderQueue);
-                hashCode.Add(metadata.renderQueue);
-                hashCode.Add(metadata.renderQueueOffset);
-                hashCode.Add(metadata.shader);
+                hashCode.Add(material?.StateHash ?? 0);
             }
 
             return hashCode.ToHashCode();

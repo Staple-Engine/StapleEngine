@@ -64,7 +64,7 @@ internal class EntityCallbackPropertyDrawer : PropertyDrawer
 
                 var componentTypes = new List<Type>();
 
-                entity.IterateComponents((ref Component component) =>
+                entity.IterateComponents((component) =>
                 {
                     componentTypes.Add(component.GetType());
                 });
@@ -221,7 +221,7 @@ internal class EntityCallbackGenericPropertyDrawer : PropertyDrawer
 
                     var componentTypes = new List<Type>();
 
-                    entity.IterateComponents((ref Component component) =>
+                    entity.IterateComponents((component) =>
                     {
                         componentTypes.Add(component.GetType());
                     });

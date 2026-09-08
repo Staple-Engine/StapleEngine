@@ -22,12 +22,12 @@ public sealed class Scene
     /// <summary>
     /// All entities without a parent transform
     /// </summary>
-    public static Span<(Entity, Transform)> RootEntities => World.Current != null ? World.Current.RootEntities : default;
+    public static Span<Transform> RootEntities => World.Current != null ? World.Current.RootEntities : default;
 
     /// <summary>
     /// Gets all available cameras sorted by depth
     /// </summary>
-    public static Span<World.CameraInfo> SortedCameras => World.Current != null ? World.Current.SortedCameras : default;
+    public static Span<Camera> SortedCameras => World.Current != null ? World.Current.SortedCameras : default;
 
     /// <summary>
     /// Requests a world update.
@@ -58,7 +58,7 @@ public sealed class Scene
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T)[] Query<T>(bool includeDisabled = false) where T : Component
+    public static T[] Query<T>(bool includeDisabled = false) where T : Component
     {
         return World.Current?.Query<T>(includeDisabled);
     }
@@ -70,7 +70,7 @@ public sealed class Scene
     /// <typeparam name="T2">The type of the second component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T, T2)[] Query<T, T2>(bool includeDisabled = false)
+    public static (T, T2)[] Query<T, T2>(bool includeDisabled = false)
         where T : Component
         where T2 : Component
     {
@@ -85,7 +85,7 @@ public sealed class Scene
     /// <typeparam name="T3">The type of the third component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T, T2, T3)[] Query<T, T2, T3>(bool includeDisabled = false)
+    public static (T, T2, T3)[] Query<T, T2, T3>(bool includeDisabled = false)
         where T : Component
         where T2 : Component
         where T3 : Component
@@ -102,7 +102,7 @@ public sealed class Scene
     /// <typeparam name="T4">The type of the fourth component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T, T2, T3, T4)[] Query<T, T2, T3, T4>(bool includeDisabled = false)
+    public static (T, T2, T3, T4)[] Query<T, T2, T3, T4>(bool includeDisabled = false)
         where T : Component
         where T2 : Component
         where T3 : Component
@@ -121,7 +121,7 @@ public sealed class Scene
     /// <typeparam name="T5">The type of the fifth component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public static (Entity, T, T2, T3, T4, T5)[] Query<T, T2, T3, T4, T5>(bool includeDisabled = false)
+    public static (T, T2, T3, T4, T5)[] Query<T, T2, T3, T4, T5>(bool includeDisabled = false)
         where T : Component
         where T2 : Component
         where T3 : Component

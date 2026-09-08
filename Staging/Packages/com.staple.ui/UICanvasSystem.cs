@@ -23,7 +23,7 @@ public class UICanvasSystem : RenderSystemBase
     {
         var query = Scene.Query<UICanvas>(true);
 
-        foreach(var (_, canvas) in query)
+        foreach(var canvas in query)
         {
             canvas.Reload();
         }
@@ -60,7 +60,7 @@ public class UICanvasSystem : RenderSystemBase
             {
                 IsPointerOverUI = false;
 
-                foreach (var (_, canvas) in canvases.Contents)
+                foreach (var canvas in canvases.Contents)
                 {
                     canvas.CheckLayoutChanges();
 

@@ -7,10 +7,16 @@ namespace Staple;
 /// Tracks the version of <see cref="IComponentVersion"/> components
 /// </summary>
 /// <typeparam name="T">The component</typeparam>
-public class ComponentVersionTracker<T> where T: Component, IComponentVersion
+public class ComponentVersionTracker<T> : IWorldChangeReceiver
+    where T: Component, IComponentVersion
 {
     private readonly ExpandableContainer<ulong> versions = new();
     private readonly ExpandableContainer<int> generations = new();
+
+    public ComponentVersionTracker()
+    {
+        World.AddChangeReceiver(this);
+    }
 
     /// <summary>
     /// Checks whether we should update a component based on its version changing
@@ -75,5 +81,14 @@ public class ComponentVersionTracker<T> where T: Component, IComponentVersion
     public void Clear()
     {
         versions.ClearValues();
+    }
+
+    public void WorldChanged(World world)
+    {
+    }
+
+    public void WorldReplaced(World world)
+    {
+        Clear();
     }
 }

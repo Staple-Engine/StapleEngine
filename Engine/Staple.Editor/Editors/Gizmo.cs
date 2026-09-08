@@ -138,7 +138,10 @@ public static class Gizmo
 
     public static void Line(Vector3 from, Vector3 to, Color color)
     {
-        meshMaterial ??= new Material(StapleEditor.instance.wireframeMaterial);
+        if(!(meshMaterial?.IsValid ?? false))
+        {
+            meshMaterial = new Material(StapleEditor.instance.wireframeMaterial);
+        }
 
         meshMaterial.MainColor = color;
 

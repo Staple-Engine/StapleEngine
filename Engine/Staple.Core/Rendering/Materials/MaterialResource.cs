@@ -358,8 +358,8 @@ internal class MaterialResource
         }
     }
 
-    public void SetTexture(string name, Texture value, StringID shaderVariantKey,
-        Action<string> enableShaderKeyword, Action<string> disableShaderKeyword, Texture whiteTexture)
+    public void SetTexture(string name, Texture value, StringID shaderVariantKey, Action<string> enableShaderKeyword,
+        Action<string> disableShaderKeyword, Texture whiteTexture)
     {
         var original = value;
 

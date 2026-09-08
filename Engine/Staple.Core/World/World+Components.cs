@@ -111,6 +111,8 @@ public partial class World
                 return default;
             }
 
+            component.Enabled = true;
+
             container = new ComponentHolder(hash, component, TypeCache.ComponentShouldBeVersionedByWorld(t.FullName), 0);
 
             needsEmitWorldChange = true;
@@ -175,12 +177,13 @@ public partial class World
 
             if (!Scene.InstancingComponent)
             {
-                EmitAddComponentEvent(entity, ref container.component);
+                EmitAddComponentEvent(container.component);
             }
 
             if(!Scene.InstancingComponent &&
                 callableComponentTypes.Count != 0 &&
                 container.component is CallbackComponent callback &&
+                callback.Enabled &&
                 callback.ShouldExecuteEvents)
             {
                 try
@@ -327,7 +330,7 @@ public partial class World
                         }
                     }
 
-                    EmitRemoveComponentEvent(entity, ref container.component);
+                    EmitRemoveComponentEvent(container.component);
 
                     if(container.component is IComponentDisposable disposable)
                     {
@@ -626,14 +629,13 @@ public partial class World
     /// <summary>
     /// Emits a component added event
     /// </summary>
-    /// <param name="entity">The entity to emit for</param>
     /// <param name="component">The component that was added</param>
-    internal void EmitAddComponentEvent(Entity entity, ref Component component)
+    internal void EmitAddComponentEvent(Component component)
     {
         var hash = component?.GetType().FullName.GetHashCode() ?? 0;
 
         if (component == null ||
-            !TryGetEntity(entity, out var entityInfo) ||
+            !TryGetEntity(component.Entity, out var entityInfo) ||
             entityInfo.emittedAddComponents.Contains(hash))
         {
             return;
@@ -658,7 +660,7 @@ public partial class World
 
                     try
                     {
-                        callback?.Invoke(this, entity, ref component);
+                        callback?.Invoke(this, component);
                     }
                     catch (Exception ex)
                     {
@@ -681,14 +683,13 @@ public partial class World
     /// <summary>
     /// Emits a component changed event
     /// </summary>
-    /// <param name="entity">The entity to emit for</param>
     /// <param name="component">The component that was added</param>
-    internal void EmitChangedComponentEvent(Entity entity, ref Component component)
+    internal void EmitChangedComponentEvent(Component component)
     {
         var hash = component?.GetType().FullName.GetHashCode() ?? 0;
 
         if (component == null ||
-            !TryGetEntity(entity, out var entityInfo))
+            !TryGetEntity(component.Entity, out var entityInfo))
         {
             return;
         }
@@ -712,7 +713,7 @@ public partial class World
 
                     try
                     {
-                        callback?.Invoke(this, entity, ref component);
+                        callback?.Invoke(this, component);
                     }
                     catch (Exception ex)
                     {
@@ -733,14 +734,13 @@ public partial class World
     /// <summary>
     /// Emits a remove component event
     /// </summary>
-    /// <param name="entity">The entity the component was removed from</param>
     /// <param name="component">The component being removed</param>
-    internal void EmitRemoveComponentEvent(Entity entity, ref Component component)
+    internal void EmitRemoveComponentEvent(Component component)
     {
         var hash = component?.GetType().FullName.GetHashCode() ?? 0;
 
         if (component == null ||
-            !TryGetEntity(entity, out var entityInfo) ||
+            !TryGetEntity(component.Entity, out var entityInfo) ||
             !entityInfo.emittedAddComponents.Contains(hash))
         {
             return;
@@ -765,7 +765,7 @@ public partial class World
 
                     try
                     {
-                        callback?.Invoke(this, entity, ref component);
+                        callback?.Invoke(this, component);
                     }
                     catch (Exception e)
                     {
@@ -783,54 +783,5 @@ public partial class World
                 }
             }
         }
-    }
-
-    /// <summary>
-    /// Attempts to find the entity for a component. Mostly works with classes, since it compares each.
-    /// </summary>
-    /// <param name="component">The component to check</param>
-    /// <returns>The entity, if valid</returns>
-    public Entity GetComponentEntity(Component component)
-    {
-        if(component == null)
-        {
-            return default;
-        }
-
-        lock (lockObject)
-        {
-            if(!componentCompatibilityCache.TryGetValue(component.GetType().FullName.GetHashCode(), out var compatibility))
-            {
-                return default;
-            }
-
-            foreach (var typeName in compatibility)
-            {
-                foreach(var entity in entities.Contents)
-                {
-                    if (entity.alive &&
-                        entity.components.TryGetValue(typeName, out var c) &&
-                        c.component == component)
-                    {
-                        return entity.entityValue;
-                    }
-                }
-            }
-
-            return default;
-        }
-    }
-
-    /// <summary>
-    /// Attempts to get the entity for a component. Mostly works with classes, since it compares each.
-    /// </summary>
-    /// <param name="component">The component to check</param>
-    /// <param name="entity">The entity, if valid</param>
-    /// <returns>Whether the entity was found</returns>
-    public bool TryGetComponentEntity(Component component, out Entity entity)
-    {
-        entity = GetComponentEntity(component);
-
-        return entity.IsValid;
     }
 }

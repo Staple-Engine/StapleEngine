@@ -4,9 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 namespace Staple;
 
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-public class Component
+public partial class Component
 {
-    public bool enabled = true;
+    public partial bool Enabled { get; set; }
 
     [field: NonSerialized]
     public Entity Entity { get; internal set; }

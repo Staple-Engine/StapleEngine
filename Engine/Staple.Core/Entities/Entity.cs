@@ -63,6 +63,11 @@ public partial struct Entity
     /// </summary>
     public readonly bool IsValid => World.Current?.IsValidEntity(this) ?? false;
 
+    /// <summary>
+    /// Gets the <see cref="Transform"/> component ssociated with this entity
+    /// </summary>
+    public readonly Transform Transform => GetComponent<Transform>();
+
     public static bool operator==(Entity a, Entity b)
     {
         return a.Identifier == b.Identifier;

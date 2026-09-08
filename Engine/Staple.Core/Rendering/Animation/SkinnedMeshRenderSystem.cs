@@ -40,7 +40,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
     private readonly ExpandableContainer<RenderInfo> renderers = new();
 
-    private readonly SceneQuery<SkinnedMeshInstance, Transform> instances = new();
+    private readonly SceneQuery<SkinnedMeshInstance> instances = new();
 
     private readonly ComponentVersionTracker<Transform> transformVersions = new();
 
@@ -68,7 +68,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
     public override void Startup()
     {
         World.AddComponentChangedCallback(typeof(SkinnedMeshRenderer),
-            (world, entity, ref component) =>
+            (world, component) =>
             {
                 if (component is not SkinnedMeshRenderer renderer)
                 {
@@ -258,7 +258,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                     needsInstanceUpdate = true;
                 }
 
-                renderer.instance ??= new(entry.entity, EntityQueryMode.Parent, true);
+                renderer.instance ??= new(entry.entity, EntityQueryMode.Parent);
             }
 
             if(renderer.mesh?.MeshAssetMesh is MeshAsset.MeshInfo mesh)
@@ -382,18 +382,18 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
             instances.WorldChanged(World.Current);
         }
 
-        foreach (var (entity, instance, transform) in instances.Contents)
+        foreach (var instance in instances.Contents)
         {
             if (instance.mesh?.MeshAssetMesh is null)
             {
-                var animator = entity.GetComponent<SkinnedMeshAnimator>();
+                var animator = instance.Entity.GetComponent<SkinnedMeshAnimator>();
 
                 if (animator?.mesh is not null)
                 {
                     instance.mesh = animator.mesh;
                 }
 
-                var renderers = entity.GetComponentsInChildren<SkinnedMeshRenderer>();
+                var renderers = instance.Entity.GetComponentsInChildren<SkinnedMeshRenderer>();
 
                 foreach (var renderer in renderers)
                 {
@@ -420,7 +420,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                 instance.nodeCache = instance.mesh.meshAsset.Nodes;
                 instance.transformCache = new Transform[instance.mesh.meshAsset.Nodes.Length];
 
-                GatherNodeTransforms(transform, instance.transformCache, instance.nodeCache);
+                GatherNodeTransforms(instance.Transform, instance.transformCache, instance.nodeCache);
 
                 UpdateBoneMatrices(instance.mesh.meshAsset, boneMatrices, instance.transformCache);
             }
@@ -447,18 +447,18 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
             {
                 instance.transformUpdateTimer -= limit;
 
-                instance.modifiers ??= new(entity, EntityQueryMode.SelfAndChildren, false);
+                instance.modifiers ??= new(instance.Entity, EntityQueryMode.SelfAndChildren);
 
-                instance.animator ??= new(entity, EntityQueryMode.Self, false);
+                instance.animator ??= new(instance.Entity, EntityQueryMode.Self);
 
-                foreach (var (t, modifier) in instance.modifiers.Contents)
+                foreach (var modifier in instance.modifiers.Contents)
                 {
                     if (instance.animator.Content?.evaluator != null)
                     {
                         continue;
                     }
 
-                    modifier.Apply(t, false);
+                    modifier.Apply(modifier.Transform, false);
                 }
 
                 UpdateBoneMatrices(instance.mesh.meshAsset, instance.boneMatrices, instance.transformCache);
@@ -486,7 +486,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
             var item = renderers.Contents[i];
 
             var renderer = item.renderer;
-            var (instanceEntity, instance) = renderer.instance.ContentEntity;
+            var instance = renderer.instance.Content;
 
             if(instance == null)
             {
@@ -499,7 +499,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
             if ((instance.blendShapeNames?.Length ?? 0) == 0 && (meshAsset?.HasBlendShapes ?? false))
             {
-                instance.renderers ??= new(instanceEntity, EntityQueryMode.Children, false);
+                instance.renderers ??= new(instance.Entity, EntityQueryMode.Children);
 
                 instance.UpdateBlendShapeData();
             }

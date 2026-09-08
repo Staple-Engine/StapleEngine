@@ -37,7 +37,7 @@ namespace Staple
                 material == null ||
                 !material.IsValid)
             {
-                throw new Exception("Invalid arguments passed");
+                return;
             }
 
             var renderState = RenderState.Default;
@@ -83,7 +83,7 @@ namespace Staple
                 material == null ||
                 !material.IsValid)
             {
-                throw new Exception("Invalid arguments passed");
+                return;
             }
 
             var renderState = RenderState.Default;
@@ -123,7 +123,7 @@ namespace Staple
                 material == null ||
                 !material.IsValid)
             {
-                throw new Exception("Invalid arguments passed");
+                return;
             }
 
             var renderState = RenderState.Default;

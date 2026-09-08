@@ -12,7 +12,7 @@ public partial class World
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T)[] Query<T>(bool includeDisabled) where T : Component
+    public T[] Query<T>(bool includeDisabled) where T : Component
     {
         var tName = typeof(T).FullName.GetHashCode();
 
@@ -23,7 +23,7 @@ public partial class World
 
         lock (lockObject)
         {
-            var outValue = new List<(Entity, T)>();
+            var outValue = new List<T>();
 
             foreach (var entity in cachedEntityList.Contents)
             {
@@ -50,7 +50,7 @@ public partial class World
 
                 try
                 {
-                    outValue.Add((entity.entityValue, t));
+                    outValue.Add(t);
                 }
                 catch (Exception e)
                 {
@@ -69,7 +69,7 @@ public partial class World
     /// <typeparam name="T2">The type of the second component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T, T2)[] Query<T, T2>(bool includeDisabled)
+    public (T, T2)[] Query<T, T2>(bool includeDisabled)
         where T : Component
         where T2 : Component
     {
@@ -84,7 +84,7 @@ public partial class World
 
         lock (lockObject)
         {
-            var outValue = new List<(Entity, T, T2)>();
+            var outValue = new List<(T, T2)>();
 
             foreach (var entity in cachedEntityList.Contents)
             {
@@ -123,7 +123,7 @@ public partial class World
 
                 try
                 {
-                    outValue.Add((entity.entityValue, t, t2));
+                    outValue.Add((t, t2));
                 }
                 catch (Exception e)
                 {
@@ -143,7 +143,7 @@ public partial class World
     /// <typeparam name="T3">The type of the third component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T, T2, T3)[] Query<T, T2, T3>(bool includeDisabled)
+    public (T, T2, T3)[] Query<T, T2, T3>(bool includeDisabled)
         where T : Component
         where T2 : Component
         where T3 : Component
@@ -161,7 +161,7 @@ public partial class World
 
         lock (lockObject)
         {
-            var outValue = new List<(Entity, T, T2, T3)>();
+            var outValue = new List<(T, T2, T3)>();
 
             foreach (var entity in cachedEntityList.Contents)
             {
@@ -211,7 +211,7 @@ public partial class World
 
                 try
                 {
-                    outValue.Add((entity.entityValue, t, t2, t3));
+                    outValue.Add((t, t2, t3));
                 }
                 catch (Exception e)
                 {
@@ -232,7 +232,7 @@ public partial class World
     /// <typeparam name="T4">The type of the fourth component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T, T2, T3, T4)[] Query<T, T2, T3, T4>(bool includeDisabled)
+    public (T, T2, T3, T4)[] Query<T, T2, T3, T4>(bool includeDisabled)
         where T : Component
         where T2 : Component
         where T3 : Component
@@ -253,7 +253,7 @@ public partial class World
 
         lock (lockObject)
         {
-            var outValue = new List<(Entity, T, T2, T3, T4)>();
+            var outValue = new List<(T, T2, T3, T4)>();
 
             foreach (var entity in cachedEntityList.Contents)
             {
@@ -314,7 +314,7 @@ public partial class World
 
                 try
                 {
-                    outValue.Add((entity.entityValue, t, t2, t3, t4));
+                    outValue.Add((t, t2, t3, t4));
                 }
                 catch (Exception e)
                 {
@@ -336,7 +336,7 @@ public partial class World
     /// <typeparam name="T5">The type of the fifth component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
-    public (Entity, T, T2, T3, T4, T5)[] Query<T, T2, T3, T4, T5>(bool includeDisabled)
+    public (T, T2, T3, T4, T5)[] Query<T, T2, T3, T4, T5>(bool includeDisabled)
         where T : Component
         where T2 : Component
         where T3 : Component
@@ -360,7 +360,7 @@ public partial class World
 
         lock (lockObject)
         {
-            var outValue = new List<(Entity, T, T2, T3, T4, T5)>();
+            var outValue = new List<(T, T2, T3, T4, T5)>();
 
             foreach (var entity in cachedEntityList.Contents)
             {
@@ -432,7 +432,7 @@ public partial class World
 
                 try
                 {
-                    outValue.Add((entity.entityValue, t, t2, t3, t4, t5));
+                    outValue.Add((t, t2, t3, t4, t5));
                 }
                 catch (Exception e)
                 {
@@ -569,9 +569,7 @@ public partial class World
                     break;
                 }
 
-                ref var component = ref container.component;
-
-                callback(ref component);
+                callback(container.component);
             }
         }
     }

@@ -435,7 +435,7 @@ public static class EditorUtils
         {
             for (var i = 0; i < contents.Length; i++)
             {
-                var (entity, callable) = contents[i];
+                ref var callable = ref contents[i];
 
                 if (callable.ShouldExecuteEvents)
                 {
@@ -445,7 +445,7 @@ public static class EditorUtils
                     }
                     catch (Exception e)
                     {
-                        Log.Debug($"{entity.Name} ({callable.GetType().FullName}): Exception thrown while handling {eventType}: {e}");
+                        Log.Debug($"{callable.Entity.Name} ({callable.GetType().FullName}): Exception thrown while handling {eventType}: {e}");
                     }
                 }
             }

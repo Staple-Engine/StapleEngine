@@ -1003,9 +1003,9 @@ internal class ResourceManager : IWorldChangeReceiver
                 {
                     var entity = pair.Value.Entity;
 
-                    entity.IterateComponents((ref component) =>
+                    entity.IterateComponents((component) =>
                     {
-                        if (component is CallbackComponent callback && callback.ShouldExecuteEvents)
+                        if (component is CallbackComponent callback && callback.Enabled && callback.ShouldExecuteEvents)
                         {
                             try
                             {
@@ -1225,9 +1225,9 @@ internal class ResourceManager : IWorldChangeReceiver
             {
                 var entity = pair.Value.Entity;
 
-                entity.IterateComponents((ref c) =>
+                entity.IterateComponents((c) =>
                 {
-                    if (c is CallbackComponent callback && callback.ShouldExecuteEvents)
+                    if (c is CallbackComponent callback && callback.Enabled && callback.ShouldExecuteEvents)
                     {
                         try
                         {
@@ -1239,7 +1239,7 @@ internal class ResourceManager : IWorldChangeReceiver
                         }
                     }
 
-                    World.Current?.EmitAddComponentEvent(entity, ref c);
+                    World.Current?.EmitAddComponentEvent(c);
                 });
             }
 

@@ -50,7 +50,7 @@ public class SkinnedMeshAttachmentSystem : RenderSystemBase
                 continue;
             }
 
-            attachment.animator ??= new(entry.entity, EntityQueryMode.Parent, false);
+            attachment.animator ??= new(entry.entity, EntityQueryMode.Parent);
 
             var animator = attachment.animator.Content;
 

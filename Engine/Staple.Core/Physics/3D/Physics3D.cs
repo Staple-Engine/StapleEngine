@@ -680,7 +680,7 @@ public sealed class Physics3D : ISubsystem
         }
 
         World.AddComponentAddedCallback(typeof(RigidBody3D),
-            (World world, Entity entity, ref Component component) =>
+            (World world, Component component) =>
             {
                 if(!Platform.IsPlaying)
                 {
@@ -691,11 +691,11 @@ public sealed class Physics3D : ISubsystem
 
                 var rigidBody = (RigidBody3D)component;
 
-                rigidBody.body = CreateBody(entity, world);
+                rigidBody.body = CreateBody(component.Entity, world);
             });
 
         World.AddComponentChangedCallback(typeof(RigidBody3D),
-            (World world, Entity entity, ref Component component) =>
+            (World world, Component component) =>
             {
                 if (!Platform.IsPlaying)
                 {
@@ -704,11 +704,11 @@ public sealed class Physics3D : ISubsystem
 
                 using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
-                RecreateBody(entity);
+                RecreateBody(component.Entity);
             });
 
         World.AddComponentAddedCallback(typeof(Character3D),
-            (World world, Entity entity, ref Component component) =>
+            (World world, Component component) =>
             {
                 if (!Platform.IsPlaying)
                 {
@@ -719,11 +719,11 @@ public sealed class Physics3D : ISubsystem
 
                 var character = (Character3D)component;
 
-                character.body = CreateBody(entity, world);
+                character.body = CreateBody(component.Entity, world);
             });
 
         World.AddComponentChangedCallback(typeof(Character3D),
-            (World world, Entity entity, ref Component component) =>
+            (World world, Component component) =>
             {
                 if (!Platform.IsPlaying)
                 {
@@ -732,11 +732,11 @@ public sealed class Physics3D : ISubsystem
 
                 using var profiler = new PerformanceProfiler(PerformanceProfilerType.Physics);
 
-                RecreateBody(entity);
+                RecreateBody(component.Entity);
             });
 
         World.AddComponentRemovedCallback(typeof(RigidBody3D),
-            (World world, Entity entity, ref Component component) =>
+            (World world, Component component) =>
             {
                 if (!Platform.IsPlaying)
                 {
@@ -753,7 +753,7 @@ public sealed class Physics3D : ISubsystem
             });
 
         World.AddComponentRemovedCallback(typeof(Character3D),
-            (World world, Entity entity, ref Component component) =>
+            (World world, Component component) =>
             {
                 if (!Platform.IsPlaying)
                 {
@@ -783,10 +783,10 @@ public sealed class Physics3D : ISubsystem
 
         var rigidBodies = World.Current.Query<RigidBody3D>(true);
         
-        foreach((Entity _, RigidBody3D rigidBody) in rigidBodies)
+        foreach(var rigidBody in rigidBodies)
         {
             DestroyBody(rigidBody.body);
-        };
+        }
 
         Impl.Shutdown();
     }

@@ -121,6 +121,7 @@ public sealed class Material : IGuidAsset
 
         hashCode.Add(Guid.GuidHash);
         hashCode.Add(ShaderVariantKey);
+        hashCode.Add(RenderQueueIndex);
 
         void HandleParameter(StringID key, MaterialResourceParameter parameter)
         {

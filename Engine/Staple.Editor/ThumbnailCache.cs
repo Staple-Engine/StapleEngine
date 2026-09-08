@@ -235,11 +235,11 @@ internal class ThumbnailCache
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
                             cameraTransform.Matrix, Camera.Projection(default, camera), () =>
                         {
-                            LightSystem.OverrideLights = [(default, lightTransform, new Light()
+                            LightSystem.OverrideLights = [new Light()
                             {
                                 type = LightType.Directional,
                                 color = Color.White,
-                            })];
+                            }];
 
                             LightSystem.OverrideAmbientColor = Color.Black;
 
@@ -502,11 +502,11 @@ internal class ThumbnailCache
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
                             cameraTransform.Matrix, Camera.Projection(default, camera), () =>
                         {
-                            LightSystem.OverrideLights = [(default, lightTransform, new Light()
+                            LightSystem.OverrideLights = [new Light()
                             {
                                 type = LightType.Directional,
                                 color = Color.White,
-                            })];
+                            }];
 
                             LightSystem.OverrideAmbientColor = Color.Black;
 

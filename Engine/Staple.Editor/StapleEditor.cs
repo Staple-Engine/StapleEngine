@@ -114,6 +114,13 @@ internal partial class StapleEditor
         public IBody3D body;
     }
 
+    class EntityNodeContainer
+    {
+        public Transform transform;
+
+        public readonly List<EntityNodeContainer> children = [];
+    }
+
     class MenuItemInfo
     {
         public string name;
@@ -173,7 +180,7 @@ internal partial class StapleEditor
         }
     }
 
-    class RenderQueue : IWorldChangeReceiver
+    class RenderQueue(StapleEditor editor) : IWorldChangeReceiver
     {
         public readonly SceneQuery<Transform> transforms = new(true);
         public readonly ExpandableContainer<RenderSystem.RenderSystemRenderQueue> renderQueue = new(false);
@@ -190,7 +197,52 @@ internal partial class StapleEditor
             renderIndices.Clear();
             disabledEntities.Clear();
 
-            StapleEditor.instance?.sceneTransformTracker.Clear();
+            editor.sceneTransformTracker.Clear();
+            editor.entityNodes.Clear();
+
+            foreach(var transform in world.RootEntities)
+            {
+                if(transform.Entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName) ||
+                    transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.Hide ||
+                    transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
+                {
+                    continue;
+                }
+
+                var container = new EntityNodeContainer()
+                {
+                    transform = transform,
+                };
+
+                editor.entityNodes.Add(container);
+
+                static void Process(Transform transform, EntityNodeContainer container)
+                {
+                    if (transform.Entity.Layer == LayerMask.NameToLayer(RenderTargetLayerName) ||
+                        transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.Hide ||
+                        transform.Entity.HierarchyVisibility == EntityHierarchyVisibility.HideAndDontSave)
+                    {
+                        return;
+                    }
+
+                    var c = new EntityNodeContainer()
+                    {
+                        transform = transform,
+                    };
+
+                    container.children.Add(c);
+
+                    foreach(var child in transform.Children)
+                    {
+                        Process(child, c);
+                    }
+                }
+
+                foreach (var child in transform.Children)
+                {
+                    Process(child, container);
+                }
+            }
 
             var renderSystemContent = CollectionsMarshal.AsSpan(RenderSystem.Instance.renderSystems);
             
@@ -210,8 +262,10 @@ internal partial class StapleEditor
                 }
             }
 
-            foreach (var (entity, transform) in transforms.Contents)
+            foreach (var transform in transforms.Contents)
             {
+                var entity = transform.Entity;
+
                 var layer = entity.Layer;
 
                 if (layer == LayerMask.NameToLayer(RenderTargetLayerName))
@@ -347,7 +401,7 @@ internal partial class StapleEditor
 
     private readonly ComponentVersionTracker<Transform> sceneTransformTracker = new();
 
-    private readonly RenderQueue renderQueue = new();
+    private RenderQueue renderQueue;
 
     private bool debugSpatialInfo = false;
 
@@ -360,6 +414,8 @@ internal partial class StapleEditor
     private Entity selectedEntity;
 
     private readonly Dictionary<Entity, bool> entityTreeStates = [];
+
+    private readonly List<EntityNodeContainer> entityNodes = [];
 
     private bool resetSelection = false;
 
@@ -527,6 +583,8 @@ internal partial class StapleEditor
         MessagePackInit.Initialize();
 
         privInstance = new WeakReference<StapleEditor>(this);
+
+        renderQueue = new(this);
 
         Platform.IsPlaying = false;
         Platform.IsEditor = true;
@@ -1838,7 +1896,7 @@ internal partial class StapleEditor
 
         var counter = 0;
 
-        selectedEntity.IterateComponents((ref component) =>
+        selectedEntity.IterateComponents((component) =>
         {
             counter++;
 

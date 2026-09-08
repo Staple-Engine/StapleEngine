@@ -37,7 +37,7 @@ internal partial class StapleEditor
             {
                 var gotIcon = false;
 
-                entity.IterateComponents((ref Component component) =>
+                entity.IterateComponents((component) =>
                 {
                     if(gotIcon)
                     {
@@ -160,12 +160,12 @@ internal partial class StapleEditor
 
         foreach (var pair in rigidBodies)
         {
-            Physics3D.Instance.RecreateBody(pair.Item1);
+            Physics3D.Instance.RecreateBody(pair.Entity);
         }
 
         foreach (var pair in characters)
         {
-            Physics3D.Instance.RecreateBody(pair.Item1);
+            Physics3D.Instance.RecreateBody(pair.Entity);
         }
     }
 
