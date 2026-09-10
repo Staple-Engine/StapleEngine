@@ -45,6 +45,11 @@ public static class Time
     public static float fixedDeltaTime { get; internal set; }
 
     /// <summary>
+    /// The maximum amount of time to spend processing fixed time step
+    /// </summary>
+    public static float maximumFixedTimestepTime { get; internal set; } = 0.1f;
+
+    /// <summary>
     /// The current frame rate
     /// </summary>
     public static int FPS { get; internal set; }

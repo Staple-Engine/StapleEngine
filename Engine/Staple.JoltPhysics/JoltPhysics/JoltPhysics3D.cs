@@ -39,13 +39,30 @@ public class JoltPhysics3D : IPhysics3D
     private readonly CallbackGatherer callbackGatherer = new();
 
     private bool destroyed = false;
-    private bool locked = false;
     private int lastAddedBodyCount = 0;
 
-    private float deltaTimer;
     private float interpolationAccumulator;
 
-    public bool Destroyed => destroyed;
+    private Thread simulationThread;
+
+    public bool Destroyed
+    {
+        get
+        {
+            lock(threadLock)
+            {
+                return destroyed;
+            }
+        }
+
+        set
+        {
+            lock(threadLock)
+            {
+                destroyed = value;
+            }
+        }
+    }
 
     public Vector3 Gravity
     {
@@ -58,7 +75,7 @@ public class JoltPhysics3D : IPhysics3D
 
     public void Startup()
     {
-        destroyed = false;
+        Destroyed = false;
 
         if(!JoltPhysicsSharp.Foundation.Init())
         {
@@ -147,16 +164,69 @@ public class JoltPhysics3D : IPhysics3D
         physicsSystem.OnContactRemoved += OnContactRemoved;
         physicsSystem.OnContactPersisted += OnContactPersisted;
         physicsSystem.OnContactValidate += OnContactValidate;
+
+        simulationThread = new(() =>
+        {
+            var tracker = new TimeTracker();
+            var deltaTimer = 0.0f;
+            var physicsDeltaTime = Physics3D.PhysicsDeltaTime;
+            var maximumTime = Time.maximumFixedTimestepTime;
+
+            for (; ; )
+            {
+                try
+                {
+                    if (Destroyed)
+                    {
+                        break;
+                    }
+
+                    deltaTimer += tracker.ElapsedTime;
+
+                    var accumulated = 0.0f;
+
+                    while (deltaTimer >= physicsDeltaTime && accumulated < maximumTime)
+                    {
+                        deltaTimer -= physicsDeltaTime;
+
+                        accumulated += physicsDeltaTime;
+
+                        Simulate();
+                    }
+
+                    SpinWait.SpinUntil(() => tracker.ElapsedTimeNoReset >= physicsDeltaTime);
+                }
+                catch(Exception e)
+                {
+                    Log.Error($"Simulation Thread exception: {e}", LogTag);
+                }
+            }
+        })
+        {
+            IsBackground = true,
+        };
+
+        simulationThread.Start();
     }
 
     public void Shutdown()
     {
-        if(destroyed)
+        lock(threadLock)
         {
-            return;
+            if (Destroyed)
+            {
+                return;
+            }
+
+            Destroyed = true;
         }
 
-        destroyed = true;
+        while(simulationThread.IsAlive)
+        {
+            Thread.Sleep(5);
+        }
+
+        simulationThread = null;
 
         JoltPhysicsSharp.Foundation.Shutdown();
     }
@@ -164,55 +234,32 @@ public class JoltPhysics3D : IPhysics3D
     #region Internal
     private bool TryFindBody(Body body, out IBody3D outBody)
     {
-        lock (threadLock)
-        {
-            if (bodies.TryGetValue(body.ID, out var b))
-            {
-                outBody = b;
+        outBody = bodies.TryGetValue(body.ID, out var b) ? b : default;
 
-                return true;
-            }
-        }
-
-        outBody = default;
-
-        return false;
+        return outBody != null;
     }
 
     private bool TryFindBody(Character character, out IBody3D outBody)
     {
-        lock (threadLock)
-        {
-            if(characters.TryGetValue(character.BodyID, out var b))
-            {
-                outBody = b;
+        outBody = characters.TryGetValue(character.BodyID, out var b) ? b : default;
 
-                return true;
-            }
-        }
-
-        outBody = default;
-
-        return false;
+        return outBody != null;
     }
 
     private bool TryFindBody(BodyID body, out IBody3D outBody)
     {
-        lock (threadLock)
+        if(bodies.TryGetValue(body, out var b))
         {
-            if(bodies.TryGetValue(body, out var b))
-            {
-                outBody = b;
+            outBody = b;
 
-                return true;
-            }
+            return true;
+        }
 
-            if(characters.TryGetValue(body, out var c))
-            {
-                outBody = c;
+        if(characters.TryGetValue(body, out var c))
+        {
+            outBody = c;
 
-                return true;
-            }
+            return true;
         }
 
         outBody = default;
@@ -222,11 +269,6 @@ public class JoltPhysics3D : IPhysics3D
 
     private void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, ref ContactSettings settings)
     {
-        lock (threadLock)
-        {
-            locked = true;
-        }
-
         if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
         {
             callbackGatherer.AddCallback(() =>
@@ -234,20 +276,10 @@ public class JoltPhysics3D : IPhysics3D
                 Physics3D.Instance.ContactAdded(b1, b2);
             });
         }
-
-        lock (threadLock)
-        {
-            locked = false;
-        }
     }
 
     private void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2, in ContactManifold manifold, ref ContactSettings settings)
     {
-        lock (threadLock)
-        {
-            locked = true;
-        }
-
         if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
         {
             callbackGatherer.AddCallback(() =>
@@ -255,20 +287,10 @@ public class JoltPhysics3D : IPhysics3D
                 Physics3D.Instance.ContactPersisted(b1, b2);
             });
         }
-
-        lock (threadLock)
-        {
-            locked = false;
-        }
     }
 
     private void OnContactRemoved(PhysicsSystem system, ref SubShapeIDPair subShapePair)
     {
-        lock (threadLock)
-        {
-            locked = true;
-        }
-
         if (TryFindBody(subShapePair.Body1ID, out var b1) &&
             TryFindBody(subShapePair.Body2ID, out var b2))
         {
@@ -277,37 +299,17 @@ public class JoltPhysics3D : IPhysics3D
                 Physics3D.Instance.ContactRemoved(b1, b2);
             });
         }
-
-        lock (threadLock)
-        {
-            locked = false;
-        }
     }
 
     private ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, RVector3 baseOffset,
         in CollideShapeResult collisionResult)
     {
-        lock (threadLock)
-        {
-            locked = true;
-        }
-
         if (TryFindBody(body1, out var b1) && TryFindBody(body2, out var b2))
         {
             if(!Physics3D.Instance.ContactValidate(b1, b2))
             {
-                lock (threadLock)
-                {
-                    locked = false;
-                }
-
                 return ValidateResult.RejectContact;
             }
-        }
-
-        lock (threadLock)
-        {
-            locked = false;
         }
 
         return ValidateResult.AcceptContact;
@@ -315,11 +317,6 @@ public class JoltPhysics3D : IPhysics3D
 
     private void OnBodyActivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
     {
-        lock (threadLock)
-        {
-            locked = true;
-        }
-
         if (TryFindBody(bodyID, out var body))
         {
             callbackGatherer.AddCallback(() =>
@@ -327,20 +324,10 @@ public class JoltPhysics3D : IPhysics3D
                 Physics3D.Instance.BodyActivated(body);
             });
         }
-
-        lock (threadLock)
-        {
-            locked = false;
-        }
     }
 
     private void OnBodyDeactivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
     {
-        lock (threadLock)
-        {
-            locked = true;
-        }
-
         if (TryFindBody(bodyID, out var body))
         {
             callbackGatherer.AddCallback(() =>
@@ -348,78 +335,89 @@ public class JoltPhysics3D : IPhysics3D
                 Physics3D.Instance.BodyDeactivated(body);
             });
         }
-
-        lock (threadLock)
-        {
-            locked = false;
-        }
     }
     #endregion
 
     public void Update(float deltaTime)
     {
-        if(destroyed)
+        if (Destroyed)
         {
             return;
         }
 
-        deltaTimer += deltaTime;
-
-        interpolationAccumulator += deltaTime;
-
-        if (deltaTimer >= Physics3D.PhysicsDeltaTime)
+        lock (threadLock)
         {
-            deltaTimer -= Physics3D.PhysicsDeltaTime;
+            interpolationAccumulator += deltaTime;
 
-            Simulate();
-
-            interpolationAccumulator = 0;
-        }
-
-        if (Physics.InterpolatePhysics)
-        {
-            var alpha = interpolationAccumulator / Physics3D.PhysicsDeltaTime;
-
-            foreach (var pair in bodies)
+            if (Physics.InterpolatePhysics)
             {
-                lock (threadLock)
+                var alpha = interpolationAccumulator / Physics3D.PhysicsDeltaTime;
+
+                foreach (var pair in bodies)
                 {
-                    var p = pair.Value;
-
-                    if (!p.body.IsActive)
+                    lock (threadLock)
                     {
-                        continue;
-                    }
+                        var p = pair.Value;
 
-                    p.interpolatedPosition = Vector3.Lerp(p.previousPosition, p.currentPosition, Math.Clamp01(alpha));
-                    p.interpolatedRotation = Quaternion.Slerp(p.previousRotation, p.currentRotation, Math.Clamp01(alpha));
+                        if(p.Entity.EnabledInHierarchy)
+                        {
+                            if(!p.body.IsActive)
+                            {
+                                p.needsAdd = true;
+                            }
+                        }
+                        else if(p.body.IsActive)
+                        {
+                            p.needsRemove = true;
+                        }
 
-                    if (p.transform != null)
-                    {
-                        p.transform.Position = p.interpolatedPosition;
-                        p.transform.Rotation = p.interpolatedRotation;
+                        if (!p.body.IsActive)
+                        {
+                            continue;
+                        }
+
+                        p.interpolatedPosition = Vector3.Lerp(p.previousPosition, p.currentPosition, Math.Clamp01(alpha));
+                        p.interpolatedRotation = Quaternion.Slerp(p.previousRotation, p.currentRotation, Math.Clamp01(alpha));
+
+                        if (p.transform != null)
+                        {
+                            p.transform.Position = p.interpolatedPosition;
+                            p.transform.Rotation = p.interpolatedRotation;
+                        }
                     }
                 }
-            }
 
-            foreach (var pair in characters)
-            {
-                lock (threadLock)
+                foreach (var pair in characters)
                 {
-                    var p = pair.Value;
-
-                    if(!p.enabled)
+                    lock (threadLock)
                     {
-                        continue;
-                    }
+                        var p = pair.Value;
 
-                    p.interpolatedPosition = Vector3.Lerp(p.previousPosition, p.currentPosition, Math.Clamp01(alpha));
-                    p.interpolatedRotation = Quaternion.Slerp(p.previousRotation, p.currentRotation, Math.Clamp01(alpha));
+                        if(p.Entity.EnabledInHierarchy)
+                        {
+                            if(!p.enabled)
+                            {
+                                p.needsAdd = true;
+                            }
+                        }
+                        else if(p.enabled)
+                        {
+                            p.needsRemove = true;
+                        }
 
-                    if(p.transform != null)
-                    {
-                        p.transform.Position = p.interpolatedPosition;
-                        p.transform.Rotation = p.interpolatedRotation;
+                        if (!p.enabled)
+                        {
+                            continue;
+                        }
+
+                        p.interpolatedPosition = Vector3.Lerp(p.previousPosition, p.currentPosition, Math.Clamp01(alpha));
+                        p.interpolatedRotation = Quaternion.Slerp(p.previousRotation, p.currentRotation, Math.Clamp01(alpha));
+
+                        if (p.transform != null)
+                        {
+                            p.transform.Position = p.interpolatedPosition;
+                            p.transform.Rotation = p.interpolatedRotation;
+                        }
                     }
                 }
             }
@@ -432,6 +430,8 @@ public class JoltPhysics3D : IPhysics3D
 
         lock (threadLock)
         {
+            interpolationAccumulator = 0;
+
             foreach (var pair in bodies)
             {
                 var p = pair.Value;
@@ -442,14 +442,14 @@ public class JoltPhysics3D : IPhysics3D
                     p.previousRotation = p.currentRotation;
                 }
 
-                if (!p.entity.EnabledInHierarchy)
+                if (p.needsRemove)
                 {
                     if (p.body.IsActive)
                     {
                         physicsSystem.BodyInterface.DeactivateBody(p.body.ID);
                     }
                 }
-                else if (!p.body.IsActive)
+                else if (p.needsAdd)
                 {
                     physicsSystem.BodyInterface.ActivateBody(p.body.ID);
                 }
@@ -465,7 +465,7 @@ public class JoltPhysics3D : IPhysics3D
                     p.previousRotation = p.currentRotation;
                 }
 
-                if (!p.entity.EnabledInHierarchy)
+                if (p.needsRemove)
                 {
                     if (p.enabled)
                     {
@@ -474,16 +474,16 @@ public class JoltPhysics3D : IPhysics3D
                         p.character.RemoveFromPhysicsSystem();
                     }
                 }
-                else if (!p.enabled)
+                else if (p.needsAdd)
                 {
                     p.enabled = true;
 
                     p.character.AddToPhysicsSystem();
                 }
             }
-        }
 
-        physicsSystem.Update(Physics3D.PhysicsDeltaTime, collisionSteps, jobSystem);
+            physicsSystem.Update(Physics3D.PhysicsDeltaTime, collisionSteps, jobSystem);
+        }
 
         callbackGatherer.PerformAll();
 
@@ -646,16 +646,7 @@ public class JoltPhysics3D : IPhysics3D
 
             creationSettings.AllowedDOFs = dof;
 
-            Body b;
-
-            if (locked)
-            {
-                b = physicsSystem.BodyInterfaceNoLock.CreateBody(creationSettings);
-            }
-            else
-            {
-                b = physicsSystem.BodyInterface.CreateBody(creationSettings);
-            }
+            Body b = physicsSystem.BodyInterface.CreateBody(creationSettings);
 
             if (b.Handle != nint.Zero)
             {
@@ -1072,14 +1063,7 @@ public class JoltPhysics3D : IPhysics3D
             {
                 var id = pair.body.ID;
 
-                if (locked)
-                {
-                    physicsSystem.BodyInterfaceNoLock.RemoveAndDestroyBody(id);
-                }
-                else
-                {
-                    physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
-                }
+                physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
 
                 bodies.Remove(id);
                 entityBodies.Remove(pair.entity);
@@ -1093,14 +1077,7 @@ public class JoltPhysics3D : IPhysics3D
 
                 var id = characterPair.character.BodyID;
 
-                if (locked)
-                {
-                    physicsSystem.BodyInterfaceNoLock.RemoveAndDestroyBody(id);
-                }
-                else
-                {
-                    physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
-                }
+                physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
 
                 characters.Remove(id);
                 entityCharacters.Remove(characterPair.entity);
@@ -1114,14 +1091,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             lock (threadLock)
             {
-                if (locked)
-                {
-                    physicsSystem.BodyInterfaceNoLock.AddBody(bodyPair.body, activated ? Activation.Activate : Activation.DontActivate);
-                }
-                else
-                {
-                    physicsSystem.BodyInterface.AddBody(bodyPair.body, activated ? Activation.Activate : Activation.DontActivate);
-                }
+                physicsSystem.BodyInterface.AddBody(bodyPair.body, activated ? Activation.Activate : Activation.DontActivate);
             }
         }
         else if(body is JoltCharacterPair characterPair)
@@ -1153,14 +1123,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             lock (threadLock)
             {
-                if (locked)
-                {
-                    physicsSystem.BodyInterfaceNoLock.RemoveBody(bodyPair.body.ID);
-                }
-                else
-                {
-                    physicsSystem.BodyInterface.RemoveBody(bodyPair.body.ID);
-                }
+                physicsSystem.BodyInterface.RemoveBody(bodyPair.body.ID);
             }
         }
         else if (body is JoltCharacterPair characterPair)
@@ -1210,16 +1173,8 @@ public class JoltPhysics3D : IPhysics3D
 
         lock (threadLock)
         {
-            if(locked)
-            {
-                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay(r, new RayCastSettings(), CollisionCollectorType.ClosestHit, results,
-                    broadPhaseFilter, objectLayerFilter, bodyFilter);
-            }
-            else
-            {
-                result = physicsSystem.NarrowPhaseQuery.CastRay(r, new RayCastSettings(), CollisionCollectorType.ClosestHit, results,
-                    broadPhaseFilter, objectLayerFilter, bodyFilter);
-            }
+            result = physicsSystem.NarrowPhaseQuery.CastRay(r, new RayCastSettings(), CollisionCollectorType.ClosestHit, results,
+                broadPhaseFilter, objectLayerFilter, bodyFilter);
         }
 
         if (result)
@@ -1290,16 +1245,8 @@ public class JoltPhysics3D : IPhysics3D
 
         lock (threadLock)
         {
-            if (locked)
-            {
-                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay(r, new RayCastSettings(), CollisionCollectorType.AllHit, results,
-                    broadPhaseFilter, objectLayerFilter, bodyFilter);
-            }
-            else
-            {
-                result = physicsSystem.NarrowPhaseQuery.CastRay(r, new RayCastSettings(), CollisionCollectorType.AllHit, results,
-                    broadPhaseFilter, objectLayerFilter, bodyFilter);
-            }
+            result = physicsSystem.NarrowPhaseQuery.CastRay(r, new RayCastSettings(), CollisionCollectorType.AllHit, results,
+                broadPhaseFilter, objectLayerFilter, bodyFilter);
         }
 
         if (result)
@@ -1354,16 +1301,8 @@ public class JoltPhysics3D : IPhysics3D
 
         lock (threadLock)
         {
-            if (locked)
-            {
-                result = physicsSystem.NarrowPhaseQueryNoLock.CastRay(r, new RayCastSettings(), CollisionCollectorType.AllHit, results,
-                    broadPhaseFilter, objectLayerFilter, bodyFilter);
-            }
-            else
-            {
-                result = physicsSystem.NarrowPhaseQuery.CastRay(r, new RayCastSettings(), CollisionCollectorType.AllHit, results,
-                    broadPhaseFilter, objectLayerFilter, bodyFilter);
-            }
+            result = physicsSystem.NarrowPhaseQuery.CastRay(r, new RayCastSettings(), CollisionCollectorType.AllHit, results,
+                broadPhaseFilter, objectLayerFilter, bodyFilter);
         }
 
         if (result)
@@ -1397,14 +1336,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             lock (threadLock)
             {
-                if (locked)
-                {
-                    return physicsSystem.BodyInterfaceNoLock.GetGravityFactor(bodyPair.body.ID);
-                }
-                else
-                {
-                    return physicsSystem.BodyInterface.GetGravityFactor(bodyPair.body.ID);
-                }
+                return physicsSystem.BodyInterface.GetGravityFactor(bodyPair.body.ID);
             }
         }
         else if (body is JoltCharacterPair characterPair)
@@ -1424,14 +1356,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             lock (threadLock)
             {
-                if (locked)
-                {
-                    physicsSystem.BodyInterface.SetGravityFactor(pair.body.ID, factor);
-                }
-                else
-                {
-                    physicsSystem.BodyInterfaceNoLock.SetGravityFactor(pair.body.ID, factor);
-                }
+                physicsSystem.BodyInterfaceNoLock.SetGravityFactor(pair.body.ID, factor);
             }
         }
     }
@@ -1442,16 +1367,8 @@ public class JoltPhysics3D : IPhysics3D
         {
             lock (threadLock)
             {
-                if (locked)
-                {
-                    physicsSystem.BodyInterfaceNoLock.SetPosition(bodyPair.body.ID, newPosition, bodyPair.body.IsActive ?
-                        Activation.Activate : Activation.DontActivate);
-                }
-                else
-                {
-                    physicsSystem.BodyInterface.SetPosition(bodyPair.body.ID, newPosition, bodyPair.body.IsActive ?
-                        Activation.Activate : Activation.DontActivate);
-                }
+                physicsSystem.BodyInterface.SetPosition(bodyPair.body.ID, newPosition, bodyPair.body.IsActive ?
+                    Activation.Activate : Activation.DontActivate);
             }
         }
         else if(body is JoltCharacterPair characterPair)
@@ -1471,16 +1388,8 @@ public class JoltPhysics3D : IPhysics3D
         {
             lock(threadLock)
             {
-                if(locked)
-                {
-                    physicsSystem.BodyInterfaceNoLock.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ?
-                        Activation.Activate : Activation.DontActivate);
-                }
-                else
-                {
-                    physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ?
-                        Activation.Activate : Activation.DontActivate);
-                }
+                physicsSystem.BodyInterface.SetRotation(pair.body.ID, newRotation, pair.body.IsActive ?
+                    Activation.Activate : Activation.DontActivate);
             }
         }
         else if (body is JoltCharacterPair characterPair)
@@ -1572,14 +1481,7 @@ public class JoltPhysics3D : IPhysics3D
             {
                 var id = pair.Value.body.ID;
 
-                if (locked)
-                {
-                    physicsSystem.BodyInterfaceNoLock.RemoveAndDestroyBody(id);
-                }
-                else
-                {
-                    physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
-                }
+                physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
             }
 
             foreach (var pair in characters)
@@ -1588,14 +1490,7 @@ public class JoltPhysics3D : IPhysics3D
 
                 var id = pair.Value.character.BodyID;
 
-                if (locked)
-                {
-                    physicsSystem.BodyInterfaceNoLock.RemoveAndDestroyBody(id);
-                }
-                else
-                {
-                    physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
-                }
+                physicsSystem.BodyInterface.RemoveAndDestroyBody(id);
             }
 
             bodies.Clear();

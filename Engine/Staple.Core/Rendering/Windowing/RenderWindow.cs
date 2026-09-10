@@ -219,7 +219,9 @@ internal class RenderWindow
                 //Prevent hard stuck
                 var currentFixedTime = 0.0f;
 
-                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < AppSettings.Active.maximumFixedTimestepTime)
+                while (Time.fixedDeltaTime > 0 &&
+                    fixedTimer >= Time.fixedDeltaTime &&
+                    currentFixedTime < Time.maximumFixedTimestepTime)
                 {
                     fixedTimer -= Time.fixedDeltaTime;
 
@@ -396,7 +398,9 @@ internal class RenderWindow
                 //Prevent hard stuck
                 var currentFixedTime = 0.0f;
 
-                while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < AppSettings.Active.maximumFixedTimestepTime)
+                while (Time.fixedDeltaTime > 0 &&
+                    fixedTimer >= Time.fixedDeltaTime &&
+                    currentFixedTime < Time.maximumFixedTimestepTime)
                 {
                     fixedTimer -= Time.fixedDeltaTime;
 

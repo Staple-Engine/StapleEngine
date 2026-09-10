@@ -108,6 +108,7 @@ internal class AppPlayer
                 }
 
                 Time.fixedDeltaTime = 1 / (float)AppSettings.Active.fixedTimeFrameRate;
+                Time.maximumFixedTimestepTime = AppSettings.Active.maximumFixedTimestepTime;
 
                 if(!skipFlow)
                 {

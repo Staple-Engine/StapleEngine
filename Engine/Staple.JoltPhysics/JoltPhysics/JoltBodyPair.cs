@@ -13,6 +13,8 @@ internal class JoltBodyPair : IBody3D
     public Entity entity;
     public Transform transform;
     public Body body;
+    public bool needsAdd;
+    public bool needsRemove;
 
     public Entity Entity => entity;
 

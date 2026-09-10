@@ -207,7 +207,9 @@ public partial class StapleActivity : SDLActivity
             //Prevent hard stuck
             var currentFixedTime = 0.0f;
 
-            while (Time.fixedDeltaTime > 0 && fixedTimer >= Time.fixedDeltaTime && currentFixedTime < AppSettings.Current.maximumFixedTimestepTime)
+            while (Time.fixedDeltaTime > 0 &&
+                fixedTimer >= Time.fixedDeltaTime &&
+                currentFixedTime < Time.maximumFixedTimestepTime)
             {
                 fixedTimer -= Time.fixedDeltaTime;
 

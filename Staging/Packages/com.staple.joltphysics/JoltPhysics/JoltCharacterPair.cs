@@ -1,5 +1,4 @@
 ﻿using JoltPhysicsSharp;
-using Staple.Internal;
 using System.Numerics;
 
 namespace Staple.JoltPhysics;
@@ -15,6 +14,8 @@ internal class JoltCharacterPair : IBody3D
     public float friction;
     public float gravityFactor;
     public bool enabled;
+    public bool needsAdd;
+    public bool needsRemove;
 
     public Vector3 previousPosition;
     public Vector3 currentPosition;
