@@ -5,31 +5,31 @@ namespace TestGame;
 
 public class PlayerControlSystem : IEntitySystemUpdate
 {
-    private readonly SceneQuery<PlayerControlComponent, Transform> keyboards = new();
+    private readonly SceneQuery<PlayerControlComponent> keyboards = new();
 
     public void Update(float deltaTime)
     {
-        foreach((Entity entity, PlayerControlComponent component, Transform transform) in keyboards.Contents)
+        foreach(var controller in keyboards.Contents)
         {
             var targetRotation = Quaternion.Identity;
 
             var direction = Vector3.Zero;
 
-            if (component.movement.X < 0)
+            if (controller.movement.X < 0)
             {
-                direction = transform.Left;
+                direction = controller.Transform.Left;
             }
 
-            if (component.movement.X > 0)
+            if (controller.movement.X > 0)
             {
-                direction = transform.Right;
+                direction = controller.Transform.Right;
             }
 
-            if (component.movement.Y > 0)
+            if (controller.movement.Y > 0)
             {
-                if(component.is3D)
+                if(controller.is3D)
                 {
-                    direction += transform.Forward;
+                    direction += controller.Transform.Forward;
                 }
                 else
                 {
@@ -37,11 +37,11 @@ public class PlayerControlSystem : IEntitySystemUpdate
                 }
             }
 
-            if (component.movement.Y < 0)
+            if (controller.movement.Y < 0)
             {
-                if (component.is3D)
+                if (controller.is3D)
                 {
-                    direction += transform.Back;
+                    direction += controller.Transform.Back;
                 }
                 else
                 {
@@ -49,19 +49,19 @@ public class PlayerControlSystem : IEntitySystemUpdate
                 }
             }
 
-            if(component.is3D)
+            if(controller.is3D)
             {
-                var rotation = transform.LocalRotation.ToEulerAngles();
+                var rotation = controller.Transform.LocalRotation.ToEulerAngles();
 
-                rotation.X -= component.rotation.Y;
-                rotation.Y -= component.rotation.X;
+                rotation.X -= controller.rotation.Y;
+                rotation.Y -= controller.rotation.X;
 
                 targetRotation = Quaternion.Euler(rotation);
             }
 
-            var targetDirection = direction * component.speed;
+            var targetDirection = direction * controller.speed;
 
-            var body = Physics.GetBody3D(entity);
+            var body = Physics.GetBody3D(controller.Entity);
 
             if(body != null)
             {
@@ -70,12 +70,12 @@ public class PlayerControlSystem : IEntitySystemUpdate
             }
             else
             {
-                transform.LocalPosition += targetDirection * deltaTime;
-                transform.LocalRotation = targetRotation;
+                controller.Transform.LocalPosition += targetDirection * deltaTime;
+                controller.Transform.LocalRotation = targetRotation;
             }
 
-            component.rotation = Vector2.Zero;
-            component.movement = Vector2.Zero;
+            controller.rotation = Vector2.Zero;
+            controller.movement = Vector2.Zero;
         }
     }
 }

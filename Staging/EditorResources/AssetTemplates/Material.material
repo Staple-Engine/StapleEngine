@@ -1,8 +1,6 @@
 {
-	"shader": "1ca9a72c-161e-44db-ad76-bf0ae432f78b",
-	"enabledShaderVariants": [
-		"LIT"
-	],
+	"shader": "15554607-8072-4d19-aa04-ad3437f7ba93",
+	"enabledShaderVariants": [],
 	"parameters": {
 		"ambientOcclusionTexture": {
 			"type": "Texture"

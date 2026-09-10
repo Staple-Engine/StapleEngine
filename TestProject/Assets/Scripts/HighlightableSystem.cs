@@ -35,14 +35,14 @@ public class HighlightableSystem : IEntitySystemUpdate
             }
         }
 
-        var worldPosition = Camera.ScreenPointToWorld(mousePosition, c.entity, c.camera, c.transform);
+        var worldPosition = Camera.ScreenPointToWorld(mousePosition, c, c.Transform);
 
-        foreach((_, _, SpriteRenderer renderer) in highlightables.Contents)
+        foreach((_, SpriteRenderer renderer) in highlightables.Contents)
         {
             renderer.color = Color.White;
         }
 
-        if (Physics.RayCast3D(new Ray(worldPosition, c.transform.Forward), out var hit, LayerMask.Everything, maxDistance: 5))
+        if (Physics.RayCast3D(new Ray(worldPosition, c.Transform.Forward), out var hit, LayerMask.Everything, maxDistance: 5))
         {
             var entity = hit.body.Entity;
 
