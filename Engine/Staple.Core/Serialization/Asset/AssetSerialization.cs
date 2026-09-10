@@ -51,12 +51,12 @@ public static partial class AssetSerialization
     /// <summary>
     /// Path to the standard material
     /// </summary>
-    public static readonly string StandardMaterialPath = $"Hidden/Materials/Standard.{MaterialExtension}";
+    public static readonly string StandardMaterialPath = $"Hidden/Materials/Standard-Lit.{MaterialExtension}";
 
     /// <summary>
     /// Path to the standard shader
     /// </summary>
-    public static readonly string StandardShaderPath = $"Hidden/Shaders/Default/Standard.{ShaderExtension}";
+    public static readonly string StandardShaderPath = $"Hidden/Shaders/Default/Lit/Standard-Lit.{ShaderExtension}";
 
     /// <summary>
     /// All supported texture extensions
