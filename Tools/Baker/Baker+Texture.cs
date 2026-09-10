@@ -556,7 +556,7 @@ static partial class Program
                     _ => "normal",
                 };
 
-                var parameters = $"--format {formatString} --type {formatType} --quality {qualityString} --file-format ktx -q ";
+                var parameters = $"--format {formatString} --type {formatType} --quality {qualityString} --file-format ktx -q -j ";
 
                 if (premultiplyAlpha)
                 {
@@ -571,15 +571,6 @@ static partial class Program
                 if (metadata.useMipmaps)
                 {
                     parameters += " --mipmap";
-                }
-
-                switch (metadata.type)
-                {
-                    case TextureType.NormalMap:
-
-                        parameters += " --normalmap";
-
-                        break;
                 }
 
                 try
