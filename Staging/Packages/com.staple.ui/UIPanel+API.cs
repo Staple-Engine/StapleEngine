@@ -13,7 +13,7 @@ public partial class UIPanel
     /// <param name="size">The size in pixels of the sprite</param>
     /// <param name="texture">The texture to use</param>
     /// <param name="color">The color to use</param>
-    protected void DrawSprite(Vector2Int position, Vector2Int size, Texture texture, Color color)
+    protected static void DrawSprite(Vector2Int position, Vector2Int size, Texture texture, Color color)
     {
         if (texture?.Disposed ?? true)
         {
@@ -39,8 +39,9 @@ public partial class UIPanel
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
 
-        Graphics.RenderSimple(vertices, SpriteUtils.VertexLayout.Value, indices, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit);
+        var m = Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0));
+
+        Graphics.RenderSimple(vertices, SpriteUtils.VertexLayout.Value, indices, material, m, MeshTopology.Triangles, true);
 
         material.MainColor = c;
         material.MainTexture = t;
@@ -54,7 +55,7 @@ public partial class UIPanel
     /// <param name="texture">The texture to use</param>
     /// <param name="rect">The sprite area in pixels</param>
     /// <param name="color">The color to use</param>
-    protected void DrawSprite(Vector2Int position, Vector2Int size, Texture texture, Rect rect, Color color)
+    protected static void DrawSprite(Vector2Int position, Vector2Int size, Texture texture, Rect rect, Color color)
     {
         if (texture?.Disposed ?? true)
         {
@@ -80,8 +81,9 @@ public partial class UIPanel
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
 
-        Graphics.RenderSimple(vertices, SpriteUtils.VertexLayout.Value, indices, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit);
+        var m = Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0));
+
+        Graphics.RenderSimple(vertices, SpriteUtils.VertexLayout.Value, indices, material, m, MeshTopology.Triangles, true);
 
         material.MainColor = c;
         material.MainTexture = t;
@@ -95,7 +97,7 @@ public partial class UIPanel
     /// <param name="texture">The texture to use</param>
     /// <param name="border">The slice border of the sprite</param>
     /// <param name="color">The color to use</param>
-    protected void DrawSpriteSliced(Vector2Int position, Vector2Int size, Texture texture, Rect border, Color color)
+    protected static void DrawSpriteSliced(Vector2Int position, Vector2Int size, Texture texture, Rect border, Color color)
     {
         if (texture?.Disposed ?? true)
         {
@@ -127,8 +129,9 @@ public partial class UIPanel
 
         material.DisableShaderKeyword(Shader.SkinningKeyword);
 
-        Graphics.RenderSimple(ninePatchVertices, SpriteUtils.VertexLayout.Value, ninePatchIndices, material, Vector3.Zero,
-            Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0)), MeshTopology.Triangles, MaterialLighting.Unlit);
+        var m = Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0));
+
+        Graphics.RenderSimple(ninePatchVertices, SpriteUtils.VertexLayout.Value, ninePatchIndices, material, m, MeshTopology.Triangles, true);
 
         material.MainColor = c;
         material.MainTexture = t;
@@ -140,7 +143,7 @@ public partial class UIPanel
     /// <param name="str">The text to measure</param>
     /// <param name="parameters">Text parameters for the text</param>
     /// <returns>The measured text rectangle</returns>
-    protected Rect MeasureTextSimple(string str, TextParameters parameters) => TextRenderer.instance.MeasureTextSimple(str, parameters);
+    protected static Rect MeasureTextSimple(string str, TextParameters parameters) => TextRenderer.instance.MeasureTextSimple(str, parameters);
 
     /// <summary>
     /// Fits text around a specific length in pixels
@@ -149,7 +152,7 @@ public partial class UIPanel
     /// <param name="parameters">Text parameters for the text</param>
     /// <param name="lengthInPixels">The total length (width) of pixels</param>
     /// <param name="fontSize">The expected font size</param>
-    protected void FitTextAroundLength(string str, TextParameters parameters, float lengthInPixels, out int fontSize) =>
+    protected static void FitTextAroundLength(string str, TextParameters parameters, float lengthInPixels, out int fontSize) =>
         TextRenderer.instance.FitTextAroundLength(str, parameters, lengthInPixels, out fontSize);
 
     /// <summary>
@@ -159,7 +162,7 @@ public partial class UIPanel
     /// <param name="parameters">Text parameters for the text</param>
     /// <param name="rectSize">The size of the rectangle</param>
     /// <returns>The text split into strings</returns>
-    protected string[] FitTextOnRect(string str, TextParameters parameters, Vector2Int rectSize) =>
+    protected static string[] FitTextOnRect(string str, TextParameters parameters, Vector2Int rectSize) =>
         TextRenderer.instance.FitTextOnRect(str, parameters, rectSize);
 
     /// <summary>
@@ -196,7 +199,7 @@ public partial class UIPanel
         var vertexSpan = new Span<TextRenderer.PosTexVertex>(textVertices, 0, vertexCount);
         var indexSpan = new Span<ushort>(textIndices, 0, indexCount);
 
-        Graphics.RenderSimple(vertexSpan, TextRenderer.VertexLayout.Value, indexSpan, material, Vector3.Zero,
-            Matrix4x4.Identity, MeshTopology.Triangles, MaterialLighting.Unlit);
+        Graphics.RenderSimple(vertexSpan, TextRenderer.VertexLayout.Value, indexSpan, material, Matrix4x4.Identity, MeshTopology.Triangles,
+            true);
     }
 }

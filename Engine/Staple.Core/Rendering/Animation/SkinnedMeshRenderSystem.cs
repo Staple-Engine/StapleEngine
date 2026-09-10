@@ -473,7 +473,6 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
         Material lastMaterial = null;
 
         var lastMeshAsset = 0;
-        var lastLighting = MaterialLighting.Unlit;
         var lastTopology = MeshTopology.Triangles;
         var lastDisableSkinning = false;
 
@@ -495,7 +494,6 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
             var mesh = renderer.mesh;
             var meshAsset = mesh.meshAsset;
-            var lighting = renderer.overrideLighting ? renderer.lighting : meshAsset.Lighting;
 
             if ((instance.blendShapeNames?.Length ?? 0) == 0 && (meshAsset?.HasBlendShapes ?? false))
             {
@@ -517,7 +515,6 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
                 var needsChange = assetGuid != lastMeshAsset ||
                     material.StateHash != (lastMaterial?.StateHash ?? 0) ||
-                    lastLighting != lighting ||
                     lastTopology != renderer.mesh.MeshTopology ||
                     lastDisableSkinning != renderer.disableSkinning;
 
@@ -531,15 +528,12 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                     {
                         material.EnableShaderKeyword(Shader.SkinningKeyword);
                     }
-
-                    LightSystem.Instance.ApplyMaterialLighting(material, lighting);
                 }
 
                 if (needsChange)
                 {
                     lastMeshAsset = assetGuid;
                     lastMaterial = material;
-                    lastLighting = lighting;
                     lastTopology = renderer.mesh.MeshTopology;
                     lastDisableSkinning = renderer.disableSkinning;
 
@@ -562,7 +556,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
                 renderer.mesh.SetActive(ref renderState, j);
 
-                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, lighting);
+                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, false);
 
                 if(!lastDisableSkinning)
                 {

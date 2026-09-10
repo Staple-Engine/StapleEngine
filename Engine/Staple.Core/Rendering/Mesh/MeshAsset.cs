@@ -212,11 +212,6 @@ public sealed class MeshAsset : IGuidAsset
         public SubmeshInfo[] submeshes = [];
 
         /// <summary>
-        /// The lighting to apply
-        /// </summary>
-        public MaterialLighting lighting;
-
-        /// <summary>
         /// The components of this mesh
         /// </summary>
         public MeshAssetComponent components;
@@ -699,11 +694,6 @@ public sealed class MeshAsset : IGuidAsset
     /// List of all animations
     /// </summary>
     public Dictionary<string, Animation> Animations => meshResource?.animations ?? [];
-
-    /// <summary>
-    /// The lighting type for this mesh
-    /// </summary>
-    public MaterialLighting Lighting => meshResource?.lighting ?? MaterialLighting.Unlit;
 
     /// <summary>
     /// The frame rate of the animations in this mesh

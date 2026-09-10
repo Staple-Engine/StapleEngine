@@ -1,11 +1,23 @@
 Type VertexFragment
 
+ShaderDefines LIT HALF_LAMBERT
+
 Blend SrcAlpha OneMinusSrcAlpha
+
+Variants NORMALMAP
 
 Begin Parameters
 
+texture ambientOcclusionTexture
 texture diffuseTexture = WHITE
+variant: NORMALMAP texture normalTexture
+texture displacementTexture
+texture emissiveTexture
+texture heightTexture
+texture specularTexture
 color diffuseColor = #FFFFFFFF
+color emissiveColor
+color specularColor
 float alphaThreshold = 0.25
 
 End Parameters
@@ -19,6 +31,8 @@ Begin Common
 cbuffer Uniforms
 {
 	float4 diffuseColor;
+	float4 emissiveColor;
+	float4 specularColor;
 	float alphaThreshold;
 };
 
@@ -26,7 +40,13 @@ struct VertexOutput
 {
 	float4 position : SV_Position;
 	float3 worldPosition;
+	float3 worldNormal;
 	float2 coords;
+	float3 normal;
+#ifdef NORMALMAP
+	float3 tangent;
+	float3 bitangent;
+#endif
 
 	uint instanceID;
 };
@@ -39,6 +59,12 @@ struct Input
 {
 	float3 position : POSITION;
 	float2 coords : TEXCOORD0;
+	float3 normal : NORMAL;
+
+#ifdef NORMALMAP
+	float3 tangent : TANGENT;
+	float3 bitangent : BITANGENT;
+#endif
 
 #ifdef SKINNING
 	float4 indices : BLENDINDICES;
@@ -74,6 +100,14 @@ VertexOutput VertexMain(Input input)
 	output.worldPosition = mul(model, float4(position, 1.0)).xyz;
 
 	output.coords = input.coords;
+	output.normal = input.normal;
+
+#ifdef NORMALMAP
+	output.tangent = input.tangent;
+	output.bitangent = input.bitangent;
+#endif
+
+	output.worldNormal = StapleLightNormal(input.normal, model);
 
 	output.instanceID = input.instanceID;
 
@@ -86,7 +120,13 @@ Begin Fragment
 [[vk::binding(0, StapleSamplerStorageBufferSet)]]
 cbuffer Textures
 {
+	Sampler2D ambientOcclusionTexture;
 	Sampler2D diffuseTexture;
+	Sampler2D normalTexture;
+	Sampler2D displacementTexture;
+	Sampler2D emissiveTexture;
+	Sampler2D heightTexture;
+	Sampler2D specularTexture;
 };
 
 [shader("fragment")]
@@ -99,7 +139,15 @@ float4 FragmentMain(VertexOutput input) : SV_Target
 		discard;
 	}
 
-	return diffuse;
+#ifdef NORMALMAP
+	float3 normal = StapleGetTangentNormal(input.worldNormal, input.tangent, input.bitangent, input.coords, normalTexture);
+#else
+	float3 normal = normalize(input.worldNormal);
+#endif
+
+	float3 light = StapleProcessLights(input.worldPosition, normal);
+ 
+	return float4(light * diffuse.rgb, diffuse.a);
 }
 
 End Fragment

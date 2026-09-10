@@ -104,45 +104,42 @@ public class MeshAssetMetadata
     public MeshTangentsMode tangentsMode = MeshTangentsMode.Import;
 
     [Key(5)]
-    public MaterialLighting lighting = MaterialLighting.Lit;
-
-    [Key(6)]
     public MeshAssetRotation rotation;
 
-    [Key(7)]
+    [Key(6)]
     public float scale = 1.0f;
 
     [Tooltip("Combines meshes together that use the same materials.\nMay cause problems with skinned meshes.")]
-    [Key(8)]
+    [Key(7)]
     public bool combineSimilarMeshes = false;
 
-    [Key(9)]
+    [Key(8)]
     public int frameRate = 60;
 
-    [Key(10)]
+    [Key(9)]
     [Tooltip("Whether to sync the animation to the screen refresh rate")]
     public bool syncAnimationToRefreshRate = false;
 
-    [Key(11)]
+    [Key(10)]
     public MeshSimplifyTarget simplify = MeshSimplifyTarget.None;
 
-    [Key(12)]
+    [Key(11)]
     public int targetPolyCount = 1000;
 
-    [Key(13)]
+    [Key(12)]
     public bool generateColliders = false;
 
-    [Key(14)]
+    [Key(13)]
     public bool generateLODs = false;
 
-    [Key(15)]
+    [Key(14)]
     public bool discardOddLODLevels = false;
 
-    [Key(16)]
+    [Key(15)]
     public bool importVertexColors = false;
 
     [HideInInspector]
-    [Key(17)]
+    [Key(16)]
     public string typeName = typeof(Mesh).FullName;
 
     public static bool operator==(MeshAssetMetadata lhs, MeshAssetMetadata rhs)
@@ -163,7 +160,6 @@ public class MeshAssetMetadata
             lhs.typeName == rhs.typeName &&
             lhs.normalsMode == rhs.normalsMode &&
             lhs.tangentsMode == rhs.tangentsMode &&
-            lhs.lighting == rhs.lighting &&
             lhs.rotation == rhs.rotation &&
             lhs.scale == rhs.scale &&
             lhs.frameRate == rhs.frameRate &&
@@ -195,7 +191,6 @@ public class MeshAssetMetadata
             lhs.typeName != rhs.typeName ||
             lhs.normalsMode != rhs.normalsMode ||
             lhs.tangentsMode != rhs.tangentsMode ||
-            lhs.lighting != rhs.lighting ||
             lhs.rotation != rhs.rotation ||
             lhs.scale != rhs.scale ||
             lhs.frameRate != rhs.frameRate ||
@@ -233,7 +228,6 @@ public class MeshAssetMetadata
         hash.Add(flipWindingOrder);
         hash.Add(normalsMode);
         hash.Add(tangentsMode);
-        hash.Add(lighting);
         hash.Add(rotation);
         hash.Add(scale);
         hash.Add(frameRate);

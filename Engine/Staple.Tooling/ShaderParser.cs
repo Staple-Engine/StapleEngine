@@ -40,6 +40,7 @@ public static partial class ShaderParser
     private static readonly Regex blendRegex = BlendRegex();
     private static readonly Regex variantsRegex = VariantsRegex();
     private static readonly Regex variantDependencyRegex = VariantDependencyRegex();
+    private static readonly Regex shaderDefinesRegex = ShaderDefinesRegex();
     private static readonly Regex bufferRegex = BufferRegex();
     private static readonly Regex instancingRegex = InstancingRegex();
     private static readonly Regex instancingParameterRegex = InstancingParameterRegex();
@@ -78,6 +79,9 @@ public static partial class ShaderParser
     [GeneratedRegex("Variants (.*)")]
     private static partial Regex VariantsRegex();
 
+    [GeneratedRegex("ShaderDefines (.*)")]
+    private static partial Regex ShaderDefinesRegex();
+
     [GeneratedRegex("VariantDependency (\\w+) (\\-*\\w+)")]
     private static partial Regex VariantDependencyRegex();
 
@@ -86,15 +90,27 @@ public static partial class ShaderParser
 
     public static bool Parse(string source, ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
         out List<string> variants, out List<KeyValuePair<string, string>> variantDependencies, out List<InstanceParameter> instanceParameters,
-        out MaterialRenderQueue renderQueue, out int renderQueueOffset, out ShaderPiece vertex, out ShaderPiece fragment, out ShaderPiece compute)
+        out MaterialRenderQueue renderQueue, out int renderQueueOffset, out List<string> shaderDefines, out ShaderPiece vertex,
+        out ShaderPiece fragment, out ShaderPiece compute)
     {
+        var shaderDefinesMatch = shaderDefinesRegex.Match(source);
+
+        if(shaderDefinesMatch.Success && shaderDefinesMatch.Length > 0)
+        {
+            shaderDefines = [.. shaderDefinesMatch.Groups[1].Value.Split(' ').Select(x => x.Trim())];
+        }
+        else
+        {
+            shaderDefines = [];
+        }
+
         if (type == ShaderType.VertexFragment)
         {
             var variantsMatch = variantsRegex.Match(source);
 
             if (variantsMatch.Success && variantsMatch.Length > 0)
             {
-                variants = variantsMatch.Groups[1].Value.Split(",").Select(x => x.Trim()).ToList();
+                variants = [.. variantsMatch.Groups[1].Value.Split(",").Select(x => x.Trim())];
 
                 variantDependencies = [];
 

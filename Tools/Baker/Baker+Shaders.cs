@@ -120,7 +120,8 @@ static partial class Program
                 }
 
                 if (ShaderParser.Parse(text, shader.type, out var blendMode, out var shaderParameters, out shader.variants,
-                    out var variantDependencies, out var instancingParameters, out var renderQueue, out var renderQueueOffset, out var vertex, out var fragment, out var compute) == false)
+                    out var variantDependencies, out var instancingParameters, out var renderQueue, out var renderQueueOffset,
+                    out var shaderDefines, out var vertex, out var fragment, out var compute) == false)
                 {
                     Console.WriteLine("\t\tError: File has invalid format");
 
@@ -142,9 +143,8 @@ static partial class Program
                         defaultValue = parameter.initializer,
                         attribute = parameter.attribute,
                         variant = shader.variants.Contains(parameter.variant) ? parameter.variant : null,
+                        semantic = ShaderParameterSemantic.Uniform,
                     };
-
-                    p.semantic = ShaderParameterSemantic.Uniform;
 
                     var typeValue = parameter.dataType switch
                     {
@@ -265,9 +265,8 @@ static partial class Program
                 }
 
                 var variants = shader.type == ShaderType.VertexFragment ?
-                    ShaderParser.ProcessVariants(shader.variants
-                        .Concat(Shader.DefaultVariants)
-                        .ToList(), variantDependencies) : [];
+                    ShaderParser.ProcessVariants([.. shader.variants.Concat(Shader.DefaultVariants)],
+                        variantDependencies) : [];
 
                 Console.WriteLine($"\t\tCompiling {variants.Count} variants");
 
@@ -286,7 +285,7 @@ static partial class Program
 
                 if (shader.parameters != null)
                 {
-                    generatedShader.metadata.uniforms = shader.parameters
+                    generatedShader.metadata.uniforms = [.. shader.parameters
                         .Where(x => x != null && x.semantic == ShaderParameterSemantic.Uniform)
                         .Select(x => new ShaderUniform()
                         {
@@ -295,19 +294,18 @@ static partial class Program
                             attribute = x.attribute,
                             variant = x.variant,
                             defaultValue = x.defaultValue,
-                        }).ToArray();
+                        })];
                 }
 
                 if (shader.instancingParameters != null)
                 {
-                    generatedShader.metadata.instanceParameters = shader.instancingParameters
+                    generatedShader.metadata.instanceParameters = [.. shader.instancingParameters
                         .Where(x => x != null)
                         .Select(x => new ShaderInstanceParameter()
                         {
                             name = x.name,
                             type = x.dataType,
-                        })
-                        .ToArray();
+                        })];
                 }
 
                 foreach (var renderer in renderers)
@@ -408,6 +406,11 @@ static partial class Program
                                 defineString += " -DSTAPLE_COMPUTE_SHADER";
 
                                 break;
+                        }
+
+                        foreach(var define in shaderDefines)
+                        {
+                            defineString += $" -D{define}";
                         }
 
                         {

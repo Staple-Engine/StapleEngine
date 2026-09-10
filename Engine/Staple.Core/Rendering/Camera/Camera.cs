@@ -207,10 +207,9 @@ public sealed class Camera : Component
     /// <summary>
     /// Calculates projection matrix for a camera
     /// </summary>
-    /// <param name="entity">The entity that the camera belongs to</param>
     /// <param name="camera">The camera</param>
     /// <returns>The matrix, or identity if failed</returns>
-    internal static Matrix4x4 Projection(Entity entity, Camera camera)
+    internal static Matrix4x4 Projection(Camera camera)
     {
         switch (camera.cameraType)
         {
@@ -218,7 +217,7 @@ public sealed class Camera : Component
 
                 if (camera.nearPlane <= 0 || camera.farPlane <= 0 || camera.nearPlane >= camera.farPlane)
                 {
-                    Log.Error($"{entity} camera component has invalid near/far plane parameters: {camera.nearPlane} / {camera.farPlane}");
+                    Log.Error($"{camera.Entity} camera component has invalid near/far plane parameters: {camera.nearPlane} / {camera.farPlane}");
 
                     return Matrix4x4.Identity;
                 }
@@ -230,7 +229,7 @@ public sealed class Camera : Component
 
                 if(camera.orthographicSize < 1)
                 {
-                    Log.Error($"{entity} camera component has invalid orthographic size: {camera.orthographicSize}");
+                    Log.Error($"{camera.Entity} camera component has invalid orthographic size: {camera.orthographicSize}");
 
                     return Matrix4x4.Identity;
                 }
@@ -249,20 +248,64 @@ public sealed class Camera : Component
     }
 
     /// <summary>
+    /// Calculates projection matrix for a camera
+    /// </summary>
+    /// <param name="entity">The entity that the camera belongs to</param>
+    /// <param name="camera">The camera</param>
+    /// <param name="size">The specific screen size we're targeting</param>
+    /// <returns>The matrix, or identity if failed</returns>
+    internal static Matrix4x4 ProjectionCustomSize(Camera camera, Vector2Int size)
+    {
+        switch (camera.cameraType)
+        {
+            case CameraType.Perspective:
+
+                if (camera.nearPlane <= 0 || camera.farPlane <= 0 || camera.nearPlane >= camera.farPlane)
+                {
+                    Log.Error($"{camera.Entity} camera component has invalid near/far plane parameters: {camera.nearPlane} / {camera.farPlane}");
+
+                    return Matrix4x4.Identity;
+                }
+
+                return Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(Math.Deg2Rad * camera.fov, size.X / (float)size.Y,
+                    camera.nearPlane, camera.farPlane);
+
+            case CameraType.Orthographic:
+
+                if (camera.orthographicSize < 1)
+                {
+                    Log.Error($"{camera.Entity} camera component has invalid orthographic size: {camera.orthographicSize}");
+
+                    return Matrix4x4.Identity;
+                }
+
+                var scale = size.Y / (camera.orthographicSize * 2);
+
+                var width = size.X / scale;
+                var height = size.Y / scale;
+
+                return Matrix4x4.CreateOrthographicLeftHanded(width, height, camera.nearPlane, camera.farPlane);
+
+            default:
+
+                throw new System.ArgumentException("Camera Type is invalid", nameof(cameraType));
+        }
+    }
+
+    /// <summary>
     /// Converts a screen point to world coordinates
     /// </summary>
     /// <param name="point">The point</param>
-    /// <param name="entity">The entity the camera belongs to</param>
     /// <param name="camera">The camera</param>
     /// <param name="transform">The camera's transform</param>
     /// <returns>A world-space point</returns>
-    public static Vector3 ScreenPointToWorld(Vector2 point, Entity entity, Camera camera, Transform transform)
+    public static Vector3 ScreenPointToWorld(Vector2 point, Camera camera, Transform transform)
     {
         var clipSpace = new Vector4(((point.X * 2.0f) / Screen.RenderTargetWidth) - 1,
             (1.0f - (point.Y * 2.0f) / Screen.RenderTargetHeight),
             0.0f, 1.0f);
 
-        var p = Projection(entity, camera);
+        var p = Projection(camera);
 
         if (!Matrix4x4.Invert(p, out var invP))
         {
@@ -281,17 +324,16 @@ public sealed class Camera : Component
     /// Converts a screen point to a ray
     /// </summary>
     /// <param name="point">The point</param>
-    /// <param name="entity">The entity the camera belongs to</param>
     /// <param name="camera">The camera</param>
     /// <param name="transform">The camera's transform</param>
     /// <returns>The ray</returns>
-    public static Ray ScreenPointToRay(Vector2 point, Entity entity, Camera camera, Transform transform)
+    public static Ray ScreenPointToRay(Vector2 point, Camera camera, Transform transform)
     {
         var clipSpace = new Vector4(((point.X * 2.0f) / Screen.RenderTargetWidth) - 1,
             (1.0f - (point.Y * 2.0f) / Screen.RenderTargetHeight),
             0.0f, 1.0f);
 
-        var p = Projection(entity, camera);
+        var p = Projection(camera);
 
         if(!Matrix4x4.Invert(p, out var invP))
         {

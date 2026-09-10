@@ -191,7 +191,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     {
         CurrentCamera = (set.camera, set.transform);
 
-        PrepareCamera(set.transform.Entity, set.camera, set.transform);
+        PrepareCamera(set.camera, set.transform);
 
         if (visibilityCheckCounter > 0)
         {
@@ -338,14 +338,12 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <summary>
     /// Renders a single entity
     /// </summary>
-    /// <param name="cameraEntity">The camera's entity</param>
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
     /// <param name="entity">The entity to render</param>
     /// <param name="entityTransform">The transform of the entity to render</param>
     /// <param name="cull">Whether to cull invisible elements</param>
-    public void RenderEntity(Entity cameraEntity, Camera camera, Transform cameraTransform,
-        Entity entity, Transform entityTransform, bool cull)
+    public void RenderEntity(Camera camera, Transform cameraTransform, Entity entity, Transform entityTransform, bool cull)
     {
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 

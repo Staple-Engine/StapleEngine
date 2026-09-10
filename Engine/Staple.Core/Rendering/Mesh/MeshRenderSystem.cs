@@ -17,7 +17,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
         public Mesh mesh;
         public int submeshIndex;
         public Material material;
-        public MaterialLighting lighting;
         public Transform transform;
     }
 
@@ -91,9 +90,9 @@ public sealed class MeshRenderSystem : RenderSystemBase
     /// <param name="rotation">The rotation of the mesh</param>
     /// <param name="scale">The scale of the mesh</param>
     /// <param name="material">The material to use</param>
-    /// <param name="lighting">The lighting model to use</param>
+    /// <param name="disableLighting">Whether lighting should be disabled</param>
     public static void RenderMesh(Mesh mesh, Vector3 position, Quaternion rotation, Vector3 scale, Material material,
-        MaterialLighting lighting)
+        bool disableLighting = false)
     {
         if(mesh == null ||
             material is not { IsValid: true })
@@ -115,14 +114,12 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
         material.ApplyProperties(ref renderState);
 
-        LightSystem.Instance.ApplyMaterialLighting(material, lighting);
-
         if (material.ShaderProgram == null)
         {
             return;
         }
 
-        LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, lighting);
+        LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, disableLighting);
 
         RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
     }
@@ -234,8 +231,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 continue;
             }
 
-            var lighting = (renderer.overrideLighting ? renderer.lighting : renderer.mesh.meshAsset?.Lighting) ?? renderer.lighting;
-
             void AddStatic(Material material, int submeshIndex)
             {
                 if(!IsValidMaterial(material, renderIndex))
@@ -243,7 +238,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
                     return;
                 }
 
-                var key = HashCode.Combine(material.Guid.GuidHash, lighting);
+                var key = HashCode.Combine(material.Guid.GuidHash);
 
                 if(!renderData.staticInstanceCache.TryGetValue(key, out var meshCache))
                 {
@@ -256,7 +251,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 {
                     mesh = renderer.mesh,
                     material = material,
-                    lighting = lighting,
                     transform = entry.transform,
                     submeshIndex = submeshIndex,
                 });
@@ -288,7 +282,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
                     return;
                 }
 
-                var key = HashCode.Combine(renderer.mesh.Guid.GuidHash, material.Guid.GuidHash, lighting, submeshIndex);
+                var key = HashCode.Combine(renderer.mesh.Guid.GuidHash, material.Guid.GuidHash, submeshIndex);
 
                 if (!renderData.instanceCache.TryGetValue(key, out var meshCache))
                 {
@@ -301,7 +295,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 {
                     mesh = renderer.mesh,
                     material = material,
-                    lighting = lighting,
                     transform = entry.transform,
                     submeshIndex = submeshIndex,
                 });
@@ -431,8 +424,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
-                LightSystem.Instance.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
-
                 if (material.ShaderProgram == null)
                 {
                     continue;
@@ -440,8 +431,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
                 material.ApplyProperties(ref renderState);
 
-                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position,
-                    contents.instanceInfos.Contents[0].lighting);
+                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, false);
 
                 renderState.world = Matrix4x4.Identity;
 
@@ -466,8 +456,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 
-                LightSystem.Instance.ApplyMaterialLighting(material, contents.instanceInfos.Contents[0].lighting);
-
                 if (material.ShaderProgram == null)
                 {
                     continue;
@@ -475,8 +463,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
                 material.ApplyProperties(ref renderState);
 
-                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position,
-                    contents.instanceInfos.Contents[0].lighting);
+                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, false);
 
                 var program = material.ShaderProgram;
 

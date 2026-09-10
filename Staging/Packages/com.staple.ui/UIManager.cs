@@ -280,7 +280,7 @@ public sealed class UIManager
                     material.MainColor = new(0, 0, 0, 0.3f);
 
                     MeshRenderSystem.RenderMesh(Mesh.Quad, new Vector3(CanvasSize.X / 2, CanvasSize.Y / 2, 0),
-                        Quaternion.Identity, new Vector3(CanvasSize, 0), material, MaterialLighting.Unlit);
+                        Quaternion.Identity, new Vector3(CanvasSize, 0), material, true);
 
                     material.MainColor = color;
                 }

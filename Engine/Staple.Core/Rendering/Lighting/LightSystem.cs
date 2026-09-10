@@ -52,10 +52,6 @@ public sealed class LightSystem
     private readonly Vector4[] previousLightTypePositions = new Vector4[MaxLights];
     private readonly Color[] previousLightDiffuse = new Color[MaxLights];
 
-    public bool UsesOwnRenderProcess => false;
-
-    public Type RelatedComponent => null;
-
     public Color AmbientColor => OverrideAmbientColor ?? AppSettings.Active.ambientLight;
 
     public Span<Light> Lights => OverrideLights != null ? OverrideLights.AsSpan() : lightQuery.Contents;
@@ -72,86 +68,17 @@ public sealed class LightSystem
     }
 
     /// <summary>
-    /// Applies the material-specific lighting state
-    /// </summary>
-    /// <param name="material">The material to use</param>
-    /// <param name="lighting">The lighting type</param>
-    public void ApplyMaterialLighting(Material material, MaterialLighting lighting)
-    {
-        if(!Enabled)
-        {
-            material.DisableShaderKeyword(Shader.LitKeyword);
-            material.DisableShaderKeyword(Shader.HalfLambertKeyword);
-
-            return;
-        }
-
-        switch (lighting)
-        {
-            case MaterialLighting.Lit:
-
-                material.EnableShaderKeyword(Shader.LitKeyword);
-                material.DisableShaderKeyword(Shader.HalfLambertKeyword);
-
-                break;
-
-            case MaterialLighting.Unlit:
-
-                material.DisableShaderKeyword(Shader.LitKeyword);
-                material.DisableShaderKeyword(Shader.HalfLambertKeyword);
-
-                break;
-
-            case MaterialLighting.HalfLambert:
-
-                material.EnableShaderKeyword(Shader.LitKeyword);
-                material.EnableShaderKeyword(Shader.HalfLambertKeyword);
-
-                break;
-        }
-    }
-
-    /// <summary>
     /// Applies light properties to the next render pass
     /// </summary>
     /// <param name="material">The material to use</param>
     /// <param name="cameraPosition">The position of the camera</param>
-    /// <param name="lighting">What lighting to use</param>
-    internal bool ApplyLightProperties(Material material, Vector3 cameraPosition,
-        MaterialLighting lighting)
+    /// <param name="disableLighting">Whether lighting should be disabled</param>
+    internal bool ApplyLightProperties(Material material, Vector3 cameraPosition, bool disableLighting)
     {
         if (!Enabled ||
-            lighting == MaterialLighting.Unlit ||
             !(material?.IsValid ?? false))
         {
             return false;
-        }
-
-        var targets = Lights;
-
-        var lightCount = targets.Length;
-
-        if (lightCount > MaxLights)
-        {
-            lightCount = MaxLights;
-        }
-
-        var lightAmbient = AmbientColor;
-
-        for (var i = 0; i < lightCount; i++)
-        {
-            var light = targets[i];
-            var t = light.Transform;
-            var p = t.Position;
-            var forward = t.Forward;
-
-            if (light.type == LightType.Directional)
-            {
-                p = -forward;
-            }
-
-            cachedLightTypePositions[i] = new((float)light.type, p.X, p.Y, p.Z);
-            cachedLightDiffuse[i] = light.color;
         }
 
         var key = HashCode.Combine(material.materialResource.shader.Guid.GuidHash, material.ShaderVariantKey);
@@ -181,10 +108,65 @@ public sealed class LightSystem
             cachedInstancedMaterialInfo.AddOrSetKey(key, handles);
         }
 
-        if((handles?.Length ?? 0) != 4 ||
+        if ((handles?.Length ?? 0) != 4 ||
             !HandlesValid(handles))
         {
             return false;
+        }
+
+        var targets = Lights;
+
+        var lightCount = 0;
+
+        var layerMask = RenderSystem.CurrentCamera.camera.cullingLayers;
+
+        if (!disableLighting)
+        {
+            for (var i = 0; i < targets.Length; i++)
+            {
+                if (!targets[i].Entity.IsValid || !layerMask.HasLayer(targets[i].Entity.Layer))
+                {
+                    continue;
+                }
+
+                lightCount++;
+
+                if(lightCount >= MaxLights)
+                {
+                    break;
+                }
+            }
+        }
+
+        var lightAmbient = AmbientColor;
+
+        if(!disableLighting)
+        {
+            for (int i = 0, counter = 0; i < targets.Length; i++)
+            {
+                if (!targets[i].Entity.IsValid || !layerMask.HasLayer(targets[i].Entity.Layer))
+                {
+                    continue;
+                }
+
+                var light = targets[i];
+                var t = light.Transform;
+                var p = t.Position;
+                var forward = t.Forward;
+
+                if (light.type == LightType.Directional)
+                {
+                    p = -forward;
+                }
+
+                cachedLightTypePositions[counter] = new((float)light.type, p.X, p.Y, p.Z);
+                cachedLightDiffuse[counter++] = light.color;
+
+                if(counter >= lightCount)
+                {
+                    break;
+                }
+            }
         }
 
         var viewPosHandle = handles[0];

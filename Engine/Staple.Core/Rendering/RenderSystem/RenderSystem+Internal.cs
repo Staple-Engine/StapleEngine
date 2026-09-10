@@ -1014,12 +1014,11 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Prepares a camera for rendering
     /// </summary>
-    /// <param name="entity">The camera's entity</param>
     /// <param name="camera">The camera</param>
     /// <param name="cameraTransform">The camera's transform</param>
-    private static void PrepareCamera(Entity entity, Camera camera, Transform cameraTransform)
+    private static void PrepareCamera(Camera camera, Transform cameraTransform)
     {
-        var projection = Camera.Projection(entity, camera);
+        var projection = Camera.Projection(camera);
         var view = cameraTransform.Matrix;
 
         Matrix4x4.Invert(view, out view);

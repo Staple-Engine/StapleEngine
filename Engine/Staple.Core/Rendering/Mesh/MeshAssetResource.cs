@@ -21,11 +21,6 @@ internal class MeshAssetResource
     public readonly Dictionary<string, MeshAsset.Animation> animations = [];
 
     /// <summary>
-    /// The lighting type for this mesh
-    /// </summary>
-    public MaterialLighting lighting;
-
-    /// <summary>
     /// The frame rate of the animations in this mesh
     /// </summary>
     public int frameRate = 30;

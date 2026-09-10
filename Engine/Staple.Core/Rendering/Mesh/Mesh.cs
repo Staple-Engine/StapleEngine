@@ -1685,7 +1685,6 @@ public sealed partial class Mesh : IGuidAsset
 
             skinnedRenderer.mesh = mesh;
             skinnedRenderer.materials = outMaterials;
-            skinnedRenderer.lighting = mesh.meshAsset?.Lighting ?? MaterialLighting.Lit;
         }
         else
         {
@@ -1693,7 +1692,6 @@ public sealed partial class Mesh : IGuidAsset
 
             meshRenderer.mesh = mesh;
             meshRenderer.materials = outMaterials;
-            meshRenderer.lighting = mesh.meshAsset?.Lighting ?? MaterialLighting.Lit;
 
             if(mesh.meshAsset?.meshResource?.generateColliders ?? false)
             {
@@ -1816,7 +1814,6 @@ public sealed partial class Mesh : IGuidAsset
 
                         skinnedRenderer.mesh = outMesh;
                         skinnedRenderer.materials = outMaterials;
-                        skinnedRenderer.lighting = mesh.lighting;
                     }
                     else
                     {
@@ -1824,7 +1821,6 @@ public sealed partial class Mesh : IGuidAsset
 
                         meshRenderer.mesh = outMesh;
                         meshRenderer.materials = outMaterials;
-                        meshRenderer.lighting = mesh.lighting;
 
                         if (outMesh.meshAsset?.meshResource?.generateColliders ?? false)
                         {
@@ -1866,7 +1862,6 @@ public sealed partial class Mesh : IGuidAsset
 
                     skinnedRenderer.mesh = outMesh;
                     skinnedRenderer.materials = outMaterials;
-                    skinnedRenderer.lighting = mesh.lighting;
                 }
                 else
                 {
@@ -1874,7 +1869,6 @@ public sealed partial class Mesh : IGuidAsset
 
                     meshRenderer.mesh = outMesh;
                     meshRenderer.materials = outMaterials;
-                    meshRenderer.lighting = mesh.lighting;
 
                     if (outMesh.meshAsset?.meshResource?.generateColliders ?? false)
                     {

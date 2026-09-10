@@ -606,8 +606,8 @@ public class SpriteRenderSystem : RenderSystemBase
                 s.material.MainColor = s.color;
                 s.material.MainTexture = s.texture;
 
-                Graphics.RenderSimple(vertices, vertexLayout.Value, indices, s.material, Vector3.Zero,
-                    Matrix4x4.CreateScale(s.scale) * s.transform.Matrix, MeshTopology.Triangles, MaterialLighting.Unlit);
+                Graphics.RenderSimple(vertices, vertexLayout.Value, indices, s.material, Matrix4x4.CreateScale(s.scale) * s.transform.Matrix,
+                    MeshTopology.Triangles, true);
             }
         }
     }

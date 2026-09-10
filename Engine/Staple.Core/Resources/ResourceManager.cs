@@ -2481,7 +2481,6 @@ internal class ResourceManager : IWorldChangeReceiver
 
             var resource = new MeshAssetResource()
             {
-                lighting = meshAssetData.metadata.lighting,
                 frameRate = meshAssetData.metadata.frameRate,
                 syncAnimationToRefreshRate = meshAssetData.metadata.syncAnimationToRefreshRate,
                 generateColliders = meshAssetData.metadata.generateColliders,
@@ -2528,7 +2527,6 @@ internal class ResourceManager : IWorldChangeReceiver
                 {
                     name = m.name,
                     topology = m.topology,
-                    lighting = resource.lighting,
                     type = m.type,
                     components = m.Components,
                     blendShape = m.blendShape != null ? new MeshAsset.BlendShape()

@@ -13,7 +13,7 @@ public sealed class MeshCombine : Renderable, IComponentDisposable
     [Tooltip("What to do for children after combining. Destroying renderers only applies in play mode")]
     public MeshCombineChildMode childMode = MeshCombineChildMode.DisableRendering;
 
-    internal readonly List<(Mesh, MaterialLighting)> combinedMeshes = [];
+    internal readonly List<Mesh> combinedMeshes = [];
     internal readonly List<Material> combinedMaterials = [];
     internal AABB combinedMeshBounds;
 

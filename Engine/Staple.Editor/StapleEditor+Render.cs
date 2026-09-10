@@ -21,7 +21,7 @@ internal partial class StapleEditor
 
         var hasGizmos = cachedGizmoEditors.Count > 0;
 
-        var projection = Camera.Projection(default, camera);
+        var projection = Camera.Projection(camera);
         var view = cameraTransform.Matrix;
 
         Matrix4x4.Invert(view, out view);

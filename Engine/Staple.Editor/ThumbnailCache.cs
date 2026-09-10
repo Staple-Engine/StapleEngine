@@ -227,23 +227,23 @@ internal class ThumbnailCache
                         var overrideLights = LightSystem.OverrideLights;
                         var overrideAmbientColor = LightSystem.OverrideAmbientColor;
 
-                        var lightTransform = new Transform()
-                        {
-                            LocalRotation = Quaternion.Euler(30, -180, 0),
-                        };
+                        var lightEntity = Entity.Create("RenderLight", out Transform lightTransform, out Light light);
+
+                        lightEntity.SetLayer((uint)LayerMask.NameToLayer(StapleEditor.RenderTargetLayerName), false);
+
+                        lightTransform.LocalRotation = Quaternion.Euler(30, -180, 0);
+
+                        light.type = LightType.Directional;
+                        light.color = Color.White;
 
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
-                            cameraTransform.Matrix, Camera.Projection(default, camera), () =>
+                            cameraTransform.Matrix, Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize), () =>
                         {
-                            LightSystem.OverrideLights = [new Light()
-                            {
-                                type = LightType.Directional,
-                                color = Color.White,
-                            }];
+                            LightSystem.OverrideLights = [light];
 
                             LightSystem.OverrideAmbientColor = Color.Black;
 
-                            RenderSystem.Instance.RenderEntity(default, camera, cameraTransform,
+                            RenderSystem.Instance.RenderEntity(camera, cameraTransform,
                                 tempEntity, tempEntity.GetComponent<Transform>(), false);
 
                             LightSystem.OverrideLights = overrideLights;
@@ -253,6 +253,7 @@ internal class ThumbnailCache
                         renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
                             tempEntity.Destroy();
+                            lightEntity.Destroy();
 
                             if (texture == null || data == null)
                             {
@@ -491,26 +492,24 @@ internal class ThumbnailCache
                             LocalRotation = Quaternion.LookAt(forward, Vector3.Up),
                         };
 
-                        meshRenderer.overrideLighting = true;
-                        meshRenderer.lighting = MaterialLighting.Lit;
-
                         var overrideLights = LightSystem.OverrideLights;
                         var overrideAmbientColor = LightSystem.OverrideAmbientColor;
 
-                        var lightTransform = new Transform();
+                        var lightEntity = Entity.Create("RenderLight", out Transform lightTransform, out Light light);
+
+                        lightEntity.SetLayer((uint)LayerMask.NameToLayer(StapleEditor.RenderTargetLayerName), false);
+
+                        light.type = LightType.Directional;
+                        light.color = Color.White;
 
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
-                            cameraTransform.Matrix, Camera.Projection(default, camera), () =>
+                            cameraTransform.Matrix, Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize), () =>
                         {
-                            LightSystem.OverrideLights = [new Light()
-                            {
-                                type = LightType.Directional,
-                                color = Color.White,
-                            }];
+                            LightSystem.OverrideLights = [light];
 
                             LightSystem.OverrideAmbientColor = Color.Black;
 
-                            RenderSystem.Instance.RenderEntity(default, camera, cameraTransform,
+                            RenderSystem.Instance.RenderEntity(camera, cameraTransform,
                                 tempEntity, tempEntity.GetComponent<Transform>(), false);
 
                             LightSystem.OverrideLights = overrideLights;
@@ -520,6 +519,7 @@ internal class ThumbnailCache
                         renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
                             tempEntity.Destroy();
+                            lightEntity.Destroy();
 
                             if (texture == null || data == null)
                             {

@@ -1403,7 +1403,7 @@ internal partial class StapleEditor
             {
                 needsPicking = false;
 
-                var ray = Camera.ScreenPointToRay(Input.MousePosition, default, camera, cameraTransform);
+                var ray = Camera.ScreenPointToRay(Input.MousePosition, camera, cameraTransform);
 
                 var count = Physics3D.Instance.RayCastNoAlloc(ray, physicsRaycastResults, new LayerMask(LayerMask.GetMask(Physics3D.PhysicsPickLayer)),
                     PhysicsTriggerQuery.Ignore, 1000, RenderableSortMode.FrontToBack);

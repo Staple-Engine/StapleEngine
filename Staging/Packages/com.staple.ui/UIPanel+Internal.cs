@@ -27,12 +27,12 @@ public partial class UIPanel
     /// <summary>
     /// Cached ninepatch vertices
     /// </summary>
-    private SpriteUtils.Vertex[] ninePatchVertices = [];
+    private static SpriteUtils.Vertex[] ninePatchVertices = [];
 
     /// <summary>
     /// Cached ninepatch indices
     /// </summary>
-    private uint[] ninePatchIndices = [];
+    private static uint[] ninePatchIndices = [];
 
     /// <summary>
     /// Global material used for rendering

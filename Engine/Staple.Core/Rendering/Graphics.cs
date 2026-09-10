@@ -20,12 +20,10 @@ namespace Staple
         /// <param name="material">The material to use</param>
         /// <param name="transform">The transform for the model</param>
         /// <param name="topology">The geometry topology</param>
-        /// <param name="lighting">What kind of lighting to apply</param>
+        /// <param name="disableLighting">Whether to disable lighting</param>
         /// <param name="materialSetupCallback">A callback to setup the material. If it's not set, the default behaviour will be used</param>
-        public static void RenderGeometry(VertexBuffer vertex, IndexBuffer index,
-            int startVertex, int startIndex, int indexCount, Material material,
-            Vector3 position, Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting,
-            Action materialSetupCallback = null)
+        public static void RenderGeometry(VertexBuffer vertex, IndexBuffer index, int startVertex, int startIndex, int indexCount,
+            Material material, Matrix4x4 transform, MeshTopology topology, bool disableLighting = false, Action materialSetupCallback = null)
         {
             if(vertex == null ||
                 vertex.Disposed ||
@@ -62,21 +60,17 @@ namespace Staple
                 material.ApplyProperties(ref renderState);
             }
 
-            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
-
             if (material.ShaderProgram == null)
             {
                 return;
             }
 
-            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, lighting);
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, disableLighting);
 
             RenderSystem.Submit(renderState, Mesh.TriangleCount(topology, indexCount), 1);
         }
 
-        public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, Material material, Vector3 position,
-            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, Action materialSetupCallback = null)
-            where T: unmanaged
+        public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, Material material, Matrix4x4 transform, MeshTopology topology, bool disableLighting = false, Action materialSetupCallback = null) where T: unmanaged
         {
             if (vertices.Length == 0||
                 indices.Length == 0 ||
@@ -102,21 +96,18 @@ namespace Staple
                 material.ApplyProperties(ref renderState);
             }
 
-            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
-
             if (material.ShaderProgram == null)
             {
                 return;
             }
 
-            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, lighting);
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, disableLighting);
 
             RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }
 
-        public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, Material material, Vector3 position,
-            Matrix4x4 transform, MeshTopology topology, MaterialLighting lighting, Action materialSetupCallback = null)
-            where T : unmanaged
+        public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, Material material,
+            Matrix4x4 transform, MeshTopology topology, bool disableLighting = false, Action materialSetupCallback = null) where T : unmanaged
         {
             if (vertices.Length == 0 ||
                 indices.Length == 0 ||
@@ -142,14 +133,12 @@ namespace Staple
                 material.ApplyProperties(ref renderState);
             }
 
-            LightSystem.Instance.ApplyMaterialLighting(material, lighting);
-
             if (material.ShaderProgram == null)
             {
                 return;
             }
 
-            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, lighting);
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, disableLighting);
 
             RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }

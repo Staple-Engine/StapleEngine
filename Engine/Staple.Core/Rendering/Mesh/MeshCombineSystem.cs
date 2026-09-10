@@ -75,7 +75,7 @@ public sealed class MeshCombineSystem : RenderSystemBase
             {
                 combine.processed = true;
 
-                var combinableMeshes = new Dictionary<(MeshAssetComponent, MeshTopology, MaterialLighting, int), List<(Mesh, Transform, Material)>>();
+                var combinableMeshes = new Dictionary<(MeshAssetComponent, MeshTopology, int), List<(Mesh, Transform, Material)>>();
 
                 Matrix4x4.Invert(entry.transform.Matrix, out var worldTransform);
 
@@ -98,10 +98,7 @@ public sealed class MeshCombineSystem : RenderSystemBase
                         continue;
                     }
 
-                    var lighting = renderer.overrideLighting ? renderer.lighting :
-                        renderer.mesh.meshAsset?.Lighting ?? renderer.lighting;
-
-                    var key = (components, renderer.mesh.MeshTopology, lighting, renderer.materials[0].Guid.GuidHash);
+                    var key = (components, renderer.mesh.MeshTopology, renderer.materials[0].Guid.GuidHash);
 
                     if (!combinableMeshes.TryGetValue(key, out var container))
                     {
@@ -227,7 +224,7 @@ public sealed class MeshCombineSystem : RenderSystemBase
                         combinedMeshBounds.Add(combinedMesh.bounds.max);
                     }
 
-                    combine.combinedMeshes.Add((combinedMesh, pair.Key.Item3));
+                    combine.combinedMeshes.Add(combinedMesh);
                     combine.combinedMaterials.Add(material);
                 }
 
@@ -302,7 +299,6 @@ public sealed class MeshCombineSystem : RenderSystemBase
     {
         Material lastMaterial = null;
 
-        var lastLighting = MaterialLighting.Unlit;
         var lastTopology = MeshTopology.Triangles;
 
         var l = renderers.Length;
@@ -317,18 +313,15 @@ public sealed class MeshCombineSystem : RenderSystemBase
 
             for(var j = 0; j < meshCount; j++)
             {
-                var (mesh, lighting) = renderer.combinedMeshes[j];
+                var mesh = renderer.combinedMeshes[j];
                 var material = renderer.combinedMaterials[j];
 
                 var needsChange = material.StateHash != (lastMaterial?.StateHash ?? 0) ||
-                    lastLighting != lighting ||
                     lastTopology != mesh.MeshTopology;
 
                 void SetupMaterial()
                 {
                     material.DisableShaderKeyword(Shader.SkinningKeyword);
-
-                    LightSystem.Instance.ApplyMaterialLighting(material, lighting);
                 }
 
                 var renderState = RenderState.Default;
@@ -343,7 +336,6 @@ public sealed class MeshCombineSystem : RenderSystemBase
                 if (needsChange)
                 {
                     lastMaterial = material;
-                    lastLighting = lighting;
                     lastTopology = mesh.MeshTopology;
 
                     SetupMaterial();
@@ -363,7 +355,7 @@ public sealed class MeshCombineSystem : RenderSystemBase
                     continue;
                 }
 
-                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, lighting);
+                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, false);
 
                 RenderSystem.Submit(renderState, mesh.SubmeshTriangleCount(0), 1);
             }
