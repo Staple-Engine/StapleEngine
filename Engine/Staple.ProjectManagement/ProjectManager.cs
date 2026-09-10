@@ -1100,7 +1100,7 @@ public partial class ProjectManager
                             new("HintPath", Path.Combine(backend.basePath, "Runtime", configurationName, "SDL3-CS.dll"))
                         ]);
 
-                    releaseProperty.SetProperty("AndroidLinkMode", "Full");
+                    releaseProperty.SetProperty("AndroidLinkMode", "SdkOnly");
 
                     break;
 
@@ -1375,6 +1375,7 @@ public partial class ProjectManager
             { "IlcPgoOptimize", "true" },
             { "UseSystemResourceKeys", "true" },
             { "UseMonoRuntime", "false" },
+            { "UseSizeOptimizedLinq", "false" },
         };
 
         var asmDefProjectProperties = new Dictionary<string, string>()
@@ -1395,6 +1396,7 @@ public partial class ProjectManager
             { "EnableUnsafeUTF7Encoding", "false" },
             { "InvariantGlobalization", "true" },
             { "IsAOTCompatible", "true" },
+            { "UseSizeOptimizedLinq", "false" },
         };
 
         if(nativeAOT)

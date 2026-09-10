@@ -516,9 +516,10 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             return false;
         }
 
-#if DEBUG
-        SDL3.SDL_SetLogPriority((int)SDL_LogCategory.SDL_LOG_CATEGORY_GPU, SDL_LogPriority.SDL_LOG_PRIORITY_VERBOSE);
-#endif
+        if (debug)
+        {
+            SDL3.SDL_SetLogPriority((int)SDL_LogCategory.SDL_LOG_CATEGORY_GPU, SDL_LogPriority.SDL_LOG_PRIORITY_VERBOSE);
+        }
 
         this.window = w;
 

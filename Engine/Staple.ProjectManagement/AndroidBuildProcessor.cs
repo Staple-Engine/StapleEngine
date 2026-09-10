@@ -107,7 +107,9 @@ using Staple;
 [Activity(Label = "@string/app_name",
     MainLauncher = true,
     Theme = "@android:style/Theme.NoTitleBar.Fullscreen",
-    ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.Keyboard | ConfigChanges.KeyboardHidden,
+    ConfigurationChanges = ConfigChanges.LayoutDirection | ConfigChanges.Locale | ConfigChanges.Orientation |
+        ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Keyboard |
+        ConfigChanges.KeyboardHidden | ConfigChanges.Navigation,
     AlwaysRetainTaskState = true,
     LaunchMode = LaunchMode.SingleInstance,
     ScreenOrientation = ScreenOrientation.{{orientationType}})]
