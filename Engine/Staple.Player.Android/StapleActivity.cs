@@ -160,6 +160,8 @@ public partial class StapleActivity : SDLActivity
             renderWindow.width = size.X;
             renderWindow.height = size.Y;
 
+            RenderSystem.Backend.UpdateViewport(size.X, size.Y);
+
             try
             {
                 renderWindow.OnScreenSizeChange?.Invoke(renderWindow.hasFocus);

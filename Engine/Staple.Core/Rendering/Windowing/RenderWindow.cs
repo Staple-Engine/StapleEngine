@@ -156,6 +156,8 @@ internal class RenderWindow
             {
                 width = size.X;
                 height = size.Y;
+                
+                RenderSystem.Backend.UpdateViewport(width, height);
 
                 try
                 {
@@ -349,6 +351,8 @@ internal class RenderWindow
             {
                 width = size.X;
                 height = size.Y;
+
+                RenderSystem.Backend.UpdateViewport(width, height);
 
                 try
                 {

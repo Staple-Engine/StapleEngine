@@ -155,6 +155,10 @@ internal unsafe class SDL3RenderWindow : IRenderWindow
 
         var windowFlags = SDL_WindowFlags.SDL_WINDOW_HIGH_PIXEL_DENSITY;
 
+#if STAPLE_ANDROID
+        windowFlags |= SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
+#endif
+
         if (resizable && windowMode == WindowMode.Windowed)
         {
             windowFlags |= SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
@@ -679,6 +683,28 @@ internal unsafe class SDL3RenderWindow : IRenderWindow
 
     public void Init()
     {
+#if STAPLE_ANDROID
+        var orientations = "";
+
+        if(AppSettings.Active.landscapeOrientation && AppSettings.Active.portraitOrientation)
+        {
+            orientations = "LandscapeLeft LandscapeRight Portrait PortraitUpsideDown";
+        }
+        else if(AppSettings.Active.landscapeOrientation)
+        {
+            orientations = "LandscapeLeft LandscapeRight";
+        }
+        else if(AppSettings.Active.portraitOrientation)
+        {
+            orientations = "Portrait PortraitUpsideDown";
+        }
+
+        if (!string.IsNullOrEmpty(orientations))
+        {
+            SDL3.SDL_SetHint(SDL3.SDL_HINT_ORIENTATIONS, orientations);
+        }
+#endif
+
         SDL3.SDL_Init(SDL_InitFlags.SDL_INIT_VIDEO | SDL_InitFlags.SDL_INIT_HAPTIC | SDL_InitFlags.SDL_INIT_GAMEPAD);
     }
 
