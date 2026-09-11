@@ -14,6 +14,11 @@ public partial struct Entity
     internal EntityID Identifier;
 
     /// <summary>
+    /// The entity index, if valid
+    /// </summary>
+    public readonly int Index => Identifier.ID - 1;
+
+    /// <summary>
     /// Whether this entity is enabled
     /// </summary>
     public readonly bool Enabled
