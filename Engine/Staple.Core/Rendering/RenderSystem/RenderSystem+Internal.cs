@@ -193,9 +193,27 @@ public sealed partial class RenderSystem
             resetFlags |= RenderModeFlags.TripleBuffering;
         }
 
+        if(videoFlags.HasFlag(VideoFlags.sRGB))
+        {
+            resetFlags |= RenderModeFlags.sRGB;
+        }
+
         if (videoFlags.HasFlag(VideoFlags.HDR10))
         {
             resetFlags |= RenderModeFlags.HDR10;
+        }
+
+        if (videoFlags.HasFlag(VideoFlags.MSAA2x))
+        {
+            resetFlags |= RenderModeFlags.MSAA2x;
+        }
+        else if (videoFlags.HasFlag(VideoFlags.MSAA4x))
+        {
+            resetFlags |= RenderModeFlags.MSAA4x;
+        }
+        else if (videoFlags.HasFlag(VideoFlags.MSAA8x))
+        {
+            resetFlags |= RenderModeFlags.MSAA8x;
         }
 
         return resetFlags;
