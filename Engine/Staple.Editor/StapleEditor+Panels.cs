@@ -163,7 +163,7 @@ internal partial class StapleEditor
         {
             var name = pair.Key;
             var fileName = Path.GetFileNameWithoutExtension(name);
-            var extension = Path.GetExtension(name).Substring(1);
+            var extension = Path.GetExtension(name)[1..];
 
             EditorGUI.MenuItem(fileName, $"{pair.Key}Create", () =>
             {
@@ -922,9 +922,17 @@ internal partial class StapleEditor
                 }
             });
 
-        switch(viewportType)
+        var windowPosition = ImGui.GetWindowPos();
+        var windowSize = ImGui.GetContentRegionAvail();
+
+        switch (viewportType)
         {
             case ViewportType.Scene:
+
+                viewportRect.left = (int)windowPosition.X;
+                viewportRect.top = (int)windowPosition.Y;
+                viewportRect.right = (int)(windowSize.X + windowPosition.X);
+                viewportRect.bottom = (int)(windowSize.Y + windowPosition.Y);
 
                 RenderScene();
 
@@ -934,17 +942,14 @@ internal partial class StapleEditor
 
                 ImGui.BeginChild(ImGui.GetID("GameView"), new Vector2(0, 0), ImGuiWindowFlags.NoBackground);
 
-                var width = (ushort)ImGui.GetContentRegionAvail().X;
-                var height = (ushort)ImGui.GetContentRegionAvail().Y;
-
-                if (gameRenderTarget == null || gameRenderTarget.width != width || gameRenderTarget.height != height)
+                if (gameRenderTarget == null || gameRenderTarget.width != windowSize.X || gameRenderTarget.height != windowSize.Y)
                 {
                     gameRenderTarget?.Destroy();
 
-                    gameRenderTarget = RenderTarget.Create(width, height);
+                    gameRenderTarget = RenderTarget.Create((ushort)windowSize.X, (ushort)windowSize.Y);
                 }
 
-                gameWindowPosition = ImGui.GetWindowPos();
+                gameWindowPosition = windowPosition;
 
                 if (gameRenderTarget != null && Scene.current != null)
                 {
@@ -975,7 +980,7 @@ internal partial class StapleEditor
 
                 if (texture != null)
                 {
-                    EditorGUI.Texture(texture, new Vector2(width, height));
+                    EditorGUI.Texture(texture, windowSize);
 
                     if (ImGui.IsItemHovered() && Input.GetMouseButtonUp(MouseButton.Left))
                     {

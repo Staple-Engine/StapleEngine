@@ -81,7 +81,7 @@ internal partial class StapleEditor
         GizmoEditor.UpdateEditorTypes();
         GeneratorAssetManager.UpdateGeneratorAssets();
 
-        registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
+        registeredComponents.Sort((a, b) => a.Name.CompareTo(b.Name));
 
         var scenePath = Path.Combine(BasePath, "Cache", $"LastScene.{AssetSerialization.SceneExtension}");
 
@@ -340,8 +340,8 @@ internal partial class StapleEditor
 
             RegisterTypes(TypeCache.AllTypes());
 
-            registeredComponents = registeredComponents.OrderBy(x => x.Name).ToList();
-            registeredEntityTemplates = registeredEntityTemplates.OrderBy(x => x.Name).ToList();
+            registeredComponents.Sort((a, b) => a.Name.CompareTo(b.Name));
+            registeredEntityTemplates.Sort((a, b) => a.Name.CompareTo(b.Name));
         }
     }
 

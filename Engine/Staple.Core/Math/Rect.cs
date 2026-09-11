@@ -33,7 +33,16 @@ public struct Rect
     /// Gets the size of this <see cref="Rect"/>
     /// </summary>
     [IgnoreMember]
-    public readonly Vector2Int Size => new(right - left, bottom - top);
+    public Vector2Int Size
+    {
+        readonly get => new(Width, Height);
+
+        set
+        {
+            Width = value.X;
+            Height = value.Y;
+        }
+    }
 
     /// <summary>
     /// Gets the absolute size of this <see cref="Rect"/>
@@ -41,26 +50,6 @@ public struct Rect
     /// </summary>
     [IgnoreMember]
     public readonly Vector2Int AbsoluteSize => Position + Size;
-
-    public Rect()
-    {
-    }
-
-    public Rect(Vector2Int position, Vector2Int size)
-    {
-        left = position.X;
-        top = position.Y;
-        right = position.X + size.X;
-        bottom = position.Y + size.Y;
-    }
-
-    public Rect(int left, int right, int top, int bottom)
-    {
-        this.left = left;
-        this.right = right;
-        this.top = top;
-        this.bottom = bottom;
-    }
 
     [IgnoreMember]
     public readonly bool IsEmpty => left == 0 && right == 0 && top == 0 && bottom == 0;
@@ -91,6 +80,26 @@ public struct Rect
         {
             bottom = value + top;
         }
+    }
+
+    public Rect()
+    {
+    }
+
+    public Rect(Vector2Int position, Vector2Int size)
+    {
+        left = position.X;
+        top = position.Y;
+        right = position.X + size.X;
+        bottom = position.Y + size.Y;
+    }
+
+    public Rect(int left, int right, int top, int bottom)
+    {
+        this.left = left;
+        this.right = right;
+        this.top = top;
+        this.bottom = bottom;
     }
 
     public readonly bool Contains(Vector2Int v)

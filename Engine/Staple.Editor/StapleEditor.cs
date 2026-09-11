@@ -405,6 +405,8 @@ internal partial class StapleEditor
 
     private bool debugSpatialInfo = false;
 
+    private Rect viewportRect;
+
     private float cameraSpeedUp = 2.0f;
 
     private ulong cameraTransformVersion;
@@ -489,15 +491,15 @@ internal partial class StapleEditor
 
     private readonly List<MethodInfo> registeredAssetReloadMethods = [];
 
-    private List<IEntityTemplate> registeredEntityTemplates = [];
+    private readonly List<IEntityTemplate> registeredEntityTemplates = [];
 
-    private List<Type> registeredComponents = [];
+    private readonly List<Type> registeredComponents = [];
 
-    internal List<EditorWindow> editorWindows = [];
+    internal readonly List<EditorWindow> editorWindows = [];
 
-    private List<MenuItemInfo> menuItems = [];
+    private readonly List<MenuItemInfo> menuItems = [];
 
-    private Dictionary<Entity, Texture> componentIcons = [];
+    private readonly Dictionary<Entity, Texture> componentIcons = [];
 
     private ImGuizmoMode transformMode = ImGuizmoMode.Local;
 

@@ -1,4 +1,5 @@
-﻿using Hexa.NET.ImGuizmo;
+﻿using Hexa.NET.ImGui;
+using Hexa.NET.ImGuizmo;
 using Staple.Internal;
 using System;
 using System.Numerics;
@@ -15,9 +16,9 @@ internal partial class StapleEditor
     /// </summary>
     public void RenderScene()
     {
-        ImGuizmo.SetDrawlist();
+        ImGuizmo.SetDrawlist(ImGui.GetWindowDrawList());
         ImGuizmo.SetOrthographic(false);
-        ImGuizmo.SetRect(0, 0, window.width, window.height);
+        ImGuizmo.SetRect(0, 0, window.Width, window.Height);
 
         var hasGizmos = cachedGizmoEditors.Count > 0;
 
