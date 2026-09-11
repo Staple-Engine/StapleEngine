@@ -385,6 +385,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     internal SDL_GPUCopyPass *copyPass;
 
     internal SDL_GPUTexture *swapchainTexture;
+    internal SDL_GPUTexture* renderTexture;
+    internal SDL_GPUTexture* resolveTexture;
+    internal SDL_GPUSampleCount resolveTextureSampleCount;
     internal int swapchainWidth;
     internal int swapchainHeight;
     internal ITexture depthTexture;
@@ -457,6 +460,14 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     public bool SupportsLinearColorSpace => SDL3.SDL_WindowSupportsGPUSwapchainComposition(device, window.window,
             SDL_GPUSwapchainComposition.SDL_GPU_SWAPCHAINCOMPOSITION_SDR_LINEAR);
 
+    internal SDL_GPUTexture *SwapchainTexture
+    {
+        get
+        {
+            return renderTexture != null ? renderTexture : swapchainTexture;
+        }
+    }
+
     public TextureFormat SwapchainFormat
     {
         get
@@ -474,6 +485,19 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             }
 
             return stapleFormat;
+        }
+    }
+
+    public SDL_GPUTextureFormat SwapchainFormatRaw
+    {
+        get
+        {
+            if (device == null)
+            {
+                return SDL.SDL_GPUTextureFormat.SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+            }
+
+            return SDL3.SDL_GetGPUSwapchainTextureFormat(device, window.window);
         }
     }
 
@@ -731,6 +755,121 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         renderSize.Y = h;
 
         needsDepthTextureUpdate = true;
+
+        resolveTextureSampleCount = SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_1;
+
+        if (renderTexture != null)
+        {
+            SDL3.SDL_ReleaseGPUTexture(device, renderTexture);
+
+            renderTexture = null;
+        }
+
+        if(resolveTexture != null)
+        {
+            SDL3.SDL_ReleaseGPUTexture(device, resolveTexture);
+
+            resolveTexture = null;
+        }
+
+        void CreateResolveTexture()
+        {
+            var lowerSampleCount = resolveTextureSampleCount switch
+            {
+                SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_8 => SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_4,
+                SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_4 => SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_2,
+                _ => SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_1,
+            };
+
+            if(resolveTextureSampleCount == SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_1)
+            {
+                return;
+            }
+
+            if (!SDL3.SDL_GPUTextureSupportsSampleCount(device, SwapchainFormatRaw, resolveTextureSampleCount))
+            {
+                resolveTextureSampleCount = lowerSampleCount;
+
+                CreateResolveTexture();
+
+                return;
+            }
+
+            RecreateResolveTexture();
+        }
+
+        if(flags.HasFlag(RenderModeFlags.MSAA2x))
+        {
+            resolveTextureSampleCount = SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_2;
+
+            CreateResolveTexture();
+        }
+        else if (flags.HasFlag(RenderModeFlags.MSAA4x))
+        {
+            resolveTextureSampleCount = SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_4;
+
+            CreateResolveTexture();
+        }
+        else if (flags.HasFlag(RenderModeFlags.MSAA8x))
+        {
+            resolveTextureSampleCount = SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_8;
+
+            CreateResolveTexture();
+        }
+    }
+
+    private void RecreateResolveTexture()
+    {
+        if (renderTexture != null)
+        {
+            SDL3.SDL_ReleaseGPUTexture(device, renderTexture);
+
+            renderTexture = null;
+        }
+
+        if (resolveTexture != null)
+        {
+            SDL3.SDL_ReleaseGPUTexture(device, resolveTexture);
+
+            resolveTexture = null;
+        }
+
+        if (resolveTextureSampleCount == SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_1)
+        {
+            return;
+        }
+
+        var createInfo = new SDL.SDL_GPUTextureCreateInfo()
+        {
+            format = SwapchainFormatRaw,
+            width = (uint)renderSize.X,
+            height = (uint)renderSize.Y,
+            layer_count_or_depth = 1,
+            num_levels = 1,
+            sample_count = resolveTextureSampleCount,
+            type = SDL_GPUTextureType.SDL_GPU_TEXTURETYPE_2D,
+            usage = SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_COLOR_TARGET,
+        };
+
+        renderTexture = SDL3.SDL_CreateGPUTexture(device, &createInfo);
+
+        if(renderTexture == null)
+        {
+            return;
+        }
+
+        createInfo = new SDL.SDL_GPUTextureCreateInfo()
+        {
+            format = SwapchainFormatRaw,
+            width = (uint)renderSize.X,
+            height = (uint)renderSize.Y,
+            layer_count_or_depth = 1,
+            num_levels = 1,
+            type = SDL_GPUTextureType.SDL_GPU_TEXTURETYPE_2D,
+            usage = SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPUTextureUsageFlags.SDL_GPU_TEXTUREUSAGE_SAMPLER,
+        };
+
+        resolveTexture = SDL3.SDL_CreateGPUTexture(device, &createInfo);
     }
 
     public void UpdateViewport(int width, int height)
@@ -739,6 +878,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         renderSize.Y = height;
 
         needsDepthTextureUpdate = true;
+
+        RecreateResolveTexture();
     }
 
     public void Destroy()
@@ -807,6 +948,20 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         depthTexture = null;
 
         needsDepthTextureUpdate = true;
+
+        if(renderTexture != null)
+        {
+            SDL3.SDL_ReleaseGPUTexture(device, renderTexture);
+
+            renderTexture = null;
+        }
+
+        if(resolveTexture != null)
+        {
+            SDL3.SDL_ReleaseGPUTexture(device, resolveTexture);
+
+            resolveTexture = null;
+        }
 
         SDL3.SDL_ReleaseWindowFromGPUDevice(device, window.window);
 
@@ -911,6 +1066,29 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         iteratingCommands = false;
 
         FinishPasses();
+
+        if(resolveTexture != null)
+        {
+            var blitInfo = new SDL_GPUBlitInfo()
+            {
+                source =
+                {
+                     texture = resolveTexture,
+                     w = (uint)swapchainWidth,
+                     h = (uint)swapchainHeight,
+                },
+                destination =
+                {
+                    texture = swapchainTexture,
+                    w = (uint)swapchainWidth,
+                    h = (uint)swapchainHeight,
+                },
+                load_op = SDL_GPULoadOp.SDL_GPU_LOADOP_DONT_CARE,
+                filter = SDL_GPUFilter.SDL_GPU_FILTER_LINEAR,
+            };
+
+            SDL3.SDL_BlitGPUTexture(commandBuffer, &blitInfo);
+        }
 
         indirectCommandPosition = indirectCommandInstance = 0;
 
@@ -1113,6 +1291,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         }
 
         SDL_GPUTexture* texture = null;
+        SDL_GPUTexture* resolveTexture = null;
         var width = 0;
         var height = 0;
 
@@ -1120,9 +1299,10 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         if (viewData.renderTarget == null)
         {
-            texture = swapchainTexture;
+            texture = SwapchainTexture;
             width = swapchainWidth;
             height = swapchainHeight;
+            resolveTexture = this.resolveTexture;
 
             depthTexture = this.depthTexture as SDLGPUTexture;
 
@@ -1158,8 +1338,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         var colorTarget = new SDL_GPUColorTargetInfo()
         {
             load_op = SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
-            store_op = SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
+            store_op = resolveTexture != null ? SDL_GPUStoreOp.SDL_GPU_STOREOP_RESOLVE : SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
             texture = texture,
+            resolve_texture = resolveTexture,
         };
 
         var depthTarget = new SDL_GPUDepthStencilTargetInfo()
@@ -1512,7 +1693,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                     {
                         var colorTargetDescription = new SDL_GPUColorTargetDescription()
                         {
-                            format = SDL3.SDL_GetGPUSwapchainTextureFormat(device, window.window),
+                            format = SwapchainFormatRaw,
                             blend_state = new()
                             {
                                 enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,
@@ -1774,7 +1955,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                     {
                         var colorTargetDescription = new SDL_GPUColorTargetDescription()
                         {
-                            format = SDL3.SDL_GetGPUSwapchainTextureFormat(device, window.window),
+                            format = SwapchainFormatRaw,
                             blend_state = new()
                             {
                                 enable_blend = state.sourceBlend != BlendMode.Off && state.destinationBlend != BlendMode.Off,

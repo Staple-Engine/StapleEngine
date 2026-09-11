@@ -26,6 +26,7 @@ internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend
         backend.viewData.renderData.projection = projection;
 
         SDL_GPUTexture *texture = null;
+        SDL_GPUTexture *resolveTexture = null;
         var width = 0;
         var height = 0;
 
@@ -33,7 +34,8 @@ internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend
 
         if (target == null || target.Disposed)
         {
-            texture = backend.swapchainTexture;
+            texture = backend.SwapchainTexture;
+            resolveTexture = backend.resolveTexture;
             width = backend.swapchainWidth;
             height = backend.swapchainHeight;
 
@@ -82,8 +84,9 @@ internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend
                 CameraClearMode.None or CameraClearMode.Depth => SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
                 _ => SDL_GPULoadOp.SDL_GPU_LOADOP_CLEAR,
             },
-            store_op = SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
+            store_op = resolveTexture != null ? SDL_GPUStoreOp.SDL_GPU_STOREOP_RESOLVE :  SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
             texture = texture,
+            resolve_texture = resolveTexture,
         };
 
         var depthTarget = new SDL_GPUDepthStencilTargetInfo()
