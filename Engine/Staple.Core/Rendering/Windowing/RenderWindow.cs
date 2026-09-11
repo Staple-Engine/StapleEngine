@@ -59,6 +59,8 @@ internal class RenderWindow
     private CursorLockMode lastCursorLockMode;
     private uint frameCounter = 0;
 
+    private bool debugRendering;
+
     public bool Paused => !hasFocus && !AppSettings.Active.runInBackground;
 
     public static RendererType CurrentRenderer { get; internal set; }
@@ -555,19 +557,13 @@ internal class RenderWindow
         {
             Log.Info($"Attempting to find the right renderer", LogTag);
 
-#if _DEBUG
-            bool debug = true;
-#else
-            bool debug = false;
-#endif
-
             foreach (var renderer in renderers)
             {
                 Log.Info($"Trying {renderer}", LogTag);
 
                 unsafe
                 {
-                    ok = RenderSystem.Backend.Initialize(renderer, debug, window, renderFlags);
+                    ok = RenderSystem.Backend.Initialize(renderer, debugRendering, window, renderFlags);
 
                     if (ok)
                     {
@@ -845,6 +841,7 @@ internal class RenderWindow
         {
             renderFlags = renderFlags,
             window = Platform.platformProvider.CreateWindow(),
+            debugRendering = renderFlags.HasFlag(RenderModeFlags.Debug),
         };
 
         if (renderWindow.window == null)

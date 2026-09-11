@@ -9,5 +9,6 @@ internal enum RenderModeFlags
     Vsync = (1 << 1),
     TripleBuffering = (1 << 2),
     sRGB = (1 << 3),
-    HDR10 = (1 << 6),
+    HDR10 = (1 << 4),
+    Debug = (1 << 5),
 }
