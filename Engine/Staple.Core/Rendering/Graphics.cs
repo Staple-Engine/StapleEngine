@@ -65,12 +65,26 @@ namespace Staple
                 return;
             }
 
-            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, disableLighting);
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform?.Position ?? default, disableLighting);
 
             RenderSystem.Submit(renderState, Mesh.TriangleCount(topology, indexCount), 1);
         }
 
-        public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, Material material, Matrix4x4 transform, MeshTopology topology, bool disableLighting = false, Action materialSetupCallback = null) where T: unmanaged
+        /// <summary>
+        /// Renders geometry through transient geometry
+        /// </summary>
+        /// <typeparam name="T">The vertex type</typeparam>
+        /// <param name="vertices">The vertices</param>
+        /// <param name="layout">The vertex layout</param>
+        /// <param name="indices">The indices</param>
+        /// <param name="material">The material to use</param>
+        /// <param name="transform">The transform matrix</param>
+        /// <param name="topology">The mesh topology</param>
+        /// <param name="disableLighting">Whether to disable lighting</param>
+        /// <param name="materialSetupCallback">An optional callback to adjust the material setup</param>
+        public static void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<ushort> indices, Material material,
+            Matrix4x4 transform, MeshTopology topology, bool disableLighting = false, Action materialSetupCallback = null)
+            where T: unmanaged
         {
             if (vertices.Length == 0||
                 indices.Length == 0 ||
@@ -101,13 +115,26 @@ namespace Staple
                 return;
             }
 
-            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, disableLighting);
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform?.Position ?? default, disableLighting);
 
             RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }
 
-        public static void RenderSimple<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, Material material,
-            Matrix4x4 transform, MeshTopology topology, bool disableLighting = false, Action materialSetupCallback = null) where T : unmanaged
+        /// <summary>
+        /// Renders geometry through transient geometry
+        /// </summary>
+        /// <typeparam name="T">The vertex type</typeparam>
+        /// <param name="vertices">The vertices</param>
+        /// <param name="layout">The vertex layout</param>
+        /// <param name="indices">The indices</param>
+        /// <param name="material">The material to use</param>
+        /// <param name="transform">The transform matrix</param>
+        /// <param name="topology">The mesh topology</param>
+        /// <param name="disableLighting">Whether to disable lighting</param>
+        /// <param name="materialSetupCallback">An optional callback to adjust the material setup</param>
+        public static void RenderTransient<T>(Span<T> vertices, VertexLayout layout, Span<uint> indices, Material material,
+            Matrix4x4 transform, MeshTopology topology, bool disableLighting = false, Action materialSetupCallback = null)
+            where T : unmanaged
         {
             if (vertices.Length == 0 ||
                 indices.Length == 0 ||
@@ -138,7 +165,7 @@ namespace Staple
                 return;
             }
 
-            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, disableLighting);
+            LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform?.Position ?? default, disableLighting);
 
             RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
         }

@@ -17,7 +17,7 @@ internal class FrustumCuller
     /// <summary>
     /// The frustum planes
     /// </summary>
-    private readonly Plane[] planes = new Plane[6];
+    internal readonly Plane[] planes = new Plane[6];
 
     /// <summary>
     /// Updates the frustum culler's planes

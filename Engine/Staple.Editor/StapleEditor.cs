@@ -377,6 +377,8 @@ internal partial class StapleEditor
 
     internal Material wireframeMaterial;
 
+    internal Material gridMaterial;
+
     internal Mesh wireframeMesh;
 
     private PlayerSettings playerSettings;
@@ -924,9 +926,15 @@ internal partial class StapleEditor
 
                 wireframeMaterial = Resources.Load<Material>("Hidden/Materials/SolidColor.material");
 
+                gridMaterial = Resources.Load<Material>("Hidden/Materials/VertexColors.material");
+
                 ResourceManager.instance.LockAsset(wireframeMaterial.materialResource.shader.Guid.Guid);
 
                 ResourceManager.instance.LockAsset(wireframeMaterial.Guid.Guid);
+
+                ResourceManager.instance.LockAsset(gridMaterial.materialResource.shader.Guid.Guid);
+
+                ResourceManager.instance.LockAsset(gridMaterial.Guid.Guid);
 
                 wireframeMesh = new Mesh(true, true)
                 {
@@ -962,7 +970,7 @@ internal partial class StapleEditor
 
                 World.AddChangeReceiver(RenderSystem.Instance);
 
-                cameraTransform.Position = new Vector3(0, 0, -5);
+                cameraTransform.Position = new Vector3(0, 5, -5);
 
                 try
                 {

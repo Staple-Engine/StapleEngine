@@ -28,6 +28,7 @@ internal class PixelTextureCreateMethod(string path, byte[] data, ushort width, 
 
             texture.Guid.Guid = path;
             texture.metadata = metadata;
+            texture.StorageSize = data.Length;
 
             return true;
         }

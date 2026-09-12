@@ -13,6 +13,8 @@ internal class TextureResource(ITextureCreateMethod createMethod)
 
     public Sprite[] Sprites { get; internal set; } = [];
 
+    public int StorageSize { get; internal set; }
+
     public bool CreateMethodDisposed => createMethod == null;
 
     internal bool Create()

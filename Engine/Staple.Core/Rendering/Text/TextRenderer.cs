@@ -466,7 +466,7 @@ public class TextRenderer
         {
             material.MainTexture = font.Texture;
 
-            Graphics.RenderSimple(vertices, VertexLayout.Value, indices, material, transform, MeshTopology.Triangles, true);
+            Graphics.RenderTransient(vertices, VertexLayout.Value, indices, material, transform, MeshTopology.Triangles, true);
         }
     }
 

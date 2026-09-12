@@ -29,6 +29,17 @@ internal class TextureAssetCreateMethod(string path, SerializableTexture asset, 
             texture.Guid.Guid = path;
             texture.metadata = asset.metadata;
 
+            var storageSize = 0;
+
+            for(var i = 0; i < asset.mips.Length; i++)
+            {
+                ref var mip = ref asset.mips[i];
+
+                storageSize += mip.data.Length;
+            }
+
+            texture.StorageSize = storageSize;
+
             return true;
         }
     }

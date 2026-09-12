@@ -204,9 +204,9 @@ public static class Vector3Extensions
 
         public float Dot(Vector3 other) => Vector3.Dot(v, other);
 
-        public Vector3 Transformed(Matrix4x4 matrix) => Vector3.Transform(v, matrix);
+        public Vector3 Transformed(in Matrix4x4 matrix) => Vector3.Transform(v, matrix);
 
-        public Vector3 Transformed(Quaternion quaternion) => Vector3.Transform(v, quaternion);
+        public Vector3 Transformed(in Quaternion quaternion) => Vector3.Transform(v, quaternion);
 
         public Vector3 Cross(Vector3 other) => Vector3.Cross(v, other);
 

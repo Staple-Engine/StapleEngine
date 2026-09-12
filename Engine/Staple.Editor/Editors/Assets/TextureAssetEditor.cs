@@ -18,8 +18,8 @@ internal class TextureAssetEditor : AssetEditor
     private string[] textureMaxSizes = Array.Empty<string>();
     private long diskSize = 0;
     private long originalDiskSize = 0;
-    private uint VRAMSize = 0;
-    private uint originalVRAMSize = 0;
+    private int VRAMSize = 0;
+    private int originalVRAMSize = 0;
     private bool initialized = false;
 
     public void UpdatePreview()
@@ -48,10 +48,8 @@ internal class TextureAssetEditor : AssetEditor
         {
         }
 
-        /*
-        VRAMSize = previewTexture.info.storageSize;
-        originalVRAMSize = originalTexture?.info.storageSize ?? 0;
-        */
+        VRAMSize = previewTexture.StorageSize;
+        originalVRAMSize = originalTexture?.StorageSize ?? 0;
     }
 
     public override bool DrawProperty(Type fieldType, string name, Func<object> getter, Action<object> setter, Func<Type, Attribute> attributes)
@@ -223,7 +221,7 @@ internal class TextureAssetEditor : AssetEditor
 
         if (previewTexture != null)
         {
-            void DrawTexture(Texture texture, long diskSize, uint VRAMSize, List<TextureSpriteInfo> sprites, bool isOriginal)
+            void DrawTexture(Texture texture, long diskSize, int VRAMSize, List<TextureSpriteInfo> sprites, bool isOriginal)
             {
                 if(texture?.Disposed ?? true)
                 {

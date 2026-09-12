@@ -19,6 +19,8 @@ public class Texture : IGuidAsset
 
     public bool Disposed => textureResource?.impl?.Disposed ?? true;
 
+    internal int StorageSize => textureResource?.StorageSize ?? 0;
+
     /// <summary>
     /// The texture's width
     /// </summary>

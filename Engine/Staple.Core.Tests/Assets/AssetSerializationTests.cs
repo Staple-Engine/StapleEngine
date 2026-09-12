@@ -803,4 +803,18 @@ internal class AssetSerializationTests
             Assert.That(AssetSerialization.GetTextureBlockSize(format), Is.GreaterThan(0), $"{format}");
         }
     }
+
+    [Test]
+    public void TestTextureElementSize()
+    {
+        foreach (var format in Enum.GetValues<TextureFormat>())
+        {
+            Assert.That(AssetSerialization.GetTextureElementSize(format), Is.GreaterThan(0), $"{format}");
+        }
+
+        foreach (var format in Enum.GetValues<TextureMetadataFormat>())
+        {
+            Assert.That(AssetSerialization.GetTextureElementSize(format), Is.GreaterThan(0), $"{format}");
+        }
+    }
 }
