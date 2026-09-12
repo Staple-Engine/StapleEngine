@@ -970,7 +970,7 @@ internal partial class StapleEditor
 
                 World.AddChangeReceiver(RenderSystem.Instance);
 
-                cameraTransform.Position = new Vector3(0, 5, -5);
+                cameraTransform.Position = new Vector3(0, 1, -5);
 
                 try
                 {
