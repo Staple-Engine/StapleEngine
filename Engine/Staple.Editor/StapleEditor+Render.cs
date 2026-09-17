@@ -4,12 +4,105 @@ using Staple.Internal;
 using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Staple.Editor;
 
 internal partial class StapleEditor
 {
     private const float MinComponentIconDistance = 2;
+
+    private Lazy<VertexLayout> gridVertexLayout = new(() =>
+    {
+        return VertexLayoutBuilder.CreateNew()
+            .Add(VertexAttribute.Position, VertexAttributeType.Float3)
+            .Add(VertexAttribute.Color0, VertexAttributeType.Float4)
+            .Build();
+    });
+
+    [StructLayout(LayoutKind.Sequential, Pack = 0)]
+    private struct GridVertex
+    {
+        public Vector3 position;
+        public Color color;
+    }
+
+    private VertexBuffer gridVertexBuffer;
+
+    private IndexBuffer gridIndexBuffer;
+
+    private float lastGridSize;
+
+    private ExpandableContainer<GridVertex> gridVertices = new(false);
+
+    private ExpandableContainer<uint> gridIndices = new(false);
+
+    private void RenderGrid(Camera camera, Color majorColor, Color minorColor, Color centerColor)
+    {
+        var gridSize = Math.Ceil(camera.farPlane - camera.nearPlane);
+
+        if(lastGridSize != gridSize)
+        {
+            lastGridSize = gridSize;
+
+            gridVertices.Clear();
+            gridIndices.Clear();
+
+            gridVertexBuffer?.Destroy();
+            gridIndexBuffer?.Destroy();
+
+            gridVertexBuffer = null;
+            gridIndexBuffer = null;
+
+            //Based on ImGuizmo DrawGrid
+            for (var f = -gridSize; f <= gridSize; f++)
+            {
+                for (var direction = 0; direction < 2; direction++)
+                {
+                    var from = new Vector3(direction != 0 ? -gridSize : f, 0, direction != 0 ? f : -gridSize);
+                    var to = new Vector3(direction != 0 ? gridSize : f, 0, direction != 0 ? f : gridSize);
+
+                    var color = majorColor;
+
+                    if (Math.Abs(f) % 10 < Math.Epsilon)
+                    {
+                        color = minorColor;
+                    }
+
+                    if (Math.Abs(f) < Math.Epsilon)
+                    {
+                        color = centerColor;
+                    }
+
+                    gridIndices.Add((uint)gridVertices.Length);
+                    gridIndices.Add((uint)(gridVertices.Length + 1));
+
+                    gridVertices.Add(new()
+                    {
+                        position = from,
+                        color = color,
+                    });
+
+                    gridVertices.Add(new()
+                    {
+                        position = to,
+                        color = color,
+                    });
+                }
+            }
+
+            gridVertexBuffer = VertexBuffer.Create(gridVertices.Contents, gridVertexLayout.Value);
+            gridIndexBuffer = IndexBuffer.Create(gridIndices.Contents);
+
+        }
+
+        if(!(gridVertexBuffer?.Disposed ?? true) &&
+            !(gridIndexBuffer?.Disposed ?? true))
+        {
+            Graphics.RenderGeometry(gridVertexBuffer, gridIndexBuffer, 0, 0, gridIndices.Length, gridMaterial, Matrix4x4.Identity, 
+                MeshTopology.Lines, true);
+        }
+    }
 
     /// <summary>
     /// Renders the scene
@@ -23,9 +116,9 @@ internal partial class StapleEditor
         var hasGizmos = cachedGizmoEditors.Count > 0;
 
         var projection = Camera.Projection(camera);
-        var view = cameraTransform.Matrix;
+        var world = cameraTransform.Matrix;
 
-        Matrix4x4.Invert(view, out view);
+        Matrix4x4.Invert(world, out var view);
 
         camera.UpdateFrustum(view, projection);
 
@@ -143,6 +236,8 @@ internal partial class StapleEditor
         RenderSystem.Render(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
             cameraTransform.Matrix, projection, () =>
             {
+                RenderGrid(camera, new(0.7f, 0.7f, 0.7f, 0.8f), new(0.8f, 0.8f, 0.8f, 0.8f), new(0.2f, 0.2f, 0.2f, 0.8f));
+
                 wireframeMaterial?.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
 
                 if (World.Current != null)
