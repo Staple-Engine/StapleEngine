@@ -155,7 +155,7 @@ public sealed class MeshCombineSystem : RenderSystemBase
 
                         foreach (var position in mesh.VerticesInternal)
                         {
-                            vertices.Add(position.Transformed(matrix));
+                            vertices.Add(position.Transformed(in matrix));
                         }
 
                         if((mesh.NormalsInternal?.Length ?? 0) > 0)

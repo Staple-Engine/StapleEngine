@@ -92,11 +92,7 @@ internal class TransformTests
 
         Assert.That(matrix, Is.Not.EqualTo(Matrix4x4.Identity));
 
-        var forward = transform.Forward;
-
-        forward.X = Staple.Math.Round(forward.X);
-        forward.Y = Staple.Math.Round(forward.Y);
-        forward.Z = Staple.Math.Round(forward.Z);
+        var forward = transform.Forward.Round();
 
         Assert.That(new Vector3(1, 0, 0), Is.EqualTo(forward));
     }
@@ -156,31 +152,19 @@ internal class TransformTests
 
         Assert.That(transform.Version, Is.EqualTo(2));
 
-        var angles = transform.Rotation.ToEulerAngles();
-
-        angles.X = Staple.Math.Round(angles.X);
-        angles.Y = Staple.Math.Round(angles.Y);
-        angles.Z = Staple.Math.Round(angles.Z);
+        var angles = transform.Rotation.ToEulerAngles().Round();
 
         Assert.That(angles, Is.EqualTo(new Vector3(0, 45, 0)));
 
         parent.LocalRotation = Quaternion.Euler(new(0, 45, 0));
 
-        angles = transform.Rotation.ToEulerAngles();
-
-        angles.X = Staple.Math.Round(angles.X);
-        angles.Y = Staple.Math.Round(angles.Y);
-        angles.Z = Staple.Math.Round(angles.Z);
+        angles = transform.Rotation.ToEulerAngles().Round();
 
         Assert.That(angles, Is.EqualTo(new Vector3(0, 90, 0)));
 
         transform.Rotation = Quaternion.Euler(new(0, 45, 0));
 
-        angles = transform.Rotation.ToEulerAngles();
-
-        angles.X = Staple.Math.Round(angles.X);
-        angles.Y = Staple.Math.Round(angles.Y);
-        angles.Z = Staple.Math.Round(angles.Z);
+        angles = transform.Rotation.ToEulerAngles().Round();
 
         Assert.That(angles, Is.EqualTo(new Vector3(0, 45, 0)));
     }

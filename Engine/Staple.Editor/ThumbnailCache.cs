@@ -221,7 +221,7 @@ internal class ThumbnailCache
                         var cameraTransform = new Transform
                         {
                             LocalPosition = position,
-                            LocalRotation = Quaternion.LookAt(forward, Vector3.Up),
+                            LocalRotation = Quaternion.LookDirection(forward, Vector3.Up),
                         };
 
                         var overrideLights = LightSystem.OverrideLights;
@@ -489,7 +489,7 @@ internal class ThumbnailCache
                         var cameraTransform = new Transform
                         {
                             LocalPosition = position,
-                            LocalRotation = Quaternion.LookAt(forward, Vector3.Up),
+                            LocalRotation = Quaternion.LookDirection(forward, Vector3.Up),
                         };
 
                         var overrideLights = LightSystem.OverrideLights;

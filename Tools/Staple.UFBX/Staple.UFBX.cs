@@ -52,7 +52,7 @@ public class UFXImporter : IMeshImporter
                 metadata = metadata,
                 adjustmentTransform = new()
                 {
-                    rotation = new(isOBJ ? Quaternion.Euler(0, 180, 0) * meshRotation : meshRotation),
+                    rotation = new(Quaternion.Euler(0, 180, 0) * meshRotation),
                     scale = new(meshScale),
                 },
             };

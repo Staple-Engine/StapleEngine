@@ -26,26 +26,9 @@ public class TargetBone : SkinModifier
     {
         var target = targetTransform?.Position ?? targetPoint;
 
-        var forward = (target - bone.Position).Normalized;
+        var scale = bone.Scale.Abs();
 
-        var scale = bone.Scale;
-
-        if(scale.X < 0)
-        {
-            forward.X *= -1;
-        }
-
-        if (scale.Y < 0)
-        {
-            forward.Y *= -1;
-        }
-
-        if (scale.Z < 0)
-        {
-            forward.Z *= -1;
-        }
-
-        var rotation = Quaternion.LookAt(forward, Vector3.Up);
+        var rotation = Quaternion.LookAt(bone.Position, target, Vector3.Up);
 
         var parentRotation = bone?.Parent?.Rotation ?? Quaternion.Identity;
 
@@ -53,11 +36,7 @@ public class TargetBone : SkinModifier
 
         var localRotation = invertedParentRotation * rotation;
 
-        var angles = localRotation.ToEulerAngles();
-
-        angles.X = Math.Clamp(angles.X, angleLimitMin.X, angleLimitMax.X);
-        angles.Y = Math.Clamp(angles.Y, angleLimitMin.Y, angleLimitMax.Y);
-        angles.Z = Math.Clamp(angles.Z, angleLimitMin.Z, angleLimitMax.Z);
+        var angles = localRotation.ToEulerAngles().Clamp(angleLimitMin, angleLimitMax);
 
         var finalRotation = Quaternion.Euler(angles);
 

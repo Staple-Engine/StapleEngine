@@ -385,7 +385,7 @@ public class Transform : Component, IComponentVersion
                 ref readonly Matrix4x4 parentMatrix = ref Parent.Matrix;
 
                 finalMatrix = matrix * parentMatrix;
-                finalPosition = position.Transformed(parentMatrix);
+                finalPosition = position.Transformed(in parentMatrix);
                 finalRotation = Parent.Rotation * rotation;
                 finalScale = Parent.Scale * scale;
             }
@@ -516,26 +516,11 @@ public class Transform : Component, IComponentVersion
     /// <param name="forward">The direction</param>
     /// <param name="up">The world up direction</param>
     /// <remarks><see cref="forward"/> doesn't need to be normalized</remarks>
-    public void LookAt(Vector3 forward, Vector3 up)
+    public void LookDirection(Vector3 forward, Vector3 up)
     {
-        var scale = Scale;
+        var scale = Scale.Normalized;
 
-        if (scale.X < 0)
-        {
-            forward.X *= -1;
-        }
-
-        if (scale.Y < 0)
-        {
-            forward.Y *= -1;
-        }
-
-        if (scale.Z < 0)
-        {
-            forward.Z *= -1;
-        }
-
-        var targetRotation = Quaternion.LookAt(forward, Vector3.Up);
+        var targetRotation = Quaternion.LookDirection(forward, Vector3.Up);
 
         Rotation = targetRotation;
     }
@@ -547,7 +532,7 @@ public class Transform : Component, IComponentVersion
     /// <param name="up">The world up direction</param>
     public void LookAt(Transform target, Vector3 up)
     {
-        LookAtPosition(target.Position, up);
+        LookAt(target.Position, up);
     }
 
     /// <summary>
@@ -555,9 +540,9 @@ public class Transform : Component, IComponentVersion
     /// </summary>
     /// <param name="position">The world position</param>
     /// <param name="up">The world up direction</param>
-    public void LookAtPosition(Vector3 position, Vector3 up)
+    public void LookAt(Vector3 position, Vector3 up)
     {
-        LookAt((position - Position), up);
+        LookDirection((position - Position), up);
     }
 
     public override string ToString()

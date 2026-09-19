@@ -84,9 +84,23 @@ public static class Vector2Extensions
 
         public float Dot(Vector2 other) => Vector2.Dot(v, other);
 
-        public Vector2 Transformed(Matrix4x4 matrix) => Vector2.Transform(v, matrix);
+        public Vector2 Abs() => new(Math.Abs(v.X), Math.Abs(v.Y));
 
-        public Vector2 Transformed(Quaternion quaternion) => Vector2.Transform(v, quaternion);
+        public Vector2 Clamp(float min, float max) => new(Math.Clamp(v.X, min, max), Math.Clamp(v.Y, min, max));
+
+        public Vector2 Clamp(Vector2 min, Vector2 max) => new(Math.Clamp(v.X, min.X, max.X), Math.Clamp(v.Y, min.Y, max.Y));
+
+        public Vector2 Clamp01() => new(Math.Clamp01(v.X), Math.Clamp01(v.Y));
+
+        public Vector2 Round() => new(Math.Round(v.X), Math.Round(v.Y));
+
+        public Vector2 Ceil() => new(Math.Ceil(v.X), Math.Ceil(v.Y));
+
+        public Vector2 Floor() => new(Math.Floor(v.X), Math.Floor(v.Y));
+
+        public Vector2 Transformed(in Matrix4x4 matrix) => Vector2.Transform(v, matrix);
+
+        public Vector2 Transformed(in Quaternion quaternion) => Vector2.Transform(v, quaternion);
 
         /// <summary>
         /// Returns a copy of this as a Vector3
@@ -204,7 +218,24 @@ public static class Vector3Extensions
 
         public float Dot(Vector3 other) => Vector3.Dot(v, other);
 
+        public Vector3 Abs() => new(Math.Abs(v.X), Math.Abs(v.Y), Math.Abs(v.Z));
+
+        public Vector3 Clamp(float min, float max) => new(Math.Clamp(v.X, min, max), Math.Clamp(v.Y, min, max), Math.Clamp(v.Z, min, max));
+
+        public Vector3 Clamp(Vector3 min, Vector3 max) => new(Math.Clamp(v.X, min.X, max.X), Math.Clamp(v.Y, min.Y, max.Y),
+            Math.Clamp(v.Z, min.Z, max.Z));
+
+        public Vector3 Clamp01() => new(Math.Clamp01(v.X), Math.Clamp01(v.Y), Math.Clamp01(v.Z));
+
+        public Vector3 Round() => new(Math.Round(v.X), Math.Round(v.Y), Math.Round(v.Z));
+
+        public Vector3 Ceil() => new(Math.Ceil(v.X), Math.Ceil(v.Y), Math.Ceil(v.Z));
+
+        public Vector3 Floor() => new(Math.Floor(v.X), Math.Floor(v.Y), Math.Floor(v.Z));
+
         public Vector3 Transformed(in Matrix4x4 matrix) => Vector3.Transform(v, matrix);
+
+        public Vector3 TransformedNormal(in Matrix4x4 matrix) => Vector3.TransformNormal(v, matrix);
 
         public Vector3 Transformed(in Quaternion quaternion) => Vector3.Transform(v, quaternion);
 
@@ -330,9 +361,29 @@ public static class Vector4Extensions
 
         public float Dot(Vector4 other) => Vector4.Dot(v, other);
 
-        public Vector4 Transformed(Matrix4x4 matrix) => Vector4.Transform(v, matrix);
+        public Vector4 Abs() => new(Math.Abs(v.X), Math.Abs(v.Y), Math.Abs(v.Z), Math.Abs(v.W));
 
-        public Vector4 Transformed(Quaternion quaternion) => Vector4.Transform(v, quaternion);
+        public Vector4 Clamp(float min, float max) => new(Math.Clamp(v.X, min, max),
+            Math.Clamp(v.Y, min, max),
+            Math.Clamp(v.Z, min, max),
+            Math.Clamp(v.W, min, max));
+
+        public Vector4 Clamp(Vector4 min, Vector4 max) => new(Math.Clamp(v.X, min.X, max.X),
+            Math.Clamp(v.Y, min.Y, max.Y),
+            Math.Clamp(v.Z, min.Z, max.Z),
+            Math.Clamp(v.W, min.W, max.W));
+
+        public Vector4 Clamp01() => new(Math.Clamp01(v.X), Math.Clamp01(v.Y), Math.Clamp01(v.Z), Math.Clamp01(v.W));
+
+        public Vector4 Round() => new(Math.Round(v.X), Math.Round(v.Y), Math.Round(v.Z), Math.Round(v.W));
+
+        public Vector4 Ceil() => new(Math.Ceil(v.X), Math.Ceil(v.Y), Math.Ceil(v.Z), Math.Ceil(v.W));
+
+        public Vector4 Floor() => new(Math.Floor(v.X), Math.Floor(v.Y), Math.Floor(v.Z), Math.Floor(v.W));
+
+        public Vector4 Transformed(in Matrix4x4 matrix) => Vector4.Transform(v, matrix);
+
+        public Vector4 Transformed(in Quaternion quaternion) => Vector4.Transform(v, quaternion);
 
         public Vector4 Cross(Vector4 other) => Vector4.Cross(v, other);
 
@@ -540,6 +591,8 @@ public static class QuaternionExtensions
 {
     extension(Quaternion q)
     {
+        public Quaternion Transformed(in Matrix4x4 matrix) => Quaternion.CreateFromRotationMatrix(matrix) * q;
+
         public Quaternion Normalized => Quaternion.Normalize(q);
 
         public float Dot(Quaternion other) => Quaternion.Dot(q, other);
@@ -646,7 +699,7 @@ public static class QuaternionExtensions
         /// <param name="up">The up axis</param>
         /// <returns>The rotation</returns>
         /// <remarks>From https://github.com/stride3d/stride/blob/master/sources/core/Stride.Core.Mathematics/Quaternion.cs#L695</remarks>
-        public static Quaternion LookAt(Vector3 forward, Vector3 up)
+        public static Quaternion LookDirection(Vector3 forward, Vector3 up)
         {
             forward = forward.Normalized;
 
@@ -660,6 +713,20 @@ public static class QuaternionExtensions
             };
 
             return Quaternion.CreateFromRotationMatrix(matrix);
+        }
+
+        /// <summary>
+        /// Calculates a quaternion looking at a specific pointup axis
+        /// </summary>
+        /// <param name="from">The source position</param>
+        /// <param name="to">The target position</param>
+        /// <param name="up">The up axis</param>
+        /// <returns>The rotation</returns>
+        public static Quaternion LookAt(Vector3 from, Vector3 to, Vector3 up)
+        {
+            var forward = (to - from).Normalized;
+
+            return LookDirection(forward, up);
         }
 
         /// <summary>
