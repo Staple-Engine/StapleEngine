@@ -442,23 +442,41 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
             instance.transformUpdateTimer += Time.deltaTime;
 
             var limit = instance.mesh.meshAsset.SyncAnimationToRefreshRate ? 1.0f / Screen.RefreshRate : 1.0f / instance.mesh.meshAsset.FrameRate;
+            var needsUpdate = false;
 
-            if (instance.transformUpdateTimer >= limit)
+            if(instance.transformCache != null)
             {
-                instance.transformUpdateTimer -= limit;
+                foreach(var transform in instance.transformCache)
+                {
+                    if(transform == null)
+                    {
+                        continue;
+                    }
+
+                    //Don't early skip so we can clear all the changed transforms
+                    needsUpdate |= instance.transformTracker.ShouldUpdateComponent(transform.Entity, in transform);
+                }
+            }
+
+            if (instance.transformUpdateTimer >= limit || needsUpdate)
+            {
+                instance.transformUpdateTimer = Math.Clamp(instance.transformUpdateTimer - limit, 0, Math.Infinity);
 
                 instance.modifiers ??= new(instance.Entity, EntityQueryMode.SelfAndChildren);
 
                 instance.animator ??= new(instance.Entity, EntityQueryMode.Self);
 
-                foreach (var modifier in instance.modifiers.Contents)
+                if(instance.animator.Content?.evaluator == null)
                 {
-                    if (instance.animator.Content?.evaluator != null)
+                    foreach (var modifier in instance.modifiers.Contents)
                     {
-                        continue;
-                    }
+                        if (!modifier.Enabled || !modifier.Entity.EnabledInHierarchy)
+                        {
+                            continue;
+                        }
 
-                    modifier.Apply(modifier.Transform, false);
+                        modifier.Apply(modifier.Transform, false);
+                    }
                 }
 
                 UpdateBoneMatrices(instance.mesh.meshAsset, instance.boneMatrices, instance.transformCache);

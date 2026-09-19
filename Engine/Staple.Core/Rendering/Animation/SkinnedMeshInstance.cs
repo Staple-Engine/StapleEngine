@@ -37,6 +37,11 @@ public class SkinnedMeshInstance : Component, IComponentDisposable
     internal float transformUpdateTimer;
 
     /// <summary>
+    /// Keeps track of changed transforms
+    /// </summary>
+    internal ComponentVersionTracker<Transform> transformTracker = new();
+
+    /// <summary>
     /// List of modifiers
     /// </summary>
     internal EntityQuery<SkinModifier> modifiers;

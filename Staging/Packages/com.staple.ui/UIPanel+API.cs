@@ -41,7 +41,7 @@ public partial class UIPanel
 
         var m = Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0));
 
-        Graphics.RenderSimple(vertices, SpriteUtils.VertexLayout.Value, indices, material, m, MeshTopology.Triangles, true);
+        Graphics.RenderTransient(vertices, SpriteUtils.VertexLayout.Value, indices, material, m, MeshTopology.Triangles, true);
 
         material.MainColor = c;
         material.MainTexture = t;
@@ -83,7 +83,7 @@ public partial class UIPanel
 
         var m = Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0));
 
-        Graphics.RenderSimple(vertices, SpriteUtils.VertexLayout.Value, indices, material, m, MeshTopology.Triangles, true);
+        Graphics.RenderTransient(vertices, SpriteUtils.VertexLayout.Value, indices, material, m, MeshTopology.Triangles, true);
 
         material.MainColor = c;
         material.MainTexture = t;
@@ -131,7 +131,7 @@ public partial class UIPanel
 
         var m = Matrix4x4.CreateTranslation(new Vector3(position.X, position.Y, 0));
 
-        Graphics.RenderSimple(ninePatchVertices, SpriteUtils.VertexLayout.Value, ninePatchIndices, material, m, MeshTopology.Triangles, true);
+        Graphics.RenderTransient(ninePatchVertices, SpriteUtils.VertexLayout.Value, ninePatchIndices, material, m, MeshTopology.Triangles, true);
 
         material.MainColor = c;
         material.MainTexture = t;
@@ -199,7 +199,7 @@ public partial class UIPanel
         var vertexSpan = new Span<TextRenderer.PosTexVertex>(textVertices, 0, vertexCount);
         var indexSpan = new Span<ushort>(textIndices, 0, indexCount);
 
-        Graphics.RenderSimple(vertexSpan, TextRenderer.VertexLayout.Value, indexSpan, material, Matrix4x4.Identity, MeshTopology.Triangles,
+        Graphics.RenderTransient(vertexSpan, TextRenderer.VertexLayout.Value, indexSpan, material, Matrix4x4.Identity, MeshTopology.Triangles,
             true);
     }
 }

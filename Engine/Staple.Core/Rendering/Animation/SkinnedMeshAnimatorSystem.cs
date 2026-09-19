@@ -94,9 +94,14 @@ public sealed class SkinnedMeshAnimatorSystem : RenderSystemBase
                 {
                     animator.modifiers ??= new(entry.entity, EntityQueryMode.SelfAndChildren);
 
-                    foreach(var (t, modifier) in animator.modifiers.Contents)
+                    foreach(var modifier in animator.modifiers.Contents)
                     {
-                        modifier.Apply(t, true);
+                        if(!modifier.Enabled || !modifier.Entity.EnabledInHierarchy)
+                        {
+                            continue;
+                        }
+
+                        modifier.Apply(modifier.Transform, true);
                     }
                 }
             }
