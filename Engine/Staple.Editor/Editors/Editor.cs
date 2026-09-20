@@ -19,8 +19,6 @@ public class Editor
 
     private bool checkedFields;
 
-    private readonly Dictionary<string, Action> cachedFields = [];
-
     /// <summary>
     /// The original object that is being edited, if any
     /// </summary>
@@ -104,115 +102,8 @@ public class Editor
         {
             checkedFields = true;
 
-            cachedFields.Clear();
-
-            var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-            foreach (var field in fields)
-            {
-                if (field.GetCustomAttribute<HideInInspectorAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null)
-                {
-                    continue;
-                }
-
-                if (!field.IsPublic && field.GetCustomAttribute<SerializeFieldAttribute>() == null)
-                {
-                    continue;
-                }
-
-                cachedFields.Add(field.Name, () =>
-                {
-                    if (DrawProperty(field.FieldType, field.Name,
-                        () => field.GetValue(target),
-                        (value) => field.SetValue(target, value),
-                        field.GetCustomAttribute))
-                    {
-                        return;
-                    }
-
-                    var type = field.FieldType;
-                    var name = field.Name.ExpandCamelCaseName();
-
-                    var header = field.GetCustomAttribute<HeaderAttribute>();
-
-                    if (header != null)
-                    {
-                        EditorGUI.HeaderLabel(header.caption);
-                    }
-
-                    PropertyInspector(type, name, $"{targetName}{IDSuffix}",
-                        () => field.GetValue(target),
-                        (value) => field.SetValue(target, value),
-                        (attribute) =>
-                        {
-                            if (attribute.IsSubclassOf(typeof(Attribute)))
-                            {
-                                return field.GetCustomAttribute(attribute);
-                            }
-
-                            return null;
-                        });
-
-                    var tooltip = field.GetCustomAttribute<TooltipAttribute>();
-
-                    if (tooltip != null && ImGui.IsItemHovered())
-                    {
-                        ImGui.SetTooltip(tooltip.caption);
-                    }
-                });
-            }
-            var properties = target.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-            foreach (var property in properties)
-            {
-                var hasSerializeFieldAttribute = property.GetCustomAttribute<SerializeFieldAttribute>() != null;
-
-                if (!property.CanRead ||
-                    !property.CanWrite ||
-                    property.GetCustomAttribute<HideInInspectorAttribute>() != null ||
-                    property.GetCustomAttribute<NonSerializedAttribute>() != null ||
-                    property.GetMethod == null ||
-                    (!property.GetMethod.IsPublic && !hasSerializeFieldAttribute) ||
-                    property.SetMethod == null ||
-                    (!property.SetMethod.IsPublic && !hasSerializeFieldAttribute))
-                {
-                    continue;
-                }
-
-                cachedFields.Add(property.Name, () =>
-                {
-                    if (DrawProperty(property.PropertyType, property.Name,
-                        () => property.GetValue(target),
-                        (value) => property.SetValue(target, value),
-                        property.GetCustomAttribute))
-                    {
-                        return;
-                    }
-
-                    var type = property.PropertyType;
-                    var name = property.Name.ExpandCamelCaseName();
-
-                    PropertyInspector(type, name, property.Name,
-                        () => property.GetValue(target),
-                        (value) => property.SetValue(target, value),
-                        (attribute) =>
-                        {
-                            if (attribute.IsSubclassOf(typeof(Attribute)))
-                            {
-                                return property.GetCustomAttribute(attribute);
-                            }
-
-                            return null;
-                        });
-
-                    var tooltip = property.GetCustomAttribute<TooltipAttribute>();
-
-                    if (tooltip != null && ImGui.IsItemHovered())
-                    {
-                        ImGui.SetTooltip(tooltip.caption);
-                    }
-                });
-            }
+            cachedButtonAttributes.Clear();
+            cachedPropertyDrawers.Clear();
 
             var methods = target.GetType().GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static);
 
@@ -250,15 +141,106 @@ public class Editor
 
         void Content()
         {
-            foreach(var (name, callback) in cachedFields)
+            var fields = target.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach (var field in fields)
             {
-                try
+                if (field.GetCustomAttribute<HideInInspectorAttribute>() != null || field.GetCustomAttribute<NonSerializedAttribute>() != null)
                 {
-                    callback();
+                    continue;
                 }
-                catch(Exception e)
+
+                if (!field.IsPublic && field.GetCustomAttribute<SerializeFieldAttribute>() == null)
                 {
-                    Log.Error($"{GetType().FullName}: While processing field {name}:\n{e}");
+                    continue;
+                }
+
+                if (DrawProperty(field.FieldType, field.Name,
+                    () => field.GetValue(target),
+                    (value) => field.SetValue(target, value),
+                    field.GetCustomAttribute))
+                {
+                    return;
+                }
+
+                var type = field.FieldType;
+                var name = field.Name.ExpandCamelCaseName();
+
+                var header = field.GetCustomAttribute<HeaderAttribute>();
+
+                if (header != null)
+                {
+                    EditorGUI.HeaderLabel(header.caption);
+                }
+
+                PropertyInspector(type, name, $"{targetName}{IDSuffix}",
+                    () => field.GetValue(target),
+                    (value) => field.SetValue(target, value),
+                    (attribute) =>
+                    {
+                        if (attribute.IsSubclassOf(typeof(Attribute)))
+                        {
+                            return field.GetCustomAttribute(attribute);
+                        }
+
+                        return null;
+                    });
+
+                var tooltip = field.GetCustomAttribute<TooltipAttribute>();
+
+                if (tooltip != null && ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(tooltip.caption);
+                }
+            }
+
+            var properties = target.GetType().GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach (var property in properties)
+            {
+                var hasSerializeFieldAttribute = property.GetCustomAttribute<SerializeFieldAttribute>() != null;
+
+                if (!property.CanRead ||
+                    !property.CanWrite ||
+                    property.GetCustomAttribute<HideInInspectorAttribute>() != null ||
+                    property.GetCustomAttribute<NonSerializedAttribute>() != null ||
+                    property.GetMethod == null ||
+                    (!property.GetMethod.IsPublic && !hasSerializeFieldAttribute) ||
+                    property.SetMethod == null ||
+                    (!property.SetMethod.IsPublic && !hasSerializeFieldAttribute))
+                {
+                    continue;
+                }
+
+                if (DrawProperty(property.PropertyType, property.Name,
+                    () => property.GetValue(target),
+                    (value) => property.SetValue(target, value),
+                    property.GetCustomAttribute))
+                {
+                    return;
+                }
+
+                var type = property.PropertyType;
+                var name = property.Name.ExpandCamelCaseName();
+
+                PropertyInspector(type, name, property.Name,
+                    () => property.GetValue(target),
+                    (value) => property.SetValue(target, value),
+                    (attribute) =>
+                    {
+                        if (attribute.IsSubclassOf(typeof(Attribute)))
+                        {
+                            return property.GetCustomAttribute(attribute);
+                        }
+
+                        return null;
+                    });
+
+                var tooltip = property.GetCustomAttribute<TooltipAttribute>();
+
+                if (tooltip != null && ImGui.IsItemHovered())
+                {
+                    ImGui.SetTooltip(tooltip.caption);
                 }
             }
         }

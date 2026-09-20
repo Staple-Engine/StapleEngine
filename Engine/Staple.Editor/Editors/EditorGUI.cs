@@ -1854,26 +1854,29 @@ public static class EditorGUI
     /// <param name="setupColumnHandler">A callback for what header title and width you want for the column</param>
     /// <param name="rowColumnHandler">a callback for a row and column</param>
     /// <param name="rowClickHandler">A callback for when a row is clicked</param>
-    public static void Table(string key, int rows, int columns, bool showHeader, Action<int> rowHandler, Func<int, (string, float)> setupColumnHandler,
-        Action<int, int> rowColumnHandler, Action<int> rowClickHandler)
+    public static void Table(string key, int rows, int columns, bool showHeader, Action<int> rowHandler,
+        Func<int, (string, float)> setupColumnHandler, Action<int, int> rowColumnHandler, Action<int> rowClickHandler)
     {
         if(ImGui.BeginTable(key, columns))
         {
             for(var i = 0; i < columns; i++)
             {
-                var result = ExecuteHandler(setupColumnHandler, $"{key} column  width", i);
-
-                if (result.Item1 != null)
+                InnerBlock(i, () =>
                 {
-                    if(result.Item2 > 0)
+                    var result = ExecuteHandler(setupColumnHandler, $"{key} column  width", i);
+
+                    if (result.Item1 != null)
                     {
-                        ImGui.TableSetupColumn(result.Item1, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, result.Item2);
+                        if (result.Item2 > 0)
+                        {
+                            ImGui.TableSetupColumn(result.Item1, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, result.Item2);
+                        }
+                        else
+                        {
+                            ImGui.TableSetupColumn(result.Item1);
+                        }
                     }
-                    else
-                    {
-                        ImGui.TableSetupColumn(result.Item1);
-                    }
-                }
+                });
             }
 
             if(showHeader)
@@ -1885,18 +1888,24 @@ public static class EditorGUI
             {
                 ImGui.TableNextRow();
 
-                ExecuteHandler(rowHandler, $"{key} row {i}", i);
-
-                for (var j = 0; j < columns; j++)
+                InnerBlock(i, () =>
                 {
-                    ImGui.TableNextColumn();
+                    ExecuteHandler(rowHandler, $"{key} row {i}", i);
 
-                    ExecuteHandler(rowColumnHandler, $"{key} row {i} column {j}", i, j);
-                }
+                    for (var j = 0; j < columns; j++)
+                    {
+                        ImGui.TableNextColumn();
 
-                SameLine();
+                        InnerBlock(j, () =>
+                        {
+                            ExecuteHandler(rowColumnHandler, $"{key} row {i} column {j}", i, j);
+                        });
+                    }
 
-                Selectable("", $"{key}.Row{i}", () => rowClickHandler?.Invoke(i), SelectableFlags.SpanAllColumns);
+                    SameLine();
+
+                    Selectable("", $"{key}.Row{i}", () => rowClickHandler?.Invoke(i), SelectableFlags.SpanAllColumns);
+                });
             }
 
             ImGui.EndTable();
@@ -2021,5 +2030,14 @@ public static class EditorGUI
         {
             ExecuteHandler(closed, $"{key} closed");
         }
+    }
+
+    public static void InnerBlock(int ID, Action handler)
+    {
+        ImGui.PushID(ID);
+
+        ExecuteHandler(handler, $"InnerBlock {ID}");
+
+        ImGui.PopID();
     }
 }

@@ -1092,42 +1092,45 @@ internal partial class StapleEditor
                             return;
                         }
 
-                        if (localComponent is Transform transform)
+                        EditorGUI.InnerBlock(counter, () =>
                         {
-                            transform.LocalPosition = EditorGUI.Vector3Field("Position", $"SELECTED{localComponent.GetType().FullName}POSITION",
-                                transform.LocalPosition);
-
-                            var rotation = transform.LocalRotation.ToEulerAngles();
-
-                            var newRotation = EditorGUI.Vector3Field("Rotation", $"SELECTED{localComponent.GetType().FullName}ROTATION", rotation);
-
-                            if (rotation != newRotation)
+                            if (localComponent is Transform transform)
                             {
-                                transform.LocalRotation = Quaternion.Euler(newRotation);
-                            }
+                                transform.LocalPosition = EditorGUI.Vector3Field("Position", $"SELECTED{localComponent.GetType().FullName}POSITION",
+                                    transform.LocalPosition);
 
-                            transform.LocalScale = EditorGUI.Vector3Field("Scale", $"SELECTED{localComponent.GetType().FullName}SCALE",
-                                transform.LocalScale);
-                        }
-                        else
-                        {
-                            if (cachedEditors.TryGetValue($"{counter}{localComponent.GetType().FullName}", out var editor))
-                            {
-                                editor.OnInspectorGUI();
+                                var rotation = transform.LocalRotation.ToEulerAngles();
+
+                                var newRotation = EditorGUI.Vector3Field("Rotation", $"SELECTED{localComponent.GetType().FullName}ROTATION", rotation);
+
+                                if (rotation != newRotation)
+                                {
+                                    transform.LocalRotation = Quaternion.Euler(newRotation);
+                                }
+
+                                transform.LocalScale = EditorGUI.Vector3Field("Scale", $"SELECTED{localComponent.GetType().FullName}SCALE",
+                                    transform.LocalScale);
                             }
                             else
                             {
-                                cachedEditors.Add($"{counter}{localComponent.GetType().FullName}", new Editor()
+                                if (cachedEditors.TryGetValue($"{counter}{localComponent.GetType().FullName}", out var editor))
                                 {
-                                    target = localComponent
-                                });
+                                    editor.OnInspectorGUI();
+                                }
+                                else
+                                {
+                                    cachedEditors.Add($"{counter}{localComponent.GetType().FullName}", new Editor()
+                                    {
+                                        target = localComponent,
+                                    });
+                                }
                             }
-                        }
 
-                        if (EditorGUI.Changed)
-                        {
-                            selectedEntity.SetComponent(localComponent);
-                        }
+                            if (EditorGUI.Changed)
+                            {
+                                selectedEntity.SetComponent(localComponent);
+                            }
+                        });
                     },
                     () =>
                     {
