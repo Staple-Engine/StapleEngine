@@ -98,7 +98,8 @@ namespace StapleCodeGeneration
                 {
                     if (t.IsAbstract || t.IsGenericType || t.IsStatic || t.Name.EndsWith("Attribute") ||
                         t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
-                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
+                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name ||
+                        x.AttributeClass.Name == "ExperimentalAttribute") ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
                         t.TypeKind == TypeKind.Delegate ||
@@ -195,7 +196,8 @@ namespace StapleCodeGeneration
                 {
                     if (t.IsAbstract || t.Name.EndsWith("Attribute") || t.IsStatic ||
                         t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
-                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
+                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name ||
+                        x.AttributeClass.Name == "ExperimentalAttribute") ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
                         t.ContainingType.TypeKind == TypeKind.Delegate ||

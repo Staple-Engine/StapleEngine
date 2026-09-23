@@ -1286,7 +1286,7 @@ public partial class ProjectManager
         var projectProperties = new Dictionary<string, string>()
         {
             { "OutputType", "Library" },
-            { "TargetFramework", "net10.0" },
+            { "TargetFramework", "net11.0" },
             { "StripSymbols", "true" },
             { "PublishAOT", "true" },
             { "IsAOTCompatible", "true" },
