@@ -14,7 +14,9 @@ public static class ObjectCreation
     /// <typeparam name="T">The expected object type</typeparam>
     /// <param name="type">The type to create</param>
     /// <returns>The object, or null</returns>
-    public static T CreateObject<T>([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
+    public static T CreateObject<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] 
+        T>([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicConstructors)] Type type)
     {
         if(!type.IsAssignableTo(typeof(T)))
         {

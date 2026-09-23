@@ -61,11 +61,11 @@ public partial class ProjectManager
 
     private readonly Dictionary<AppPlatform, string> platformFramework = new()
     {
-        { AppPlatform.Windows, "net10.0" },
-        { AppPlatform.Linux, "net10.0" },
-        { AppPlatform.MacOSX, "net10.0" },
-        { AppPlatform.Android, "net10.0-android" },
-        { AppPlatform.iOS, "net10.0-ios" },
+        { AppPlatform.Windows, "net11.0" },
+        { AppPlatform.Linux, "net11.0" },
+        { AppPlatform.MacOSX, "net11.0" },
+        { AppPlatform.Android, "net11.0-android" },
+        { AppPlatform.iOS, "net11.0-ios" },
     };
 
     public string basePath;

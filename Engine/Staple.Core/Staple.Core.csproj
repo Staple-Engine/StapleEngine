@@ -2,7 +2,7 @@
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 		<AppDesignerFolder>Properties</AppDesignerFolder>
-		<TargetFrameworks>net10.0</TargetFrameworks>
+		<TargetFrameworks>net11.0</TargetFrameworks>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 	</PropertyGroup>
@@ -33,12 +33,12 @@
 
 	<PropertyGroup Condition="'$(STAPLE_ANDROID)'=='true'">
 		<DefineConstants>$(DefineConstants);STAPLE_ANDROID</DefineConstants>
-		<TargetFrameworks>$(TargetFrameworks);net10.0-android</TargetFrameworks>
+		<TargetFrameworks>$(TargetFrameworks);net11.0-android</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(STAPLE_IOS)'=='true'">
 		<DefineConstants>$(DefineConstants);STAPLE_IOS</DefineConstants>
-		<TargetFrameworks>$(TargetFrameworks);net10.0-ios</TargetFrameworks>
+		<TargetFrameworks>$(TargetFrameworks);net11.0-ios</TargetFrameworks>
 	</PropertyGroup>
 
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -72,19 +72,19 @@
 			<HintPath>..\..\Dependencies\SDL3-CS\$(TargetFramework)\SDL3-CS.dll</HintPath>
 		</Reference>
 		<Reference Include="MessagePack">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\MessagePack.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net11.0\MessagePack.dll</HintPath>
 		</Reference>
 		<Reference Include="NVorbis">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\NVorbis.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net11.0\NVorbis.dll</HintPath>
 		</Reference>
 		<Reference Include="NAudio">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\NAudio.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net11.0\NAudio.dll</HintPath>
 		</Reference>
 		<Reference Include="xxHash">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\xxHash.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net11.0\xxHash.dll</HintPath>
 		</Reference>
 		<Reference Include="Evergine.Bindings.Vulkan">
-			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\Evergine.Bindings.Vulkan.dll</HintPath>
+			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net11.0\Evergine.Bindings.Vulkan.dll</HintPath>
 		</Reference>
 	</ItemGroup>
 	

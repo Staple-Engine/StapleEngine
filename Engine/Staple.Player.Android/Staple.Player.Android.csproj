@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0-android</TargetFramework>
+    <TargetFramework>net11.0-android</TargetFramework>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -10,11 +10,8 @@
 	<Reference Include="SDL3-CS">
 		<HintPath>..\..\Dependencies\SDL3-CS\$(TargetFramework)\SDL3-CS.dll</HintPath>
 	</Reference>
-	<Reference Include="SDL3-CS">
-		<HintPath>..\..\Dependencies\SDL3-CS\$(TargetFramework)\SDL3-CS.dll</HintPath>
-	</Reference>
 	<Reference Include="MessagePack">
-		<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net10.0\MessagePack.dll</HintPath>
+	  <HintPath>..\..\Dependencies\build\dotnet\bin\Release\net11.0\MessagePack.dll</HintPath>
 	</Reference>
   </ItemGroup>
 
