@@ -90,7 +90,7 @@ public class StbTrueTypeFontSource : ITextFontSource
 
             var buffer = new byte[width * height];
 
-            Marshal.Copy((nint)bitmap, buffer, 0, buffer.Length);
+            new Span<byte>(bitmap, buffer.Length).CopyTo(buffer);
 
             var expandedBuffer = new byte[buffer.Length * 4];
 

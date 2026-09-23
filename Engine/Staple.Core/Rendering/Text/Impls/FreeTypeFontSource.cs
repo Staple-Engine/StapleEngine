@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -57,33 +58,45 @@ public class FreeTypeFontSource : ITextFontSource
             return Glyph.Invalid;
         }
 
-        var glyphData = Marshal.PtrToStructure<FreeType.Glyph>(glyphPtr);
-
-        unsafe
+        try
         {
-            if ((nint)glyphData.bitmap == nint.Zero || glyphData.width == 0 || glyphData.height == 0)
+            unsafe
+            {
+                var glyph = new Span<FreeType.Glyph>((void*)glyphPtr, 1);
+
+                ref var glyphData = ref glyph[0];
+
+                if ((nint)glyphData.bitmap == nint.Zero || glyphData.width == 0 || glyphData.height == 0)
+                {
+                    FreeType.FreeGlyph(glyphPtr);
+
+                    glyphPtr = nint.Zero;
+
+                    return Glyph.Invalid;
+                }
+
+                var size = glyphData.width * glyphData.height * 4;
+
+                var buffer = new byte[size];
+
+                new Span<byte>(glyphData.bitmap, buffer.Length).CopyTo(buffer.AsSpan());
+
+                return new()
+                {
+                    bitmap = buffer,
+                    bounds = new Rect(0, (int)glyphData.width, 0, (int)glyphData.height),
+                    xAdvance = (int)glyphData.xAdvance,
+                    xOffset = (int)glyphData.xOffset,
+                    yOffset = (int)glyphData.yOffset,
+                };
+            }
+        }
+        finally
+        {
+            if(glyphPtr != nint.Zero)
             {
                 FreeType.FreeGlyph(glyphPtr);
-
-                return Glyph.Invalid;
             }
-
-            var size = glyphData.width * glyphData.height * 4;
-
-            var buffer = new byte[size];
-
-            Marshal.Copy((nint)glyphData.bitmap, buffer, 0, buffer.Length);
-
-            FreeType.FreeGlyph(glyphPtr);
-
-            return new()
-            {
-                bitmap = buffer,
-                bounds = new Rect(0, (int)glyphData.width, 0, (int)glyphData.height),
-                xAdvance = (int)glyphData.xAdvance,
-                xOffset = (int)glyphData.xOffset,
-                yOffset = (int)glyphData.yOffset,
-            };
         }
     }
 }

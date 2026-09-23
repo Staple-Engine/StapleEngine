@@ -1034,9 +1034,7 @@ public sealed partial class Mesh
 
             unsafe
             {
-                var src = (byte*)&source;
-
-                Marshal.Copy((nint)src, buffer, index, sourceSize);
+                new Span<byte>((void *)&source, sourceSize).CopyTo(buffer.AsSpan(index, sourceSize));
             }
 
             index += sourceSize;

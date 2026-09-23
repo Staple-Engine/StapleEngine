@@ -1069,17 +1069,17 @@ public sealed partial class Mesh : IGuidAsset
             throw new Exception($"Mesh Data element size does not equal vertex layout size (has: {size}, needs: {vertexLayout.Stride})");
         }
 
+        var buffer = new byte[meshData.Length * size];
+
         unsafe
         {
-            fixed(void *ptr = meshData)
+            fixed(void *ptr = buffer)
             {
-                var buffer = new byte[meshData.Length * size];
-
-                Marshal.Copy((nint)ptr, buffer, 0, buffer.Length);
-
-                meshDataBlob = buffer;
+                meshData.CopyTo(new Span<T>(ptr, meshData.Length));
             }
         }
+
+        meshDataBlob = buffer;
 
         meshDataVertexLayout = vertexLayout;
 
