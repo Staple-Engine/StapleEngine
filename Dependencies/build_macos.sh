@@ -16,6 +16,8 @@ SLANG_RELEASE=2026.10.2
 SLANG_FILENAME=slang-$SLANG_RELEASE-macos-aarch64.tar.gz
 SLANG_URL=https://github.com/shader-slang/slang/releases/download/v$SLANG_RELEASE/$SLANG_FILENAME
 
+rm -Rf slang
+
 mkdir slang
 
 cd slang
