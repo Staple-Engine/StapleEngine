@@ -210,7 +210,7 @@ public sealed class Material : IGuidAsset
     /// <summary>
     /// Whether this material has been disposed and is now invalid.
     /// </summary>
-    public bool Disposed => materialResource == null;
+    public bool Disposed => (materialResource?.Disposed ?? true);
 
     public bool IsValid => !Disposed && materialResource?.shader != null && !materialResource.shader.Disposed;
 

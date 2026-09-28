@@ -41,7 +41,9 @@ internal partial class StapleEditor
     {
         var gridSize = Math.Ceil(camera.farPlane - camera.nearPlane);
 
-        if(lastGridSize != gridSize)
+        if(lastGridSize != gridSize ||
+            (gridVertexBuffer?.Disposed ?? false) ||
+            (gridIndexBuffer?.Disposed ?? false))
         {
             lastGridSize = gridSize;
 
@@ -93,7 +95,6 @@ internal partial class StapleEditor
 
             gridVertexBuffer = VertexBuffer.Create(gridVertices.Contents, gridVertexLayout.Value);
             gridIndexBuffer = IndexBuffer.Create(gridIndices.Contents);
-
         }
 
         if(!(gridVertexBuffer?.Disposed ?? true) &&

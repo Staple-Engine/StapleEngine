@@ -105,7 +105,12 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
             return;
         }
 
-        emptyBlendShapeBuffer ??= VertexBuffer.Create([Vector4.Zero], blendShapeVertexLayout.Value, RenderBufferFlags.GraphicsRead);
+        if(emptyBlendShapeBuffer?.Disposed ?? true)
+        {
+            emptyBlendShapeBuffer?.Destroy();
+            
+            emptyBlendShapeBuffer = VertexBuffer.Create([Vector4.Zero], blendShapeVertexLayout.Value, RenderBufferFlags.GraphicsRead);
+        }
 
         var items = queue.Items;
 
@@ -269,7 +274,8 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                     {
                         var key = new StringID(renderer.mesh.Guid.Guid);
 
-                        if (!cachedBlendShapeBuffers.TryGetValue(key, out renderer.blendShapeBuffer))
+                        if (!cachedBlendShapeBuffers.TryGetValue(key, out renderer.blendShapeBuffer) ||
+                            (renderer.blendShapeBuffer?.Disposed ?? true))
                         {
                             var vertexCount = mesh.blendShape.channels.Length * mesh.vertices.Length;
 
@@ -297,9 +303,11 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                                 }
                             }
 
+                            renderer.blendShapeBuffer?.Destroy();
+
                             renderer.blendShapeBuffer = VertexBuffer.Create(vertices, blendShapeVertexLayout.Value, RenderBufferFlags.GraphicsRead);
 
-                            cachedBlendShapeBuffers.Add(key, renderer.blendShapeBuffer);
+                            cachedBlendShapeBuffers.AddOrSetKey(key, renderer.blendShapeBuffer);
                         }
 
                         if((renderer.instance?.Contents.Length ?? 0) > 0 &&
@@ -348,7 +356,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                             }
                         }
 
-                        if(renderer.blendShapeParameterBuffer == null)
+                        if(renderer.blendShapeParameterBuffer?.Disposed ?? true)
                         {
                             renderer.blendShapeParameterBuffer = VertexBuffer.Create(parameters, blendShapeVertexLayout.Value,
                                 RenderBufferFlags.GraphicsRead);

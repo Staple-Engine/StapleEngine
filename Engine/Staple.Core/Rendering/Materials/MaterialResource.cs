@@ -22,6 +22,8 @@ internal class MaterialResource
 
     public GuidHasher Guid = new();
 
+    public bool Disposed => shader?.Disposed ?? true;
+
     public MaterialResource Clone()
     {
         var outValue = new MaterialResource()

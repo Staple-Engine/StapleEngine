@@ -1543,7 +1543,7 @@ internal class ResourceManager : IWorldChangeReceiver
         }
 
         if (!ignoreCache &&
-            cachedShaders.TryGetValue(path, out var container) &&
+            cachedShaders.TryGetValue(guid, out var container) &&
             container != null &&
             !container.Disposed)
         {
@@ -1572,7 +1572,7 @@ internal class ResourceManager : IWorldChangeReceiver
                 resource = resource,
             };
 
-            cachedShaders.AddOrSetKey(path, container);
+            cachedShaders.AddOrSetKey(guid, container);
 
             container.Add(shader);
         }
