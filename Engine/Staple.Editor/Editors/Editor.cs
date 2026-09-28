@@ -160,7 +160,7 @@ public class Editor
                     (value) => field.SetValue(target, value),
                     field.GetCustomAttribute))
                 {
-                    return;
+                    continue;
                 }
 
                 var type = field.FieldType;
@@ -217,7 +217,7 @@ public class Editor
                     (value) => property.SetValue(target, value),
                     property.GetCustomAttribute))
                 {
-                    return;
+                    continue;
                 }
 
                 var type = property.PropertyType;

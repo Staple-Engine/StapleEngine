@@ -1415,7 +1415,18 @@ internal class ProjectBrowser
                             case string t when t == typeof(Mesh).FullName:
 
                                 {
-                                    var asset = ResourceManager.instance.LoadMeshAsset(guid);
+                                    object asset = null;
+
+                                    if (StapleEditor.instance.dropTargetObjectPickerAction != null &&
+                                        StapleEditor.instance.dropTargetObjectPickerType != null &&
+                                        StapleEditor.instance.dropTargetObjectPickerType == typeof(Mesh))
+                                    {
+                                        asset = ResourceManager.instance.LoadMesh(guid);
+                                    }
+                                    else
+                                    {
+                                        asset = ResourceManager.instance.LoadMeshAsset(guid);
+                                    }
 
                                     if (asset == null)
                                     {
