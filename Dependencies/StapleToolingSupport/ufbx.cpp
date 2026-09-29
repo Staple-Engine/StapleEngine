@@ -11,6 +11,13 @@
 		array = nullptr;\
 	}
 
+#define DELETESINGLE(object)\
+	if(object != nullptr)\
+	{\
+		delete object;\
+		object = nullptr;\
+	}
+
 #define COPY(to, from, elementType, count)\
 	if(from != nullptr)\
 	{\
@@ -213,6 +220,19 @@ public:
 
 		return *this;
 	}
+
+	void CopyTo(MeshBlendShapeChannel& o)
+	{
+		o.weight = weight;
+		o.name = name;
+		o.vertexCount = vertexCount;
+
+		DELETE(o.vertexOffsets);
+		DELETE(o.normalOffsets);
+
+		COPY(o.vertexOffsets, vertexOffsets, Vector3, vertexCount);
+		COPY(o.normalOffsets, normalOffsets, Vector3, vertexCount);
+	}
 };
 
 class MeshBlendShape
@@ -232,7 +252,7 @@ public:
 
 			for (size_t i = 0; i < channelCount; i++)
 			{
-				channels[i] = o.channels[i];
+				o.channels[i].CopyTo(channels[i]);
 			}
 		}
 	}
@@ -255,7 +275,7 @@ public:
 
 			for (size_t i = 0; i < channelCount; i++)
 			{
-				channels[i] = o.channels[i];
+				o.channels[i].CopyTo(channels[i]);
 			}
 		}
 
@@ -377,9 +397,7 @@ public:
 		DELETE(bones);
 		DELETE(submeshes);
 
-		delete blendShape;
-
-		blendShape = nullptr;
+		DELETESINGLE(blendShape);
 	}
 
 	Mesh& operator=(const Mesh& o)
@@ -404,9 +422,7 @@ public:
 		DELETE(bones);
 		DELETE(submeshes);
 
-		delete blendShape;
-
-		blendShape = nullptr;
+		DELETESINGLE(blendShape);
 
 		name = o.name;
 		vertexCount = o.vertexCount;
@@ -449,9 +465,7 @@ public:
 			return;
 		}
 
-		blendShape = new MeshBlendShape();
-
-		*blendShape = *other;
+		blendShape = new MeshBlendShape(*other);
 	}
 };
 
@@ -1390,10 +1404,5 @@ CEXPORT Scene* UFBXLoadScene(const char* fileName)
 
 CEXPORT void UFBXFreeScene(Scene* ptr)
 {
-	if (ptr == nullptr)
-	{
-		return;
-	}
-
-	delete ptr;
+	DELETESINGLE(ptr);
 }
