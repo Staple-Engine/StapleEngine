@@ -270,12 +270,11 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
             {
                 if(mesh.blendShape != null)
                 {
-                    if(renderer.needsUpdate)
+                    if(renderer.needsUpdate || (renderer.blendShapeBuffer?.Disposed ?? true))
                     {
                         var key = new StringID(renderer.mesh.Guid.Guid);
 
-                        if (!cachedBlendShapeBuffers.TryGetValue(key, out renderer.blendShapeBuffer) ||
-                            (renderer.blendShapeBuffer?.Disposed ?? true))
+                        if (!cachedBlendShapeBuffers.TryGetValue(key, out renderer.blendShapeBuffer))
                         {
                             var vertexCount = mesh.blendShape.channels.Length * mesh.vertices.Length;
 
