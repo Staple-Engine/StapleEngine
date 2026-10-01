@@ -167,7 +167,7 @@ static partial class Program
 
         List<IMeshImporter> importers =
             [
-                new UFXImporter(),
+                //new UFXImporter(),
                 new SharpGLTFImporter(),
             ];
 

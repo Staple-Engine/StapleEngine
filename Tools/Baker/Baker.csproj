@@ -88,7 +88,6 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Staple.SharpGLTF\Staple.SharpGLTF.csproj" />
-	  <ProjectReference Include="..\Staple.UFBX\Staple.UFBX.csproj" />
 	</ItemGroup>
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
 		<PostBuildEvent>

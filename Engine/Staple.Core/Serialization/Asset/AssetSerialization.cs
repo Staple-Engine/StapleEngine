@@ -96,30 +96,14 @@ public static partial class AssetSerialization
     /// </summary>
     public static readonly string[] MeshExtensions =
     [
-        "3ds",
-        "ase",
-        "bvh",
-        "dae",
-        "fbx",
         "glb",
-        "gltf",
-        "ms3d",
-        "obj",
-        "ply",
-        "stl",
+        "gltf"
     ];
 
     /// <summary>
     /// All static (can't animate) 3D model (mesh) extensions
     /// </summary>
-    public static readonly string[] StaticMeshExtensions =
-    [
-        "3ds",
-        "ase",
-        "obj",
-        "ply",
-        "stl",
-    ];
+    public static readonly string[] StaticMeshExtensions = [];
 
     /// <summary>
     /// All audio file extensions

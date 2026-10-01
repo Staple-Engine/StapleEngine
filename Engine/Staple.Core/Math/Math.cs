@@ -156,7 +156,32 @@ public static class Math
             return 0;
         }
 
-        float t = f[0];
+        var t = f[0];
+
+        var length = f.Length;
+
+        for(var i = 1; i < length; i++)
+        {
+            var value = f[i];
+
+            if (value > t)
+            {
+                t = value;
+            }
+        }
+
+        return t;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Max(params int[] f)
+    {
+        if(f.Length == 0)
+        {
+            return 0;
+        }
+
+        var t = f[0];
 
         var length = f.Length;
 
@@ -181,7 +206,7 @@ public static class Math
             return 0;
         }
 
-        float t = f[0];
+        var t = f[0];
 
         var length = f.Length;
 
@@ -198,6 +223,30 @@ public static class Math
         return t;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Min(params int[] f)
+    {
+        if (f.Length == 0)
+        {
+            return 0;
+        }
+
+        var t = f[0];
+
+        var length = f.Length;
+
+        for (var i = 1; i < length; i++)
+        {
+            var value = f[i];
+
+            if (value < t)
+            {
+                t = value;
+            }
+        }
+
+        return t;
+    }
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float MoveTowards(float current, float target, float maxDelta)
     {
