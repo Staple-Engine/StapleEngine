@@ -126,15 +126,14 @@ public static class Vector2Extensions
         /// <returns>The angle, or 0 if too small</returns>
         public static float Angle(Vector2 from, Vector2 to)
         {
-            var dot = Vector2.Dot(from, to);
-            var magnitude = from.Length() * to.Length();
-
-            if (magnitude < Math.ZeroTolerance)
+            if(from.LengthSquared() < Math.ZeroTolerance || to.LengthSquared() < Math.ZeroTolerance)
             {
                 return 0;
             }
 
-            return Math.Acos(dot / magnitude) * Math.Rad2Deg;
+            var dot = Vector2.Dot(from.Normalized, to.Normalized);
+
+            return Math.Acos(dot) * Math.Rad2Deg;
         }
 
         /// <summary>
@@ -278,15 +277,14 @@ public static class Vector3Extensions
         /// <returns>The angle, or 0 if too small</returns>
         public static float Angle(Vector3 from, Vector3 to)
         {
-            var dot = from.Dot(to);
-            var magnitude = from.Length() * to.Length();
-
-            if (magnitude < Math.ZeroTolerance)
+            if (from.LengthSquared() < Math.ZeroTolerance || to.LengthSquared() < Math.ZeroTolerance)
             {
                 return 0;
             }
 
-            return Math.Acos(dot / magnitude) * Math.Rad2Deg;
+            var dot = Vector3.Dot(from.Normalized, to.Normalized);
+
+            return Math.Acos(dot) * Math.Rad2Deg;
         }
 
         /// <summary>
@@ -434,15 +432,14 @@ public static class Vector4Extensions
         /// <returns>The angle, or 0 if too small</returns>
         public static float Angle(Vector4 from, Vector4 to)
         {
-            var dot = from.Dot(to);
-            var magnitude = from.Length() * to.Length();
-
-            if (magnitude < Math.ZeroTolerance)
+            if (from.LengthSquared() < Math.ZeroTolerance || to.LengthSquared() < Math.ZeroTolerance)
             {
                 return 0;
             }
 
-            return Math.Acos(dot / magnitude) * Math.Rad2Deg;
+            var dot = Vector4.Dot(from.Normalized, to.Normalized);
+
+            return Math.Acos(dot) * Math.Rad2Deg;
         }
 
         /// <summary>

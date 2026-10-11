@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 namespace Staple;
 
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+[AbstractComponent]
 public partial class Component
 {
     public partial bool Enabled { get; set; }

@@ -308,7 +308,7 @@ internal sealed class EntitySystemManager : ISubsystem
                 {
                     ref var component = ref contents[i];
 
-                    if(!component.Enabled)
+                    if(!component.ShouldExecuteEvents)
                     {
                         continue;
                     }
@@ -351,7 +351,7 @@ internal sealed class EntitySystemManager : ISubsystem
                 {
                     ref var component = ref contents[i];
 
-                    if (!component.Enabled)
+                    if (!component.ShouldExecuteEvents)
                     {
                         continue;
                     }
@@ -389,7 +389,7 @@ internal sealed class EntitySystemManager : ISubsystem
                 {
                     ref var component = ref contents[i];
 
-                    if (!component.Enabled)
+                    if (!component.ShouldExecuteEvents)
                     {
                         continue;
                     }
