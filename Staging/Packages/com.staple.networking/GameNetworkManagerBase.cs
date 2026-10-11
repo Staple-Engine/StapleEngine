@@ -4,7 +4,7 @@
 /// Manages a network server and optionally a client
 /// </summary>
 [AbstractComponent]
-public class GameNetworkManagerBase : CallbackComponent
+public class GameNetworkManagerBase : LifecycleComponent
 {
     /// <summary>
     /// The game's port

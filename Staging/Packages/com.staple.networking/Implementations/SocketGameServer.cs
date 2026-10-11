@@ -1,3 +1,4 @@
+using Staple.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -52,7 +53,7 @@ public sealed class SocketGameServer : IGameServer
     public NetworkCompressionType compressionType;
 
     private readonly Lock lockObject = new();
-    private DateTime networkBatcherTimer = DateTime.Now;
+    private readonly TimeTracker networkBatcherTimer = new();
     private bool useNetworkBatching = false;
     private static readonly byte[] receiveBuffer = new byte[MaxBufferSize];
 
@@ -284,7 +285,7 @@ public sealed class SocketGameServer : IGameServer
                     continue;
                 }
 
-                if(SocketIsConnected(client.connection) == false)
+                if(!SocketIsConnected(client.connection))
                 {
                     DisconnectPlayer(client.playerID);
 
@@ -300,7 +301,7 @@ public sealed class SocketGameServer : IGameServer
 
                 if (message != null)
                 {
-                    if(pendingMessages.TryGetValue(client.playerID, out var messages) == false)
+                    if(!pendingMessages.TryGetValue(client.playerID, out var messages))
                     {
                         messages = [];
 
@@ -338,9 +339,9 @@ public sealed class SocketGameServer : IGameServer
         {
             lock (lockObject)
             {
-                if ((DateTime.Now - networkBatcherTimer).TotalSeconds >= TimeBetweenBatches)
+                if (networkBatcherTimer.ElapsedTimeNoReset >= TimeBetweenBatches)
                 {
-                    networkBatcherTimer = DateTime.Now;
+                    networkBatcherTimer.Reset();
 
                     SendBatchMessages();
                 }
@@ -404,7 +405,7 @@ public sealed class SocketGameServer : IGameServer
     {
         try
         {
-            return (socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0) == false;
+            return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
         }
         catch (Exception)
         {

@@ -3,7 +3,7 @@ using System.Numerics;
 
 namespace Staple;
 
-public class FirstPersonCamera : CallbackComponent
+public class FirstPersonCamera : LifecycleComponent
 {
     public bool allowLook = true;
     public bool allowMove = true;

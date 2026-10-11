@@ -3,7 +3,7 @@
 /// <summary>
 /// Canvas component, used as a container for UI.
 /// </summary>
-public class UICanvas : CallbackComponent, IComponentDisposable
+public class UICanvas : LifecycleComponent, IComponentDisposable
 {
     /// <summary>
     /// The UI Manager for this canvas
