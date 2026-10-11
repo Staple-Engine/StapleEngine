@@ -102,6 +102,8 @@ public static class Vector2Extensions
 
         public Vector2 Transformed(in Quaternion quaternion) => Vector2.Transform(v, quaternion);
 
+        public float Cross(in Vector2 other) => Vector2.Cross(v, other);
+
         /// <summary>
         /// Returns a copy of this as a Vector3
         /// </summary>
@@ -123,17 +125,10 @@ public static class Vector2Extensions
         /// </summary>
         /// <param name="from">The vector we want to check the angle from</param>
         /// <param name="to">The vector we want to check the angle to</param>
-        /// <returns>The angle, or 0 if too small</returns>
+        /// <returns>The angle in degrees</returns>
         public static float Angle(Vector2 from, Vector2 to)
         {
-            if(from.LengthSquared() < Math.ZeroTolerance || to.LengthSquared() < Math.ZeroTolerance)
-            {
-                return 0;
-            }
-
-            var dot = Vector2.Dot(from.Normalized, to.Normalized);
-
-            return Math.Acos(dot) * Math.Rad2Deg;
+            return Math.Atan2(from.Cross(to), from.Dot(to)) * Math.Rad2Deg;
         }
 
         /// <summary>
@@ -204,8 +199,10 @@ public static class Vector2Extensions
         /// <returns>The new point</returns>
         public static Vector2 MoveTowards(Vector2 current, Vector2 target, float maxDistanceDelta)
         {
-            return new(Math.MoveTowards(current.X, target.X, maxDistanceDelta),
-                Math.MoveTowards(current.Y, target.Y, maxDistanceDelta));
+            var difference = target - current;
+            var length = difference.Length();
+
+            return length <= maxDistanceDelta || length < Math.ZeroTolerance ? target : current + difference / length * maxDistanceDelta;
         }
     }
 }
@@ -274,17 +271,26 @@ public static class Vector3Extensions
         /// </summary>
         /// <param name="from">The vector we want to check the angle from</param>
         /// <param name="to">The vector we want to check the angle to</param>
-        /// <returns>The angle, or 0 if too small</returns>
+        /// <returns>The angle in degrees</returns>
         public static float Angle(Vector3 from, Vector3 to)
         {
-            if (from.LengthSquared() < Math.ZeroTolerance || to.LengthSquared() < Math.ZeroTolerance)
-            {
-                return 0;
-            }
+            return Math.Atan2(from.Cross(to).Length(), from.Dot(to)) * Math.Rad2Deg;
+        }
 
-            var dot = Vector3.Dot(from.Normalized, to.Normalized);
+        /// <summary>
+        /// Gets a signed angle between two vectors
+        /// </summary>
+        /// <param name="from">The first vector</param>
+        /// <param name="to">The second vector</param>
+        /// <param name="axis">The direction axis</param>
+        /// <returns>The angle in degrees, between -180 and 180</returns>
+        public static float SignedAngle(Vector3 from, Vector3 to, Vector3 axis)
+        {
+            var cross = from.Cross(to);
+            var unsignedAngle = Math.Atan2(cross.Length(), from.Dot(to));
+            var sign = cross.Dot(axis);
 
-            return Math.Acos(dot) * Math.Rad2Deg;
+            return ((sign < 0) ? -unsignedAngle : unsignedAngle) * Math.Rad2Deg;
         }
 
         /// <summary>
@@ -359,9 +365,10 @@ public static class Vector3Extensions
         /// <returns>The new point</returns>
         public static Vector3 MoveTowards(Vector3 current, Vector3 target, float maxDistanceDelta)
         {
-            return new(Math.MoveTowards(current.X, target.X, maxDistanceDelta),
-                Math.MoveTowards(current.Y, target.Y, maxDistanceDelta),
-                Math.MoveTowards(current.Z, target.Z, maxDistanceDelta));
+            var difference = target - current;
+            var length = difference.Length();
+
+            return length <= maxDistanceDelta || length < Math.ZeroTolerance ? target : current + difference / length * maxDistanceDelta;
         }
     }
 }
@@ -429,17 +436,10 @@ public static class Vector4Extensions
         /// </summary>
         /// <param name="from">The vector we want to check the angle from</param>
         /// <param name="to">The vector we want to check the angle to</param>
-        /// <returns>The angle, or 0 if too small</returns>
+        /// <returns>The angle in degrees</returns>
         public static float Angle(Vector4 from, Vector4 to)
         {
-            if (from.LengthSquared() < Math.ZeroTolerance || to.LengthSquared() < Math.ZeroTolerance)
-            {
-                return 0;
-            }
-
-            var dot = Vector4.Dot(from.Normalized, to.Normalized);
-
-            return Math.Acos(dot) * Math.Rad2Deg;
+            return Math.Atan2(from.Cross(to).Length(), from.Dot(to)) * Math.Rad2Deg;
         }
 
         /// <summary>
@@ -518,10 +518,10 @@ public static class Vector4Extensions
         /// <returns>The new point</returns>
         public static Vector4 MoveTowards(Vector4 current, Vector4 target, float maxDistanceDelta)
         {
-            return new(Math.MoveTowards(current.X, target.X, maxDistanceDelta),
-                Math.MoveTowards(current.Y, target.Y, maxDistanceDelta),
-                Math.MoveTowards(current.Z, target.Z, maxDistanceDelta),
-                Math.MoveTowards(current.W, target.W, maxDistanceDelta));
+            var difference = target - current;
+            var length = difference.Length();
+
+            return length <= maxDistanceDelta || length < Math.ZeroTolerance ? target : current + difference / length * maxDistanceDelta;
         }
     }
 }
@@ -678,14 +678,14 @@ public static class QuaternionExtensions
             if (test > 0.4995f * unit)
             {
                 outValue.Y = 2.0f * Math.Atan2(q.Y, q.X);
-                outValue.X = Math.PI / 2;
+                outValue.X = float.Pi / 2;
 
                 return Normalize();
             }
             else if (test < -0.4995f * unit)
             {
                 outValue.Y = -2.0f * Math.Atan2(q.Y, q.X);
-                outValue.X = -Math.PI / 2;
+                outValue.X = -float.Pi / 2;
 
                 return Normalize();
             }

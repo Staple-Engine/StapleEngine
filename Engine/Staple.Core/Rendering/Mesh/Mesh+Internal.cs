@@ -682,13 +682,13 @@ public sealed partial class Mesh
         var texCoords = new List<Vector2>();
         var indices = new List<int>();
 
-        var sectorStep = 2 * Math.PI / sectorCount;
-        var stackStep = Math.PI / stackCount;
+        var sectorStep = 2 * float.Pi / sectorCount;
+        var stackStep = float.Pi / stackCount;
         var lengthInv = 1.0f / radius;
 
         for(var i = 0; i <= stackCount; i++)
         {
-            var stackAngle = Math.PI / 2 - i * stackStep;
+            var stackAngle = float.Pi / 2 - i * stackStep;
             var xy = radius * Math.Cos(stackAngle);
             var z = radius * Math.Sin(stackAngle);
 

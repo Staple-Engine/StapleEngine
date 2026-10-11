@@ -8,15 +8,13 @@ namespace Staple;
 /// </summary>
 public static class Math
 {
-    public const float PI = (float)System.Math.PI;
-
     public const float Epsilon = float.Epsilon;
 
     public const float ZeroTolerance = 1e-4f;
 
-    public const float Deg2Rad = PI / 180;
+    public const float Deg2Rad = float.Pi / 180;
 
-    public const float Rad2Deg = 180 / PI;
+    public const float Rad2Deg = 180 / float.Pi;
 
     public const float Infinity = float.PositiveInfinity;
 
@@ -246,17 +244,6 @@ public static class Math
         }
 
         return t;
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static float MoveTowards(float current, float target, float maxDelta)
-    {
-        if(target - current < maxDelta)
-        {
-            return target;
-        }
-
-        return current + maxDelta;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

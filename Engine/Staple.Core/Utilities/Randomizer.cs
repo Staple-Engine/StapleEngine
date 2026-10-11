@@ -86,7 +86,7 @@ public class Randomizer
     /// <returns>The randomized point</returns>
     public Vector3 RandomNormalizedSphere()
     {
-        var theta = 2 * Math.PI * RandomNormalized();
+        var theta = 2 * float.Pi * RandomNormalized();
         var phi = Math.Acos(2 * RandomNormalized() - 1);
         var cosTheta = Math.Cos(theta);
         var cosPhi = Math.Cos(phi);
