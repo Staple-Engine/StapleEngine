@@ -20,8 +20,8 @@ public partial class World
 
     public delegate void OnComponentChangedCallback(World world, Component component);
 
-    public delegate void CallableComponentCallback(Span<CallbackComponent> content);
-    public delegate void SingleCallableComponentCallback(CallbackComponent component);
+    public delegate void CallableComponentCallback(Span<LifecycleComponent> content);
+    public delegate void SingleCallableComponentCallback(LifecycleComponent component);
 
     /// <summary>
     /// Contains data about a component
@@ -225,7 +225,7 @@ public partial class World
     private readonly HashSet<int> callableComponentTypes = [];
     private readonly List<Entity> destroyedEntities = [];
     private readonly HashSet<(Entity, int)> removedComponents = [];
-    private SceneQuery<CallbackComponent> callableComponents;
+    private SceneQuery<LifecycleComponent> callableComponents;
     private SceneQuery<Camera, Transform> cameras;
 
     private readonly List<Camera> sortedCamerasBacking = [];

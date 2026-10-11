@@ -64,7 +64,7 @@ public sealed partial class RenderSystem
     {
         public RenderSystemInfo renderSystem;
 
-        public readonly Dictionary<int, RenderSystemQueueData> queue = [];
+        public readonly SortedDictionary<int, RenderSystemQueueData> queue = [];
     }
 
     public class RenderSystemCameraSet
@@ -75,7 +75,7 @@ public sealed partial class RenderSystem
 
         public readonly ExpandableContainer<RenderSystemRenderQueue> renderSystems = new(false);
 
-        public readonly HashSet<int> renderIndices = [];
+        public readonly SortedSet<int> renderIndices = [];
     }
 
     internal static byte Priority = 1;

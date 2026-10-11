@@ -247,6 +247,7 @@ public static class Math
 
         return t;
     }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float MoveTowards(float current, float target, float maxDelta)
     {

@@ -182,7 +182,7 @@ public partial class World
 
             if(!Scene.InstancingComponent &&
                 callableComponentTypes.Count != 0 &&
-                container.component is CallbackComponent callback)
+                container.component is LifecycleComponent callback)
             {
                 if(callback.ShouldExecuteEvents)
                 {
@@ -211,6 +211,11 @@ public partial class World
             added = true;
             compatibleTypes = [];
             componentNameHashes.Add(hash, t.FullName);
+        }
+
+        if (t.IsSubclassOf(typeof(LifecycleComponent)))
+        {
+            callableComponentTypes.Add(hash);
         }
 
         if (added)
@@ -260,11 +265,6 @@ public partial class World
             RecursiveAdd(t);
 
             componentCompatibilityCache.Add(hash, compatibleTypes);
-
-            if (t.IsSubclassOf(typeof(CallbackComponent)))
-            {
-                callableComponentTypes.Add(hash);
-            }
         }
     }
 
@@ -318,7 +318,7 @@ public partial class World
                     }
 
                     if (callableComponentTypes.Count != 0 &&
-                        container.component is CallbackComponent callback &&
+                        container.component is LifecycleComponent callback &&
                         callback.ShouldExecuteEvents)
                     {
                         try

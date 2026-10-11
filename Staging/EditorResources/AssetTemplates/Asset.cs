@@ -1,6 +1,6 @@
 ﻿using Staple;
 
-public class MyAsset : IStapleAsset
+public partial class MyAsset : IStapleAsset
 {
     //Add fields here
 }

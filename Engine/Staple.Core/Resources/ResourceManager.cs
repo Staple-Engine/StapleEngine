@@ -1229,7 +1229,7 @@ internal class ResourceManager : IWorldChangeReceiver
                 {
                     World.Current?.EmitAddComponentEvent(c);
 
-                    if (c is CallbackComponent callback)
+                    if (c is LifecycleComponent callback)
                     {
                         if(callback.ShouldExecuteEvents)
                         {

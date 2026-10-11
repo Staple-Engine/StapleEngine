@@ -3,12 +3,12 @@
 namespace Staple;
 
 /// <summary>
-/// Component with callable unity-style events.
-/// You should derive your components from this if you'd rather work without a custom system for that component type.
+/// Component with lifecycle events.
+/// You should derive your components from this if you'd rather work without a custom entity system for that component type.
 /// Just remember, it's less effective than using a system if there's a lot of entities doing things!
 /// </summary>
 [AbstractComponent]
-public class CallbackComponent : Component
+public class LifecycleComponent : Component
 {
     /// <summary>
     /// Flag for knowing when to emit the Start() event
@@ -17,7 +17,7 @@ public class CallbackComponent : Component
     internal bool STAPLE_JUST_ADDED = true;
 
     /// <summary>
-    /// Whether this <see cref="CallbackComponent"/> should execute its events
+    /// Whether this <see cref="LifecycleComponent"/> should execute its events depending on the state of the runtime/editor
     /// </summary>
     internal bool ShouldExecuteEvents => Enabled && (Platform.IsPlaying || (Platform.IsEditor && executeInEditor));
 

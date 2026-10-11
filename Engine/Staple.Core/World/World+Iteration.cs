@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Staple;
 
@@ -12,6 +11,8 @@ public partial class World
     /// <typeparam name="T">The type of the first component</typeparam>
     /// <param name="includeDisabled">Whether to include disabled entities</param>
     /// <returns>An array of a tuple with each entity and the requested components</returns>
+    /// <remarks>This particular method can return all components that derive from <typeparamref name="T"/>, such as having several
+    /// <see cref="LifecycleComponent"/>, but the other methods do not have that behaviour</remarks>
     public T[] Query<T>(bool includeDisabled) where T : Component
     {
         var tName = typeof(T).FullName.GetHashCode();
@@ -37,24 +38,14 @@ public partial class World
 
                 foreach(var key in c1)
                 {
-                    if (entity.components.TryGetValue(key, out tComponent))
+                    if (!entity.components.TryGetValue(key, out tComponent) ||
+                        tComponent == null ||
+                        tComponent.component is not T t)
                     {
-                        break;
+                        continue;
                     }
-                }
 
-                if(tComponent == null || tComponent.component is not T t)
-                {
-                    continue;
-                }
-
-                try
-                {
                     outValue.Add(t);
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"Failed to process entity {entity.ID}: {e}", LogTag);
                 }
             }
 
@@ -575,7 +566,7 @@ public partial class World
     }
 
     /// <summary>
-    /// Iterates through the <see cref="CallbackComponent"/> components of an entity
+    /// Iterates through the <see cref="LifecycleComponent"/> components of an entity
     /// </summary>
     /// <param name="entity">The entity to iterate</param>
     /// <param name="callback">A callback to handle the component</param>
@@ -595,7 +586,7 @@ public partial class World
                     break;
                 }
 
-                if(container.component is not CallbackComponent c)
+                if(container.component is not LifecycleComponent c)
                 {
                     continue;
                 }

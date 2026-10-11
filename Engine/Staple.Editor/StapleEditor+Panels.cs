@@ -864,7 +864,7 @@ internal partial class StapleEditor
                                 {
                                     World.Current.EmitAddComponentEvent(component);
 
-                                    if(component is CallbackComponent callback &&
+                                    if(component is LifecycleComponent callback &&
                                         callback.ShouldExecuteEvents)
                                     {
                                         callback.Awake();

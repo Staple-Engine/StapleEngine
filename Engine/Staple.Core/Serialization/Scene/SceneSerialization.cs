@@ -118,7 +118,7 @@ internal static class SceneSerialization
             {
                 World.Current?.EmitAddComponentEvent(component);
 
-                if (component is CallbackComponent callback)
+                if (component is LifecycleComponent callback)
                 {
                     if (callback.ShouldExecuteEvents)
                     {

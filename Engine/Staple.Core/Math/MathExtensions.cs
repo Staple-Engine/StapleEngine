@@ -195,6 +195,19 @@ public static class Vector2Extensions
             return new(float.SmoothDamp(current.X, target.X, ref currentVelocity.X, smoothTime),
                 float.SmoothDamp(current.Y, target.Y, ref currentVelocity.Y, smoothTime));
         }
+
+        /// <summary>
+        /// Moves a point towards another with a maximum distance
+        /// </summary>
+        /// <param name="current">The current point</param>
+        /// <param name="target">The target point</param>
+        /// <param name="maxDistanceDelta">The maximum distance. You should combine this with <see cref="Time.deltaTime"/> or <see cref="Time.fixedDeltaTime"/> if doing  this during a fixed update cycle</param>
+        /// <returns>The new point</returns>
+        public static Vector2 MoveTowards(Vector2 current, Vector2 target, float maxDistanceDelta)
+        {
+            return new(Math.MoveTowards(current.X, target.X, maxDistanceDelta),
+                Math.MoveTowards(current.Y, target.Y, maxDistanceDelta));
+        }
     }
 }
 
@@ -337,6 +350,20 @@ public static class Vector3Extensions
             return new(float.SmoothDamp(current.X, target.X, ref currentVelocity.X, smoothTime),
                 float.SmoothDamp(current.Y, target.Y, ref currentVelocity.Y, smoothTime),
                 float.SmoothDamp(current.Z, target.Z, ref currentVelocity.Z, smoothTime));
+        }
+
+        /// <summary>
+        /// Moves a point towards another with a maximum distance
+        /// </summary>
+        /// <param name="current">The current point</param>
+        /// <param name="target">The target point</param>
+        /// <param name="maxDistanceDelta">The maximum distance. You should combine this with <see cref="Time.deltaTime"/> or <see cref="Time.fixedDeltaTime"/> if doing  this during a fixed update cycle</param>
+        /// <returns>The new point</returns>
+        public static Vector3 MoveTowards(Vector3 current, Vector3 target, float maxDistanceDelta)
+        {
+            return new(Math.MoveTowards(current.X, target.X, maxDistanceDelta),
+                Math.MoveTowards(current.Y, target.Y, maxDistanceDelta),
+                Math.MoveTowards(current.Z, target.Z, maxDistanceDelta));
         }
     }
 }
@@ -483,6 +510,21 @@ public static class Vector4Extensions
                 float.SmoothDamp(current.Y, target.Y, ref currentVelocity.Y, smoothTime),
                 float.SmoothDamp(current.Z, target.Z, ref currentVelocity.Z, smoothTime),
                 float.SmoothDamp(current.W, target.W, ref currentVelocity.W, smoothTime));
+        }
+
+        /// <summary>
+        /// Moves a point towards another with a maximum distance
+        /// </summary>
+        /// <param name="current">The current point</param>
+        /// <param name="target">The target point</param>
+        /// <param name="maxDistanceDelta">The maximum distance. You should combine this with <see cref="Time.deltaTime"/> or <see cref="Time.fixedDeltaTime"/> if doing  this during a fixed update cycle</param>
+        /// <returns>The new point</returns>
+        public static Vector4 MoveTowards(Vector4 current, Vector4 target, float maxDistanceDelta)
+        {
+            return new(Math.MoveTowards(current.X, target.X, maxDistanceDelta),
+                Math.MoveTowards(current.Y, target.Y, maxDistanceDelta),
+                Math.MoveTowards(current.Z, target.Z, maxDistanceDelta),
+                Math.MoveTowards(current.W, target.W, maxDistanceDelta));
         }
     }
 }

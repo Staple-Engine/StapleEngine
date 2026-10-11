@@ -1,0 +1,262 @@
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+namespace Staple
+{
+    [Generator]
+    public class StapleAssetSourceGenerator : IIncrementalGenerator
+    {
+        private const bool verbose = false;
+
+        public void Initialize(IncrementalGeneratorInitializationContext context)
+        {
+            /*
+#if DEBUG
+            if (!Debugger.IsAttached)
+            {
+                Debugger.Launch();
+            }
+#endif
+            */
+
+            var generatedFiles = new HashSet<string>();
+
+            var excludedTypes = new List<string>();
+
+            var configFile = context.AdditionalTextsProvider.Where(x => x.Path.EndsWith("TypeExclusions.txt"))
+                .Select((file, token) => file.GetText(token)?.ToString())
+                .Select((text, _) =>
+                {
+                    if (string.IsNullOrEmpty(text))
+                    {
+                        return [];
+                    }
+
+                    return text
+                        .Split('\n')
+                        .Select(x => x.Trim())
+                        .ToList();
+                })
+                .Collect();
+
+            void Perform(IAssemblySymbol symbol, bool isSelf, in SourceProductionContext context)
+            {
+                void HandleNamedSymbol(INamedTypeSymbol t, string namespaceName, string baseTypeName, in SourceProductionContext context)
+                {
+                    if (t.IsAbstract || t.IsGenericType || t.IsStatic || t.Name.EndsWith("Attribute") ||
+                        t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
+                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name) ||
+                        (t.DeclaredAccessibility != Accessibility.Public &&
+                        (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
+                        t.TypeKind == TypeKind.Delegate ||
+                        t.IsRefLikeType ||
+                        (t.TypeKind != TypeKind.Class && t.TypeKind != TypeKind.Struct))
+                    {
+                        return;
+                    }
+
+                    var typeName = baseTypeName.Length == 0 ? t.Name : $"{baseTypeName}.{t.Name}";
+
+                    Debug.WriteLine($"Adding type {typeName}");
+
+                    if (excludedTypes.Contains(typeName))
+                    {
+                        return;
+                    }
+
+                    if (typeName.Contains("e__FixedBuffer"))
+                    {
+                        return;
+                    }
+
+                    if (typeName.ToUpperInvariant().Contains("DELEGATE"))
+                    {
+                        return;
+                    }
+
+                    bool BaseTypeIsStapleAsset(INamedTypeSymbol symbol)
+                    {
+                        foreach(var i in symbol.Interfaces)
+                        {
+                            if (i.ContainingNamespace?.Name == "Staple" && i.Name == "IStapleAsset")
+                            {
+                                return true;
+                            }
+                        }
+
+                        foreach (var i in symbol.AllInterfaces)
+                        {
+                            if (i.ContainingNamespace?.Name == "Staple" && i.Name == "IStapleAsset")
+                            {
+                                return true;
+                            }
+                        }
+
+                        if (symbol.BaseType != null)
+                        {
+                            return BaseTypeIsStapleAsset(symbol.BaseType);
+                        }
+
+                        return false;
+                    }
+
+                    if (!t.IsStatic &&
+                        t.Constructors.Any(x => x.Parameters.Length == 0) &&
+                        t.TypeKind == TypeKind.Class &&
+                        BaseTypeIsStapleAsset(t) &&
+                        t.DeclaringSyntaxReferences.Length > 0 &&
+                        t.DeclaringSyntaxReferences[0].GetSyntax() is BaseTypeDeclarationSyntax baseType &&
+                        baseType.Modifiers.Any(x => x.IsKind(Microsoft.CodeAnalysis.CSharp.SyntaxKind.PartialKeyword)))
+                    {
+                        var targetName = $"{typeName}.g.cs";
+
+                        if (generatedFiles.Contains(targetName))
+                        {
+                            return;
+                        }
+
+                        var typeAccessibility = t.DeclaredAccessibility switch
+                        {
+                            Accessibility.Internal => "internal",
+                            Accessibility.Protected => "protected",
+                            Accessibility.Private => "private",
+                            _ => "public"
+                        };
+
+                        var properties = t.GetMembers()
+                            .Where(x => x is IPropertySymbol property &&
+                                property.IsStatic == false &&
+                                property.IsPartialDefinition)
+                            .Select(x => x as IPropertySymbol)
+                            .Where(x => x != null)
+                            .ToArray();
+
+                        var hasGuidAsset = t.Interfaces.Any(x => x.Name == "IGuidAsset") ||
+                            t.AllInterfaces.Any(x => x.Name == "IGuidAsset");
+
+                        var guidAssetText = hasGuidAsset ? "" : " : Staple.IGuidAsset";
+
+                        var hasGuidHasher = t.MemberNames.Contains("Guid");
+
+                        var guidHasherText = hasGuidHasher ? "" : "public GuidHasher Guid { get; internal set; } = new();";
+
+                        var singleBrackets = string.IsNullOrEmpty(namespaceName);
+
+                        var source = singleBrackets ? $@"// <auto-generated />
+using System;
+using System.Runtime.InteropServices;
+
+{typeAccessibility} partial class {typeName} {guidAssetText}
+{{
+    {guidHasherText}
+
+" : $@"// <auto-generated />
+using System;
+using System.Runtime.InteropServices;
+
+namespace {namespaceName}
+{{
+    {typeAccessibility} partial class {typeName} {guidAssetText}
+    {{
+        {guidHasherText}
+
+";
+                            source += singleBrackets ? $@"
+    public static object Create(string guid)
+    {{
+        return Resources.Load<{typeName}>(guid);
+    }}
+
+" : $@"
+        public static object Create(string guid)
+        {{
+            return Resources.Load<{typeName}>(guid);
+        }}
+
+";
+
+                        source += singleBrackets ? $@"
+}}
+" : $@"
+    }}
+}}
+";
+
+                        context.AddSource(targetName, SourceText.From(source, Encoding.UTF8));
+
+                        generatedFiles.Add(targetName);
+
+                        foreach (var type in t.GetTypeMembers())
+                        {
+                            HandleNamedSymbol(type, namespaceName, baseTypeName.Length == 0 ? t.Name : $"{baseTypeName}.{t.Name}", in context);
+                        }
+                    }
+                }
+
+                void HandleNamespace(INamespaceSymbol n, in SourceProductionContext context)
+                {
+                    if (n.Name == "System" || n.Name == "Microsoft")
+                    {
+                        return;
+                    }
+
+                    var namespaceName = n.Name;
+
+                    void Name(INamespaceSymbol s)
+                    {
+                        if (s == null || s.Name.Length == 0)
+                        {
+                            return;
+                        }
+
+                        namespaceName = $"{s.Name}.{namespaceName}";
+
+                        if (s.ContainingNamespace != null)
+                        {
+                            Name(s.ContainingNamespace);
+                        }
+                    }
+
+                    Name(n.ContainingNamespace);
+
+                    foreach (var t in n.GetTypeMembers())
+                    {
+                        HandleNamedSymbol(t, namespaceName, "", in context);
+                    }
+
+                    foreach (var ns in n.GetNamespaceMembers())
+                    {
+                        HandleNamespace(ns, in context);
+                    }
+                }
+
+                foreach (var n in symbol.GlobalNamespace.GetNamespaceMembers())
+                {
+                    HandleNamespace(n, in context);
+                }
+
+                HandleNamespace(symbol.GlobalNamespace, in context);
+            }
+
+            context.RegisterSourceOutput(context.CompilationProvider.Combine(configFile),
+                (sourceContext, compilation) =>
+                {
+                    var module = compilation.Left.SourceModule;
+
+                    foreach (var symbol in module.ReferencedAssemblySymbols)
+                    {
+                        Perform(symbol, false, in sourceContext);
+                    }
+
+                    Perform(module.ContainingAssembly, true, in sourceContext);
+                });
+        }
+    }
+}

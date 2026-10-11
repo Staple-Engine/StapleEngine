@@ -429,7 +429,7 @@ public static class EditorUtils
         cameraTransform = instance.cameraTransform;
     }
 
-    internal static void ExecuteEditorEvent(Action<CallbackComponent> callback, string eventType)
+    internal static void ExecuteEditorEvent(Action<LifecycleComponent> callback, string eventType)
     {
         World.Current?.IterateCallableComponents((contents) =>
         {

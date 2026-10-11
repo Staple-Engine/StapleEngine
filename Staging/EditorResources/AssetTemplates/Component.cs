@@ -1,6 +1,6 @@
 ﻿using Staple;
 
-public struct MyComponent : IComponent
+public partial class MyComponent : Component
 {
     //Add fields here
 }

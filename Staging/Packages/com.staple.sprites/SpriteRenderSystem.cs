@@ -98,11 +98,6 @@ public class SpriteRenderSystem : RenderSystemBase
     /// </summary>
     private readonly HashSet<int> ninePatchItemsToRemove = [];
 
-    /// <summary>
-    /// List of materials we can modify at will
-    /// </summary>
-    private readonly Dictionary<int, Material> mutableMaterials = [];
-
     public SpriteRenderSystem() : base(false, typeof(SpriteRenderer), typeof(GenericRenderQueue<SpriteRenderer>))
     {
     }
@@ -119,7 +114,8 @@ public class SpriteRenderSystem : RenderSystemBase
     /// <param name="offset">The 3D offset for the piece</param>
     /// <param name="sizeOverride">If we're overriding the size, we can do so here</param>
     /// <param name="vertices">The vertices to fill in</param>
-    internal static void MakeNinePatchGeometrySlice(Vector2 textureSize, Vector2 position, Vector2 size, Vector2 uvSize, Vector2 offset, Vector2 sizeOverride, Span<SpriteVertex> vertices)
+    internal static void MakeNinePatchGeometrySlice(Vector2 textureSize, Vector2 position, Vector2 size, Vector2 uvSize, Vector2 offset,
+        Vector2 sizeOverride, Span<SpriteVertex> vertices)
     {
         if(vertices.IsEmpty ||
             vertices.Length != 6)
@@ -479,19 +475,12 @@ public class SpriteRenderSystem : RenderSystemBase
             {
                 var material = r.materials[index];
 
-                if (mutableMaterials.TryGetValue(material.Guid.GuidHash, out var mutableMaterial) == false)
-                {
-                    mutableMaterial = new(material);
-
-                    mutableMaterial.DisableShaderKeyword(Shader.SkinningKeyword);
-
-                    mutableMaterials.Add(material.Guid.GuidHash, mutableMaterial);
-                }
+                material.DisableShaderKeyword(Shader.SkinningKeyword);
 
                 container.Add(new SpriteRenderInfo()
                 {
                     color = r.color,
-                    material = mutableMaterial,
+                    material = material,
                     texture = sprite.texture,
                     textureRect = sprite.Rect,
                     transform = entry.transform,
@@ -603,11 +592,17 @@ public class SpriteRenderSystem : RenderSystemBase
                         break;
                 }
 
+                var c = s.material.MainColor;
+                var t = s.material.MainTexture;
+
                 s.material.MainColor = s.color;
                 s.material.MainTexture = s.texture;
 
-                Graphics.RenderSimple(vertices, vertexLayout.Value, indices, s.material, Matrix4x4.CreateScale(s.scale) * s.transform.Matrix,
+                Graphics.RenderTransient(vertices, vertexLayout.Value, indices, s.material, Matrix4x4.CreateScale(s.scale) * s.transform.Matrix,
                     MeshTopology.Triangles, true);
+
+                s.material.MainColor = c;
+                s.material.MainTexture = t;
             }
         }
     }

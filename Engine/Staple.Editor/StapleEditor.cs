@@ -185,7 +185,7 @@ internal partial class StapleEditor
         public readonly SceneQuery<Transform> transforms = new(true);
         public readonly ExpandableContainer<RenderSystem.RenderSystemRenderQueue> renderQueue = new(false);
         public readonly List<Entity> disabledEntities = [];
-        public readonly HashSet<int> renderIndices = [];
+        public readonly SortedSet<int> renderIndices = [];
 
         public void WorldReplaced(World world)
         {
@@ -1396,7 +1396,7 @@ internal partial class StapleEditor
                 }
             }
 
-            EditorUtils.ExecuteEditorEvent((callback) => callback.Update(), nameof(CallbackComponent.Update));
+            EditorUtils.ExecuteEditorEvent((callback) => callback.Update(), nameof(LifecycleComponent.Update));
 
             EditorGUI.OnFrameEnd();
 
@@ -1519,7 +1519,7 @@ internal partial class StapleEditor
             }
             else
             {
-                EditorUtils.ExecuteEditorEvent((callback) => callback.FixedUpdate(), nameof(CallbackComponent.FixedUpdate));
+                EditorUtils.ExecuteEditorEvent((callback) => callback.FixedUpdate(), nameof(LifecycleComponent.FixedUpdate));
             }
         };
 
