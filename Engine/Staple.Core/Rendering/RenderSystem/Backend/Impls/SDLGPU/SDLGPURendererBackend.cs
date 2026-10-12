@@ -377,7 +377,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     #endregion
 
     #region Fields
-    internal Vector2Int renderSize;
+    private Vector2Int renderSize;
 
     internal SDL_GPUDevice *device;
     internal SDL_GPUCommandBuffer *commandBuffer;
@@ -549,6 +549,19 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     }
 
     public BufferAttributeContainer StaticMeshData { get; } = new();
+
+    internal Vector2Int CurrentRenderSize
+    {
+        get
+        {
+            if(viewData.renderTarget != null)
+            {
+                return new(viewData.renderTarget.width, viewData.renderTarget.height);
+            }
+
+            return renderSize;
+        }
+    }
 
     public bool Initialize(RendererType renderer, bool debug, IRenderWindow window, RenderModeFlags renderFlags)
     {
@@ -1344,7 +1357,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             width = viewData.renderTarget.width;
             height = viewData.renderTarget.height;
 
-            depthTexture = viewData.renderTarget.DepthTexture?.textureResource?.impl as SDLGPUTexture;
+            depthTexture = viewData.renderTarget.depthTexture?.textureResource?.impl as SDLGPUTexture;
         }
 
         if (texture == null ||
@@ -1756,8 +1769,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                             colorTargetDescriptions.Add(colorTargetDescription);
                         }
 
-                        if(state.renderTarget.DepthTexture is { Disposed: false } &&
-                            TryGetTextureFormat(state.renderTarget.DepthTexture.textureResource.impl.Format,
+                        if(state.renderTarget.depthTexture is { Disposed: false } &&
+                            TryGetTextureFormat(state.renderTarget.depthTexture.textureResource.impl.Format,
                                 state.renderTarget.flags | TextureFlags.DepthStencilTarget,
                                 out var depthFormat))
                         {
@@ -2018,8 +2031,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                             colorTargetDescriptions.Add(colorTargetDescription);
                         }
 
-                        if (state.renderTarget.DepthTexture is { Disposed: false } &&
-                            TryGetTextureFormat(state.renderTarget.DepthTexture.textureResource.impl.Format,
+                        if (state.renderTarget.depthTexture is { Disposed: false } &&
+                            TryGetTextureFormat(state.renderTarget.depthTexture.textureResource.impl.Format,
                                 state.renderTarget.flags | TextureFlags.DepthStencilTarget,
                                 out var depthFormat))
                         {
@@ -2557,5 +2570,26 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         }
 
         return validVertexAttributes;
+    }
+
+    internal void SetupScissorTest(Rect stateScissor)
+    {
+        SDL_Rect scissor;
+
+        if (stateScissor != default)
+        {
+            scissor.x = Math.Max(0, stateScissor.left);
+            scissor.y = Math.Max(0, stateScissor.top);
+            scissor.w = Math.Min(CurrentRenderSize.X, stateScissor.Width);
+            scissor.h = Math.Min(CurrentRenderSize.Y, stateScissor.Height);
+        }
+        else
+        {
+            scissor.x = scissor.y = 0;
+            scissor.w = CurrentRenderSize.X;
+            scissor.h = CurrentRenderSize.Y;
+        }
+
+        SDL3.SDL_SetGPUScissor(renderPass, &scissor);
     }
 }

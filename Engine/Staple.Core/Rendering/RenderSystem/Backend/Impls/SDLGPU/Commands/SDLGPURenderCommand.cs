@@ -182,24 +182,7 @@ internal unsafe class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderS
             }
         }
 
-        if (state.scissor != default)
-        {
-            scissor.x = Math.Max(0, state.scissor.left);
-            scissor.y = Math.Max(0, state.scissor.top);
-            scissor.w = Math.Min(backend.renderSize.X, state.scissor.Width);
-            scissor.h = Math.Min(backend.renderSize.Y, state.scissor.Height);
-        }
-        else
-        {
-            scissor.x = scissor.y = 0;
-            scissor.w = backend.renderSize.X;
-            scissor.h = backend.renderSize.Y;
-        }
-
-        fixed (SDL_Rect* r = &scissor)
-        {
-            SDL3.SDL_SetGPUScissor(renderPass, r);
-        }
+        backend.SetupScissorTest(state.scissor);
 
         if (vertexSamplers.IsEmpty == false)
         {
@@ -453,24 +436,7 @@ internal unsafe class SDLGPURenderCommand(SDLGPURendererBackend backend, RenderS
             }
         }
 
-        if (state.scissor != default)
-        {
-            scissor.x = Math.Max(0, state.scissor.left);
-            scissor.y = Math.Max(0, state.scissor.top);
-            scissor.w = Math.Min(backend.renderSize.X, state.scissor.Width);
-            scissor.h = Math.Min(backend.renderSize.Y, state.scissor.Height);
-        }
-        else
-        {
-            scissor.x = scissor.y = 0;
-            scissor.w = backend.renderSize.X;
-            scissor.h = backend.renderSize.Y;
-        }
-
-        fixed (SDL_Rect* r = &scissor)
-        {
-            SDL3.SDL_SetGPUScissor(renderPass, r);
-        }
+        backend.SetupScissorTest(state.scissor);
 
         if (vertexSamplers.IsEmpty == false)
         {

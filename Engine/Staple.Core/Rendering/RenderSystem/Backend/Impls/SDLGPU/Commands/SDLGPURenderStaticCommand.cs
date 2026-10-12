@@ -75,24 +75,7 @@ internal unsafe class SDLGPURenderStaticCommand(SDLGPURendererBackend backend, R
             }
         }
 
-        if (state.scissor != default)
-        {
-            SDLGPURenderCommand.scissor.x = Math.Max(0, state.scissor.left);
-            SDLGPURenderCommand.scissor.y = Math.Max(0, state.scissor.top);
-            SDLGPURenderCommand.scissor.w = Math.Min(backend.renderSize.X, state.scissor.Width);
-            SDLGPURenderCommand.scissor.h = Math.Min(backend.renderSize.Y, state.scissor.Height);
-        }
-        else
-        {
-            SDLGPURenderCommand.scissor.x = SDLGPURenderCommand.scissor.y = 0;
-            SDLGPURenderCommand.scissor.w = backend.renderSize.X;
-            SDLGPURenderCommand.scissor.h = backend.renderSize.Y;
-        }
-
-        fixed (SDL_Rect* r = &SDLGPURenderCommand.scissor)
-        {
-            SDL3.SDL_SetGPUScissor(renderPass, r);
-        }
+        backend.SetupScissorTest(state.scissor);
 
         if (vertexSamplers.IsEmpty == false)
         {

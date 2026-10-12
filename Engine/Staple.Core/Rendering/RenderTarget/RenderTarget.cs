@@ -6,20 +6,33 @@ namespace Staple;
 /// <summary>
 /// Render Target resource. Used to render to texture.
 /// </summary>
-public sealed class RenderTarget(int width, int height, TextureFlags flags, List<Texture> colorTextures, Texture depthTexture)
+public sealed class RenderTarget
 {
     public static RenderTarget Current;
 
-    internal readonly int width = width;
-    internal readonly int height = height;
-    internal readonly TextureFlags flags = flags;
-    internal readonly List<Texture> colorTextures = colorTextures ?? [];
+    internal readonly int width;
+    internal readonly int height;
+    internal readonly TextureFlags flags;
+    internal readonly List<Texture> colorTextures;
 
-    public Texture DepthTexture { get; private set; } = depthTexture;
+    internal Texture depthTexture;
+
+    internal readonly Vector2Int size;
 
     public int ColorTextureCount => colorTextures.Count;
 
     public bool Disposed { get; private set; } = false;
+
+    private RenderTarget(int width, int height, TextureFlags flags, List<Texture> colorTextures, Texture depthTexture)
+    {
+        this.width = width;
+        this.height = height;
+        this.flags = flags;
+        this.colorTextures = colorTextures ?? [];
+        this.depthTexture = depthTexture;
+
+        size = new(width, height);
+    }
 
     ~RenderTarget()
     {
@@ -45,9 +58,9 @@ public sealed class RenderTarget(int width, int height, TextureFlags flags, List
 
         colorTextures.Clear();
 
-        DepthTexture?.Destroy();
+        depthTexture?.Destroy();
 
-        DepthTexture = null;
+        depthTexture = null;
     }
 
     /// <summary>

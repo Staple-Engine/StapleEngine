@@ -60,7 +60,7 @@ internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend
             width = target.width;
             height = target.height;
 
-            depthTexture = target.DepthTexture?.textureResource?.impl as SDLGPUTexture;
+            depthTexture = target.depthTexture?.textureResource?.impl as SDLGPUTexture;
         }
 
         if (texture == null ||
