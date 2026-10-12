@@ -592,11 +592,6 @@ internal partial class SDLGPURendererBackend
                 return;
             }
 
-            if (!BeginCopyPass())
-            {
-                return;
-            }
-
             var mapData = SDL3.SDL_MapGPUTransferBuffer(device, transferBuffer, true);
 
             unsafe
@@ -624,65 +619,46 @@ internal partial class SDLGPURendererBackend
         }
     }
 
-    private void UpdateIndirectCommandBuffer()
+    private void UpdateDynamicIndirectEntityBuffer()
     {
         unsafe
         {
-            if (RenderSystem.Instance.changedEntityTransformRanges.Count == 0 &&
-                !needsIndirectBufferUpdate &&
-                indirectCommandBuffer != null &&
-                entityTransformIndexBuffer != null)
+            var targetSize = dynamicIndirectEntityIndices.Length * sizeof(uint);
+
+            if (dynamicEntityTransformIndexBufferLength != targetSize)
             {
-                return;
-            }
-
-            needsIndirectBufferUpdate = false;
-
-            if (renderPass != null)
-            {
-                FinishPasses();
-            }
-
-            var targetSize = indirectCommands.Length * Marshal.SizeOf<SDL_GPUIndexedIndirectDrawCommand>();
-
-            if (indirectCommandBufferLength != targetSize)
-            {
-                if (indirectCommandBuffer != null)
+                if (dynamicEntityTransformIndexBuffer != null)
                 {
-                    SDL3.SDL_ReleaseGPUBuffer(device, indirectCommandBuffer);
+                    SDL3.SDL_ReleaseGPUBuffer(device, dynamicEntityTransformIndexBuffer);
 
-                    indirectCommandBuffer = null;
+                    dynamicEntityTransformIndexBuffer = null;
                 }
 
                 var createInfo = new SDL_GPUBufferCreateInfo()
                 {
                     size = (uint)targetSize,
-                    usage = SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDIRECT,
+                    usage = SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDIRECT |
+                        SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_GRAPHICS_STORAGE_READ,
                 };
 
-                indirectCommandBuffer = SDL3.SDL_CreateGPUBuffer(device, &createInfo);
+                dynamicEntityTransformIndexBuffer = SDL3.SDL_CreateGPUBuffer(device, &createInfo);
 
-                if (indirectCommandBuffer == null)
+                if (dynamicEntityTransformIndexBuffer == null)
                 {
                     return;
                 }
 
-                indirectCommandBufferLength = targetSize;
+                dynamicEntityTransformIndexBufferLength = targetSize;
             }
 
             var transferBuffer = GetTransferBuffer(false, targetSize);
 
             if (transferBuffer == null)
             {
-                SDL3.SDL_ReleaseGPUBuffer(device, indirectCommandBuffer);
+                SDL3.SDL_ReleaseGPUBuffer(device, dynamicEntityTransformIndexBuffer);
 
-                indirectCommandBuffer = null;
+                dynamicEntityTransformIndexBuffer = null;
 
-                return;
-            }
-
-            if (!BeginCopyPass())
-            {
                 return;
             }
 
@@ -690,8 +666,8 @@ internal partial class SDLGPURendererBackend
 
             unsafe
             {
-                var from = indirectCommands.Contents;
-                var to = new Span<SDL_GPUIndexedIndirectDrawCommand>((void*)mapData, indirectCommands.Length);
+                var from = dynamicIndirectEntityIndices.Contents;
+                var to = new Span<uint>((void*)mapData, dynamicIndirectEntityIndices.Length);
 
                 from.CopyTo(to);
             }
@@ -705,13 +681,187 @@ internal partial class SDLGPURendererBackend
 
             var region = new SDL_GPUBufferRegion()
             {
-                buffer = indirectCommandBuffer,
+                buffer = dynamicEntityTransformIndexBuffer,
                 size = (uint)targetSize,
             };
 
             SDL3.SDL_UploadToGPUBuffer(copyPass, &location, &region, false);
+        }
+    }
 
-            UpdateIndirectEntityBuffer();
+    private void UpdateIndirectCommandBuffer()
+    {
+        unsafe
+        {
+            if (RenderSystem.Instance.changedEntityTransformRanges.Count == 0 &&
+                !needsIndirectBufferUpdate &&
+                !needsDynamicIndirectBufferUpdate &&
+                indirectCommandBuffer != null &&
+                dynamicIndirectCommandBuffer != null &&
+                entityTransformIndexBuffer != null)
+            {
+                return;
+            }
+
+            var doIndirect = needsIndirectBufferUpdate;
+            var doDynamic = needsDynamicIndirectBufferUpdate;
+
+            needsIndirectBufferUpdate = needsDynamicIndirectBufferUpdate = false;
+
+            if (renderPass != null)
+            {
+                FinishPasses();
+            }
+
+            var hasCopyPass = false;
+
+            if(doIndirect)
+            {
+                var targetSize = indirectCommands.Length * Marshal.SizeOf<SDL_GPUIndexedIndirectDrawCommand>();
+
+                if (indirectCommandBufferLength != targetSize)
+                {
+                    if (indirectCommandBuffer != null)
+                    {
+                        SDL3.SDL_ReleaseGPUBuffer(device, indirectCommandBuffer);
+
+                        indirectCommandBuffer = null;
+                    }
+
+                    var createInfo = new SDL_GPUBufferCreateInfo()
+                    {
+                        size = (uint)targetSize,
+                        usage = SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDIRECT,
+                    };
+
+                    indirectCommandBuffer = SDL3.SDL_CreateGPUBuffer(device, &createInfo);
+
+                    if (indirectCommandBuffer == null)
+                    {
+                        return;
+                    }
+
+                    indirectCommandBufferLength = targetSize;
+                }
+
+                var transferBuffer = GetTransferBuffer(false, targetSize);
+
+                if (transferBuffer == null)
+                {
+                    SDL3.SDL_ReleaseGPUBuffer(device, indirectCommandBuffer);
+
+                    indirectCommandBuffer = null;
+
+                    return;
+                }
+
+                if (!BeginCopyPass())
+                {
+                    return;
+                }
+
+                hasCopyPass = true;
+
+                var mapData = SDL3.SDL_MapGPUTransferBuffer(device, transferBuffer, true);
+
+                unsafe
+                {
+                    var from = indirectCommands.Contents;
+                    var to = new Span<SDL_GPUIndexedIndirectDrawCommand>((void*)mapData, indirectCommands.Length);
+
+                    from.CopyTo(to);
+                }
+
+                SDL3.SDL_UnmapGPUTransferBuffer(device, transferBuffer);
+
+                var location = new SDL_GPUTransferBufferLocation()
+                {
+                    transfer_buffer = transferBuffer,
+                };
+
+                var region = new SDL_GPUBufferRegion()
+                {
+                    buffer = indirectCommandBuffer,
+                    size = (uint)targetSize,
+                };
+
+                SDL3.SDL_UploadToGPUBuffer(copyPass, &location, &region, false);
+
+                UpdateIndirectEntityBuffer();
+            }
+
+            if (doDynamic)
+            {
+                var targetSize = dynamicIndirectCommands.Length * Marshal.SizeOf<SDL_GPUIndexedIndirectDrawCommand>();
+
+                if (dynamicIndirectCommandBufferLength != targetSize)
+                {
+                    if (dynamicIndirectCommandBuffer != null)
+                    {
+                        SDL3.SDL_ReleaseGPUBuffer(device, dynamicIndirectCommandBuffer);
+
+                        dynamicIndirectCommandBuffer = null;
+                    }
+
+                    var createInfo = new SDL_GPUBufferCreateInfo()
+                    {
+                        size = (uint)targetSize,
+                        usage = SDL_GPUBufferUsageFlags.SDL_GPU_BUFFERUSAGE_INDIRECT,
+                    };
+
+                    dynamicIndirectCommandBuffer = SDL3.SDL_CreateGPUBuffer(device, &createInfo);
+
+                    if (dynamicIndirectCommandBuffer == null)
+                    {
+                        return;
+                    }
+
+                    dynamicIndirectCommandBufferLength = targetSize;
+                }
+
+                var transferBuffer = GetTransferBuffer(false, targetSize);
+
+                if (transferBuffer == null)
+                {
+                    SDL3.SDL_ReleaseGPUBuffer(device, dynamicIndirectCommandBuffer);
+
+                    dynamicIndirectCommandBuffer = null;
+
+                    return;
+                }
+
+                if (!hasCopyPass && !BeginCopyPass())
+                {
+                    return;
+                }
+
+                var mapData = SDL3.SDL_MapGPUTransferBuffer(device, transferBuffer, true);
+
+                unsafe
+                {
+                    var from = dynamicIndirectCommands.Contents;
+                    var to = new Span<SDL_GPUIndexedIndirectDrawCommand>((void*)mapData, dynamicIndirectCommands.Length);
+
+                    from.CopyTo(to);
+                }
+
+                SDL3.SDL_UnmapGPUTransferBuffer(device, transferBuffer);
+
+                var location = new SDL_GPUTransferBufferLocation()
+                {
+                    transfer_buffer = transferBuffer,
+                };
+
+                var region = new SDL_GPUBufferRegion()
+                {
+                    buffer = dynamicIndirectCommandBuffer,
+                    size = (uint)targetSize,
+                };
+
+                SDL3.SDL_UploadToGPUBuffer(copyPass, &location, &region, false);
+
+                UpdateDynamicIndirectEntityBuffer();
+            }
         }
     }
 }

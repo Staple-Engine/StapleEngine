@@ -77,10 +77,10 @@ internal unsafe class SDLGPURenderStaticCommand(SDLGPURendererBackend backend, R
 
         if (state.scissor != default)
         {
-            SDLGPURenderCommand.scissor.x = state.scissor.left;
-            SDLGPURenderCommand.scissor.y = state.scissor.top;
-            SDLGPURenderCommand.scissor.w = state.scissor.Width;
-            SDLGPURenderCommand.scissor.h = state.scissor.Height;
+            SDLGPURenderCommand.scissor.x = Math.Max(0, state.scissor.left);
+            SDLGPURenderCommand.scissor.y = Math.Max(0, state.scissor.top);
+            SDLGPURenderCommand.scissor.w = Math.Min(backend.renderSize.X, state.scissor.Width);
+            SDLGPURenderCommand.scissor.h = Math.Min(backend.renderSize.Y, state.scissor.Height);
         }
         else
         {

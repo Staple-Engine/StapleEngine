@@ -183,6 +183,11 @@ public sealed partial class RenderSystem
     {
         var resetFlags = RenderModeFlags.None;
 
+        if(videoFlags.HasFlag(VideoFlags.Debug))
+        {
+            resetFlags |= RenderModeFlags.Debug;
+        }
+
         if (videoFlags.HasFlag(VideoFlags.Vsync))
         {
             resetFlags |= RenderModeFlags.Vsync;

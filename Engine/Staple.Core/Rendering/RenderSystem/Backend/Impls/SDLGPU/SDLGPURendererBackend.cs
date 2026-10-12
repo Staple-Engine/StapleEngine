@@ -412,6 +412,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     private readonly ulong[] lastFragmentShaderUniformHashes = new ulong[20];
     private RenderTarget currentRenderTarget;
 
+    #region Indirect
     private readonly ExpandableContainer<SDL_GPUIndexedIndirectDrawCommand> indirectCommands = new(1024);
     private readonly ExpandableContainer<uint> indirectEntityIndices = new(1024);
     internal SDL_GPUBuffer *indirectCommandBuffer = null;
@@ -419,16 +420,34 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     private int indirectCommandPosition;
     private int indirectCommandInstance;
     private bool needsIndirectBufferUpdate = true;
+    internal static SDL_GPUBuffer* entityTransformIndexBuffer = null;
+    internal static int entityTransformIndexBufferLength;
+    #endregion
 
+    #region Indirect (Dynamic)
+    private readonly ExpandableContainer<SDL_GPUIndexedIndirectDrawCommand> dynamicIndirectCommands = new(1024);
+    private readonly ExpandableContainer<uint> dynamicIndirectEntityIndices = new(1024);
+    internal SDL_GPUBuffer* dynamicIndirectCommandBuffer = null;
+    private int dynamicIndirectCommandBufferLength;
+    private int dynamicIndirectCommandPosition;
+    private int dynamicIndirectCommandInstance;
+    private bool needsDynamicIndirectBufferUpdate = true;
+    internal static SDL_GPUBuffer* dynamicEntityTransformIndexBuffer = null;
+    internal static int dynamicEntityTransformIndexBufferLength;
+    #endregion
+
+    #region Static Meshes
     internal static SDL_GPUBuffer*[] staticMeshVertexBuffers = new SDL_GPUBuffer*[18];
     internal static SDL_GPUBuffer *staticMeshIndexBuffer = null;
     internal static int[] staticMeshVertexBuffersLength = new int[18];
     internal static int[] staticMeshVertexBuffersElementSize = new int[18];
     internal static int staticMeshIndexBufferLength;
+    #endregion
+
+    #region Entity Transforms
     internal static SDL_GPUBuffer *entityTransformsBuffer = null;
     internal static int entityTransformsBufferLength;
-    internal static SDL_GPUBuffer *entityTransformIndexBuffer = null;
-    internal static int entityTransformIndexBufferLength;
+    #endregion
 
     internal readonly List<ResourceHandle<VertexBuffer>> vertexBuffers = [];
     internal readonly List<ResourceHandle<IndexBuffer>> indexBuffers = [];
@@ -976,12 +995,12 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
     public void WorldReplaced(World world)
     {
-        needsIndirectBufferUpdate = true;
+        needsIndirectBufferUpdate = needsDynamicIndirectBufferUpdate = true;
     }
 
     public void WorldChanged(World world)
     {
-        needsIndirectBufferUpdate = true;
+        needsIndirectBufferUpdate = needsDynamicIndirectBufferUpdate = true;
     }
 
     private void AddCommand(IRenderCommand command)
@@ -1090,7 +1109,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             SDL3.SDL_BlitGPUTexture(commandBuffer, &blitInfo);
         }
 
-        indirectCommandPosition = indirectCommandInstance = 0;
+        indirectCommandPosition = indirectCommandInstance = dynamicIndirectCommandPosition = dynamicIndirectCommandInstance = 0;
 
         commands.Clear();
         frameAllocator.Clear();
@@ -2202,10 +2221,73 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         CheckQueuedGraphicsPipeline(pipeline);
 
-        GetUniformData(in state, true, shader, out var vertexUniformData, out var fragmentUniformData);
+        var useWorldMatrix = state.instanceCount <= 1 || state.instanceTransforms == null || state.instanceTransforms.Count == 0;
 
-        AddCommand(new SDLGPURenderCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
-            state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, state.shaderInstance.attributes));
+        GetUniformData(in state, useWorldMatrix, shader, out var vertexUniformData, out var fragmentUniformData);
+
+        if(useWorldMatrix)
+        {
+            AddCommand(new SDLGPURenderCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
+                state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData, state.shaderInstance.attributes));
+
+            return;
+        }
+
+        if (dynamicIndirectCommandPosition + 1 > dynamicIndirectCommands.Length)
+        {
+            dynamicIndirectCommands.Resize(dynamicIndirectCommandPosition + 1, true);
+        }
+
+        if (dynamicIndirectCommandInstance + state.instanceCount > dynamicIndirectEntityIndices.Length)
+        {
+            dynamicIndirectEntityIndices.Resize(dynamicIndirectCommandInstance + state.instanceCount, true);
+        }
+
+        var commandContents = dynamicIndirectCommands.Contents;
+        var indexContents = dynamicIndirectEntityIndices.Contents;
+
+        ref var command = ref commandContents[dynamicIndirectCommandPosition++];
+
+        var indices = (uint)state.indexCount;
+        var instances = (uint)state.instanceCount;
+        var firstInstance = (uint)dynamicIndirectCommandInstance;
+        var firstIndex = (uint)state.startIndex;
+
+        if (!needsDynamicIndirectBufferUpdate)
+        {
+            needsDynamicIndirectBufferUpdate |= command.num_indices != indices ||
+                command.num_instances != instances ||
+                command.first_instance != firstInstance ||
+                command.first_index != firstIndex;
+        }
+
+        command.num_indices = indices;
+        command.num_instances = instances;
+        command.first_instance = firstInstance;
+        command.first_index = firstIndex;
+
+        for (var j = 0; j < state.instanceTransforms.Count; j++)
+        {
+            if (dynamicIndirectCommandInstance >= dynamicIndirectEntityIndices.Length)
+            {
+                continue;
+            }
+
+            ref var entityIndex = ref indexContents[dynamicIndirectCommandInstance++];
+
+            var index = (uint)(state.instanceTransforms[j].Entity.Identifier.ID - 1);
+
+            if (!needsDynamicIndirectBufferUpdate)
+            {
+                needsDynamicIndirectBufferUpdate |= entityIndex != index;
+            }
+
+            entityIndex = index;
+        }
+
+        AddCommand(new SDLGPURenderDynamicCommand(this, state, pipeline, state.vertexTextures, state.fragmentTextures,
+            state.shaderInstance.entityTransformsBufferBinding, vertexUniformData, fragmentUniformData,
+            state.shaderInstance.attributes, dynamicIndirectCommandPosition - 1, 1));
     }
 
     public void RenderStatic(RenderState state, Span<MultidrawEntry> entries)

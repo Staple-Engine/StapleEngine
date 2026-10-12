@@ -36,6 +36,8 @@ internal struct RenderState
     public int instanceOffset;
     public int instanceCount;
 
+    public List<Transform> instanceTransforms;
+
     public static RenderState Default
     {
         get
@@ -78,6 +80,7 @@ internal struct RenderState
             wireframe = wireframe,
             world = world,
             instanceOffset = instanceOffset,
+            instanceTransforms = instanceTransforms != null ? new(instanceTransforms) : null,
             instanceCount = instanceCount,
             renderQueue = renderQueue,
             renderQueueIndex = renderQueueIndex,
