@@ -1,4 +1,3 @@
-using Staple;
 using System.Numerics;
 
 namespace Staple;
@@ -22,11 +21,16 @@ public class FirstPersonCamera : LifecycleComponent
 
     protected virtual Vector2 GetLookMovement()
     {
-        return Input.MouseRelativePosition;
+        return Enabled && Cursor.LockState == CursorLockMode.Locked ? Input.MouseRelativePosition : default;
     }
 
     protected virtual Vector2 GetCharacterMovement()
     {
+        if(!Enabled || !Platform.IsPlaying)
+        {
+            return default;
+        }
+
         return new(Input.GetKey(KeyCode.A) ? -1 : Input.GetKey(KeyCode.D) ? 1 : 0,
             Input.GetKey(KeyCode.W) ? 1 : Input.GetKey(KeyCode.S) ? -1 : 0);
     }
@@ -46,6 +50,11 @@ public class FirstPersonCamera : LifecycleComponent
 
     public override void Update()
     {
+        if(!Enabled || !Platform.IsPlaying || Cursor.LockState != CursorLockMode.Locked)
+        {
+            return;
+        }
+
         if(allowLook)
         {
             var movement = GetLookMovement() * sensitivity * Time.deltaTime;
