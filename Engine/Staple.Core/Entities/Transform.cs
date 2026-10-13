@@ -503,7 +503,7 @@ public class Transform : Component, IComponentVersion
     /// <summary>
     /// Rotates this transform
     /// </summary>
-    /// <param name="angles">Angles to rotate by</param>
+    /// <param name="angles">Angles to rotate by, in degrees</param>
     /// <param name="relativeToWorld">Whether in world space or local space</param>
     public void Rotate(Vector3 angles, bool relativeToWorld = false)
     {

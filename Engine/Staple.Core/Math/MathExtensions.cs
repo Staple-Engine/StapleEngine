@@ -789,7 +789,7 @@ public static class QuaternionExtensions
         /// <summary>
         /// Rotates this quaternion
         /// </summary>
-        /// <param name="angles">Angles to rotate by</param>
+        /// <param name="angles">Angles to rotate by, in degrees</param>
         /// <param name="relativeToWorld">Whether in world space or local space</param>
         public Quaternion Rotate(Vector3 angles, bool relativeToWorld = false)
         {
