@@ -830,19 +830,19 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             RecreateResolveTexture();
         }
 
-        if(flags.HasFlag(RenderModeFlags.MSAA2x))
+        if(flags.HasFlag(RenderModeFlags.MSAA2))
         {
             resolveTextureSampleCount = SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_2;
 
             CreateResolveTexture();
         }
-        else if (flags.HasFlag(RenderModeFlags.MSAA4x))
+        else if (flags.HasFlag(RenderModeFlags.MSAA4))
         {
             resolveTextureSampleCount = SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_4;
 
             CreateResolveTexture();
         }
-        else if (flags.HasFlag(RenderModeFlags.MSAA8x))
+        else if (flags.HasFlag(RenderModeFlags.MSAA8))
         {
             resolveTextureSampleCount = SDL_GPUSampleCount.SDL_GPU_SAMPLECOUNT_8;
 

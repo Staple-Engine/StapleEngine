@@ -272,6 +272,7 @@
 		<Compile Include="Rendering\Windowing\Impls\SDL3RenderWindow.cs" />
 		<Compile Include="Rendering\Windowing\NativeWindowType.cs" />
 		<Compile Include="Rendering\Windowing\RenderModeFlags.cs" />
+		<Compile Include="Rendering\Windowing\VideoPresentationFlags.cs" />
 		<Compile Include="Resources\ResourceHandle.cs" />
 		<Compile Include="Scene\ISceneQuery.cs" />
 		<Compile Include="Scene\SceneQuery.cs" />
@@ -396,7 +397,7 @@
 		<Compile Include="Rendering\Mesh\MeshTopology.cs" />
 		<Compile Include="Rendering\Texture\StandardTextureColorComponents.cs" />
 		<Compile Include="Rendering\Vertex\RenderBufferType.cs" />
-		<Compile Include="Rendering\Windowing\VideoFlags.cs" />
+		<Compile Include="Rendering\Windowing\VideoAntialisingLevel.cs" />
 		<Compile Include="Rendering\Windowing\WindowMode.cs" />
 		<Compile Include="Resources\ResourcePak.cs" />
 		<Compile Include="Serialization\Asset\AssetHolder.cs" />

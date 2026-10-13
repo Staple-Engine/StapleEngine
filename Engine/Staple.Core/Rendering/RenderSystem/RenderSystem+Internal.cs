@@ -177,48 +177,66 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Gets the reset flags for specific video flags
     /// </summary>
-    /// <param name="videoFlags">The video flags to use</param>
+    /// <param name="presentation">The presentation mode</param>
+    /// <param name="antialiasing">The antialiasing type</param>
+    /// <param name="debug">Whether to enable debug rendering</param>
+    /// <param name="HDR">Whether to use a HDR display</param>
+    /// <param name="sRGB">Whether to use the sRGB color space</param>
     /// <returns>The reset flags</returns>
-    internal static RenderModeFlags RenderFlags(VideoFlags videoFlags)
+    internal static RenderModeFlags RenderFlags(VideoPresentationMode presentation, VideoAntialisingLevel antialiasing, bool debug,
+        bool HDR, bool sRGB)
     {
         var resetFlags = RenderModeFlags.None;
 
-        if(videoFlags.HasFlag(VideoFlags.Debug))
+        if(debug)
         {
             resetFlags |= RenderModeFlags.Debug;
         }
 
-        if (videoFlags.HasFlag(VideoFlags.Vsync))
-        {
-            resetFlags |= RenderModeFlags.Vsync;
-        }
-
-        if(videoFlags.HasFlag(VideoFlags.TripleBuffering))
-        {
-            resetFlags |= RenderModeFlags.TripleBuffering;
-        }
-
-        if(videoFlags.HasFlag(VideoFlags.sRGB))
+        if (sRGB)
         {
             resetFlags |= RenderModeFlags.sRGB;
         }
 
-        if (videoFlags.HasFlag(VideoFlags.HDR10))
+        if (HDR)
         {
             resetFlags |= RenderModeFlags.HDR10;
         }
 
-        if (videoFlags.HasFlag(VideoFlags.MSAA2x))
+        switch (presentation)
         {
-            resetFlags |= RenderModeFlags.MSAA2x;
+            case VideoPresentationMode.Vsync:
+
+                resetFlags |= RenderModeFlags.Vsync;
+
+                break;
+
+            case VideoPresentationMode.TripleBuffering:
+
+                resetFlags |= RenderModeFlags.TripleBuffering;
+
+                break;
         }
-        else if (videoFlags.HasFlag(VideoFlags.MSAA4x))
+
+        switch(antialiasing)
         {
-            resetFlags |= RenderModeFlags.MSAA4x;
-        }
-        else if (videoFlags.HasFlag(VideoFlags.MSAA8x))
-        {
-            resetFlags |= RenderModeFlags.MSAA8x;
+            case VideoAntialisingLevel.MSAA2:
+
+                resetFlags |= RenderModeFlags.MSAA2;
+
+                break;
+
+            case VideoAntialisingLevel.MSAA4:
+
+                resetFlags |= RenderModeFlags.MSAA4;
+
+                break;
+
+            case VideoAntialisingLevel.MSAA8:
+
+                resetFlags |= RenderModeFlags.MSAA8;
+
+                break;
         }
 
         return resetFlags;

@@ -868,9 +868,12 @@ internal partial class StapleEditor
             playerSettings.windowPosition = Vector2Int.Zero;
         }
 
+        var renderFlags = RenderSystem.RenderFlags(playerSettings.presentationMode, playerSettings.antialisingLevel, playerSettings.debugRenderMode,
+            playerSettings.enableHDR, playerSettings.enableSRGB);
+
         window = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, true, WindowMode.Windowed,
             playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
-            playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.RenderFlags(playerSettings.videoFlags));
+            playerSettings.maximized, playerSettings.monitorIndex, renderFlags);
 
         if (window == null)
         {

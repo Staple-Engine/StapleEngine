@@ -186,7 +186,7 @@ internal unsafe class SDL3RenderWindow : IRenderWindow
 
                 break;
 
-            case WindowMode.ExclusiveFullscreen:
+            case WindowMode.Fullscreen:
 
                 windowFlags |= SDL_WindowFlags.SDL_WINDOW_FULLSCREEN;
 
@@ -800,7 +800,7 @@ internal unsafe class SDL3RenderWindow : IRenderWindow
 
                 break;
 
-            case WindowMode.ExclusiveFullscreen:
+            case WindowMode.Fullscreen:
 
                 SDL3.SDL_SetWindowSize(window, width, height);
 

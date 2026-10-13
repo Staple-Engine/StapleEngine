@@ -70,9 +70,12 @@ internal class AppPlayer
 
         PlayerSettings.Save(playerSettings);
 
+        var renderFlags = RenderSystem.RenderFlags(playerSettings.presentationMode, playerSettings.antialisingLevel, playerSettings.debugRenderMode,
+            playerSettings.enableHDR, playerSettings.enableSRGB);
+
         renderWindow = RenderWindow.Create(playerSettings.screenWidth, playerSettings.screenHeight, false, playerSettings.windowMode,
-            playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null,
-            playerSettings.maximized, playerSettings.monitorIndex, RenderSystem.RenderFlags(playerSettings.videoFlags));
+            playerSettings.windowPosition != Vector2Int.Zero ? playerSettings.windowPosition : null, playerSettings.maximized,
+            playerSettings.monitorIndex, renderFlags);
 
         if(renderWindow == null)
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,7 +14,15 @@ internal class PlayerSettings
 {
     public WindowMode windowMode { get; set; } = WindowMode.Windowed;
 
-    public VideoFlags videoFlags { get; set; } = VideoFlags.Vsync;
+    public VideoPresentationMode presentationMode { get; set; } = VideoPresentationMode.Vsync;
+
+    public VideoAntialisingLevel antialisingLevel { get; set; } = VideoAntialisingLevel.None;
+
+    public bool enableHDR { get; set; }
+
+    public bool enableSRGB { get; set; }
+
+    public bool debugRenderMode { get; set; }
 
     public int screenWidth { get; set; }
 
@@ -64,7 +73,8 @@ internal class PlayerSettings
 [JsonSerializable(typeof(PlayerSettings))]
 [JsonSerializable(typeof(Vector2Int))]
 [JsonSerializable(typeof(WindowMode))]
-[JsonSerializable(typeof(VideoFlags))]
+[JsonSerializable(typeof(VideoAntialisingLevel))]
+[JsonSerializable(typeof(VideoPresentationMode))]
 [JsonSerializable(typeof(int))]
 [JsonSerializable(typeof(bool))]
 internal partial class PlayerSettingsSerializationContext : JsonSerializerContext

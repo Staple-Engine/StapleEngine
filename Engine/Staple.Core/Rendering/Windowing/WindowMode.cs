@@ -16,7 +16,7 @@ public enum WindowMode
     /// <summary>
     /// Exclusive fullscreen, will change resolution if needed
     /// </summary>
-    ExclusiveFullscreen,
+    Fullscreen,
 
     /// <summary>
     /// Borderless fullscreen, will adjust to the desktop's size
