@@ -12,7 +12,8 @@ internal struct RenderState
     public CullingMode cull;
     public bool wireframe;
     public bool enableDepth;
-    public bool depthWrite;
+    public bool enableZWrite;
+    public DepthTest depthTest;
     public BlendMode sourceBlend;
     public BlendMode destinationBlend;
     public MaterialRenderQueue renderQueue;
@@ -48,7 +49,8 @@ internal struct RenderState
                 vertexStorageBuffers = null,
                 fragmentStorageBuffers = null,
                 enableDepth = true,
-                depthWrite = true,
+                enableZWrite = true,
+                depthTest = DepthTest.LessEqual,
             };
         }
     }
@@ -58,9 +60,10 @@ internal struct RenderState
         return new()
         {
             cull = cull,
-            depthWrite = depthWrite,
+            depthTest = depthTest,
             destinationBlend = destinationBlend,
             enableDepth = enableDepth,
+            enableZWrite = enableZWrite,
             fragmentStorageBuffers = fragmentStorageBuffers != null ? new(fragmentStorageBuffers) : null,
             fragmentTextures = MemoryUtils.SafeCloneArray(fragmentTextures),
             indexBuffer = indexBuffer,
@@ -97,7 +100,8 @@ internal struct RenderState
             hashCode.Add(cull);
             hashCode.Add(wireframe);
             hashCode.Add(enableDepth);
-            hashCode.Add(depthWrite);
+            hashCode.Add(enableZWrite);
+            hashCode.Add(depthTest);
             hashCode.Add(vertexBuffer?.layout?.StateKey ?? 0);
             hashCode.Add(sourceBlend);
             hashCode.Add(destinationBlend);

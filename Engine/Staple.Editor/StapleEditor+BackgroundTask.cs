@@ -35,6 +35,7 @@ internal partial class StapleEditor
         {
             showingProgress = true;
             progressFraction = 0;
+            progressDialogReferences++;
         }
     }
 
@@ -45,7 +46,14 @@ internal partial class StapleEditor
     {
         lock (backgroundLock)
         {
-            showingProgress = false;
+            progressDialogReferences--;
+
+            if(progressDialogReferences <= 0)
+            {
+                progressDialogReferences = 0;
+
+                showingProgress = false;
+            }
         }
     }
 

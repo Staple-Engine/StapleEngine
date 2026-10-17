@@ -351,6 +351,8 @@ internal partial class StapleEditor
 
     internal bool wasShowingProgress = false;
 
+    internal int progressDialogReferences = 0;
+
     internal float progressFraction = 0;
 
     internal string progressMessage = "";

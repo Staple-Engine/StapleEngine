@@ -160,13 +160,7 @@ internal partial class StapleEditor
         }
 
         projectBrowser.currentPlatform = currentPlatform;
-
-        if (fileSystemWatcher != null)
-        {
-            fileSystemWatcher.Dispose();
-
-            fileSystemWatcher = null;
-        }
+        fileSystemWatcher?.Dispose();
 
         fileSystemWatcher = new FileSystemWatcher(BasePath);
 
@@ -231,35 +225,36 @@ internal partial class StapleEditor
 
         fileSystemWatcher.EnableRaisingEvents = true;
 
-        RefreshStaging(currentPlatform, () =>
-        {
-            ThreadHelper.Dispatch(() =>
+        RefreshStaging(currentPlatform,
+            () =>
             {
-                lastProjects.lastOpenProject = path;
-
-                var target = lastProjects.items.FirstOrDefault(x => x.path == path);
-
-                if (target != null)
+                ThreadHelper.Dispatch(() =>
                 {
-                    target.date = DateTime.Now;
-                }
-                else
-                {
-                    lastProjects.items.Add(new LastProjectItem()
+                    lastProjects.lastOpenProject = path;
+
+                    var target = lastProjects.items.FirstOrDefault(x => x.path == path);
+
+                    if (target != null)
                     {
-                        name = Path.GetFileName(path),
-                        path = path,
-                        date = DateTime.Now,
-                    });
-                }
+                        target.date = DateTime.Now;
+                    }
+                    else
+                    {
+                        lastProjects.items.Add(new LastProjectItem()
+                        {
+                            name = Path.GetFileName(path),
+                            path = path,
+                            date = DateTime.Now,
+                        });
+                    }
 
-                SaveLastProjects();
+                    SaveLastProjects();
 
-                ProjectManager.Instance.CollectGameScriptModifyStates();
+                    ProjectManager.Instance.CollectGameScriptModifyStates();
 
-                UpdateWindowTitle();
-            });
-        },
+                    UpdateWindowTitle();
+                });
+            },
             StagingRefreshFlags.UpdateProject |
             StagingRefreshFlags.CheckBuild |
             StagingRefreshFlags.LoadLastScene);

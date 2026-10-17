@@ -119,22 +119,18 @@ static partial class Program
                     return;
                 }
 
-                if (ShaderParser.Parse(text, shader.type, out var blendMode, out var shaderParameters, out shader.variants,
-                    out var variantDependencies, out var instancingParameters, out var renderQueue, out var renderQueueOffset,
-                    out var shaderDefines, out var vertex, out var fragment, out var compute) == false)
+                if (ShaderParser.Parse(text, shader.type, out var parsedData) == false)
                 {
                     Console.WriteLine("\t\tError: File has invalid format");
 
                     return;
                 }
 
-                if (blendMode.HasValue)
-                {
-                    shader.sourceBlend = blendMode.Value.Item1;
-                    shader.destinationBlend = blendMode.Value.Item2;
-                }
+                var shaderDefines = parsedData.shaderDefines;
 
-                foreach (var parameter in shaderParameters)
+                shader.variants = [.. parsedData.variants];
+
+                foreach (var parameter in parsedData.parameters)
                 {
                     var p = new ShaderParameter
                     {
@@ -199,9 +195,9 @@ static partial class Program
                     shader.parameters.Add(p);
                 }
 
-                if (instancingParameters != null)
+                if (parsedData.instanceParameters != null)
                 {
-                    foreach (var parameter in instancingParameters)
+                    foreach (var parameter in parsedData.instanceParameters)
                     {
                         var p = new ShaderInstancingParameter()
                         {
@@ -244,7 +240,7 @@ static partial class Program
 
                         shader.compute = new()
                         {
-                            code = compute.content,
+                            code = parsedData.compute.content,
                         };
 
                         break;
@@ -253,12 +249,12 @@ static partial class Program
 
                         shader.vertex = new()
                         {
-                            code = vertex.content,
+                            code = parsedData.vertex.content,
                         };
 
                         shader.fragment = new()
                         {
-                            code = fragment.content,
+                            code = parsedData.fragment.content,
                         };
 
                         break;
@@ -266,7 +262,7 @@ static partial class Program
 
                 var variants = shader.type == ShaderType.VertexFragment ?
                     ShaderParser.ProcessVariants([.. shader.variants.Concat(Shader.DefaultVariants)],
-                        variantDependencies) : [];
+                        [.. parsedData.variantDependencies]) : [];
 
                 Console.WriteLine($"\t\tCompiling {variants.Count} variants");
 
@@ -275,13 +271,15 @@ static partial class Program
                     metadata = new ShaderMetadata()
                     {
                         guid = guid,
-                        sourceBlend = shader.sourceBlend,
-                        destinationBlend = shader.destinationBlend,
                         variants = [.. shader.variants],
-                        renderQueue = renderQueue,
-                        renderQueueOffset = renderQueueOffset,
                     },
                 };
+
+                var defaultBlend = parsedData.blendMode.TryGetValue("", out var b) ? b : (BlendMode.Off, BlendMode.Off);
+                var defaultEnableDepth = parsedData.enableDepth.TryGetValue("", out var d) ? d : true;
+                var defaultEnableZWrite = parsedData.enableZWrite.TryGetValue("", out var z) ? z : true;
+                var defaultDepthTest = parsedData.depthTest.TryGetValue("", out var dt) ? dt : DepthTest.LessEqual;
+                var defaultRenderQueue = parsedData.renderQueue.TryGetValue("", out var rq) ? rq : (MaterialRenderQueue.Opaque, 0);
 
                 if (shader.parameters != null)
                 {
@@ -750,7 +748,7 @@ static partial class Program
                         }
                     }
 
-                    bool Build(string variantKey, List<string> extraDefines)
+                    bool Build(string variantKey, List<string> variantPieces)
                     {
                         string code;
 
@@ -778,7 +776,7 @@ static partial class Program
                                 return null;
                             }
 
-                            var data = ProcessShader(shaderFileName, extraDefines, type, renderer, out shaderMetrics,
+                            var data = ProcessShader(shaderFileName, variantPieces, type, renderer, out shaderMetrics,
                                 out var reflection, out var attr);
 
                             attributes = type == ShaderCompilerType.vertex ? attr : null;
@@ -929,6 +927,54 @@ static partial class Program
 
                                 lock (entryLock)
                                 {
+                                    var dt = defaultDepthTest;
+                                    var blend = (defaultBlend.Item1, defaultBlend.Item2);
+                                    var ed = defaultEnableDepth;
+                                    var ezw = defaultEnableZWrite;
+                                    var rq = (defaultRenderQueue.Item1, defaultRenderQueue.Item2);
+
+                                    foreach(var key in variantPieces)
+                                    {
+                                        {
+                                            if (parsedData.depthTest.TryGetValue(key, out var t))
+                                            {
+                                                dt = t;
+                                            }
+                                        }
+                                        {
+                                            if (parsedData.blendMode.TryGetValue(key, out var t))
+                                            {
+                                                blend = t;
+                                            }
+                                        }
+                                        {
+                                            if (parsedData.enableDepth.TryGetValue(key, out var t))
+                                            {
+                                                ed = t;
+                                            }
+                                        }
+                                        {
+                                            if (parsedData.enableZWrite.TryGetValue(key, out var t))
+                                            {
+                                                ezw = t;
+                                            }
+                                        }
+                                        {
+                                            if (parsedData.renderQueue.TryGetValue(key, out var t))
+                                            {
+                                                rq = t;
+                                            }
+                                        }
+                                    }
+
+                                    shaderObject.depthTest = dt;
+                                    shaderObject.sourceBlend = blend.Item1;
+                                    shaderObject.destinationBlend = blend.Item2;
+                                    shaderObject.enableDepth = ed;
+                                    shaderObject.enableZWrite = ezw;
+                                    shaderObject.renderQueue = rq.Item1;
+                                    shaderObject.renderQueueOffset = rq.Item2;
+
                                     entries.data.AddOrSetKey(variantKey, shaderObject);
                                 }
 

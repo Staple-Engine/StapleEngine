@@ -68,6 +68,20 @@ internal partial class ShaderResource
         public int entityTransformsBufferBinding = -1;
         public int entityTransformIDsBufferBinding = -1;
 
+        public BlendMode sourceBlend = BlendMode.Off;
+
+        public BlendMode destinationBlend = BlendMode.Off;
+
+        public bool enableDepth = true;
+
+        public bool enableZWrite = true;
+
+        public DepthTest depthTest = DepthTest.LessEqual;
+
+        public MaterialRenderQueue renderQueue = MaterialRenderQueue.Opaque;
+
+        public int renderQueueOffset;
+
         public bool TryGetUniformData(StringID name, out (int, byte[])? vertexData, out (int, byte[])? fragmentData)
         {
             vertexData = default;
@@ -157,7 +171,6 @@ internal partial class ShaderResource
     internal readonly Dictionary<StringID, ShaderInstance> instances = [];
 
     internal readonly ShaderMetadata metadata;
-    internal readonly BlendMode sourceBlend = BlendMode.Off, destinationBlend = BlendMode.Off;
 
     public GuidHasher Guid = new();
 
@@ -166,21 +179,11 @@ internal partial class ShaderResource
 
     private static readonly Regex uniformCountRegex = UniformCountRegex();
 
-    internal bool IsTransparent
-    {
-        get
-        {
-            return !((sourceBlend == BlendMode.Off && destinationBlend == BlendMode.Off) ||
-                (sourceBlend == BlendMode.One && destinationBlend == BlendMode.Zero) ||
-                (sourceBlend == BlendMode.Zero && destinationBlend == BlendMode.One));
-        }
-    }
-
     internal ShaderResource(SerializableShader shader, Dictionary<string, SerializableShaderData> entries)
     {
         metadata = shader.metadata;
 
-        foreach(var uniform in metadata.uniforms)
+        foreach (var uniform in metadata.uniforms)
         {
             if(string.IsNullOrEmpty(uniform.attribute))
             {
@@ -302,10 +305,10 @@ internal partial class ShaderResource
 
             var instance = new ShaderInstance()
             {
-                keyPieces = pair.Key
+                keyPieces = [.. pair.Key
                     .Split(' ', StringSplitOptions.RemoveEmptyEntries)
                     .Select(x => x.GetHashCode())
-                    .ToArray(),
+                    ],
                 vertexShaderSource = pair.Value.vertexShader,
                 fragmentShaderSource = pair.Value.fragmentShader,
                 computeShaderSource = pair.Value.computeShader,
@@ -327,13 +330,17 @@ internal partial class ShaderResource
                 fragmentUniformData = fragmentUniformData,
                 entityTransformIDsBufferBinding = entityTransformIDsBufferBinding,
                 entityTransformsBufferBinding = entityTransformsBufferBinding,
+                sourceBlend = pair.Value.sourceBlend,
+                destinationBlend = pair.Value.destinationBlend,
+                enableDepth = pair.Value.enableDepth,
+                enableZWrite = pair.Value.enableZWrite,
+                depthTest = pair.Value.depthTest,
+                renderQueue = pair.Value.renderQueue,
+                renderQueueOffset = pair.Value.renderQueueOffset,
             };
 
             instances.AddOrSetKey(pair.Key, instance);
         }
-
-        sourceBlend = metadata.sourceBlend;
-        destinationBlend = metadata.destinationBlend;
     }
 
     /// <summary>

@@ -165,19 +165,7 @@ public class ShaderMetadata
     [Key(4)]
     public ShaderInstanceParameter[] instanceParameters = [];
 
-    [Key(5)]
-    public BlendMode sourceBlend = BlendMode.Off;
-
-    [Key(6)]
-    public BlendMode destinationBlend = BlendMode.Off;
-
-    [Key(7)]
-    public MaterialRenderQueue renderQueue;
-
-    [Key(8)]
-    public int renderQueueOffset;
-
     [HideInInspector]
-    [Key(9)]
+    [Key(5)]
     public string typeName = typeof(Shader).FullName;
 }

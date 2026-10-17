@@ -1,5 +1,9 @@
 Type VertexFragment
 
+Variants NoDepthWrite
+
+variant: NoDepthWrite ZWrite Off
+
 Begin Parameters
 
 End Parameters

@@ -640,7 +640,7 @@ internal class ImGuiProxy
                                     sourceBlend = BlendMode.SrcAlpha,
                                     destinationBlend = BlendMode.OneMinusSrcAlpha,
                                     cull = CullingMode.None,
-                                    depthWrite = false,
+                                    enableZWrite = false,
                                     enableDepth = false,
                                     primitiveType = MeshTopology.Triangles,
                                     scissor = new(x, (int)clipRect.Z, y, (int)clipRect.W),

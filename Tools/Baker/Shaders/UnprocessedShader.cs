@@ -9,8 +9,6 @@ namespace Baker;
 internal class UnprocessedShader
 {
     public ShaderType type;
-    public BlendMode sourceBlend;
-    public BlendMode destinationBlend;
     public List<ShaderParameter> parameters = [];
     public List<ShaderInstancingParameter> instancingParameters = [];
     public ShaderPiece vertex;

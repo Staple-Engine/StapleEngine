@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -1685,39 +1686,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                         input_rate = SDL_GPUVertexInputRate.SDL_GPU_VERTEXINPUTRATE_VERTEX,
                     };
 
-                    var sourceBlend = state.sourceBlend switch
-                    {
-                        BlendMode.DstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
-                        BlendMode.DstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
-                        BlendMode.One => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
-                        BlendMode.OneMinusDstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
-                        BlendMode.OneMinusDstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
-                        BlendMode.OneMinusSrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                        BlendMode.OneMinusSrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
-                        BlendMode.SrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-                        BlendMode.SrcAlphaSat => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
-                        BlendMode.SrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
-                        BlendMode.Zero => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
-                        BlendMode.Off => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
-                        _ => throw new ArgumentOutOfRangeException(nameof(state.sourceBlend), "Invalid blend mode"),
-                    };
+                    var sourceBlend = SDLBlendFactorValue(state.sourceBlend);
 
-                    var destinationBlend = state.destinationBlend switch
-                    {
-                        BlendMode.DstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
-                        BlendMode.DstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
-                        BlendMode.One => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
-                        BlendMode.OneMinusDstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
-                        BlendMode.OneMinusDstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
-                        BlendMode.OneMinusSrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                        BlendMode.OneMinusSrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
-                        BlendMode.SrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-                        BlendMode.SrcAlphaSat => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
-                        BlendMode.SrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
-                        BlendMode.Zero => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
-                        BlendMode.Off => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
-                        _ => throw new ArgumentOutOfRangeException(nameof(state.destinationBlend), "Invalid blend mode"),
-                    };
+                    var destinationBlend = SDLBlendFactorValue(state.destinationBlend);
 
                     var colorTargetDescriptions = new List<SDL_GPUColorTargetDescription>();
 
@@ -1812,8 +1783,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                                 depth_stencil_state = new()
                                 {
                                     enable_depth_test = state.enableDepth,
-                                    enable_depth_write = state.depthWrite,
-                                    compare_op = SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
+                                    enable_depth_write = state.enableZWrite,
+                                    compare_op = SDLDepthStencilValue(state.depthTest),
                                 },
                                 vertex_input_state = new()
                                 {
@@ -1947,39 +1918,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
                 fixed (SDL_GPUVertexAttribute* attributes = shaderAttributes)
                 {
-                    var sourceBlend = state.sourceBlend switch
-                    {
-                        BlendMode.DstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
-                        BlendMode.DstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
-                        BlendMode.One => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
-                        BlendMode.OneMinusDstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
-                        BlendMode.OneMinusDstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
-                        BlendMode.OneMinusSrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                        BlendMode.OneMinusSrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
-                        BlendMode.SrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-                        BlendMode.SrcAlphaSat => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
-                        BlendMode.SrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
-                        BlendMode.Zero => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
-                        BlendMode.Off => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
-                        _ => throw new ArgumentOutOfRangeException(nameof(state.sourceBlend), "Invalid blend mode"),
-                    };
+                    var sourceBlend = SDLBlendFactorValue(state.sourceBlend);
 
-                    var destinationBlend = state.destinationBlend switch
-                    {
-                        BlendMode.DstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
-                        BlendMode.DstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
-                        BlendMode.One => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
-                        BlendMode.OneMinusDstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
-                        BlendMode.OneMinusDstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
-                        BlendMode.OneMinusSrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                        BlendMode.OneMinusSrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
-                        BlendMode.SrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
-                        BlendMode.SrcAlphaSat => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
-                        BlendMode.SrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
-                        BlendMode.Zero => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
-                        BlendMode.Off => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
-                        _ => throw new ArgumentOutOfRangeException(nameof(state.destinationBlend), "Invalid blend mode"),
-                    };
+                    var destinationBlend = SDLBlendFactorValue(state.destinationBlend);
 
                     var colorTargetDescriptions = new List<SDL_GPUColorTargetDescription>();
 
@@ -2072,8 +2013,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                                 depth_stencil_state = new()
                                 {
                                     enable_depth_test = state.enableDepth,
-                                    enable_depth_write = state.depthWrite,
-                                    compare_op = SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
+                                    enable_depth_write = state.enableZWrite,
+                                    compare_op = SDLDepthStencilValue(state.depthTest),
                                 },
                                 vertex_input_state = new()
                                 {
@@ -2591,5 +2532,41 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         }
 
         SDL3.SDL_SetGPUScissor(renderPass, &scissor);
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static SDL_GPUBlendFactor SDLBlendFactorValue(BlendMode value)
+    {
+        return value switch
+        {
+            BlendMode.DstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_ALPHA,
+            BlendMode.DstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_DST_COLOR,
+            BlendMode.One => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE,
+            BlendMode.OneMinusDstAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_ALPHA,
+            BlendMode.OneMinusDstColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_DST_COLOR,
+            BlendMode.OneMinusSrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+            BlendMode.OneMinusSrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_COLOR,
+            BlendMode.SrcAlpha => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA,
+            BlendMode.SrcAlphaSat => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_ALPHA_SATURATE,
+            BlendMode.SrcColor => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_SRC_COLOR,
+            BlendMode.Zero => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_ZERO,
+            _ => SDL_GPUBlendFactor.SDL_GPU_BLENDFACTOR_INVALID,
+        };
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static SDL_GPUCompareOp SDLDepthStencilValue(DepthTest value)
+    {
+        return value switch
+        {
+            DepthTest.Never => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_NEVER,
+            DepthTest.Less => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS,
+            DepthTest.Equal => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_EQUAL,
+            DepthTest.Greater => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_GREATER,
+            DepthTest.NotEqual => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_NOT_EQUAL,
+            DepthTest.GreaterEqual => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_GREATER_OR_EQUAL,
+            DepthTest.Always => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_ALWAYS,
+            _ => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
+        };
     }
 }

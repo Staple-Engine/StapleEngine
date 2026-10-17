@@ -34,49 +34,47 @@ compute B
 End Compute
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(variants.Count, Is.EqualTo(3));
+        Assert.That(parsedData.variants.Count, Is.EqualTo(3));
 
-        Assert.That(variants[0], Is.EqualTo("A"));
-        Assert.That(variants[1], Is.EqualTo("B"));
-        Assert.That(variants[2], Is.EqualTo("C"));
+        Assert.That(parsedData.variants[0], Is.EqualTo("A"));
+        Assert.That(parsedData.variants[1], Is.EqualTo("B"));
+        Assert.That(parsedData.variants[2], Is.EqualTo("C"));
     
-        Assert.That(blend, Is.Null);
-        Assert.That(instanceParameters, Is.Null);
+        Assert.That(parsedData.blendMode, Has.Count.EqualTo(1));
+        Assert.That(parsedData.instanceParameters, Is.Null);
 
-        Assert.That(parameters.Count, Is.EqualTo(3));
+        Assert.That(parsedData.parameters.Length, Is.EqualTo(3));
 
-        Assert.That(parameters[0].type, Is.Null);
-        Assert.That(parameters[0].dataType, Is.EqualTo("float2"));
-        Assert.That(parameters[0].name, Is.EqualTo("v_texcoord0"));
-        Assert.That(parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
-        Assert.That(parameters[0].initializer, Is.EqualTo("float2(0.0, 0.0)"));
+        Assert.That(parsedData.parameters[0].type, Is.Null);
+        Assert.That(parsedData.parameters[0].dataType, Is.EqualTo("float2"));
+        Assert.That(parsedData.parameters[0].name, Is.EqualTo("v_texcoord0"));
+        Assert.That(parsedData.parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
+        Assert.That(parsedData.parameters[0].initializer, Is.EqualTo("float2(0.0, 0.0)"));
 
-        Assert.That(parameters[1].type, Is.Null);
-        Assert.That(parameters[1].dataType, Is.EqualTo("float2"));
-        Assert.That(parameters[1].name, Is.EqualTo("v_texcoord1"));
-        Assert.That(parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
-        Assert.That(parameters[1].initializer, Is.Null);
+        Assert.That(parsedData.parameters[1].type, Is.Null);
+        Assert.That(parsedData.parameters[1].dataType, Is.EqualTo("float2"));
+        Assert.That(parsedData.parameters[1].name, Is.EqualTo("v_texcoord1"));
+        Assert.That(parsedData.parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
+        Assert.That(parsedData.parameters[1].initializer, Is.Null);
 
-        Assert.That(parameters[2].type, Is.Null);
-        Assert.That(parameters[2].dataType, Is.EqualTo("float2"));
-        Assert.That(parameters[2].name, Is.EqualTo("v_texcoord2"));
-        Assert.That(parameters[2].vertexAttribute, Is.Null);
-        Assert.That(parameters[2].initializer, Is.Null);
+        Assert.That(parsedData.parameters[2].type, Is.Null);
+        Assert.That(parsedData.parameters[2].dataType, Is.EqualTo("float2"));
+        Assert.That(parsedData.parameters[2].name, Is.EqualTo("v_texcoord2"));
+        Assert.That(parsedData.parameters[2].vertexAttribute, Is.Null);
+        Assert.That(parsedData.parameters[2].initializer, Is.Null);
 
-        Assert.That(vertex, Is.Not.Null);
-        Assert.That(vertex.content, Is.EqualTo("vertex A\nvertex B"));
+        Assert.That(parsedData.vertex, Is.Not.Null);
+        Assert.That(parsedData.vertex.content, Is.EqualTo("vertex A\nvertex B"));
 
-        Assert.That(fragment, Is.Not.Null);
-        Assert.That(fragment.content, Is.EqualTo("fragment A\nfragment B"));
+        Assert.That(parsedData.fragment, Is.Not.Null);
+        Assert.That(parsedData.fragment.content, Is.EqualTo("fragment A\nfragment B"));
 
-        Assert.That(compute, Is.Null);
+        Assert.That(parsedData.compute, Is.Null);
 
-        Assert.That(renderQueue, Is.EqualTo(MaterialRenderQueue.Opaque));
-        Assert.That(renderQueueOffset, Is.Zero);
+        Assert.That(parsedData.renderQueue[""].Item1, Is.EqualTo(MaterialRenderQueue.Opaque));
+        Assert.That(parsedData.renderQueue[""].Item2, Is.Zero);
     }
 
     [Test]
@@ -114,55 +112,53 @@ compute B
 End Compute
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(variants.Count, Is.EqualTo(3));
+        Assert.That(parsedData.variants.Length, Is.EqualTo(3));
 
-        Assert.That(variants[0], Is.EqualTo("A"));
-        Assert.That(variants[1], Is.EqualTo("B"));
-        Assert.That(variants[2], Is.EqualTo("C"));
+        Assert.That(parsedData.variants[0], Is.EqualTo("A"));
+        Assert.That(parsedData.variants[1], Is.EqualTo("B"));
+        Assert.That(parsedData.variants[2], Is.EqualTo("C"));
 
-        Assert.That(blend, Is.Null);
+        Assert.That(parsedData.blendMode, Has.Count.EqualTo(1));
 
-        Assert.That(instanceParameters, Is.Not.Null);
+        Assert.That(parsedData.instanceParameters, Is.Not.Null);
 
-        Assert.That(instanceParameters.Count, Is.EqualTo(2));
+        Assert.That(parsedData.instanceParameters.Count, Is.EqualTo(2));
 
-        Assert.That(instanceParameters[0].name, Is.EqualTo("rotation"));
-        Assert.That(instanceParameters[0].type, Is.EqualTo("float"));
+        Assert.That(parsedData.instanceParameters[0].name, Is.EqualTo("rotation"));
+        Assert.That(parsedData.instanceParameters[0].type, Is.EqualTo("float"));
 
-        Assert.That(instanceParameters[1].name, Is.EqualTo("color"));
-        Assert.That(instanceParameters[1].type, Is.EqualTo("float4"));
+        Assert.That(parsedData.instanceParameters[1].name, Is.EqualTo("color"));
+        Assert.That(parsedData.instanceParameters[1].type, Is.EqualTo("float4"));
 
-        Assert.That(parameters.Count, Is.EqualTo(3));
+        Assert.That(parsedData.parameters.Length, Is.EqualTo(3));
 
-        Assert.That(parameters[0].type, Is.Null);
-        Assert.That(parameters[0].dataType, Is.EqualTo("float2"));
-        Assert.That(parameters[0].name, Is.EqualTo("v_texcoord0"));
-        Assert.That(parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
-        Assert.That(parameters[0].initializer, Is.EqualTo("float2(0.0, 0.0)"));
+        Assert.That(parsedData.parameters[0].type, Is.Null);
+        Assert.That(parsedData.parameters[0].dataType, Is.EqualTo("float2"));
+        Assert.That(parsedData.parameters[0].name, Is.EqualTo("v_texcoord0"));
+        Assert.That(parsedData.parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
+        Assert.That(parsedData.parameters[0].initializer, Is.EqualTo("float2(0.0, 0.0)"));
 
-        Assert.That(parameters[1].type, Is.Null);
-        Assert.That(parameters[1].dataType, Is.EqualTo("float2"));
-        Assert.That(parameters[1].name, Is.EqualTo("v_texcoord1"));
-        Assert.That(parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
-        Assert.That(parameters[1].initializer, Is.Null);
+        Assert.That(parsedData.parameters[1].type, Is.Null);
+        Assert.That(parsedData.parameters[1].dataType, Is.EqualTo("float2"));
+        Assert.That(parsedData.parameters[1].name, Is.EqualTo("v_texcoord1"));
+        Assert.That(parsedData.parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
+        Assert.That(parsedData.parameters[1].initializer, Is.Null);
 
-        Assert.That(parameters[2].type, Is.Null);
-        Assert.That(parameters[2].dataType, Is.EqualTo("float2"));
-        Assert.That(parameters[2].name, Is.EqualTo("v_texcoord2"));
-        Assert.That(parameters[2].vertexAttribute, Is.Null);
-        Assert.That(parameters[2].initializer, Is.EqualTo("float2(1.0, 1.0)"));
+        Assert.That(parsedData.parameters[2].type, Is.Null);
+        Assert.That(parsedData.parameters[2].dataType, Is.EqualTo("float2"));
+        Assert.That(parsedData.parameters[2].name, Is.EqualTo("v_texcoord2"));
+        Assert.That(parsedData.parameters[2].vertexAttribute, Is.Null);
+        Assert.That(parsedData.parameters[2].initializer, Is.EqualTo("float2(1.0, 1.0)"));
 
-        Assert.That(vertex, Is.Not.Null);
-        Assert.That(vertex.content, Is.EqualTo("vertex A\nvertex B"));
+        Assert.That(parsedData.vertex, Is.Not.Null);
+        Assert.That(parsedData.vertex.content, Is.EqualTo("vertex A\nvertex B"));
 
-        Assert.That(fragment, Is.Not.Null);
-        Assert.That(fragment.content, Is.EqualTo("fragment A\nfragment B"));
+        Assert.That(parsedData.fragment, Is.Not.Null);
+        Assert.That(parsedData.fragment.content, Is.EqualTo("fragment A\nfragment B"));
 
-        Assert.That(compute, Is.Null);
+        Assert.That(parsedData.compute, Is.Null);
     }
 
     [Test]
@@ -201,46 +197,45 @@ compute B
 End Compute
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.Compute, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.Compute, out var parsedData), Is.True);
 
-        Assert.That(variants.Count, Is.EqualTo(0));
+        Assert.That(parsedData.variants.Length, Is.EqualTo(0));
 
-        Assert.That(blend, Is.Null);
+        Assert.That(parsedData.blendMode, Has.Count.EqualTo(0));
 
-        Assert.That(instanceParameters, Is.Null);
+        Assert.That(parsedData.instanceParameters, Is.Null);
 
-        Assert.That(parameters.Count, Is.EqualTo(4));
+        Assert.That(parsedData.parameters.Length, Is.EqualTo(4));
 
-        Assert.That(parameters[0].type, Is.Null);
-        Assert.That(parameters[0].dataType, Is.EqualTo("float2"));
-        Assert.That(parameters[0].name, Is.EqualTo("v_texcoord0"));
-        Assert.That(parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
-        Assert.That(parameters[0].initializer, Is.EqualTo("float2(0.0, 0.0)"));
+        Assert.That(parsedData.parameters[0].type, Is.Null);
+        Assert.That(parsedData.parameters[0].dataType, Is.EqualTo("float2"));
+        Assert.That(parsedData.parameters[0].name, Is.EqualTo("v_texcoord0"));
+        Assert.That(parsedData.parameters[0].vertexAttribute, Is.EqualTo("TEXCOORD0"));
+        Assert.That(parsedData.parameters[0].initializer, Is.EqualTo("float2(0.0, 0.0)"));
 
-        Assert.That(parameters[1].type, Is.Null);
-        Assert.That(parameters[1].dataType, Is.EqualTo("float2"));
-        Assert.That(parameters[1].name, Is.EqualTo("v_texcoord1"));
-        Assert.That(parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
-        Assert.That(parameters[1].initializer, Is.Null);
+        Assert.That(parsedData.parameters[1].type, Is.Null);
+        Assert.That(parsedData.parameters[1].dataType, Is.EqualTo("float2"));
+        Assert.That(parsedData.parameters[1].name, Is.EqualTo("v_texcoord1"));
+        Assert.That(parsedData.parameters[1].vertexAttribute, Is.EqualTo("TEXCOORD1"));
+        Assert.That(parsedData.parameters[1].initializer, Is.Null);
 
-        Assert.That(parameters[2].type, Is.Null);
-        Assert.That(parameters[2].dataType, Is.EqualTo("float2"));
-        Assert.That(parameters[2].name, Is.EqualTo("v_texcoord2"));
-        Assert.That(parameters[2].vertexAttribute, Is.Null);
-        Assert.That(parameters[2].initializer, Is.Null);
+        Assert.That(parsedData.parameters[2].type, Is.Null);
+        Assert.That(parsedData.parameters[2].dataType, Is.EqualTo("float2"));
+        Assert.That(parsedData.parameters[2].name, Is.EqualTo("v_texcoord2"));
+        Assert.That(parsedData.parameters[2].vertexAttribute, Is.Null);
+        Assert.That(parsedData.parameters[2].initializer, Is.Null);
 
-        Assert.That(parameters[3].type, Is.EqualTo("ROBuffer"));
-        Assert.That(parameters[3].dataType, Is.EqualTo("float4"));
-        Assert.That(parameters[3].name, Is.EqualTo("myBuffer"));
-        Assert.That(parameters[3].vertexAttribute, Is.Null);
-        Assert.That(parameters[3].initializer, Is.Null);
+        Assert.That(parsedData.parameters[3].type, Is.EqualTo("ROBuffer"));
+        Assert.That(parsedData.parameters[3].dataType, Is.EqualTo("float4"));
+        Assert.That(parsedData.parameters[3].name, Is.EqualTo("myBuffer"));
+        Assert.That(parsedData.parameters[3].vertexAttribute, Is.Null);
+        Assert.That(parsedData.parameters[3].initializer, Is.Null);
 
-        Assert.That(vertex, Is.Null);
+        Assert.That(parsedData.vertex, Is.Null);
+        Assert.That(parsedData.fragment, Is.Null);
 
-        Assert.That(compute, Is.Not.Null);
-        Assert.That(compute.content, Is.EqualTo("compute A\ncompute B"));
+        Assert.That(parsedData.compute, Is.Not.Null);
+        Assert.That(parsedData.compute.content, Is.EqualTo("compute A\ncompute B"));
     }
 
     [Test]
@@ -262,15 +257,13 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(blend, Is.Null);
+        Assert.That(parsedData.blendMode, Has.Count.EqualTo(1));
 
-        Assert.That(instanceParameters, Is.Not.Null);
+        Assert.That(parsedData.instanceParameters, Is.Not.Null);
 
-        Assert.That(instanceParameters.Count, Is.EqualTo(0));
+        Assert.That(parsedData.instanceParameters.Count, Is.EqualTo(0));
     }
 
     [Test]
@@ -293,15 +286,13 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(parameters.Length, Is.EqualTo(1));
+        Assert.That(parsedData.parameters.Length, Is.EqualTo(1));
 
-        Assert.That(parameters[0].attribute, Is.EqualTo("Attribute"));
+        Assert.That(parsedData.parameters[0].attribute, Is.EqualTo("Attribute"));
 
-        Assert.That(parameters[0].variant, Is.EqualTo("Variant"));
+        Assert.That(parsedData.parameters[0].variant, Is.EqualTo("Variant"));
     }
 
     [Test]
@@ -326,20 +317,18 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(variantDependencies, Has.Count.EqualTo(3));
+        Assert.That(parsedData.variantDependencies, Has.Length.EqualTo(3));
 
-        Assert.That(variantDependencies[0].Key, Is.EqualTo("B"));
-        Assert.That(variantDependencies[0].Value, Is.EqualTo("A"));
+        Assert.That(parsedData.variantDependencies[0].Key, Is.EqualTo("B"));
+        Assert.That(parsedData.variantDependencies[0].Value, Is.EqualTo("A"));
 
-        Assert.That(variantDependencies[1].Key, Is.EqualTo("D"));
-        Assert.That(variantDependencies[1].Value, Is.EqualTo("A"));
+        Assert.That(parsedData.variantDependencies[1].Key, Is.EqualTo("D"));
+        Assert.That(parsedData.variantDependencies[1].Value, Is.EqualTo("A"));
 
-        Assert.That(variantDependencies[2].Key, Is.EqualTo("D"));
-        Assert.That(variantDependencies[2].Value, Is.EqualTo("C"));
+        Assert.That(parsedData.variantDependencies[2].Key, Is.EqualTo("D"));
+        Assert.That(parsedData.variantDependencies[2].Value, Is.EqualTo("C"));
     }
 
     [Test]
@@ -442,13 +431,11 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(renderQueue, Is.EqualTo(MaterialRenderQueue.Transparent));
+        Assert.That(parsedData.renderQueue[""].Item1, Is.EqualTo(MaterialRenderQueue.Transparent));
 
-        Assert.That(renderQueueOffset, Is.EqualTo(5));
+        Assert.That(parsedData.renderQueue[""].Item2, Is.EqualTo(5));
     }
 
     [Test]
@@ -473,13 +460,11 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(renderQueue, Is.EqualTo(MaterialRenderQueue.Opaque));
+        Assert.That(parsedData.renderQueue[""].Item1, Is.EqualTo(MaterialRenderQueue.Opaque));
 
-        Assert.That(renderQueueOffset, Is.Zero);
+        Assert.That(parsedData.renderQueue[""].Item2, Is.Zero);
     }
 
     [Test]
@@ -504,13 +489,11 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(renderQueue, Is.EqualTo(MaterialRenderQueue.Opaque));
+        Assert.That(parsedData.renderQueue[""].Item1, Is.EqualTo(MaterialRenderQueue.Transparent));
 
-        Assert.That(renderQueueOffset, Is.Zero);
+        Assert.That(parsedData.renderQueue[""].Item2, Is.Zero);
     }
 
     [Test]
@@ -535,13 +518,11 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(renderQueue, Is.EqualTo(MaterialRenderQueue.Opaque));
+        Assert.That(parsedData.renderQueue[""].Item1, Is.EqualTo(MaterialRenderQueue.Opaque));
 
-        Assert.That(renderQueueOffset, Is.Zero);
+        Assert.That(parsedData.renderQueue[""].Item2, Is.Zero);
     }
 
     [Test]
@@ -568,19 +549,17 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out _,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(variantDependencies, Has.Count.EqualTo(2));
+        Assert.That(parsedData.variantDependencies, Has.Length.EqualTo(2));
 
-        Assert.That(variantDependencies[0].Key, Is.EqualTo("A"));
-        Assert.That(variantDependencies[0].Value, Is.EqualTo("B"));
+        Assert.That(parsedData.variantDependencies[0].Key, Is.EqualTo("A"));
+        Assert.That(parsedData.variantDependencies[0].Value, Is.EqualTo("B"));
 
-        Assert.That(variantDependencies[1].Key, Is.EqualTo("C"));
-        Assert.That(variantDependencies[1].Value, Is.EqualTo("-B"));
+        Assert.That(parsedData.variantDependencies[1].Key, Is.EqualTo("C"));
+        Assert.That(parsedData.variantDependencies[1].Value, Is.EqualTo("-B"));
 
-        Assert.That(renderQueueOffset, Is.Zero);
+        Assert.That(parsedData.renderQueue[""].Item2, Is.Zero);
     }
 
     [Test]
@@ -609,14 +588,169 @@ Begin Fragment
 End Fragment
 """;
 
-        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var blend, out var parameters, out var variants,
-            out var variantDependencies, out var instanceParameters, out var renderQueue, out var renderQueueOffset, out var shaderDefines,
-            out var vertex, out var fragment, out var compute), Is.True);
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
-        Assert.That(shaderDefines, Has.Count.EqualTo(3));
+        Assert.That(parsedData.shaderDefines, Has.Length.EqualTo(3));
 
-        Assert.That(shaderDefines[0], Is.EqualTo("LIT"));
-        Assert.That(shaderDefines[1], Is.EqualTo("HALF_LAMBERT"));
-        Assert.That(shaderDefines[2], Is.EqualTo("SKINNING"));
+        Assert.That(parsedData.shaderDefines[0], Is.EqualTo("LIT"));
+        Assert.That(parsedData.shaderDefines[1], Is.EqualTo("HALF_LAMBERT"));
+        Assert.That(parsedData.shaderDefines[2], Is.EqualTo("SKINNING"));
+    }
+
+    [Test]
+    public void TestParseZWriteDepthDefaults()
+    {
+        var shader = $$"""
+Type VertexFragment
+
+Begin Parameters
+End Parameters
+
+Begin Instancing
+End Instancing
+
+Begin Vertex
+End Vertex
+
+Begin Fragment
+End Fragment
+""";
+
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
+
+        Assert.That(parsedData.enableZWrite[""], Is.True);
+        Assert.That(parsedData.depthTest[""], Is.EqualTo(DepthTest.LessEqual));
+    }
+
+    [Test]
+    public void TestParseZWriteOff()
+    {
+        var shader = $$"""
+Type VertexFragment
+
+ZWrite Off
+
+Begin Parameters
+End Parameters
+
+Begin Instancing
+End Instancing
+
+Begin Vertex
+End Vertex
+
+Begin Fragment
+End Fragment
+""";
+
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
+
+        Assert.That(parsedData.enableZWrite[""], Is.False);
+        Assert.That(parsedData.depthTest[""], Is.EqualTo(DepthTest.LessEqual));
+    }
+
+    [Test]
+    public void TestParseDepthAlways()
+    {
+        var shader = $$"""
+Type VertexFragment
+
+DepthTest Always
+
+Begin Parameters
+End Parameters
+
+Begin Instancing
+End Instancing
+
+Begin Vertex
+End Vertex
+
+Begin Fragment
+End Fragment
+""";
+
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
+
+        Assert.That(parsedData.enableZWrite[""], Is.True);
+        Assert.That(parsedData.depthTest[""], Is.EqualTo(DepthTest.Always));
+    }
+
+    [Test]
+    public void TestParseDepth()
+    {
+        var shader = $$"""
+Type VertexFragment
+
+Depth Off
+
+Begin Parameters
+End Parameters
+
+Begin Instancing
+End Instancing
+
+Begin Vertex
+End Vertex
+
+Begin Fragment
+End Fragment
+""";
+
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
+
+        Assert.That(parsedData.enableZWrite[""], Is.True);
+        Assert.That(parsedData.enableDepth[""], Is.False);
+    }
+
+    [Test]
+    public void TestParseBlendDepthZWriteVariants()
+    {
+        var shader = $$"""
+Type VertexFragment
+
+Variants A,B
+
+variant: A ZWrite On
+variant: B ZWrite Off
+
+variant: A Depth On
+variant: B Depth Off
+
+variant: A DepthTest GreaterEqual
+variant: B DepthTest Less
+
+variant: A Blend SrcAlpha OneMinusSrcAlpha
+variant: B Blend One One
+
+Begin Parameters
+End Parameters
+
+Begin Instancing
+End Instancing
+
+Begin Vertex
+End Vertex
+
+Begin Fragment
+End Fragment
+""";
+
+        Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
+
+        Assert.That(parsedData.enableZWrite[""], Is.True);
+        Assert.That(parsedData.enableDepth[""], Is.True);
+        Assert.That(parsedData.depthTest[""], Is.EqualTo(DepthTest.LessEqual));
+        Assert.That(parsedData.blendMode[""], Is.EqualTo((BlendMode.Off, BlendMode.Off)));
+
+        Assert.That(parsedData.enableZWrite["A"], Is.True);
+        Assert.That(parsedData.enableDepth["A"], Is.True);
+        Assert.That(parsedData.depthTest["A"], Is.EqualTo(DepthTest.GreaterEqual));
+        Assert.That(parsedData.blendMode["A"], Is.EqualTo((BlendMode.SrcAlpha, BlendMode.OneMinusSrcAlpha)));
+
+        Assert.That(parsedData.enableZWrite["B"], Is.False);
+        Assert.That(parsedData.enableDepth["B"], Is.False);
+        Assert.That(parsedData.depthTest["B"], Is.EqualTo(DepthTest.Less));
+        Assert.That(parsedData.blendMode["B"], Is.EqualTo((BlendMode.One, BlendMode.One)));
     }
 }

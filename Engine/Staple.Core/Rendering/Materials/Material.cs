@@ -82,13 +82,13 @@ public sealed class Material : IGuidAsset
     /// Render Queue for this material
     /// </summary>
     internal MaterialRenderQueue RenderQueue => (materialResource?.metadata?.overrideShaderRenderQueue ?? false) ?
-        materialResource.metadata.renderQueue : materialResource?.shader?.shaderResource?.metadata?.renderQueue ?? MaterialRenderQueue.Opaque;
+        materialResource.metadata.renderQueue : shaderInstance?.renderQueue ?? MaterialRenderQueue.Opaque;
 
     /// <summary>
     /// Render Queue Offset for this material
     /// </summary>
     internal int RenderQueueOffset => (materialResource?.metadata?.overrideShaderRenderQueue ?? false) ? materialResource.metadata.renderQueueOffset :
-        materialResource?.shader?.shaderResource?.metadata?.renderQueueOffset ?? 0;
+        shaderInstance?.renderQueueOffset ?? 0;
 
     /// <summary>
     /// The render Queue Index for this material. Used to sort the rendering of each object
@@ -219,7 +219,7 @@ public sealed class Material : IGuidAsset
     /// </summary>
     public Span<string> Keywords => materialResource?.shader?.shaderResource?.metadata?.variants is string[] variants ? variants.AsSpan() : default;
 
-    private IShaderProgram shaderProgram;
+    private ShaderResource.ShaderInstance shaderInstance;
 
     /// <summary>
     /// Gets the current shader program, if valid.
@@ -235,14 +235,14 @@ public sealed class Material : IGuidAsset
 
             if (!needsVariantKeyUpdate)
             {
-                return shaderProgram;
+                return shaderInstance?.program;
             }
             
             needsVariantKeyUpdate = false;
 
             UpdateVariantKey();
 
-            return shaderProgram;
+            return shaderInstance?.program;
         }
     }
 
@@ -258,7 +258,7 @@ public sealed class Material : IGuidAsset
         }
 
         materialResource = sourceMaterial.materialResource?.Clone();
-        shaderHandles = new(sourceMaterial.shaderHandles);
+        shaderHandles = [with(sourceMaterial.shaderHandles)];
 
         MainColor = sourceMaterial.MainColor;
         MainTexture = sourceMaterial.MainTexture;
@@ -287,7 +287,7 @@ public sealed class Material : IGuidAsset
     private void UpdateTextureBindingData()
     {
         if (materialResource == null ||
-            !materialResource.shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var instance))
+            shaderInstance == null)
         {
             materialResource.vertexSamplers = null;
             materialResource.fragmentSamplers = null;
@@ -295,8 +295,8 @@ public sealed class Material : IGuidAsset
             return;
         }
 
-        var vertexTextureCount = instance.vertexTextureBindings.Count;
-        var fragmentTextureCount = instance.fragmentTextureBindings.Count;
+        var vertexTextureCount = shaderInstance.vertexTextureBindings.Count;
+        var fragmentTextureCount = shaderInstance.fragmentTextureBindings.Count;
 
         var (vertexSamplers, fragmentSamplers, vertexTextureBindings, fragmentTextureBindings, parameters) =
             (materialResource.vertexSamplers, materialResource.fragmentSamplers, materialResource.vertexTextureBindings,
@@ -325,7 +325,7 @@ public sealed class Material : IGuidAsset
         vertexTextureBindings.Clear();
         fragmentTextureBindings.Clear();
 
-        foreach(var pair in instance.vertexTextureBindings)
+        foreach(var pair in shaderInstance.vertexTextureBindings)
         {
             if (!parameters.TryGetValue(pair.Key, out var p))
             {
@@ -337,7 +337,7 @@ public sealed class Material : IGuidAsset
             vertexSamplers[pair.Value] = p.textureValue;
         }
 
-        foreach (var pair in instance.fragmentTextureBindings)
+        foreach (var pair in shaderInstance.fragmentTextureBindings)
         {
             if (!parameters.TryGetValue(pair.Key, out var p))
             {
@@ -393,8 +393,8 @@ public sealed class Material : IGuidAsset
 
             ShaderVariantKey = pair.Key;
 
-            shaderProgram = materialResource.shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var instance) ?
-                instance.program : null;
+            shaderInstance = materialResource.shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var instance) ?
+                instance : null;
 
             UpdateTextureBindingData();
 
@@ -658,17 +658,18 @@ public sealed class Material : IGuidAsset
             return;
         }
 
-        var (shader, parameters, sourceBlend, destinationBlend, vertexTextureBindings, fragmentTextureBindings,
-            vertexSamplers, fragmentSamplers) =
-            (materialResource.shader, materialResource.parameters, materialResource.shader.shaderResource.sourceBlend,
-            materialResource.shader.shaderResource.destinationBlend, materialResource.vertexTextureBindings,
-            materialResource.fragmentTextureBindings, materialResource.vertexSamplers, materialResource.fragmentSamplers);
+        var (shader, parameters, vertexTextureBindings, fragmentTextureBindings, vertexSamplers, fragmentSamplers) =
+            (materialResource.shader, materialResource.parameters, materialResource.vertexTextureBindings, materialResource.fragmentTextureBindings,
+            materialResource.vertexSamplers, materialResource.fragmentSamplers);
 
         state.shader = shader;
         state.shaderInstance = shaderInstance;
-        state.sourceBlend = sourceBlend;
-        state.destinationBlend = destinationBlend;
+        state.sourceBlend = shaderInstance.sourceBlend;
+        state.destinationBlend = shaderInstance.destinationBlend;
         state.cull = CullingMode;
+        state.enableDepth = shaderInstance.enableDepth;
+        state.enableZWrite = shaderInstance.enableZWrite;
+        state.depthTest = shaderInstance.depthTest;
         state.renderQueue = RenderQueue;
         state.renderQueueIndex = RenderQueueIndex;
 

@@ -45,6 +45,9 @@ public static partial class ShaderParser
     private static readonly Regex instancingRegex = InstancingRegex();
     private static readonly Regex instancingParameterRegex = InstancingParameterRegex();
     private static readonly Regex renderQueueRegex = RenderQueueRegex();
+    private static readonly Regex enableZWriteRegex = ZWriteRegex();
+    private static readonly Regex enableDepthRegex = DepthRegex();
+    private static readonly Regex depthTestRegex = DepthTestRegex();
 
     [GeneratedRegex("(\\[\\w+\\] )?(variant\\: \\w+ )?([ ]*)(\\w+) (\\w+)(([ ]*)\\:([ ]*)(\\w+))?(([ ]*)\\=([ ]*)(.*))?")]
     private static partial Regex ParameterRegex();
@@ -73,7 +76,7 @@ public static partial class ShaderParser
     [GeneratedRegex("(\\w+) (\\w+)")]
     private static partial Regex InstancingParameterRegex();
 
-    [GeneratedRegex("Blend (.*) (.*)")]
+    [GeneratedRegex("(variant\\: \\w+ )?Blend (.*) (.*)")]
     private static partial Regex BlendRegex();
 
     [GeneratedRegex("Variants (.*)")]
@@ -85,36 +88,73 @@ public static partial class ShaderParser
     [GeneratedRegex("VariantDependency (\\w+) (\\-*\\w+)")]
     private static partial Regex VariantDependencyRegex();
 
-    [GeneratedRegex("RenderQueue (.*) (.*)")]
+    [GeneratedRegex("(variant\\: \\w+ )?RenderQueue (.*) (.*)")]
     private static partial Regex RenderQueueRegex();
 
-    public static bool Parse(string source, ShaderType type, out (BlendMode, BlendMode)? blendMode, out Parameter[] parameters,
-        out List<string> variants, out List<KeyValuePair<string, string>> variantDependencies, out List<InstanceParameter> instanceParameters,
-        out MaterialRenderQueue renderQueue, out int renderQueueOffset, out List<string> shaderDefines, out ShaderPiece vertex,
-        out ShaderPiece fragment, out ShaderPiece compute)
+    [GeneratedRegex("(variant\\: \\w+ )?ZWrite (.*)")]
+    private static partial Regex ZWriteRegex();
+
+    [GeneratedRegex("(variant\\: \\w+ )?Depth (.*)")]
+    private static partial Regex DepthRegex();
+
+    [GeneratedRegex("(variant\\: \\w+ )?DepthTest (.*)")]
+    private static partial Regex DepthTestRegex();
+
+    public class ShaderData
     {
+        public readonly SortedDictionary<string, (BlendMode, BlendMode)> blendMode = [with(StringComparer.InvariantCulture)];
+        public readonly SortedDictionary<string, bool> enableDepth = [with(StringComparer.InvariantCulture)];
+        public readonly SortedDictionary<string, bool> enableZWrite = [with(StringComparer.InvariantCulture)];
+        public readonly SortedDictionary<string, DepthTest> depthTest = [with(StringComparer.InvariantCulture)];
+        public readonly SortedDictionary<string, (MaterialRenderQueue, int)> renderQueue = [with(StringComparer.InvariantCulture)];
+        public Parameter[] parameters;
+        public string[] variants;
+        public KeyValuePair<string, string>[] variantDependencies;
+        public InstanceParameter[] instanceParameters;
+        public string[] shaderDefines;
+        public ShaderPiece vertex;
+        public ShaderPiece fragment;
+        public ShaderPiece compute;
+    }
+
+    public static bool Parse(string source, ShaderType type, out ShaderData parsedData)
+    {
+        parsedData = new();
+
+        var defaultBlendFrom = BlendMode.Off;
+        var defaultBlendTo = BlendMode.Off;
+        var defaultEnableDepth = true;
+        var defaultEnableZWrite = true;
+        var defaultDepthTest = DepthTest.LessEqual;
+        var defaultRenderQueue = MaterialRenderQueue.Opaque;
+        var defaultRenderOffset = 0;
+
         var shaderDefinesMatch = shaderDefinesRegex.Match(source);
 
         if(shaderDefinesMatch.Success && shaderDefinesMatch.Length > 0)
         {
-            shaderDefines = [.. shaderDefinesMatch.Groups[1].Value.Split(' ').Select(x => x.Trim())];
+            parsedData.shaderDefines = [.. shaderDefinesMatch.Groups[1].Value.Split(' ').Select(x => x.Trim())];
         }
         else
         {
-            shaderDefines = [];
+            parsedData.shaderDefines = [];
         }
 
         if (type == ShaderType.VertexFragment)
         {
             var variantsMatch = variantsRegex.Match(source);
 
+            var variants = new List<string>();
+
             if (variantsMatch.Success && variantsMatch.Length > 0)
             {
-                variants = [.. variantsMatch.Groups[1].Value.Split(",").Select(x => x.Trim())];
+                variants.AddRange([.. variantsMatch.Groups[1].Value.Split(",").Select(x => x.Trim())]);
 
-                variantDependencies = [];
+                parsedData.variants = [.. variants];
+                parsedData.variantDependencies = [];
 
                 var variantDependencyMatches = variantDependencyRegex.Matches(source);
+                var variantDependencies = new List<KeyValuePair<string, string>>();
 
                 foreach(Match dependency in variantDependencyMatches)
                 {
@@ -123,48 +163,171 @@ public static partial class ShaderParser
                         variantDependencies.Add(new(dependency.Groups[1].Value.Trim(), dependency.Groups[2].Value.Trim()));
                     }
                 }
+
+                parsedData.variantDependencies = [.. variantDependencies];
             }
             else
             {
-                variants = [];
-                variantDependencies = [];
+                parsedData.variants = [];
+                parsedData.variantDependencies = [];
             }
 
-            var blendMatch = blendRegex.Match(source);
-
-            if (!blendMatch.Success ||
-                !Enum.TryParse<BlendMode>(blendMatch.Groups[1].Value, true, out var from) ||
-                !Enum.TryParse<BlendMode>(blendMatch.Groups[2].Value, true, out var to))
+            bool HasVariant(string variant)
             {
-                blendMode = default;
+                foreach(var v in variants)
+                {
+                    if (!string.Equals(v, variant, StringComparison.InvariantCulture))
+                    {
+                        continue;
+                    }
+
+                    return true;
+                }
+
+                return false;
             }
-            else
+
+            foreach(Match blendMatch in blendRegex.Matches(source))
             {
-                blendMode = (from, to);
+                if (blendMatch.Success &&
+                    Enum.TryParse<BlendMode>(blendMatch.Groups[2].Value, true, out var from) &&
+                    Enum.TryParse<BlendMode>(blendMatch.Groups[3].Value, true, out var to))
+                {
+                    var variant = blendMatch.Groups[1].Value.Trim();
+
+                    if (!string.IsNullOrEmpty(variant))
+                    {
+                        variant = variant["variant: ".Length..];
+                    }
+
+                    if (string.IsNullOrEmpty(variant))
+                    {
+                        defaultBlendFrom = from;
+                        defaultBlendTo = to;
+                    }
+                    else if(HasVariant(variant))
+                    {
+                        parsedData.blendMode.AddOrSetKey(variant, (from, to));
+                    }
+                }
             }
 
-            var renderQueueMatch = renderQueueRegex.Match(source);
-
-            if (!renderQueueMatch.Success ||
-                !Enum.TryParse(renderQueueMatch.Groups[1].Value, true, out renderQueue) ||
-                !int.TryParse(renderQueueMatch.Groups[2].Value, CultureInfo.InvariantCulture, out renderQueueOffset))
+            foreach (Match renderQueueMatch in renderQueueRegex.Matches(source))
             {
-                renderQueue = default;
-                renderQueueOffset = default;
+                if (renderQueueMatch.Success &&
+                    Enum.TryParse<MaterialRenderQueue>(renderQueueMatch.Groups[2].Value, true, out var renderQueue))
+                {
+                    var renderOffset = 0;
+
+                    if(renderQueueMatch.Groups.Count > 3 &&
+                        int.TryParse(renderQueueMatch.Groups[3].Value, CultureInfo.InvariantCulture, out var offset))
+                    {
+                        renderOffset = offset;
+                    }
+
+                    if (renderOffset < 0)
+                    {
+                        renderOffset = 0;
+                    }
+
+                    var variant = renderQueueMatch.Groups[1].Value.Trim();
+
+                    if (!string.IsNullOrEmpty(variant))
+                    {
+                        variant = variant["variant: ".Length..];
+                    }
+
+                    if (string.IsNullOrEmpty(variant))
+                    {
+                        defaultRenderQueue = renderQueue;
+                        defaultRenderOffset = renderOffset;
+                    }
+                    else if (HasVariant(variant))
+                    {
+                        parsedData.renderQueue.Add(variant, (renderQueue, renderOffset));
+                    }
+                }
+            }
+
+            foreach (Match depthTestMatch in depthTestRegex.Matches(source))
+            {
+                if (depthTestMatch.Success &&
+                    Enum.TryParse<DepthTest>(depthTestMatch.Groups[2].Value, true, out var depthTest))
+                {
+                    var variant = depthTestMatch.Groups[1].Value.Trim();
+
+                    if (!string.IsNullOrEmpty(variant))
+                    {
+                        variant = variant["variant: ".Length..];
+                    }
+
+                    if (string.IsNullOrEmpty(variant))
+                    {
+                        defaultDepthTest = depthTest;
+                    }
+                    else if (HasVariant(variant))
+                    {
+                        parsedData.depthTest.Add(variant, depthTest);
+                    }
+                }
+            }
+
+            foreach(Match enableZWriteMatch in enableZWriteRegex.Matches(source))
+            {
+                if (!enableZWriteMatch.Success)
+                {
+                    continue;
+                }
+
+                var enableZWrite = !enableZWriteMatch.Groups[2].Value.Trim().Equals("Off", StringComparison.InvariantCultureIgnoreCase);
+
+                var variant = enableZWriteMatch.Groups[1].Value.Trim();
+
+                if (!string.IsNullOrEmpty(variant))
+                {
+                    variant = variant["variant: ".Length..];
+                }
+
+                if (string.IsNullOrEmpty(variant))
+                {
+                    defaultEnableZWrite = enableZWrite;
+                }
+                else if (HasVariant(variant))
+                {
+                    parsedData.enableZWrite.Add(variant, enableZWrite);
+                }
+            }
+
+            foreach (Match enableDepthMatch in enableDepthRegex.Matches(source))
+            {
+                if (!enableDepthMatch.Success)
+                {
+                    continue;
+                }
+
+                var enableDepth = !enableDepthMatch.Groups[2].Value.Trim().Equals("Off", StringComparison.InvariantCultureIgnoreCase);
+
+                var variant = enableDepthMatch.Groups[1].Value.Trim();
+
+                if (!string.IsNullOrEmpty(variant))
+                {
+                    variant = variant["variant: ".Length..];
+                }
+
+                if (string.IsNullOrEmpty(variant))
+                {
+                    defaultEnableDepth = enableDepth;
+                }
+                else if (HasVariant(variant))
+                {
+                    parsedData.enableDepth.Add(variant, enableDepth);
+                }
             }
         }
         else
         {
-            variants = [];
-            variantDependencies = [];
-            blendMode = default;
-            renderQueue = default;
-            renderQueueOffset = default;
-        }
-
-        if (renderQueueOffset < 0)
-        {
-            renderQueueOffset = 0;
+            parsedData.variants = [];
+            parsedData.variantDependencies = [];
         }
 
         var parametersMatch = parametersRegex.Match(source);
@@ -226,11 +389,11 @@ public static partial class ShaderParser
                 parameterList.Add(parameter);
             }
 
-            parameters = parameterList.ToArray();
+            parsedData.parameters = [.. parameterList];
         }
         else
         {
-            parameters = default;
+            parsedData.parameters = default;
         }
 
         void HandleContent(Regex regex, out ShaderPiece piece)
@@ -264,16 +427,16 @@ public static partial class ShaderParser
         if(type == ShaderType.VertexFragment)
         {
             HandleContent(commonRegex, out var common);
-            HandleContent(vertexRegex, out vertex);
-            HandleContent(fragmentRegex, out fragment);
+            HandleContent(vertexRegex, out parsedData.vertex);
+            HandleContent(fragmentRegex, out parsedData.fragment);
 
             if(common != null)
             {
-                vertex?.content = $"{common.content}\n\n{vertex.content}";
-                fragment?.content = $"{common.content}\n\n{fragment.content}";
+                parsedData.vertex?.content = $"{common.content}\n\n{parsedData.vertex.content}";
+                parsedData.fragment?.content = $"{common.content}\n\n{parsedData.fragment.content}";
             }
 
-            compute = default;
+            parsedData.compute = default;
 
             var instanceParametersMatch = instancingRegex.Match(source);
 
@@ -296,26 +459,42 @@ public static partial class ShaderParser
                     parameterList.Add(parameter);
                 }
 
-                instanceParameters = parameterList;
+                parsedData.instanceParameters = [.. parameterList];
             }
             else
             {
-                instanceParameters = default;
+                parsedData.instanceParameters = default;
             }
+
+            void EnsureDefault<T>(SortedDictionary<string, T> container, T value)
+            {
+                if(container.ContainsKey(""))
+                {
+                    return;
+                }
+
+                container.Add("", value);
+            }
+
+            EnsureDefault(parsedData.blendMode, (defaultBlendFrom, defaultBlendTo));
+            EnsureDefault(parsedData.depthTest, defaultDepthTest);
+            EnsureDefault(parsedData.enableDepth, defaultEnableDepth);
+            EnsureDefault(parsedData.enableZWrite, defaultEnableZWrite);
+            EnsureDefault(parsedData.renderQueue, (defaultRenderQueue, defaultRenderOffset));
         }
         else
         {
             HandleContent(commonRegex, out var common);
-            HandleContent(computeRegex, out compute);
+            HandleContent(computeRegex, out parsedData.compute);
 
             if (common != null)
             {
-                compute?.content = $"{common.content}\n\n{compute.content}";
+                parsedData.compute?.content = $"{common.content}\n\n{parsedData.compute.content}";
             }
 
-            vertex = default;
-            fragment = default;
-            instanceParameters = default;
+            parsedData.vertex = default;
+            parsedData.fragment = default;
+            parsedData.instanceParameters = default;
         }
 
         return true;

@@ -101,6 +101,27 @@ public class SerializableShaderData
 
     [Key(9)]
     public ShaderUniformContainer computeUniforms = new();
+
+    [Key(10)]
+    public BlendMode sourceBlend = BlendMode.Off;
+
+    [Key(11)]
+    public BlendMode destinationBlend = BlendMode.Off;
+
+    [Key(12)]
+    public bool enableDepth = true;
+
+    [Key(13)]
+    public bool enableZWrite = true;
+
+    [Key(14)]
+    public DepthTest depthTest = DepthTest.LessEqual;
+
+    [Key(15)]
+    public MaterialRenderQueue renderQueue = MaterialRenderQueue.Opaque;
+
+    [Key(16)]
+    public int renderQueueOffset;
 }
 
 [MessagePackObject]

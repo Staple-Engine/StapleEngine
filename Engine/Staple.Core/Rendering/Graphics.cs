@@ -40,7 +40,6 @@ public static class Graphics
 
         var renderState = RenderState.Default;
 
-        renderState.cull = material.CullingMode;
         renderState.primitiveType = topology;
         renderState.indexBuffer = index;
         renderState.vertexBuffer = vertex;
