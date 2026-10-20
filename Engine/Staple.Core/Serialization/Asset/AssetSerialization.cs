@@ -96,14 +96,19 @@ public static partial class AssetSerialization
     /// </summary>
     public static readonly string[] MeshExtensions =
     [
+        "fbx",
         "glb",
-        "gltf"
+        "gltf",
+        "obj",
     ];
 
     /// <summary>
     /// All static (can't animate) 3D model (mesh) extensions
     /// </summary>
-    public static readonly string[] StaticMeshExtensions = [];
+    public static readonly string[] StaticMeshExtensions =
+    [
+        "obj",
+    ];
 
     /// <summary>
     /// All audio file extensions

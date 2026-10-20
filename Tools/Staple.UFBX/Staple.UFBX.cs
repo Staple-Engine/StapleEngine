@@ -594,6 +594,7 @@ public class UFXImporter : IMeshImporter
                         .ToArray()
                         .Select(x => new Vector4Holder(x))];
 
+#if STAPLE_UFBX_SUPPORTS_BLENDSHAPES
                     if(mesh.blendShape != null)
                     {
                         m.blendShape = new()
@@ -619,6 +620,7 @@ public class UFXImporter : IMeshImporter
                             }
                         }
                     }
+#endif
                 }
 
                 m.submeshes = [.. mesh.Submeshes.ToArray().Select(x => new MeshAssetSubmesh()
