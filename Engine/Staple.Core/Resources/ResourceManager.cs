@@ -2286,6 +2286,13 @@ internal class ResourceManager : IWorldChangeReceiver
 
         if (guid.StartsWith("Internal/", StringComparison.InvariantCulture))
         {
+            var separator = guid.IndexOf(':');
+
+            if(separator >= 0)
+            {
+                return Mesh.GetDefaultMesh(guid[..separator]);
+            }
+
             return Mesh.GetDefaultMesh(guid);
         }
 
@@ -2440,6 +2447,45 @@ internal class ResourceManager : IWorldChangeReceiver
         if(CheckFailedAssetLoad(path, guid))
         {
             return null;
+        }
+
+        if(Mesh.defaultMeshes.TryGetValue(path, out var internalMesh))
+        {
+            internalMesh.UpdateBounds();
+
+            var resource = new MeshAssetResource()
+            {
+                Bounds = internalMesh.bounds,
+                generateColliders = true,
+                meshes = [
+                    new()
+                    {
+                        bitangents = internalMesh.BitangentsInternal,
+                        bounds = internalMesh.bounds,
+                        colors = internalMesh.ColorsInternal,
+                        indices = internalMesh.IndicesInternal,
+                        name = path["Internal/".Length..],
+                        normals = internalMesh.NormalsInternal,
+                        tangents = internalMesh.TangentsInternal,
+                        topology = internalMesh.meshTopology,
+                        transformedBounds = internalMesh.bounds,
+                        type = MeshAssetType.Normal,
+                        UV1 = internalMesh.UVInternal,
+                        vertices = internalMesh.VerticesInternal,
+                        submeshes = [
+                            new()
+                            {
+                                indexCount = internalMesh.IndicesInternal.Length,
+                                materialGuid = AssetSerialization.StandardMaterialPath,
+                            },
+                        ],
+                    },
+                ],
+            };
+
+            resource.Guid.Guid = path;
+
+            return resource;
         }
 
         var data = LoadFile(path);

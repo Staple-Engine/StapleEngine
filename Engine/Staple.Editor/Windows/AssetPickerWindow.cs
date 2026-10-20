@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Newtonsoft.Json;
 using Staple.Internal;
 using Staple.ProjectManagement;
 
@@ -10,6 +9,91 @@ namespace Staple.Editor;
 
 internal class AssetPickerWindow : EditorWindow
 {
+    internal class ContentGridItem : ImGuiUtils.ContentGridItem
+    {
+        public readonly string basePath;
+        public readonly ProjectBrowser projectBrowser;
+        public readonly ProjectBrowserNode node;
+        public readonly Texture fileIcon;
+
+        public AssetPickerWindow owner;
+
+        public ContentGridItem(AssetPickerWindow owner, string basePath, ProjectBrowser projectBrowser, ProjectBrowserNode node,
+            Texture fileIcon)
+        {
+            this.owner = owner;
+            this.basePath = basePath;
+            this.projectBrowser = projectBrowser;
+            this.node = node;
+            this.fileIcon = fileIcon;
+
+            name = node?.name ?? "(None)";
+            ID = $"{node?.name}.{node?.extension}";
+        }
+
+        string ThumbnailPath(string path)
+        {
+            if (File.Exists(path))
+            {
+                return path;
+            }
+
+            if (File.Exists(Path.Combine(basePath, path)))
+            {
+                return Path.Combine(basePath, path);
+            }
+
+            return path;
+        }
+
+        public override Texture EnsureValidTexture(Texture existing)
+        {
+            if (StapleEditor.instance.RefreshingAssets)
+            {
+                return texture;
+            }
+
+            if (node != null && ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(ThumbnailPath(node.path))))
+            {
+                return ThumbnailCache.GetThumbnail(ThumbnailPath(node.path)) ??
+                    projectBrowser.GetResourceIcon(ProjectBrowser.ResourceTypeForExtension(node.extension));
+            }
+
+            return texture ?? fileIcon;
+        }
+
+        public override void NotVisible()
+        {
+            if (string.IsNullOrEmpty(node?.path))
+            {
+                return;
+            }
+
+            ThumbnailCache.RemoveRenderRequest(node.path);
+        }
+
+        public override void OnClick()
+        {
+        }
+
+        public override void OnDelete()
+        {
+        }
+
+        public override void OnDoubleClick()
+        {
+            owner.OnProjectNodeDoubleClicked(node);
+        }
+
+        public override void OnDragDropped()
+        {
+        }
+
+        public override void OnRename(string name)
+        {
+        }
+    }
+
     public string assetPickerSearch = "";
     public string assetPickerKey;
     public Type assetPickerType;
@@ -20,8 +104,7 @@ internal class AssetPickerWindow : EditorWindow
 
     public Func<string, bool> filter;
 
-    private ProjectBrowserNode[] validItems = [];
-    private List<ImGuiUtils.ContentGridItem> gridItems = [];
+    private readonly List<ImGuiUtils.ContentGridItem> gridItems = [];
 
     public AssetPickerWindow()
     {
@@ -32,6 +115,293 @@ internal class AssetPickerWindow : EditorWindow
         size = new(800, 600);
     }
 
+    private void OnProjectNodeDoubleClicked(ProjectBrowserNode node)
+    {
+        if (node == null)
+        {
+            if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+            {
+                EditorGUI.pendingObjectPickers[assetPickerKey] = null;
+            }
+
+            Close();
+
+            return;
+        }
+
+        if (assetPickerType == typeof(Mesh) && Mesh.defaultMeshes.TryGetValue(node.path, out var defaultMesh))
+        {
+            if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+            {
+                EditorGUI.pendingObjectPickers[assetPickerKey] = defaultMesh;
+            }
+
+            Close();
+
+            return;
+        }
+
+        var cachePath = EditorUtils.GetLocalPath(node.path);
+
+        var guid = AssetDatabase.GetAssetGuid(cachePath);
+
+        if (guid == null)
+        {
+            Close();
+
+            return;
+        }
+
+        var type = ProjectBrowser.ResourceTypeForExtension(node.extension);
+
+        switch (type)
+        {
+            case ProjectBrowserResourceType.Texture:
+
+                Texture texture = null;
+
+                try
+                {
+                    texture = ResourceManager.instance.LoadTexture(guid);
+                }
+                catch (System.Exception)
+                {
+                }
+
+                if (texture != null)
+                {
+                    if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                    {
+                        EditorGUI.pendingObjectPickers[assetPickerKey] = texture;
+                    }
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.Mesh:
+
+                try
+                {
+                    var mesh = ResourceManager.instance.LoadMesh(guid);
+
+                    if (mesh != null)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = mesh;
+                        }
+                    }
+                }
+                catch (System.Exception)
+                {
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.Asset:
+
+                try
+                {
+                    var asset = ResourceManager.instance.LoadAsset(guid);
+
+                    if (asset != null && asset.GetType().FullName == assetPickerType.FullName)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = asset;
+                        }
+                    }
+                }
+                catch (System.Exception)
+                {
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.Material:
+
+                try
+                {
+                    var material = ResourceManager.instance.LoadMaterial(guid);
+
+                    if (material != null)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = material;
+                        }
+                    }
+                }
+                catch (System.Exception)
+                {
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.Shader:
+
+                try
+                {
+                    var shader = ResourceManager.instance.LoadShader(guid);
+
+                    if (shader != null)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = shader;
+                        }
+                    }
+                }
+                catch (System.Exception)
+                {
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.ComputeShader:
+
+                try
+                {
+                    var shader = ResourceManager.instance.LoadComputeShader(guid);
+
+                    if (shader != null)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = shader;
+                        }
+                    }
+                }
+                catch (System.Exception)
+                {
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.Audio:
+
+                try
+                {
+                    var audioClip = ResourceManager.instance.LoadAudioClip(guid);
+
+                    if (audioClip != null)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = audioClip;
+                        }
+                    }
+                }
+                catch (System.Exception)
+                {
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.Font:
+
+                try
+                {
+                    var font = ResourceManager.instance.LoadFont(guid);
+
+                    if (font != null)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = font;
+                        }
+                    }
+                }
+                catch (System.Exception)
+                {
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.Prefab:
+
+                try
+                {
+                    var prefab = ResourceManager.instance.LoadPrefab(guid);
+
+                    if (prefab != null)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = prefab;
+                        }
+                    }
+                }
+                catch (System.Exception)
+                {
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.AssemblyDefinition:
+
+                try
+                {
+                    var asmDef = (AssemblyDefinition)AssemblyDefinition.Create(guid);
+
+                    if (asmDef != null)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = asmDef;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.Plugin:
+
+                try
+                {
+                    var plugin = PluginAsset.Create(guid);
+
+                    if (plugin != null)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = plugin;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
+                break;
+
+            case ProjectBrowserResourceType.Text:
+
+                try
+                {
+                    var textAsset = ResourceManager.instance.LoadTextAsset(guid);
+
+                    if (textAsset != null)
+                    {
+                        if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
+                        {
+                            EditorGUI.pendingObjectPickers[assetPickerKey] = textAsset;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                }
+
+                break;
+        }
+
+        Close();
+    }
+
     private void Refresh()
     {
         if(assetPickerType == null)
@@ -39,9 +409,13 @@ internal class AssetPickerWindow : EditorWindow
             return;
         }
 
-        var validItems = new List<ProjectBrowserNode>
+        projectBrowser.editorResources.TryGetValue("FileIcon", out var fileIcon);
+
+        gridItems.Clear();
+
+        var validItems = new List<ContentGridItem>
         {
-            null
+            new(this, basePath, projectBrowser, null, fileIcon),
         };
 
         foreach (var pair in AssetDatabase.database.assets)
@@ -67,62 +441,14 @@ internal class AssetPickerWindow : EditorWindow
                 continue;
             }
 
-            validItems.Add(new ProjectBrowserNode()
+            gridItems.Add(new ContentGridItem(this, basePath, projectBrowser, new ProjectBrowserNode()
             {
                 path = asset.path,
                 name = asset.name,
                 typeName = asset.typeName,
                 extension = Path.GetExtension(asset.path.Replace(".meta", "")).ToLowerInvariant(),
-            });
+            }, fileIcon));
         }
-
-        this.validItems = validItems.ToArray();
-
-        projectBrowser.editorResources.TryGetValue("FileIcon", out var fileIcon);
-
-        string ThumbnailPath(string path)
-        {
-            if(File.Exists(path))
-            {
-                return path;
-            }
-
-            if(File.Exists(Path.Combine(basePath, path)))
-            {
-                return Path.Combine(basePath, path);
-            }
-
-            return path;
-        }
-
-        gridItems = validItems
-            .Select(x => new ImGuiUtils.ContentGridItem()
-            {
-                name = x?.name ?? "(None)",
-                ID = $"{x?.name}.{x?.extension}",
-                notVisible = () =>
-                {
-                    if(x != null)
-                    {
-                        ThumbnailCache.RemoveRenderRequest(x.path);
-                    }
-                },
-                ensureValidTexture = (texture) =>
-                {
-                    if (StapleEditor.instance.RefreshingAssets)
-                    {
-                        return texture;
-                    }
-
-                    if (x != null && ((texture?.Disposed ?? true) || ThumbnailCache.HasCachedThumbnail(ThumbnailPath(x.path))))
-                    {
-                        return ThumbnailCache.GetThumbnail(ThumbnailPath(x.path)) ??
-                            projectBrowser.GetResourceIcon(ProjectBrowser.ResourceTypeForExtension(x.extension));
-                    }
-
-                    return texture ?? fileIcon;
-                },
-            }).ToList();
     }
 
     public override void OnGUI()
@@ -131,304 +457,12 @@ internal class AssetPickerWindow : EditorWindow
 
         assetPickerSearch = EditorGUI.TextField("Search", "AssetPickerSearch", newValue);
 
-        if (newValue != assetPickerSearch || validItems.Length == 0)
+        if (newValue != assetPickerSearch || gridItems.Count == 0)
         {
             Refresh();
         }
 
         ImGuiUtils.ContentGrid(gridItems, ProjectBrowser.contentPanelPadding, ProjectBrowser.contentPanelThumbnailSize,
-            null, false,
-            (index, item) =>
-            {
-            },
-            (index, item) =>
-            {
-                var i = validItems[index];
-
-                if (i == null)
-                {
-                    if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                    {
-                        EditorGUI.pendingObjectPickers[assetPickerKey] = null;
-                    }
-
-                    Close();
-
-                    return;
-                }
-
-                if(assetPickerType == typeof(Mesh) && Mesh.defaultMeshes.TryGetValue(i.path, out var defaultMesh))
-                {
-                    if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                    {
-                        EditorGUI.pendingObjectPickers[assetPickerKey] = defaultMesh;
-                    }
-
-                    Close();
-
-                    return;
-                }
-
-                var cachePath = EditorUtils.GetLocalPath(i.path);
-
-                var guid = AssetDatabase.GetAssetGuid(cachePath);
-
-                if(guid == null)
-                {
-                    Close();
-
-                    return;
-                }
-
-                var type = ProjectBrowser.ResourceTypeForExtension(i.extension);
-
-                switch (type)
-                {
-                    case ProjectBrowserResourceType.Texture:
-
-                        Texture texture = null;
-
-                        try
-                        {
-                            texture = ResourceManager.instance.LoadTexture(guid);
-                        }
-                        catch (System.Exception)
-                        {
-                        }
-
-                        if (texture != null)
-                        {
-                            if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                            {
-                                EditorGUI.pendingObjectPickers[assetPickerKey] = texture;
-                            }
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.Mesh:
-
-                        try
-                        {
-                            var mesh = ResourceManager.instance.LoadMesh(guid);
-
-                            if (mesh != null)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = mesh;
-                                }
-                            }
-                        }
-                        catch (System.Exception)
-                        {
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.Asset:
-
-                        try
-                        {
-                            var asset = ResourceManager.instance.LoadAsset(guid);
-
-                            if (asset != null && asset.GetType().FullName == assetPickerType.FullName)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = asset;
-                                }
-                            }
-                        }
-                        catch (System.Exception)
-                        {
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.Material:
-
-                        try
-                        {
-                            var material = ResourceManager.instance.LoadMaterial(guid);
-
-                            if (material != null)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = material;
-                                }
-                            }
-                        }
-                        catch (System.Exception)
-                        {
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.Shader:
-
-                        try
-                        {
-                            var shader = ResourceManager.instance.LoadShader(guid);
-
-                            if (shader != null)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = shader;
-                                }
-                            }
-                        }
-                        catch (System.Exception)
-                        {
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.ComputeShader:
-
-                        try
-                        {
-                            var shader = ResourceManager.instance.LoadComputeShader(guid);
-
-                            if (shader != null)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = shader;
-                                }
-                            }
-                        }
-                        catch (System.Exception)
-                        {
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.Audio:
-
-                        try
-                        {
-                            var audioClip = ResourceManager.instance.LoadAudioClip(guid);
-
-                            if (audioClip != null)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = audioClip;
-                                }
-                            }
-                        }
-                        catch (System.Exception)
-                        {
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.Font:
-
-                        try
-                        {
-                            var font = ResourceManager.instance.LoadFont(guid);
-
-                            if (font != null)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = font;
-                                }
-                            }
-                        }
-                        catch (System.Exception)
-                        {
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.Prefab:
-
-                        try
-                        {
-                            var prefab = ResourceManager.instance.LoadPrefab(guid);
-
-                            if (prefab != null)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = prefab;
-                                }
-                            }
-                        }
-                        catch (System.Exception)
-                        {
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.AssemblyDefinition:
-
-                        try
-                        {
-                            var asmDef = (AssemblyDefinition)AssemblyDefinition.Create(guid);
-
-                            if(asmDef != null)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = asmDef;
-                                }
-                            }
-                        }
-                        catch(Exception)
-                        {
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.Plugin:
-
-                        try
-                        {
-                            var plugin = PluginAsset.Create(guid);
-
-                            if (plugin != null)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = plugin;
-                                }
-                            }
-                        }
-                        catch (Exception)
-                        {
-                        }
-
-                        break;
-
-                    case ProjectBrowserResourceType.Text:
-
-                        try
-                        {
-                            var textAsset = ResourceManager.instance.LoadTextAsset(guid);
-
-                            if (textAsset != null)
-                            {
-                                if (EditorGUI.pendingObjectPickers.ContainsKey(assetPickerKey))
-                                {
-                                    EditorGUI.pendingObjectPickers[assetPickerKey] = textAsset;
-                                }
-                            }
-                        }
-                        catch (Exception)
-                        {
-                        }
-
-                        break;
-                }
-
-                Close();
-            },
-            null, null, null);
+            null, false, false);
     }
 }

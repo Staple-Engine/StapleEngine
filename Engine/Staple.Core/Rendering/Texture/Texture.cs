@@ -196,6 +196,11 @@ public class Texture : IGuidAsset
                 data = data,
             };
         }
+        catch(System.InvalidOperationException e)
+        {
+            //Unknown image type, skip silently
+            return null;
+        }
         catch (System.Exception e)
         {
             Log.Error($"While attempting to load a standard texture: {e}", LogTag);

@@ -1,6 +1,5 @@
 ﻿using Hexa.NET.ImGui;
 using Hexa.NET.ImGuizmo;
-using MessagePack;
 using Newtonsoft.Json;
 using Staple.Internal;
 using Staple.ProjectManagement;
@@ -1252,7 +1251,7 @@ internal partial class StapleEditor
     /// <param name="io">The current ImGUI IO</param>
     private void ProjectBrowser(ImGuiIOPtr io)
     {
-        projectBrowser.Draw(io, (item) =>
+        projectBrowser.onClick = (item) =>
         {
             if (item == selectedProjectNode)
             {
@@ -1665,8 +1664,9 @@ internal partial class StapleEditor
                     }
                 }
             }
-        },
-        (item) =>
+        };
+
+        projectBrowser.onDoubleClick = (item) =>
         {
             switch (item.type)
             {
@@ -1730,7 +1730,16 @@ internal partial class StapleEditor
 
                         case ProjectBrowserNodeAction.Open:
 
-                            StorageUtils.ShellOpenFile(item.path);
+                            try
+                            {
+                                if(File.Exists(item.path))
+                                {
+                                    StorageUtils.ShellOpenFile(item.path);
+                                }
+                            }
+                            catch(Exception)
+                            {
+                            }
 
                             break;
                     }
@@ -1745,7 +1754,9 @@ internal partial class StapleEditor
 
                     break;
             }
-        });
+        };
+
+        projectBrowser.Draw(io);
     }
 
     /// <summary>

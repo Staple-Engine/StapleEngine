@@ -61,6 +61,8 @@ public sealed partial class Mesh : IGuidAsset
 
             _quad.UpdateBounds();
 
+            _quad.AddSubmesh(0, 0, _quad.IndicesInternal.Length);
+
             return _quad;
         }
     }
@@ -97,6 +99,8 @@ public sealed partial class Mesh : IGuidAsset
 
             _cube.UpdateBounds();
 
+            _cube.AddSubmesh(0, 0, _cube.IndicesInternal.Length);
+
             return _cube;
         }
     }
@@ -123,6 +127,8 @@ public sealed partial class Mesh : IGuidAsset
             _sphere.Guid.Guid = "Internal/Sphere";
 
             _sphere.UpdateBounds();
+
+            _sphere.AddSubmesh(0, 0, _sphere.IndicesInternal.Length);
 
             return _sphere;
         }
@@ -1730,7 +1736,7 @@ public sealed partial class Mesh : IGuidAsset
             parent = parentEntity.GetComponent<Transform>();
         }
 
-        var baseEntity = Entity.Create(name, out Transform baseTransform, out CullingVolume _);
+        var baseEntity = Entity.Create(name, out Transform baseTransform);
 
         baseTransform.SetParent(parent);
 
@@ -1838,47 +1844,90 @@ public sealed partial class Mesh : IGuidAsset
         }
         else if ((asset.Meshes?.Length ?? 0) > 0)
         {
-            for (var i = 0; i < asset.Meshes.Length; i++)
+            if(asset.Meshes.Length == 1)
             {
-                var mesh = asset.Meshes[i];
-
-                var meshEntity = Entity.Create(mesh.name, out Transform meshTransform);
+                var mesh = asset.Meshes[0];
 
                 var isSkinned = mesh.bones.Length > 0;
 
-                meshTransform.SetParent(baseTransform);
-
-                var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{i}");
+                var outMesh = ResourceManager.instance.LoadMesh(asset.Guid.Guid);
                 var outMaterials = mesh.submeshes.Select(x => ResourceManager.instance.LoadMaterial(x.materialGuid)).ToList();
 
                 if (outMesh == null)
                 {
-                    continue;
+                    return baseEntity;
                 }
-                
+
                 if (isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
                 {
-                    var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+                    var skinnedRenderer = baseEntity.AddComponent<SkinnedMeshRenderer>();
 
                     skinnedRenderer.mesh = outMesh;
                     skinnedRenderer.materials = outMaterials;
                 }
                 else
                 {
-                    var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+                    var meshRenderer = baseEntity.AddComponent<MeshRenderer>();
 
                     meshRenderer.mesh = outMesh;
                     meshRenderer.materials = outMaterials;
 
                     if (outMesh.meshAsset?.meshResource?.generateColliders ?? false)
                     {
-                        var meshCollider = meshEntity.AddComponent<MeshCollider3D>();
+                        var meshCollider = baseEntity.AddComponent<MeshCollider3D>();
 
                         meshCollider.mesh = outMesh;
 
-                        var body = meshEntity.AddComponent<RigidBody3D>();
+                        var body = baseEntity.AddComponent<RigidBody3D>();
 
                         body.motionType = BodyMotionType.Static;
+                    }
+                }
+            }
+            else
+            {
+                for (var i = 0; i < asset.Meshes.Length; i++)
+                {
+                    var mesh = asset.Meshes[i];
+
+                    var meshEntity = Entity.Create(mesh.name, out Transform meshTransform);
+
+                    var isSkinned = mesh.bones.Length > 0;
+
+                    meshTransform.SetParent(baseTransform);
+
+                    var outMesh = ResourceManager.instance.LoadMesh($"{asset.Guid}:{i}");
+                    var outMaterials = mesh.submeshes.Select(x => ResourceManager.instance.LoadMaterial(x.materialGuid)).ToList();
+
+                    if (outMesh == null)
+                    {
+                        continue;
+                    }
+
+                    if (isSkinned && !options.HasFlag(MeshInstanceOptions.MakeUnskinned))
+                    {
+                        var skinnedRenderer = meshEntity.AddComponent<SkinnedMeshRenderer>();
+
+                        skinnedRenderer.mesh = outMesh;
+                        skinnedRenderer.materials = outMaterials;
+                    }
+                    else
+                    {
+                        var meshRenderer = meshEntity.AddComponent<MeshRenderer>();
+
+                        meshRenderer.mesh = outMesh;
+                        meshRenderer.materials = outMaterials;
+
+                        if (outMesh.meshAsset?.meshResource?.generateColliders ?? false)
+                        {
+                            var meshCollider = meshEntity.AddComponent<MeshCollider3D>();
+
+                            meshCollider.mesh = outMesh;
+
+                            var body = meshEntity.AddComponent<RigidBody3D>();
+
+                            body.motionType = BodyMotionType.Static;
+                        }
                     }
                 }
             }

@@ -1,5 +1,4 @@
 ﻿using Hexa.NET.ImGui;
-using System;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -7,7 +6,7 @@ namespace Staple.Editor;
 
 internal static class ImGuiUtils
 {
-    public class ContentGridItem
+    public abstract class ContentGridItem
     {
         public bool renaming = false;
         public bool selected = false;
@@ -15,8 +14,20 @@ internal static class ImGuiUtils
         public string name;
         public string ID;
         public Texture texture;
-        public Func<Texture, Texture> ensureValidTexture;
-        public Action notVisible;
+
+        public abstract Texture EnsureValidTexture(Texture existing);
+
+        public abstract void NotVisible();
+
+        public abstract void OnClick();
+
+        public abstract void OnDoubleClick();
+
+        public abstract void OnDragDropped();
+
+        public abstract void OnRename(string name);
+
+        public abstract void OnDelete();
     }
 
     /// <summary>
@@ -26,12 +37,10 @@ internal static class ImGuiUtils
     /// <param name="padding">The padding</param>
     /// <param name="thumbnailSize">The thumbnail size</param>
     /// <param name="dragPayload">The drag payload, if any</param>
-    /// <param name="onClick">Callback when an item is clicked</param>
-    /// <param name="onDoubleClick">Callback when an item is double clicked</param>
-    /// <param name="onDragDropped">Callback when an item was dropped</param>
+    /// <param name="allowRename">Whether the item may be renamed</param>
+    /// <param name="allowDelete">Whether to allow deleting items</param>
     public static void ContentGrid(List<ContentGridItem> items, float padding, float thumbnailSize, string dragPayload, bool allowRename,
-        Action<int, ContentGridItem> onClick, Action<int, ContentGridItem> onDoubleClick, Action<int, ContentGridItem> onDragDropped,
-        Action<int, ContentGridItem, string> onRename, Action<int, ContentGridItem> onDelete)
+        bool allowDelete)
     {
         var cellSize = padding + thumbnailSize;
         var width = ImGui.GetContentRegionAvail().X;
@@ -51,13 +60,13 @@ internal static class ImGuiUtils
 
             if(ImGui.IsItemVisible())
             {
-                item.texture = item.ensureValidTexture(item.texture);
+                item.texture = item.EnsureValidTexture(item.texture);
 
                 if (ImGui.IsItemHovered())
                 {
                     if (ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                     {
-                        onDoubleClick?.Invoke(i, item);
+                        item.OnDoubleClick();
                     }
                     else if (Input.GetMouseButtonUp(MouseButton.Left))
                     {
@@ -69,7 +78,7 @@ internal static class ImGuiUtils
 
                         item.selected = true;
 
-                        onClick?.Invoke(i, item);
+                        item.OnClick();
                     }
                     else if (dragPayload != null &&
                         !StapleEditor.instance.dragDropPayloads.ContainsKey(dragPayload) &&
@@ -84,7 +93,7 @@ internal static class ImGuiUtils
                         {
                             index = index,
                             item = item,
-                            action = onDragDropped,
+                            action = (index, _) => item.OnDragDropped(),
                         });
 
                         ImGui.EndDragDropSource();
@@ -97,17 +106,17 @@ internal static class ImGuiUtils
 
                 if (item.selected)
                 {
-                    if (Input.GetKeyUp(KeyCode.Enter))
+                    if (Input.GetKeyUp(KeyCode.Enter) && allowRename)
                     {
                         item.renaming = true;
                         item.renamedName = item.name;
                     }
-                    else if (Input.GetKeyUp(KeyCode.Delete))
+                    else if (Input.GetKeyUp(KeyCode.Delete) && allowDelete)
                     {
                         EditorUtils.ShowMessageBox($"Are you sure you want to delete {item.name}?", "OK", "Cancel",
                             () =>
                             {
-                                onDelete?.Invoke(index, item);
+                                item.OnDelete();
                             },
                             null);
                     }
@@ -120,19 +129,19 @@ internal static class ImGuiUtils
                     {
                         item.renaming = false;
 
-                        onRename?.Invoke(index, item, item.renamedName);
+                        item.OnRename(item.renamedName);
                     }
                 }
                 else
                 {
                     item.renaming = false;
 
-                    ImGui.TextWrapped(item.name);
+                    ImGui.Text(item.name);
                 }
             }
             else
             {
-                item.notVisible?.Invoke();
+                item.NotVisible();
             }
 
             ImGui.NextColumn();

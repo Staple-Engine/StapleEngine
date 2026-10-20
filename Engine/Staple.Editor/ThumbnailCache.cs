@@ -114,6 +114,11 @@ internal class ThumbnailCache
 
                     var guid = AssetDatabase.GetAssetGuid(cachePath);
 
+                    if (guid == null && AssetDatabase.GetAssetType(request.path) == typeof(Mesh).FullName)
+                    {
+                        guid = request.path;
+                    }
+
                     if (guid == null)
                     {
                         Cleanup();
@@ -381,6 +386,11 @@ internal class ThumbnailCache
                     var cachePath = EditorUtils.GetLocalPath(request.path);
 
                     var guid = AssetDatabase.GetAssetGuid(cachePath);
+
+                    if(guid == null && AssetDatabase.GetAssetType(request.path) == typeof(Material).FullName)
+                    {
+                        guid = request.path;
+                    }
 
                     if (guid == null)
                     {
@@ -705,9 +715,9 @@ internal class ThumbnailCache
                             }
                             else
                             {
-                                if (cachedTextures.ContainsKey(request.path))
+                                if (cachedTextures.TryGetValue(request.path, out var t))
                                 {
-                                    cachedTextures[request.path]?.Destroy();
+                                    t?.Destroy();
                                 }
 
                                 cachedTextureData.AddOrSetKey(request.path, rawTextureData);
@@ -778,77 +788,90 @@ internal class ThumbnailCache
                     {
                     }
 
-                    RawTextureData rawTextureData;
+                    RawTextureData rawTextureData = null;
 
-                    if (lastLocalModified >= lastModified)
+                    bool LoadRaw()
                     {
-                        try
+                        if (lastLocalModified >= lastModified)
                         {
-                            var data = File.ReadAllBytes(request.path);
+                            try
+                            {
+                                var data = File.ReadAllBytes(request.path);
 
-                            rawTextureData = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
+                                rawTextureData = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
+                            }
+                            catch (Exception)
+                            {
+                                return false;
+                            }
+
+                            if (rawTextureData == null)
+                            {
+                                return false;
+                            }
+
+                            try
+                            {
+                                rawTextureData.Resize(ThumbnailSize, ThumbnailSize);
+
+                                var pngData = rawTextureData.EncodePNG();
+
+                                File.WriteAllBytes(thumbnailPath, pngData);
+                            }
+                            catch (Exception)
+                            {
+                                return false;
+                            }
+
+                            return true;
                         }
-                        catch (Exception)
+                        else
                         {
-                            Cleanup();
+                            try
+                            {
+                                var data = File.ReadAllBytes(thumbnailPath);
 
-                            break;
-                        }
+                                rawTextureData = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
+                            }
+                            catch (Exception)
+                            {
+                                return false;
+                            }
 
-                        if (rawTextureData == null)
-                        {
-                            Cleanup();
+                            if (rawTextureData == null)
+                            {
+                                return false;
+                            }
 
-                            break;
-                        }
-
-                        try
-                        {
-                            rawTextureData.Resize(ThumbnailSize, ThumbnailSize);
-
-                            var pngData = rawTextureData.EncodePNG();
-
-                            File.WriteAllBytes(thumbnailPath, pngData);
-                        }
-                        catch (Exception)
-                        {
-                            Cleanup();
-
-                            break;
+                            return true;
                         }
                     }
-                    else
+
+                    if(!LoadRaw() && AssetDatabase.GetAssetType(request.path) != typeof(Texture).FullName)
                     {
-                        try
-                        {
-                            var data = File.ReadAllBytes(thumbnailPath);
+                        Cleanup();
 
-                            rawTextureData = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
-                        }
-                        catch (Exception)
-                        {
-                            Cleanup();
-
-                            break;
-                        }
-
-                        if (rawTextureData == null)
-                        {
-                            Cleanup();
-
-                            break;
-                        }
+                        break;
                     }
 
                     ThreadHelper.Dispatch(() =>
                     {
-                        var texture = Texture.CreatePixels(request.path, rawTextureData.data,
-                            (ushort)rawTextureData.width, (ushort)rawTextureData.height,
-                            new TextureMetadata()
-                            {
-                                useMipmaps = false,
-                            },
-                            TextureFormat.RGBA8);
+                        Texture texture = null;
+
+                        if(rawTextureData != null)
+                        {
+                            texture = Texture.CreatePixels(request.path, rawTextureData.data,
+                                (ushort)rawTextureData.width, (ushort)rawTextureData.height,
+                                new TextureMetadata()
+                                {
+                                    useMipmaps = false,
+                                },
+                                TextureFormat.RGBA8);
+                        }
+                        else
+                        {
+                            texture = Resources.Load<Texture>(request.path);
+                        }
 
                         if (texture != null)
                         {
@@ -860,7 +883,14 @@ internal class ThumbnailCache
                                     cachePath = cachePath,
                                 });
 
-                                cachedTextureData.AddOrSetKey(request.path, rawTextureData);
+                                if(rawTextureData != null)
+                                {
+                                    cachedTextureData.AddOrSetKey(request.path, rawTextureData);
+                                }
+                                else
+                                {
+                                    cachedTextureData.Remove(request.path);
+                                }
                             }
                         }
 
@@ -956,14 +986,15 @@ internal class ThumbnailCache
                 return null;
             }
 
-            texture = Texture.CreatePixels(path, rawTextureData.data, (ushort)rawTextureData.width, (ushort)rawTextureData.height, new TextureMetadata()
-            {
-                filter = TextureFilter.Point,
-                format = TextureMetadataFormat.RGBA8,
-                type = TextureType.Texture,
-                useMipmaps = false,
-            },
-            TextureFormat.RGBA8);
+            texture = Texture.CreatePixels(path, rawTextureData.data, (ushort)rawTextureData.width, (ushort)rawTextureData.height,
+                new TextureMetadata()
+                {
+                    filter = TextureFilter.Point,
+                    format = TextureMetadataFormat.RGBA8,
+                    type = TextureType.Texture,
+                    useMipmaps = false,
+                },
+                TextureFormat.RGBA8);
 
             if (texture == null)
             {
@@ -978,9 +1009,9 @@ internal class ThumbnailCache
                 }
                 else
                 {
-                    if (cachedTextures.ContainsKey(path))
+                    if (cachedTextures.TryGetValue(path, out var t))
                     {
-                        cachedTextures[path]?.Destroy();
+                        t?.Destroy();
                     }
 
                     cachedTextureData.AddOrSetKey(path, rawTextureData);
@@ -1023,7 +1054,7 @@ internal class ThumbnailCache
     {
         var extension = Path.GetExtension(path);
 
-        if (extension.Length == 0 ||
+        if (extension.Length > 0 &&
             (!AssetSerialization.TextureExtensions.Contains(extension[1..]) &&
             !AssetSerialization.MeshExtensions.Contains(extension[1..]) &&
             extension != $".{AssetSerialization.MaterialExtension}"))
@@ -1047,7 +1078,8 @@ internal class ThumbnailCache
 
         var type = RenderRequestType.Thumbnail;
 
-        if(AssetSerialization.MeshExtensions.Contains(extension[1..]))
+        if((extension.Length > 0 && AssetSerialization.MeshExtensions.Contains(extension[1..])) ||
+            AssetDatabase.GetAssetType(path) == typeof(Mesh).FullName)
         {
             type = RenderRequestType.Mesh;
 
@@ -1059,7 +1091,7 @@ internal class ThumbnailCache
 
             return null;
         }
-        else if(extension == $".{AssetSerialization.MaterialExtension}")
+        else if(extension == $".{AssetSerialization.MaterialExtension}" || AssetDatabase.GetAssetType(path) == typeof(Material).FullName)
         {
             type = RenderRequestType.Material;
 
