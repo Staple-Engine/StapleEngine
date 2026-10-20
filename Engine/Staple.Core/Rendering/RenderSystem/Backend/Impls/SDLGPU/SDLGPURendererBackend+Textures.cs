@@ -276,7 +276,9 @@ internal partial class SDLGPURendererBackend
                 return null;
             }
 
-            resource.length = width * height * AssetSerialization.GetTextureElementSize(format);
+            resource.length = AssetSerialization.TextureFormatHasElementSize(format) ? AssetSerialization.GetTextureElementSize(format) : 1;
+
+            resource.length *= width * height;
 
             return new SDLGPUTexture(handle, width, height, format, flags, this, GetSamplerForTexture(flags));
         }

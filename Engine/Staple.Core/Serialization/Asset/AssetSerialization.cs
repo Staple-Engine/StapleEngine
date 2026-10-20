@@ -362,6 +362,18 @@ public static partial class AssetSerialization
         };
     }
 
+    public static bool TextureFormatHasElementSize(TextureFormat format)
+    {
+        return !format.ToString().StartsWith("BC", StringComparison.InvariantCultureIgnoreCase) &&
+            !format.ToString().StartsWith("ASTC", StringComparison.InvariantCultureIgnoreCase);
+    }
+
+    public static bool TextureFormatHasElementSize(TextureMetadataFormat format)
+    {
+        return !format.ToString().StartsWith("BC", StringComparison.InvariantCultureIgnoreCase) &&
+            !format.ToString().StartsWith("ASTC", StringComparison.InvariantCultureIgnoreCase);
+    }
+
     public static int GetTextureElementSize(TextureFormat format)
     {
         return format switch

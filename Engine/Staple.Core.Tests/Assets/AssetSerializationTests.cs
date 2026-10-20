@@ -809,11 +809,21 @@ internal class AssetSerializationTests
     {
         foreach (var format in Enum.GetValues<TextureFormat>())
         {
+            if(!AssetSerialization.TextureFormatHasElementSize(format))
+            {
+                continue;
+            }
+
             Assert.That(AssetSerialization.GetTextureElementSize(format), Is.GreaterThan(0), $"{format}");
         }
 
         foreach (var format in Enum.GetValues<TextureMetadataFormat>())
         {
+            if (!AssetSerialization.TextureFormatHasElementSize(format))
+            {
+                continue;
+            }
+
             Assert.That(AssetSerialization.GetTextureElementSize(format), Is.GreaterThan(0), $"{format}");
         }
     }

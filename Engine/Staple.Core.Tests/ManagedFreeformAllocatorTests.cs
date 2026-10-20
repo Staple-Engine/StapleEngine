@@ -63,6 +63,7 @@ internal class ManagedFreeformAllocatorTests
     {
         var allocator = new ManagedFreeformAllocator<Vector2>();
 
+        //Total allocated: 20
         var entry = allocator.Allocate(20);
 
         Assert.That(entry.start, Is.EqualTo(0));
@@ -77,6 +78,7 @@ internal class ManagedFreeformAllocatorTests
             span[i] = Vector2.One;
         }
 
+        //Total allocated: 50
         var second = allocator.Allocate(30);
 
         Assert.That(second.start, Is.EqualTo(20));
@@ -93,6 +95,9 @@ internal class ManagedFreeformAllocatorTests
             span[i] = new(0, 1);
         }
 
+        //We got Vector2(0, 1) from 20 to 50
+
+        //Total allocated: 30 (freed 20)
         allocator.Free(entry);
 
         Assert.That(allocator.freeEntries, Has.Count.EqualTo(1));
@@ -102,6 +107,7 @@ internal class ManagedFreeformAllocatorTests
         Assert.That(free.start, Is.EqualTo(0));
         Assert.That(free.length, Is.EqualTo(20));
 
+        //Total allocated: 40 (allocated 10)
         entry = allocator.Allocate(10);
 
         Assert.That(entry.start, Is.EqualTo(0));
@@ -118,6 +124,7 @@ internal class ManagedFreeformAllocatorTests
             span[i] = Vector2.Zero;
         }
 
+        //Total allocated: 60 (allocated 20. Doesn't fit the missing 10, so was added at the end. Should trigger compacting)
         var third = allocator.Allocate(20);
 
         Assert.That(entry.start, Is.EqualTo(0));
@@ -126,6 +133,7 @@ internal class ManagedFreeformAllocatorTests
         Assert.That(second.start, Is.EqualTo(10));
         Assert.That(second.length, Is.EqualTo(30));
 
+        //First 10 should be Vector2(0, 1), last 10 should be Vector2.Zero
         Assert.That(third.start, Is.EqualTo(40));
         Assert.That(third.length, Is.EqualTo(20));
 
@@ -151,7 +159,14 @@ internal class ManagedFreeformAllocatorTests
 
         Assert.That(span.Length, Is.EqualTo(20));
 
-        for (var i = 0; i < span.Length; i++)
+        //First 10 should be Vector2(0, 1)
+        for (var i = 0; i < 10; i++)
+        {
+            Assert.That(span[i], Is.EqualTo(new Vector2(0, 1)));
+        }
+
+        //Last 10 should be Vector2.Zero
+        for (var i = 10; i < span.Length; i++)
         {
             Assert.That(span[i], Is.EqualTo(Vector2.Zero));
         }

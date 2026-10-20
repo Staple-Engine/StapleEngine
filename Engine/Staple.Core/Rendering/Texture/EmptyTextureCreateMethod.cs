@@ -20,7 +20,9 @@ internal class EmptyTextureCreateMethod(int width, int height, TextureFormat for
                 return false;
             }
 
-            texture.StorageSize = width * height * AssetSerialization.GetTextureElementSize(format);
+            texture.StorageSize = AssetSerialization.TextureFormatHasElementSize(format) ? AssetSerialization.GetTextureElementSize(format) : 1;
+
+            texture.StorageSize *= width * height;
 
             return true;
         }

@@ -44,7 +44,7 @@ public sealed class ResourcePak : IDisposable
 
     public class ResourceStream : Stream
     {
-        internal Stream owner;
+        internal ResourcePak owner;
         internal long offset;
         internal long length;
         internal long position;
@@ -89,18 +89,7 @@ public sealed class ResourcePak : IDisposable
         {
             lock(fileLock)
             {
-                owner.Position = this.offset + position;
-
-                if (position + count > length)
-                {
-                    count = (int)(length - position);
-                }
-
-                var result = owner.Read(buffer, offset, count);
-
-                position += result;
-
-                return result;
+                return owner.Read(this, buffer, offset, count);
             }
         }
 
@@ -155,11 +144,26 @@ public sealed class ResourcePak : IDisposable
         public readonly string typeName = typeName;
     }
 
+    public readonly struct EntryOffset(Entry entry, long offset)
+    {
+        public readonly Entry entry = entry;
+        public readonly long offset = offset;
+    }
+
+    /// <summary>
+    /// Lock for all file streams to prevent state breaks
+    /// </summary>
     internal static readonly Lock fileLock = new();
 
+    /// <summary>
+    /// Global lock to protect backend stream access
+    /// </summary>
+    private static readonly Lock globalLock = new ();
+
     private readonly List<Entry> entries = [];
-    private readonly List<long> offsets = [];
+    private readonly List<EntryOffset> entryOffsets = [];
     private readonly List<FileInfo> files = [];
+
     private Stream backend;
 
     public Span<FileInfo> Files => CollectionsMarshal.AsSpan(files);
@@ -173,36 +177,42 @@ public sealed class ResourcePak : IDisposable
 
     public void AddEntry(string guid, string path, string typeName, Stream stream)
     {
-        if(!Guid.TryParse(guid, out var _guid))
+        lock (globalLock)
         {
-            _guid = Guid.NewGuid();
+            if (!Guid.TryParse(guid, out var _guid))
+            {
+                _guid = Guid.NewGuid();
+            }
+
+            var entry = new Entry
+            {
+                guid = _guid.ToByteArray(),
+                path = path,
+                size = stream.Length,
+                typeName = typeName,
+                stream = stream,
+            };
+
+            entries.Add(entry);
         }
-
-        var entry = new Entry
-        {
-            guid = _guid.ToByteArray(),
-            path = path,
-            size = stream.Length,
-            typeName = typeName,
-            stream = stream,
-        };
-
-        entries.Add(entry);
     }
 
     public Stream Open(string path)
     {
-        foreach(var entry in entries)
+        lock(globalLock)
         {
-            if(entry.path == path)
+            foreach (var entry in entryOffsets)
             {
-                return new ResourceStream()
+                if (entry.entry.path == path)
                 {
-                    owner = backend,
-                    position = 0,
-                    offset = offsets[entries.IndexOf(entry)],
-                    length = entry.size,
-                };
+                    return new ResourceStream()
+                    {
+                        owner = this,
+                        position = 0,
+                        offset = entry.offset,
+                        length = entry.entry.size,
+                    };
+                }
             }
         }
 
@@ -211,17 +221,20 @@ public sealed class ResourcePak : IDisposable
 
     public Stream OpenGuid(byte[] guid)
     {
-        foreach (var entry in entries)
+        lock (globalLock)
         {
-            if (entry.guid.SequenceEqual(guid))
+            foreach (var entry in entryOffsets)
             {
-                return new ResourceStream()
+                if (entry.entry.guid.SequenceEqual(guid))
                 {
-                    owner = backend,
-                    position = 0,
-                    offset = offsets[entries.IndexOf(entry)],
-                    length = entry.size,
-                };
+                    return new ResourceStream()
+                    {
+                        owner = this,
+                        position = 0,
+                        offset = entry.offset,
+                        length = entry.entry.size,
+                    };
+                }
             }
         }
 
@@ -236,6 +249,31 @@ public sealed class ResourcePak : IDisposable
         }
 
         return null;
+    }
+
+    internal int Read(ResourceStream stream, byte[] buffer, int offset, int count)
+    {
+        ///Shouldn't need to lock <see cref="fileLock"/> since the stream itself will lock it
+        lock (globalLock)
+        {
+            var targetPosition = stream.offset + stream.position;
+
+            if (backend.Position != targetPosition)
+            {
+                backend.Position = targetPosition;
+            }
+
+            if (stream.position + count > stream.length)
+            {
+                count = (int)(stream.length - stream.position);
+            }
+
+            var result = backend.Read(buffer, offset, count);
+
+            stream.position += result;
+
+            return result;
+        }
     }
 
     internal bool Serialize(Stream writer)
@@ -280,7 +318,7 @@ public sealed class ResourcePak : IDisposable
     internal bool Deserialize(Stream reader)
     {
         entries.Clear();
-        offsets.Clear();
+        entryOffsets.Clear();
         files.Clear();
 
         try
@@ -331,8 +369,7 @@ public sealed class ResourcePak : IDisposable
 
                 var entry = MessagePackSerializer.Deserialize<Entry>(buffer);
 
-                entries.Add(entry);
-                offsets.Add(reader.Position);
+                entryOffsets.Add(new(entry, reader.Position));
 
                 files.Add(new FileInfo(new Guid(entry.guid).ToString(), entry.path, entry.size, entry.typeName));
 
