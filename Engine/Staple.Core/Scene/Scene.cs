@@ -45,6 +45,8 @@ public sealed class Scene
     /// <param name="scene">The new scene</param>
     internal static void SetActiveScene(Scene scene)
     {
+        ThreadHelper.EnsureMainThread();
+
         current = scene;
 
         MemoryUtils.GarbageCollect(Platform.IsEditor);

@@ -393,7 +393,7 @@ internal partial class StapleEditor
                         return;
                     }
 
-                    ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, currentPlatform, true, false);
+                    ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, currentPlatform, true, false).Wait();
                     ProjectManager.Instance.OpenGameSolution();
                 });
 
@@ -1796,7 +1796,25 @@ internal partial class StapleEditor
 
                 ImGui.EndPopup();
 
-                showingProgress = backgroundHandles.Count == 0 || backgroundHandles.Any(x => !x.Completed);
+                showingProgress = progressDialogReferences > 0;
+
+                for(var i = backgroundHandles.Count - 1; i >= 0; i--)
+                {
+                    if (backgroundHandles[i].Completed)
+                    {
+                        backgroundHandles.RemoveAt(i);
+
+                        lock(backgroundLock)
+                        {
+                            progressDialogReferences--;
+
+                            if (progressDialogReferences < 0)
+                            {
+                                progressDialogReferences = 0;
+                            }
+                        }
+                    }
+                }
 
                 if (!showingProgress)
                 {

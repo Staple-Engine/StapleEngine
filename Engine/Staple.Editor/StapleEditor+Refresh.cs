@@ -495,8 +495,6 @@ internal partial class StapleEditor
                                 AssetDatabase.Reload(Path.Combine(BasePath, "Cache", "AssetDatabase"),
                                     () =>
                                     {
-                                        HideBackgroundProcess();
-
                                         ThreadHelper.Dispatch(() =>
                                         {
                                             projectBrowser.UpdateProjectBrowserNodes();
@@ -541,6 +539,8 @@ internal partial class StapleEditor
 
                                             ResetScenePhysics(false);
 
+                                            HideBackgroundProcess();
+
                                             onFinish?.Invoke();
                                         });
                                     });
@@ -548,11 +548,15 @@ internal partial class StapleEditor
                             catch (Exception e)
                             {
                                 Log.Error(e.ToString());
+
+                                HideBackgroundProcess();
                             }
                         });
                     }
                     else
                     {
+                        HideBackgroundProcess();
+
                         onFinish?.Invoke();
                     }
                 }));
@@ -562,13 +566,9 @@ internal partial class StapleEditor
 
             if (flags.HasFlag(StagingRefreshFlags.UpdateProject))
             {
-                ShowBackgroundProcess();
-
                 AssetDatabase.Reload(Path.Combine(BasePath, "Cache", "AssetDatabase"),
                     () =>
                     {
-                        HideBackgroundProcess();
-
                         UpdateCSProj(platform, flags.HasFlag(StagingRefreshFlags.CheckBuild), true, Finish);
                     });
             }

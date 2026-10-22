@@ -412,6 +412,7 @@
 		<Compile Include="Serialization\Scene\SceneSerialization.cs" />
 		<Compile Include="Serialization\Scene\SerializableScene.cs" />
 		<Compile Include="Serialization\App\AppSettingsHeader.cs" />
+		<Compile Include="Utilities\DebugUtils.cs" />
 		<Compile Include="Utilities\DictionaryExtensions.cs" />
 		<Compile Include="Utilities\ExpandableContainer.cs" />
 		<Compile Include="Utilities\MemoryAllocator.cs" />

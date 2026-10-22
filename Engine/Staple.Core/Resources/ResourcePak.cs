@@ -55,6 +55,8 @@ public sealed class ResourcePak : IDisposable
 
         public override bool CanWrite => false;
 
+        public override bool CanTimeout => false;
+
         public override long Length => length;
 
         public override long Position

@@ -13,7 +13,7 @@ internal partial class StapleEditor
     /// <param name="checkBuild">Check whether to build</param>
     /// <param name="force">Whether to force project generation</param>
     /// <param name="onFinish">Called when finished</param>
-    internal void UpdateCSProj(AppPlatform platform, bool checkBuild, bool force, Action onFinish)
+    internal async void UpdateCSProj(AppPlatform platform, bool checkBuild, bool force, Action onFinish)
     {
         var backend = PlayerBackendManager.Instance.GetBackend(buildBackend);
 
@@ -26,15 +26,18 @@ internal partial class StapleEditor
 
         ShowBackgroundProcess();
 
-        UnloadGame();
+        await ThreadHelper.DispatchAsync(() =>
+        {
+            UnloadGame();
+        });
 
         SetBackgroundProgress(0, "Updating game project (1/2)");
 
-        ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, platform, false, force);
+        await ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, platform, false, force);
 
         SetBackgroundProgress(0.5f, "Updating game project (2/2)");
 
-        ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, platform, true, force);
+        await ProjectManager.Instance.GenerateGameCSProj(backend, projectAppSettings, platform, true, force);
 
         HideBackgroundProcess();
 

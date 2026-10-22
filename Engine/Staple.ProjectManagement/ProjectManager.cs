@@ -9,6 +9,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Staple.ProjectManagement;
 
@@ -68,6 +70,8 @@ public partial class ProjectManager
         { AppPlatform.iOS, "net11.0-ios" },
     };
 
+    private readonly Lock fileLock = new();
+
     public string basePath;
     public string stapleBasePath;
 
@@ -75,10 +79,10 @@ public partial class ProjectManager
 
     private static string[] GetScriptModifiableFiles(string path)
     {
-        return Directory.GetFiles(path, "*.cs")
+        return [.. Directory.GetFiles(path, "*.cs")
             .Concat(Directory.GetFiles(path, "*.asmdef"))
             .Concat(AssetSerialization.PluginExtensions.SelectMany(x => Directory.GetFiles(path, $"*{x}.meta")))
-            .ToArray();
+            ];
     }
 
     /// <summary>
@@ -89,35 +93,38 @@ public partial class ProjectManager
         var assetsDirectory = Path.Combine(basePath, "Assets");
         var packagesDirectory = Path.Combine(basePath, "Cache", "Packages");
 
-        fileModifyStates.Clear();
-
-        void Recursive(string path)
+        lock (fileLock)
         {
-            try
+            fileModifyStates.Clear();
+
+            void Recursive(string path)
             {
-                var files = GetScriptModifiableFiles(path);
-
-                foreach (var file in files)
+                try
                 {
-                    var filePath = Path.GetFullPath(file);
+                    var files = GetScriptModifiableFiles(path);
 
-                    fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
+                    foreach (var file in files)
+                    {
+                        var filePath = Path.GetFullPath(file);
+
+                        fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
+                    }
+
+                    var directories = Directory.GetDirectories(path);
+
+                    foreach (var directory in directories)
+                    {
+                        Recursive(directory);
+                    }
                 }
-
-                var directories = Directory.GetDirectories(path);
-
-                foreach (var directory in directories)
+                catch (Exception)
                 {
-                    Recursive(directory);
                 }
             }
-            catch (Exception)
-            {
-            }
+
+            Recursive(assetsDirectory);
+            Recursive(packagesDirectory);
         }
-
-        Recursive(assetsDirectory);
-        Recursive(packagesDirectory);
     }
 
     /// <summary>
@@ -129,43 +136,45 @@ public partial class ProjectManager
         var assetsDirectory = Path.Combine(basePath, "Assets");
         var packagesDirectory = Path.Combine(basePath, "Cache", "Packages");
 
-        bool Recursive(string path)
+        lock (fileLock)
         {
-            try
+            bool Recursive(string path)
             {
-                var files = GetScriptModifiableFiles(path);
-
-                foreach (var file in files)
+                try
                 {
-                    var filePath = Path.GetFullPath(file);
+                    var files = GetScriptModifiableFiles(path);
 
-                    if(!fileModifyStates.ContainsKey(filePath) ||
-                        fileModifyStates[filePath] < File.GetLastWriteTime(filePath))
+                    foreach (var file in files)
                     {
-                        CollectGameScriptModifyStates();
+                        var filePath = Path.GetFullPath(file);
 
-                        return true;
+                        if (!fileModifyStates.TryGetValue(filePath, out var date) || date < File.GetLastWriteTime(filePath))
+                        {
+                            CollectGameScriptModifyStates();
+
+                            return true;
+                        }
+                    }
+
+                    var directories = Directory.GetDirectories(path);
+
+                    foreach (var directory in directories)
+                    {
+                        if (Recursive(directory))
+                        {
+                            return true;
+                        }
                     }
                 }
-
-                var directories = Directory.GetDirectories(path);
-
-                foreach (var directory in directories)
+                catch (Exception)
                 {
-                    if(Recursive(directory))
-                    {
-                        return true;
-                    }
                 }
-            }
-            catch (Exception)
-            {
+
+                return false;
             }
 
-            return false;
+            return Recursive(assetsDirectory) || Recursive(packagesDirectory);
         }
-
-        return Recursive(assetsDirectory) || Recursive(packagesDirectory);
     }
 
     /// <summary>
@@ -189,7 +198,8 @@ public partial class ProjectManager
     /// <param name="backendBasePath">The base path of the current backend</param>
     /// <param name="configurationName">The configuration name</param>
     /// <returns>Whether we copied successfully</returns>
-    public static bool CopyModuleRedists(string targetPath, AppSettings appSettings, AppPlatform platform, string backendBasePath, string configurationName)
+    public static bool CopyModuleRedists(string targetPath, AppSettings appSettings, AppPlatform platform, string backendBasePath,
+        string configurationName)
     {
         StorageUtils.CreateDirectory(targetPath);
 
@@ -444,8 +454,9 @@ public partial class ProjectManager
         return highest;
     }
 
-    public void GenerateProject(string projectDirectory, string assetsDirectory, PlayerBackend backend, Dictionary<string, string> projectProperties, 
-        Dictionary<string, string> asmDefProperties, AppSettings projectAppSettings, AppPlatform platform, ProjectGenerationFlags flags)
+    public async Task<bool> GenerateProject(string projectDirectory, string assetsDirectory, PlayerBackend backend,
+        Dictionary<string, string> projectProperties, Dictionary<string, string> asmDefProperties, AppSettings projectAppSettings,
+        AppPlatform platform, ProjectGenerationFlags flags)
     {
         if(flags.HasFlag(ProjectGenerationFlags.ForceRegenerateProjects))
         {
@@ -492,18 +503,18 @@ public partial class ProjectManager
             try
             {
                 File.WriteAllText(registration, $$"""
-                    namespace Staple.Internal;
+                namespace Staple.Internal;
 
-                    public sealed class GameRegistration
+                public sealed class GameRegistration
+                {
+                    public void RegisterAll()
                     {
-                        public void RegisterAll()
-                        {
-                            StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+                        StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
 
-                            Staple.Internal.TypeCache.Freeze();
-                        }
+                        Staple.Internal.TypeCache.Freeze();
                     }
-                    """);
+                }
+                """);
             }
             catch (Exception)
             {
@@ -516,7 +527,7 @@ public partial class ProjectManager
             {
                 if(File.Exists(target) && File.GetLastWriteTime(target) >= File.GetLastWriteTime(Assembly.GetExecutingAssembly().Location))
                 {
-                    return;
+                    return true;
                 }
             }
             catch(Exception e)
@@ -586,7 +597,10 @@ public partial class ProjectManager
 
                     if(flags.HasFlag(ProjectGenerationFlags.RecordFileModifyStates))
                     {
-                        fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
+                        lock(fileLock)
+                        {
+                            fileModifyStates.AddOrSetKey(filePath, File.GetLastWriteTime(filePath));
+                        }
                     }
 
                     if (parentAsmDef != null && !excludedAsmDefs.Contains(parentAsmDef))
@@ -758,7 +772,7 @@ public partial class ProjectManager
 
                         if (projectName.Contains('@'))
                         {
-                            projectName = projectName.Substring(0, projectName.IndexOf('@'));
+                            projectName = projectName[..projectName.IndexOf('@')];
                         }
 
                         foreach (var projectPair in projects)
@@ -900,8 +914,8 @@ public partial class ProjectManager
                             p.AddItem("ProjectReference", Path.Combine("..", name, $"{name}.csproj"),
                                 [
                                     new("OutputItemType", "Analyzer"),
-                                    new("ReferenceOutputAssembly", "false"),
-                                ]);
+                                new("ReferenceOutputAssembly", "false"),
+                            ]);
 
                             break;
                     }
@@ -938,7 +952,7 @@ public partial class ProjectManager
                                         Path.Combine("..", targetAssemblyName, $"{targetAssemblyName}.csproj"),
                                         [
                                             new("OutputItemType", "Analyzer"),
-                                            new("ReferenceOutputAssembly", "false"),
+                                        new("ReferenceOutputAssembly", "false"),
                                         ]);
 
                                     break;
@@ -1007,7 +1021,7 @@ public partial class ProjectManager
                                                 Path.Combine("..", targetName, $"{targetName}.csproj"),
                                                 [
                                                     new("OutputItemType", "Analyzer"),
-                                                    new("ReferenceOutputAssembly", "false"),
+                                                new("ReferenceOutputAssembly", "false"),
                                                 ]);
 
                                             break;
@@ -1227,17 +1241,17 @@ public partial class ProjectManager
 
             if (process.ExitCode != 0)
             {
-                return;
+                return false;
             }
         }
         else
         {
-            return;
+            return false;
         }
 
         if (process.ExitCode != 0)
         {
-            return;
+            return false;
         }
 
         var projectFiles = new string[] { mainProjectName }.Concat(asmDefNames);
@@ -1260,14 +1274,16 @@ public partial class ProjectManager
 
                 if (process.ExitCode != 0)
                 {
-                    return;
+                    return false;
                 }
             }
             else
             {
-                return;
+                return false;
             }
         }
+
+        return true;
     }
 
     /// <summary>
@@ -1277,7 +1293,7 @@ public partial class ProjectManager
     /// <param name="projectAppSettings">The project app settings</param>
     /// <param name="platform">The current platform</param>
     /// <param name="sandbox">Whether we want the project to be separate for the developer to customize</param>
-    public void GenerateGameCSProj(PlayerBackend backend, AppSettings projectAppSettings, AppPlatform platform, bool sandbox,
+    public async Task<bool> GenerateGameCSProj(PlayerBackend backend, AppSettings projectAppSettings, AppPlatform platform, bool sandbox,
         bool force)
     {
         var projectDirectory = Path.Combine(basePath, "Cache", "Assembly", sandbox ? "Sandbox" : "Game");
@@ -1310,7 +1326,8 @@ public partial class ProjectManager
             flags |= ProjectGenerationFlags.ForceRegenerateProjects;
         }
 
-        GenerateProject(projectDirectory, assetsDirectory, backend, projectProperties, projectProperties, projectAppSettings, platform, flags);
+        return await GenerateProject(projectDirectory, assetsDirectory, backend, projectProperties, projectProperties, projectAppSettings, platform,
+            flags);
     }
 
     /// <summary>
@@ -1322,7 +1339,7 @@ public partial class ProjectManager
     /// <param name="nativeAOT">Whether to build natively</param>
     /// <param name="debugRedists">Whether to use debug dependencies</param>
     /// <param name="publishSingleFile">Whether to build to a single file</param>
-    public void GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists,
+    public async Task<bool> GeneratePlayerCSProj(PlayerBackend backend, AppSettings projectAppSettings, bool debug, bool nativeAOT, bool debugRedists,
         bool publishSingleFile)
     {
         var platform = backend.platform;
@@ -1441,7 +1458,7 @@ public partial class ProjectManager
             flags |= ProjectGenerationFlags.PublishSingleFile;
         }
 
-        GenerateProject(projectDirectory, assetsDirectory, backend, projectProperties, asmDefProjectProperties, projectAppSettings,
+        return await GenerateProject(projectDirectory, assetsDirectory, backend, projectProperties, asmDefProjectProperties, projectAppSettings,
             platform, flags);
     }
 }

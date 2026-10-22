@@ -1,7 +1,11 @@
-﻿using Staple.Utilities;
+﻿using Staple.Internal;
+using Staple.Utilities;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Staple;
 
@@ -19,11 +23,11 @@ public static class ThreadHelper
         public bool CanTrigger() => time.ElapsedTimeNoReset >= delay;
     }
 
-    private static Thread mainThread;
-    private static readonly List<DelayedAction> pendingDelayedActions = [];
-    private static readonly List<Action> pendingActions = [];
+    private const int MaxActionsPerFrame = 50;
 
-    private static readonly Lock threadLock = new();
+    private static Thread mainThread;
+    private static readonly ConcurrentQueue<DelayedAction> pendingDelayedActions = [];
+    private static readonly ConcurrentQueue<Action> pendingActions = [];
 
     public static bool IsMainThread => mainThread == Thread.CurrentThread;
 
@@ -36,17 +40,37 @@ public static class ThreadHelper
     }
 
     /// <summary>
+    /// Ensures we're currently in the main thread, otherwise throws an <see cref="InvalidOperationException"/>
+    /// </summary>
+    /// <param name="caller">The caller name. Autofilled.</param>
+    internal static void EnsureMainThread([CallerMemberName] string caller = "")
+    {
+        if(Thread.CurrentThread == mainThread)
+        {
+            return;
+        }
+
+        DebugUtils.EnsureDebuggerBreaks();
+
+        throw new InvalidOperationException($"{caller} must be called from the main thread! Try using ThreadHelper.Dispatch if you're in another thread.");
+    }
+
+    /// <summary>
     /// Performs a thread action safely
     /// </summary>
     /// <param name="action">The action to perform</param>
-    internal static void PerformAction(Action action)
+    internal static void PerformAction(Action action, TaskCompletionSource<bool> source)
     {
         try
         {
             action?.Invoke();
+
+            source?.SetResult(true);
         }
         catch(Exception e)
         {
+            source.SetException(e);
+
             Log.Debug($"[Threading] Failed to perform an action: {e}");
         }
     }
@@ -61,55 +85,24 @@ public static class ThreadHelper
             return;
         }
 
-        for(; ; )
+        for(var i = 0; i < MaxActionsPerFrame; i++)
         {
-            Action current = null;
-
-            lock (threadLock)
+            if(pendingActions.TryDequeue(out var action))
             {
-                current = pendingActions.Count > 0 ? pendingActions[0] : null;
-
-                if (current != null)
+                PerformAction(action, null);
+            }
+            
+            if(pendingDelayedActions.TryDequeue(out var delayedAction))
+            {
+                if (delayedAction.CanTrigger())
                 {
-                    pendingActions.RemoveAt(0);
+                    PerformAction(delayedAction.action, null);
+                }
+                else
+                {
+                    pendingDelayedActions.Enqueue(delayedAction);
                 }
             }
-
-            if(current == null)
-            {
-                break;
-            }
-
-            PerformAction(current);
-        }
-
-        for (; ; )
-        {
-            Action current = null;
-
-            if (pendingDelayedActions.Count > 0)
-            {
-                for (var i = pendingDelayedActions.Count - 1; i >= 0; i--)
-                {
-                    var action = pendingDelayedActions[i];
-
-                    if (action.CanTrigger())
-                    {
-                        current = action.action;
-
-                        pendingDelayedActions.RemoveAt(i);
-
-                        break;
-                    }
-                }
-            }
-
-            if (current == null)
-            {
-                break;
-            }
-
-            PerformAction(current);
         }
     }
 
@@ -119,10 +112,23 @@ public static class ThreadHelper
     /// <param name="action">The action to run</param>
     public static void Dispatch(Action action)
     {
-        lock(threadLock)
+        pendingActions.Enqueue(action);
+    }
+
+    /// <summary>
+    /// Dispatches an action to run on the main thread and returns a task to await for
+    /// </summary>
+    /// <param name="action">The action to run</param>
+    public static Task DispatchAsync(Action action)
+    {
+        var source = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        pendingActions.Enqueue(() =>
         {
-            pendingActions.Add(action);
-        }
+            PerformAction(action, source);
+        });
+
+        return source.Task;
     }
 
     /// <summary>
@@ -132,9 +138,23 @@ public static class ThreadHelper
     /// <param name="action">The action to run</param>
     public static void DispatchDelayed(float delay, Action action)
     {
-        lock (threadLock)
+        pendingDelayedActions.Enqueue(new(delay, action));
+    }
+
+    /// <summary>
+    /// Dispatches an action to run on the main thread with a delay and returns a task to await for
+    /// </summary>
+    /// <param name="delay">The delay in seconds</param>
+    /// <param name="action">The action to run</param>
+    public static Task DispatchDelayedAsync(float delay, Action action)
+    {
+        var source = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        pendingDelayedActions.Enqueue(new(delay, () =>
         {
-            pendingDelayedActions.Add(new(delay, action));
-        }
+            PerformAction(action, source);
+        }));
+
+        return source.Task;
     }
 }

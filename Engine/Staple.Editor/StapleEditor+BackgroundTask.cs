@@ -23,6 +23,7 @@ internal partial class StapleEditor
 
             showingProgress = true;
             progressFraction = 0;
+            progressDialogReferences++;
         }
     }
 

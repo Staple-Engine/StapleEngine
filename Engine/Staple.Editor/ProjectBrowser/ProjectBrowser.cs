@@ -1388,6 +1388,8 @@ internal class ProjectBrowser
 
                             if (counter <= 0)
                             {
+                                StapleEditor.instance.HideBackgroundProcess();
+
                                 ThreadHelper.Dispatch(onFinish);
                             }
                         }

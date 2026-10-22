@@ -163,8 +163,7 @@ internal partial class StapleEditor
 
             while((DateTime.UtcNow - time).TotalSeconds < 1)
             {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
+                MemoryUtils.GarbageCollect(true);
             }
         }
     }

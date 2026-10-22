@@ -6,6 +6,7 @@ using Staple.Internal;
 using Staple.Jobs;
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace Staple.ProjectManagement;
 
@@ -90,7 +91,7 @@ public partial class ProjectManager
             }
         }
 
-        GeneratePlayerCSProj(backend, projectAppSettings, debug, nativeAOT, debugRedists, publishSingleFile);
+        GeneratePlayerCSProj(backend, projectAppSettings, debug, nativeAOT, debugRedists, publishSingleFile).Wait();
 
         refreshStaging?.Invoke(backend.platform, () =>
         {
