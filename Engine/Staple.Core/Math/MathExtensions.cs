@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Staple;
 
@@ -72,6 +73,49 @@ public static class FloatExtensions
         public static float SmoothDamp(float current, float target, ref float currentVelocity, float smoothTime)
         {
             return SmoothDamp(current, target, ref currentVelocity, smoothTime, Math.Infinity, Time.deltaTime);
+        }
+
+        /// <summary>
+        /// Moves a float towards another with a maximum distance
+        /// </summary>
+        /// <param name="current">The current value</param>
+        /// <param name="target">The target value</param>
+        /// <param name="maxDistanceDelta">The maximum distance. You should combine this with <see cref="Time.deltaTime"/> or <see cref="Time.fixedDeltaTime"/> if doing  this during a fixed update cycle</param>
+        /// <returns>The new value</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float MoveTowards(float current, float target, float maxDistanceDelta)
+        {
+            if (target - current < maxDistanceDelta)
+            {
+                return target;
+            }
+
+            return current + maxDistanceDelta;
+        }
+
+        /// <summary>
+        /// Moves an angle towards another with a maximum change
+        /// </summary>
+        /// <param name="current">The current angle, in degrees</param>
+        /// <param name="target">The target angle, in degrees</param>
+        /// <param name="maxChange">The maximum change</param>
+        /// <returns>The new angle, in degrees</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float MoveTowardsAngle(float current, float target, float maxChange)
+        {
+            var result = MoveTowards(current, target, maxChange);
+
+            while(result <= -360)
+            {
+                result += 360;
+            }
+
+            while (result >= 360)
+            {
+                result -= 360;
+            }
+
+            return result;
         }
     }
 }

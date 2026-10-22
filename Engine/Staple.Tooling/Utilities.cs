@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Staple.Tooling;
 
@@ -228,14 +229,9 @@ public class Utilities
 
     public static void ExpandSerializedAsset(SerializableStapleAsset asset)
     {
-        void HandleParameter(SerializableStapleAssetParameter parameter)
-        {
-            parameter.value = ExpandNewtonsoftObject(parameter.value);
-        }
-
         foreach (var pair in asset.parameters)
         {
-            HandleParameter(pair.Value);
+            pair.Value.value = ExpandNewtonsoftObject(pair.Value.value);
         }
     }
 
@@ -289,6 +285,57 @@ public class Utilities
         {
             Thread.Sleep(25);
         }
+    }
+
+    public static async Task<bool> ExecuteAndCollectProcessAsync(Process process, Action<string> messageCallback)
+    {
+        process.StartInfo.RedirectStandardError = process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.UseShellExecute = false;
+
+        process.OutputDataReceived += (sender, e) =>
+        {
+            if (e.Data == null)
+            {
+                return;
+            }
+
+            Log.Info(e.Data);
+
+            try
+            {
+                messageCallback?.Invoke(e.Data);
+            }
+            catch (Exception)
+            {
+            }
+        };
+
+        process.ErrorDataReceived += (sender, e) =>
+        {
+            if (e.Data == null)
+            {
+                return;
+            }
+
+            Log.Error(e.Data);
+
+            try
+            {
+                messageCallback?.Invoke(e.Data);
+            }
+            catch (Exception)
+            {
+            }
+        };
+
+        process.Start();
+
+        process.BeginErrorReadLine();
+        process.BeginOutputReadLine();
+
+        await process.WaitForExitAsync();
+
+        return process.ExitCode == 0;
     }
 
     public static void ExecuteAndCollectProcessAsync(Process process, Action<string> messageCallback, Action onFinish)

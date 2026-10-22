@@ -27,7 +27,7 @@ public partial class ProjectManager
     /// <param name="progress">Called when progress changes</param>
     /// <param name="refreshStaging">Called to refresh staging for a particular platform</param>
     /// <param name="success">Called when successfully built the player</param>
-    public void BuildPlayer(PlayerBackend backend, AppSettings projectAppSettings, string outPath, bool debug, bool nativeAOT,
+    public async void BuildPlayer(PlayerBackend backend, AppSettings projectAppSettings, string outPath, bool debug, bool nativeAOT,
         bool debugRedists, bool assetsOnly, bool publishSingleFile, Action<float, string> progress, Action<string> failure,
         Action<AppPlatform, Action> refreshStaging, Action success)
     {
@@ -91,9 +91,9 @@ public partial class ProjectManager
             }
         }
 
-        GeneratePlayerCSProj(backend, projectAppSettings, debug, nativeAOT, debugRedists, publishSingleFile).Wait();
+        await GeneratePlayerCSProj(backend, projectAppSettings, debug, nativeAOT, debugRedists, publishSingleFile);
 
-        refreshStaging?.Invoke(backend.platform, () =>
+        refreshStaging?.Invoke(backend.platform, async () =>
         {
             try
             {
@@ -238,7 +238,7 @@ public partial class ProjectManager
                 return outValue;
             }
 
-            bool PreparePak(string name)
+            async Task<bool> PreparePak(string name)
             {
                 var args = $"-p -r -i \"{assetsCacheDirectory}\" -o \"{Path.Combine(targetResourcesPath, $"{name}.{platformPakExtension}")}\"";
 
@@ -255,21 +255,16 @@ public partial class ProjectManager
                     StartInfo = processInfo
                 };
 
-                Staple.Tooling.Utilities.ExecuteAndCollectProcess(process, null);
-
-                if (!(process.HasExited && process.ExitCode == 0))
-                {
-                    return false;
-                }
-
-                return true;
+                return await Staple.Tooling.Utilities.ExecuteAndCollectProcessAsync(process, null);
             }
 
             var pakNames = CollectPakNames();
 
             foreach (var name in pakNames)
             {
-                if (!PreparePak(name))
+                var result = await PreparePak(name);
+ 
+                if (!result)
                 {
                     Log.Error($"Failed to build player: Unable to pack resources");
 
@@ -279,7 +274,9 @@ public partial class ProjectManager
                 }
             }
 
-            if (!PreparePak("Resources"))
+            var r = await PreparePak("Resources");
+
+            if (!r)
             {
                 Log.Error($"Failed to build player: Unable to pack resources");
 
@@ -314,9 +311,9 @@ public partial class ProjectManager
 
             Log.Debug($"[Build] dotnet {args}");
 
-            Staple.Tooling.Utilities.ExecuteAndCollectProcess(process, null);
+            r = await Staple.Tooling.Utilities.ExecuteAndCollectProcessAsync(process, null);
 
-            if (!(process.HasExited && process.ExitCode == 0))
+            if (!r)
             {
                 Log.Error($"Failed to build player: Unable to complete build");
 
@@ -351,9 +348,9 @@ public partial class ProjectManager
 
             Log.Debug($"[Build] dotnet {args}");
 
-            Staple.Tooling.Utilities.ExecuteAndCollectProcess(process, null);
+            r = await Staple.Tooling.Utilities.ExecuteAndCollectProcessAsync(process, null);
 
-            if (!(process.HasExited && process.ExitCode == 0))
+            if (!r)
             {
                 Log.Error($"Failed to build player: Unable to complete build");
 
