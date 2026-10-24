@@ -2,7 +2,7 @@ implementing Staple;
 
 __include StapleInternal;
 
-#define MAX_STAPLE_LIGHT_COUNT 16
+#define MAX_STAPLE_LIGHT_COUNT 128
 
 public static const int MaxStapleLightCount = MAX_STAPLE_LIGHT_COUNT;
 
@@ -11,6 +11,7 @@ public struct LightSample
 {
     float3 diffuse;
     float3 direction;
+    float attenuation;
 };
 
 public enum LightType
@@ -22,18 +23,24 @@ public enum LightType
 
 public struct Light
 {
-    float4 positionType;
-    float4 diffuseRaw;
-    float4 specularRaw;
+    LightType type;
+    float3 position;
+    float3 diffuse;
+    float3 specular;
+    float4 extras;
+
+    __init(LightType type, float3 position, float3 diffuse, float3 specular, float4 extras)
+    {
+        this.type = type;
+        this.position = position;
+        this.diffuse = diffuse;
+        this.specular = specular;
+        this.extras = extras;
+    }
 
     LightSample Sample(float3 target)
     {
         LightSample sample;
-
-        LightType type = (LightType)positionType.x;
-        float3 position = positionType.yzw;
-        float3 diffuse = diffuseRaw.rgb;
-        float3 specular = specularRaw.rgb;
 
         switch (type)
         {
@@ -41,17 +48,23 @@ public struct Light
 
             sample.direction = normalize(position);
             sample.diffuse = diffuse;
+            sample.attenuation = 1;
 
             break;
 
         case LightType.Point:
 
             float3 delta = position - target;
-            float distance = length(delta);
-			float attenuation = 1.0 / (distance * distance);
+
+            float lengthSquare = max(dot(delta, delta), 0.00001);
+
+            float range = extras.r;
+
+            float rangeAttenuation = sqr(saturate(1.0 - sqr(lengthSquare * range)));
 
             sample.direction = normalize(delta);
-            sample.diffuse = diffuse * attenuation;
+            sample.diffuse = diffuse;
+            sample.attenuation = rangeAttenuation / lengthSquare;
 
             break;
 
@@ -59,6 +72,7 @@ public struct Light
 
             sample.direction = normalize(position);
             sample.diffuse = diffuse;
+            sample.attenuation = 1;
 
             break;
         }
@@ -106,7 +120,7 @@ public float3 StapleLightDiffuseFactor(float3 position, float3 normal, Light lig
 {
     LightSample sample = light.Sample(position);
 
-    float nDotL = max(0, StapleLightScaling(dot(normal, sample.direction)));
+    float nDotL = saturate(StapleLightScaling(dot(normal, sample.direction) * sample.attenuation));
 
     return sample.diffuse * nDotL;
 }
@@ -124,11 +138,16 @@ public float3 StapleProcessLights(float3 worldPosition, float3 normal)
 
     for (int i = 0; i < count; i++)
     {
-        Light light;
+        float4 typePosition = StapleLightTypePosition[i];
+        float4 diffuseIntensity = StapleLightDiffuseIntensity[i];
+        float4 extras = StapleLightExtras[i];
 
-        light.positionType = StapleLightTypePosition[i];
-        light.diffuseRaw = StapleLightDiffuse[i];
-        light.specularRaw = float4(0, 0, 0, 0); // TODO
+        LightType lightType = (LightType)typePosition.x;
+        float3 lightPosition = typePosition.yzw;
+        float3 lightDiffuse = diffuseIntensity.rgb;
+        float lightIntensity = diffuseIntensity.a;
+
+        Light light = { lightType, lightPosition, lightDiffuse * lightIntensity, float3(0, 0, 0), extras };
 
         diffuse += StapleLightDiffuseFactor(worldPosition, normal, light);
     }

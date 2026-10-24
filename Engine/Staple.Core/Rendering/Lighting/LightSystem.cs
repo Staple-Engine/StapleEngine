@@ -19,9 +19,9 @@ public sealed class LightSystem
     }
 
     /// <summary>
-    /// Limit to 16 lights
+    /// Limit light count
     /// </summary>
-    public const int MaxLights = 16;
+    public const int MaxLights = 128;
 
     /// <summary>
     /// Enable or disable the light system
@@ -41,7 +41,8 @@ public sealed class LightSystem
     private readonly SceneQuery<Light> lightQuery = new();
 
     private readonly Vector4[] cachedLightTypePositions = new Vector4[MaxLights];
-    private readonly Color[] cachedLightDiffuse = new Color[MaxLights];
+    private readonly Color[] cachedLightDiffuseIntensity = new Color[MaxLights];
+    private readonly Vector4[] cachedLightExtras = new Vector4[MaxLights];
 
     private readonly Dictionary<int, ShaderHandle[]> cachedInstancedMaterialInfo = [];
 
@@ -50,7 +51,8 @@ public sealed class LightSystem
     private Vector4 previousLightCount;
     private Color previousLightAmbient;
     private readonly Vector4[] previousLightTypePositions = new Vector4[MaxLights];
-    private readonly Color[] previousLightDiffuse = new Color[MaxLights];
+    private readonly Color[] previousLightDiffuseIntensity = new Color[MaxLights];
+    private readonly Vector4[] previousLightExtras = new Vector4[MaxLights];
 
     public Color AmbientColor => OverrideAmbientColor ?? AppSettings.Active.ambientLight;
 
@@ -102,14 +104,14 @@ public sealed class LightSystem
                 material.GetShaderHandle("StapleLightCountViewPosition"),
                 material.GetShaderHandle("StapleLightAmbientColor"),
                 material.GetShaderHandle("StapleLightTypePosition"),
-                material.GetShaderHandle("StapleLightDiffuse"),
+                material.GetShaderHandle("StapleLightDiffuseIntensity"),
+                material.GetShaderHandle("StapleLightExtras"),
             ];
 
             cachedInstancedMaterialInfo.AddOrSetKey(key, handles);
         }
 
-        if ((handles?.Length ?? 0) != 4 ||
-            !HandlesValid(handles))
+        if (!HandlesValid(handles))
         {
             return false;
         }
@@ -160,7 +162,24 @@ public sealed class LightSystem
                 }
 
                 cachedLightTypePositions[counter] = new((float)light.type, p.X, p.Y, p.Z);
-                cachedLightDiffuse[counter++] = light.color;
+
+                ref var diffuseIntensity = ref cachedLightDiffuseIntensity[counter];
+
+                diffuseIntensity = light.color;
+                diffuseIntensity.a = light.intensity;
+
+                switch(light.type)
+                {
+                    case LightType.Point:
+
+                        ref var extras = ref cachedLightExtras[counter];
+
+                        extras.X = 1.0f / Math.Max(light.range * light.range, 0.00001f);
+
+                        break;
+                }
+
+                counter++;
 
                 if(counter >= lightCount)
                 {
@@ -173,11 +192,13 @@ public sealed class LightSystem
         var lightAmbientHandle = handles[1];
         var lightTypePositionHandle = handles[2];
         var lightDiffuseHandle = handles[3];
+        var lightExtrasHandle = handles[4];
 
         var needsReplaceCount = false;
         var needsReplaceAmbient = false;
         var needsReplaceTypePositions = false;
         var needsReplaceDiffuse = false;
+        var needsReplaceExtras = false;
 
         var newLightCount = new Vector4(lightCount, cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
 
@@ -187,7 +208,7 @@ public sealed class LightSystem
             previousShader = material.materialResource.shader;
             previousMaterial = material;
 
-            needsReplaceCount = needsReplaceAmbient = needsReplaceTypePositions = needsReplaceDiffuse = true;
+            needsReplaceCount = needsReplaceAmbient = needsReplaceTypePositions = needsReplaceDiffuse = needsReplaceExtras = true;
         }
         else
         {
@@ -202,12 +223,17 @@ public sealed class LightSystem
                     needsReplaceTypePositions = true;
                 }
 
-                if(!needsReplaceDiffuse && cachedLightDiffuse[i] != previousLightDiffuse[i])
+                if(!needsReplaceDiffuse && cachedLightDiffuseIntensity[i] != previousLightDiffuseIntensity[i])
                 {
                     needsReplaceDiffuse = true;
                 }
 
-                if(needsReplaceDiffuse && needsReplaceTypePositions)
+                if(!needsReplaceExtras && cachedLightExtras[i] != previousLightExtras[i])
+                {
+                    needsReplaceExtras = true;
+                }
+
+                if(needsReplaceDiffuse && needsReplaceTypePositions && needsReplaceExtras)
                 {
                     break;
                 }
@@ -237,9 +263,16 @@ public sealed class LightSystem
 
         if(needsReplaceDiffuse)
         {
-            cachedLightDiffuse.AsSpan().CopyTo(previousLightDiffuse);
+            cachedLightDiffuseIntensity.AsSpan().CopyTo(previousLightDiffuseIntensity);
 
-            material.materialResource.shader.SetColor(material.ShaderVariantKey, lightDiffuseHandle, cachedLightDiffuse);
+            material.materialResource.shader.SetColor(material.ShaderVariantKey, lightDiffuseHandle, cachedLightDiffuseIntensity);
+        }
+
+        if (needsReplaceExtras)
+        {
+            cachedLightExtras.AsSpan().CopyTo(previousLightExtras);
+
+            material.materialResource.shader.SetVector4(material.ShaderVariantKey, lightExtrasHandle, cachedLightExtras);
         }
 
         return true;

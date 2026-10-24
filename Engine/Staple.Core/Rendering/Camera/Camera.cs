@@ -76,7 +76,7 @@ public sealed class Camera : Component
     /// <summary>
     /// The camera depth. Cameras are sorted by depth, from lower to higher.
     /// </summary>
-    public ushort depth = 0;
+    public float depth = 0;
 
     /// <summary>
     /// The clear color for the camera

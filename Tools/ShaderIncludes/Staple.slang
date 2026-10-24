@@ -31,7 +31,8 @@ public cbuffer StapleRenderData
     float4 StapleLightCountViewPosition;
     float4 StapleLightAmbientColor;
     float4 StapleLightTypePosition[MaxStapleLightCount];
-    float4 StapleLightDiffuse[MaxStapleLightCount];
+    float4 StapleLightDiffuseIntensity[MaxStapleLightCount];
+    float4 StapleLightExtras[MaxStapleLightCount];
 #endif
 };
 

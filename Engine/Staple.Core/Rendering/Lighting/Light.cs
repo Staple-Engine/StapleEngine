@@ -14,4 +14,14 @@ public sealed class Light : Component
     /// Light color
     /// </summary>
     public Color color = Color.White;
+
+    /// <summary>
+    /// Intensity of the light
+    /// </summary>
+    public float intensity = 1;
+
+    /// <summary>
+    /// Range if the type is <see cref="LightType.Point"/>
+    /// </summary>
+    public float range = 1;
 }

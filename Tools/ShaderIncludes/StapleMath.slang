@@ -1,5 +1,10 @@
 implementing Staple;
 
+float sqr(float value)
+{
+    return value * value;
+}
+
 //From https://gist.github.com/mattatz/86fff4b32d198d0928d0fa4ff32cf6fa
 float4x4 inverse(float4x4 m)
 {
