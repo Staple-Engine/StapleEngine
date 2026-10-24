@@ -561,11 +561,6 @@ public sealed partial class RenderSystem
             return;
         }
 
-        if(!entityRenderableTracker.ShouldUpdateComponent(transform.Entity, in renderable))
-        {
-            return;
-        }
-
         ref var container = ref spatials[index];
 
         container ??= [];
