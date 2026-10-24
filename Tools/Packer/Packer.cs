@@ -224,9 +224,9 @@ static class Program
 
                         Console.WriteLine($"{pack.Files.Length} files");
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        Console.WriteLine($"Error: Failed to list files at {input}");
+                        Console.WriteLine($"Error: Failed to list files at {input}: {e}");
 
                         Environment.Exit(1);
                     }
@@ -358,6 +358,48 @@ static class Program
                             var normalized = Path.GetFullPath(input);
 
                             Recursive(normalized, normalized, targetPakName == "Resources" || targetPakName.StartsWith("DefaultResources-") ? targetPakName : null);
+                        }
+
+                        var duplicates = new Dictionary<string, List<int>>();
+
+                        for(var i = 0; i < fileGuids.Count; i++)
+                        {
+                            for(var j = 0; j < fileGuids.Count; j++)
+                            {
+                                if(i == j ||
+                                    fileGuids[i] != fileGuids[j])
+                                {
+                                    continue;
+                                }
+
+                                if (!duplicates.TryGetValue(fileGuids[i], out var container))
+                                {
+                                    container = [];
+
+                                    container.Add(i);
+
+                                    duplicates.Add(fileGuids[i], container);
+                                }
+
+                                container.Add(j);
+                            }
+                        }
+
+                        if (duplicates.Count != 0)
+                        {
+                            Console.WriteLine($"Warning: Found {duplicates.Count} duplicate Guids");
+
+                            foreach (var pair in duplicates)
+                            {
+                                Console.WriteLine($"{pair.Key}:");
+                                
+                                foreach(var index in pair.Value)
+                                {
+                                    Console.WriteLine($"\t{localFilePaths[index]}");
+                                }
+
+                                Console.WriteLine();
+                            }
                         }
                     }
                     catch(Exception)
