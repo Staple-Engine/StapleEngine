@@ -1733,7 +1733,14 @@ internal partial class StapleEditor
         {
             var text = File.ReadAllText(path);
 
-            return JsonConvert.DeserializeObject<LastSessionInfo>(text);
+            var sessionInfo = JsonConvert.DeserializeObject<LastSessionInfo>(text);
+
+            if(!string.IsNullOrEmpty(sessionInfo?.lastOpenScene))
+            {
+                sessionInfo.lastOpenScene = Path.Combine(BasePath, sessionInfo.lastOpenScene);
+            }
+
+            return sessionInfo;
         }
         catch(Exception)
         {
@@ -1743,10 +1750,20 @@ internal partial class StapleEditor
 
     internal void UpdateLastSession()
     {
+        var lastOpenScenePath = lastOpenScene;
+
+        try
+        {
+            lastOpenScenePath = Path.GetRelativePath(BasePath, lastOpenScene);
+        }
+        catch(Exception)
+        {
+        }
+
         UpdateLastSession(new LastSessionInfo()
         {
             currentPlatform = currentPlatform,
-            lastOpenScene = lastOpenScene,
+            lastOpenScene = lastOpenScenePath,
             lastPickedBuildDirectories = lastPickedBuildDirectories,
             debugBuild = buildPlayerDebug,
             nativeBuild = buildPlayerNativeAOT,

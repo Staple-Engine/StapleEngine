@@ -46,11 +46,12 @@ public struct Light
 
         case LightType.Point:
 
-            float3 delta = target - position;
+            float3 delta = position - target;
             float distance = length(delta);
+			float attenuation = 1.0 / (distance * distance);
 
             sample.direction = normalize(delta);
-            sample.diffuse = diffuse;
+            sample.diffuse = diffuse * attenuation;
 
             break;
 

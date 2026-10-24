@@ -16,6 +16,8 @@ public class JoltPhysics3D : IPhysics3D
 {
     public static readonly string LogTag = "JoltPhysics";
 
+    private const bool UseSimulationThread = false;
+
     public const float MinExtents = 0.2f;
     public const int PhysicsLayerCount = 32;
     public const int MaxBodyCount = 102400;
@@ -41,6 +43,8 @@ public class JoltPhysics3D : IPhysics3D
     private int lastAddedBodyCount = 0;
 
     private float interpolationAccumulator;
+
+    private float deltaTimer;
 
     private Thread simulationThread;
 
@@ -164,48 +168,51 @@ public class JoltPhysics3D : IPhysics3D
         physicsSystem.OnContactPersisted += OnContactPersisted;
         physicsSystem.OnContactValidate += OnContactValidate;
 
-        simulationThread = new(() =>
+        if(UseSimulationThread)
         {
-            var tracker = new TimeTracker();
-            var deltaTimer = 0.0f;
-            var physicsDeltaTime = Physics3D.PhysicsDeltaTime;
-            var maximumTime = Time.maximumFixedTimestepTime;
-
-            for (; ; )
+            simulationThread = new(() =>
             {
-                try
+                var tracker = new TimeTracker();
+                var deltaTimer = 0.0f;
+                var physicsDeltaTime = Physics3D.PhysicsDeltaTime;
+                var maximumTime = Time.maximumFixedTimestepTime;
+
+                for (; ; )
                 {
-                    if (Destroyed)
+                    try
                     {
-                        break;
+                        if (Destroyed)
+                        {
+                            break;
+                        }
+
+                        deltaTimer += tracker.ElapsedTime;
+
+                        var accumulated = 0.0f;
+
+                        while (deltaTimer >= physicsDeltaTime && accumulated < maximumTime)
+                        {
+                            deltaTimer -= physicsDeltaTime;
+
+                            accumulated += physicsDeltaTime;
+
+                            Simulate();
+                        }
+
+                        SpinWait.SpinUntil(() => tracker.ElapsedTimeNoReset >= physicsDeltaTime);
                     }
-
-                    deltaTimer += tracker.ElapsedTime;
-
-                    var accumulated = 0.0f;
-
-                    while (deltaTimer >= physicsDeltaTime && accumulated < maximumTime)
+                    catch (Exception e)
                     {
-                        deltaTimer -= physicsDeltaTime;
-
-                        accumulated += physicsDeltaTime;
-
-                        Simulate();
+                        Log.Error($"Simulation Thread exception: {e}", LogTag);
                     }
-
-                    SpinWait.SpinUntil(() => tracker.ElapsedTimeNoReset >= physicsDeltaTime);
                 }
-                catch(Exception e)
-                {
-                    Log.Error($"Simulation Thread exception: {e}", LogTag);
-                }
-            }
-        })
-        {
-            IsBackground = true,
-        };
+            })
+            {
+                IsBackground = true,
+            };
 
-        simulationThread.Start();
+            simulationThread.Start();
+        }
     }
 
     public void Shutdown()
@@ -220,9 +227,12 @@ public class JoltPhysics3D : IPhysics3D
             Destroyed = true;
         }
 
-        while(simulationThread.IsAlive)
+        if(UseSimulationThread)
         {
-            Thread.Sleep(5);
+            while (simulationThread.IsAlive)
+            {
+                Thread.Sleep(5);
+            }
         }
 
         simulationThread = null;
@@ -239,7 +249,7 @@ public class JoltPhysics3D : IPhysics3D
 
         for(var i = 0; i < contents.Length; i++)
         {
-            if (contents[i] is JoltBodyPair p && p.body.ID == body)
+            if (contents[i] is JoltBodyPair p && p.bodyID == body)
             {
                 outBody = p;
 
@@ -352,10 +362,28 @@ public class JoltPhysics3D : IPhysics3D
             return;
         }
 
-        lock (threadLock)
+        if(UseSimulationThread)
         {
             interpolationAccumulator += deltaTime;
+        }
+        else
+        {
+            deltaTimer += deltaTime;
 
+            interpolationAccumulator += deltaTime;
+
+            if (deltaTimer >= Physics3D.PhysicsDeltaTime)
+            {
+                deltaTimer -= Physics3D.PhysicsDeltaTime;
+
+                Simulate();
+
+                interpolationAccumulator = 0;
+            }
+        }
+
+        lock (threadLock)
+        {
             if (Physics.InterpolatePhysics)
             {
                 var alpha = interpolationAccumulator / Physics3D.PhysicsDeltaTime;
@@ -680,6 +708,7 @@ public class JoltPhysics3D : IPhysics3D
                 var pair = new JoltBodyPair()
                 {
                     body = b,
+                    bodyID = b.ID,
                     entity = entity,
                     transform = entity.GetComponent<Transform>(),
                     currentPosition = position,

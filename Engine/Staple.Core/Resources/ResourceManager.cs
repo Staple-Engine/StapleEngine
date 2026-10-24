@@ -2369,12 +2369,12 @@ internal class ResourceManager : IWorldChangeReceiver
 
                 mesh.changed = true;
 
+                mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{meshIndex}" : original;
+
                 if (!mesh.HasBoneIndices)
                 {
                     mesh.MarkStaticMesh();
                 }
-
-                mesh.Guid.Guid = (original.Contains('/') || original.Contains('\\')) ? $"{asset.Guid}:{meshIndex}" : original;
 
                 return (mesh, mesh.meshAsset.meshResource);
             }
@@ -2394,16 +2394,20 @@ internal class ResourceManager : IWorldChangeReceiver
             container != null &&
             !container.Disposed)
         {
-            var outValue = CreateMesh();
+            Mesh existing = null;
 
-            if(outValue == null)
+            foreach(var r in container.container.Contents)
             {
-                return null;
+                if(r.TryGetTarget(out existing))
+                {
+                    break;
+                }
             }
 
-            container.Add(outValue.Value.Item1);
+            ///For the container Disposed to be false, at least one must be valid
+            container.Add(existing);
 
-            return outValue.Value.Item1;
+            return existing;
         }
 
         var mesh = CreateMesh();

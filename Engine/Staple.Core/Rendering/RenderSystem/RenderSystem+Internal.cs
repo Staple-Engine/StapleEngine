@@ -893,11 +893,11 @@ public sealed partial class RenderSystem
             renderQueue.Clear();
             renderables.ClearValues();
 
-            if (entityQuery.Contents.Length > renderables.Length)
+            if (world.EntityCount > renderables.Length)
             {
                 var newSize = renderables.Length * 2;
 
-                while (newSize < entityQuery.Contents.Length)
+                while (newSize < world.EntityCount)
                 {
                     newSize *= 2;
                 }

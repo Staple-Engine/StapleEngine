@@ -185,7 +185,7 @@ internal class BufferAttributeContainer
 
     public void Free(Entries entries)
     {
-        if(entries.freed)
+        if(entries?.freed ?? true)
         {
             return;
         }
