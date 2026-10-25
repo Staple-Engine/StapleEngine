@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
@@ -21,7 +22,7 @@ public sealed class LightSystem
     /// <summary>
     /// Normal light count
     /// </summary>
-    public const int MaxLights = 16;
+    public const int MaxLights = 24;
 
     /// <summary>
     /// For lights that are being faded out, so they cull graciously
@@ -65,6 +66,7 @@ public sealed class LightSystem
     private Shader previousShader;
     private Vector4 previousLightCount;
     private Color previousLightAmbient;
+    private int visibleLightCount;
     private readonly Vector4[] previousLightTypePositions = new Vector4[TotalLights];
     private readonly Color[] previousLightDiffuseIntensity = new Color[TotalLights];
     private readonly Vector4[] previousLightExtras = new Vector4[TotalLights];
@@ -115,6 +117,187 @@ public sealed class LightSystem
     }
 
     /// <summary>
+    /// Finds all visible lights in a frustum. You should call this when applying lighting to multiple render steps within the same camera.
+    /// </summary>
+    /// <param name="frustum">The camera's frustum culler</param>
+    /// <param name="cameraPosition">The position of the camera</param>
+    /// <param name="layerMask">The layer mask of the camera</param>
+    /// <returns>Whether we gathered data or not</returns>
+    internal bool GatherVisibleLights(FrustumCuller frustum, Vector3 cameraPosition, LayerMask layerMask)
+    {
+        visibleLightCount = 0;
+
+        if (!Enabled)
+        {
+            return false;
+        }
+
+        cachedLights.Clear();
+
+        var targets = Lights;
+        BoundingSphere sphere = default;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool PointLightTest(Light light)
+        {
+            sphere.center = light.Transform.Position;
+            sphere.radius = light.range;
+
+            return frustum.SphereTest(sphere) != FrustumResult.Invisible;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        bool CullLight(Light light)
+        {
+            return light.type switch
+            {
+                LightType.Directional => true,
+                LightType.Point => PointLightTest(light),
+                _ => false,
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        int CompareLights(Light a, Light b)
+        {
+            //Both directional? same
+            if (a.type == LightType.Directional && b.type == LightType.Directional)
+            {
+                return 0;
+            }
+
+            //A is directional? A is more important
+            if (a.type == LightType.Directional && b.type != LightType.Directional)
+            {
+                return -1;
+            }
+
+            //Same for B
+            if (b.type == LightType.Directional)
+            {
+                return 1;
+            }
+
+            //Otherwise, distance
+
+            var aDistance = (a.Transform.Position - cameraPosition).LengthSquared();
+            var bDistance = (b.Transform.Position - cameraPosition).LengthSquared();
+
+            return aDistance.CompareTo(bDistance);
+        }
+
+        for (var i = 0; i < targets.Length; i++)
+        {
+            var target = targets[i];
+
+            if (!target.Entity.IsValid ||
+                !target.Enabled ||
+                !layerMask.HasLayer(target.Entity.Layer) ||
+                !CullLight(target))
+            {
+                continue;
+            }
+
+            cachedLights.Add(target);
+        }
+
+        if(cachedLights.Length == 0)
+        {
+            return false;
+        }
+
+        cachedLights.Contents.Sort(CompareLights);
+
+        if (cachedLights.Length > MaxLights)
+        {
+            var culledLights = cachedLights.Contents.Slice(MaxLights);
+
+            for (var i = 0; i < culledLights.Length; i++)
+            {
+                var light = culledLights[i];
+
+                switch (light.culling)
+                {
+                    case CullingState.None:
+
+                        light.culling = CullingState.Invisible;
+
+                        break;
+
+                    case CullingState.Visible:
+
+                        light.culling = CullingState.Invisible;
+                        light.transition = i < MaxFadeOutLights ? CullingState.Invisible : CullingState.None;
+                        light.transitionTimer = 1;
+
+                        break;
+                }
+            }
+
+            cachedLights.Resize(TotalLights, true);
+        }
+
+        var visibleLights = cachedLights.Contents.Slice(0, Math.Min(MaxLights, cachedLights.Contents.Length));
+
+        foreach (var light in visibleLights)
+        {
+            if (light == null || light.culling == CullingState.Visible)
+            {
+                continue;
+            }
+
+            light.culling = light.transition = CullingState.Visible;
+            light.transitionTimer = 0;
+        }
+
+        foreach (var light in cachedLights.Contents)
+        {
+            if (light == null ||
+                (light.culling == CullingState.Invisible && light.transition == CullingState.None))
+            {
+                continue;
+            }
+
+            var t = light.Transform;
+            var p = t.Position;
+            var forward = t.Forward;
+
+            if (light.type == LightType.Directional)
+            {
+                p = -forward;
+            }
+
+            cachedLightTypePositions[visibleLightCount] = new((float)light.type, p.X, p.Y, p.Z);
+
+            ref var diffuseIntensity = ref cachedLightDiffuseIntensity[visibleLightCount];
+
+            var intensity = light.intensity;
+
+            if (light.transition != CullingState.None)
+            {
+                intensity *= light.transitionTimer;
+            }
+
+            diffuseIntensity = light.color.WithAlpha(intensity);
+
+            switch (light.type)
+            {
+                case LightType.Point:
+
+                    ref var extras = ref cachedLightExtras[visibleLightCount];
+
+                    extras.X = 1.0f / Math.Max(light.range * light.range, 0.00001f);
+
+                    break;
+            }
+
+            visibleLightCount++;
+        }
+
+        return visibleLightCount > 0;
+    }
+
+    /// <summary>
     /// Applies light properties to the next render pass
     /// </summary>
     /// <param name="material">The material to use</param>
@@ -161,99 +344,6 @@ public sealed class LightSystem
             return false;
         }
 
-        cachedLights.Clear();
-
-        var layerMask = RenderSystem.CurrentCamera.camera.cullingLayers;
-
-        if (!disableLighting)
-        {
-            var targets = Lights;
-
-            int CompareLights(Light a, Light b)
-            {
-                //Both directional? same
-                if(a.type == LightType.Directional && b.type == LightType.Directional)
-                {
-                    return 0;
-                }
-
-                //A is directional? A is more important
-                if(a.type == LightType.Directional && b.type != LightType.Directional)
-                {
-                    return -1;
-                }
-
-                //Same for B
-                if (b.type == LightType.Directional)
-                {
-                    return 1;
-                }
-
-                //Otherwise, distance
-
-                var aDistance = (a.Transform.Position - cameraPosition).LengthSquared();
-                var bDistance = (b.Transform.Position - cameraPosition).LengthSquared();
-
-                return aDistance.CompareTo(bDistance);
-            }
-
-            for (var i = 0; i < targets.Length; i++)
-            {
-                var target = targets[i];
-
-                if (!target.Entity.IsValid || !target.Enabled || !layerMask.HasLayer(target.Entity.Layer))
-                {
-                    continue;
-                }
-
-                cachedLights.Add(target);
-            }
-
-            cachedLights.Contents.Sort(CompareLights);
-
-            if(cachedLights.Length > MaxLights)
-            {
-                var culledLights = cachedLights.Contents.Slice(MaxLights);
-
-                for(var i = 0; i < culledLights.Length; i++)
-                {
-                    var light = culledLights[i];
-
-                    switch(light.culling)
-                    {
-                        case CullingState.None:
-
-                            light.culling = CullingState.Invisible;
-
-                            break;
-
-                        case CullingState.Visible:
-
-                            light.culling = CullingState.Invisible;
-                            light.transition = i < MaxFadeOutLights ? CullingState.Invisible : CullingState.None;
-                            light.transitionTimer = 1;
-
-                            break;
-                    }
-                }
-
-                cachedLights.Resize(TotalLights, true);
-            }
-
-            var visibleLights = cachedLights.Contents.Slice(0, MaxLights);
-
-            foreach (var light in visibleLights)
-            {
-                if(light.culling == CullingState.Visible)
-                {
-                    continue;
-                }
-
-                light.culling = light.transition = CullingState.Visible;
-                light.transitionTimer = 0;
-            }
-        }
-
         var lightAmbient = AmbientColor;
         var lightCount = 0;
 
@@ -261,7 +351,8 @@ public sealed class LightSystem
         {
             foreach(var light in cachedLights.Contents)
             {
-                if(light.culling == CullingState.Invisible && light.transition == CullingState.None)
+                if(light == null ||
+                    (light.culling == CullingState.Invisible && light.transition == CullingState.None))
                 {
                     continue;
                 }

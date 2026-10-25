@@ -166,16 +166,17 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="clearColor">The color to clear if clearMode is <see cref="CameraClearMode.SolidColor"/></param>
     /// <param name="viewport">The viewport area to render to (normalized coordinates for x, y, width, height)</param>
     /// <param name="cameraTransform">The transform of the camera</param>
+    /// <param name="cameraPosition">The position of the camera</param>
     /// <param name="projection">The projection matrix</param>
     /// <param name="callback">A callback to render the content</param>
     public static void Render(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
-        Matrix4x4 cameraTransform, Matrix4x4 projection, Action callback)
+        Matrix4x4 cameraTransform, Matrix4x4 projection, Vector3 cameraPosition, Action callback)
     {
         var previous = RenderTarget.Current;
 
         RenderTarget.Current = target;
 
-        PrepareRender(target, clearMode, clearColor, viewport, cameraTransform, projection);
+        PrepareRender(target, clearMode, clearColor, viewport, cameraTransform, projection, cameraPosition);
 
         callback?.Invoke();
 

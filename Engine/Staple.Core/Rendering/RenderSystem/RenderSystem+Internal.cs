@@ -166,6 +166,11 @@ public sealed partial class RenderSystem
     internal static readonly IRendererBackend Backend = new SDLGPURendererBackend();
 
     /// <summary>
+    /// The frustum culler to use when we don't have a camera instance
+    /// </summary>
+    internal static readonly FrustumCuller frustumCuller = new();
+
+    /// <summary>
     /// The already verified to be visible entities.
     /// So we can ignore the ones that were already validated as visible when we find them again to be tested
     /// </summary>
@@ -1061,6 +1066,8 @@ public sealed partial class RenderSystem
 
         camera.UpdateFrustum(view, projection);
 
+        LightSystem.Instance.GatherVisibleLights(camera.frustumCuller, cameraTransform.Position, camera.cullingLayers);
+
         Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport,
             in view, in projection);
     }
@@ -1074,10 +1081,15 @@ public sealed partial class RenderSystem
     /// <param name="viewport">The viewport area to render to (normalized coordinates for x, y, width, height)</param>
     /// <param name="cameraTransform">The transform of the camera</param>
     /// <param name="projection">The projection matrix</param>
-    private static void PrepareRender(RenderTarget target, CameraClearMode clearMode,
-        Color clearColor, Vector4 viewport, Matrix4x4 cameraTransform, Matrix4x4 projection)
+    /// <param name="cameraPosition">The position of the camera</param>
+    private static void PrepareRender(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
+        Matrix4x4 cameraTransform, Matrix4x4 projection, Vector3 cameraPosition)
     {
         Matrix4x4.Invert(cameraTransform, out var view);
+
+        frustumCuller.Update(view, projection);
+
+        LightSystem.Instance.GatherVisibleLights(frustumCuller, cameraPosition, LayerMask.Everything);
 
         Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection);
     }

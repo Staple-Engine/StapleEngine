@@ -242,18 +242,19 @@ internal class ThumbnailCache
                         light.color = Color.White;
 
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
-                            cameraTransform.Matrix, Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize), () =>
-                        {
-                            LightSystem.OverrideLights = [light];
+                            cameraTransform.Matrix, Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize), cameraTransform.Position,
+                            () =>
+                            {
+                                LightSystem.OverrideLights = [light];
 
-                            LightSystem.OverrideAmbientColor = Color.Black;
+                                LightSystem.OverrideAmbientColor = Color.Black;
 
-                            RenderSystem.Instance.RenderEntity(camera, cameraTransform,
-                                tempEntity, tempEntity.GetComponent<Transform>(), false);
+                                RenderSystem.Instance.RenderEntity(camera, cameraTransform,
+                                    tempEntity, tempEntity.GetComponent<Transform>(), false);
 
-                            LightSystem.OverrideLights = overrideLights;
-                            LightSystem.OverrideAmbientColor = overrideAmbientColor;
-                        });
+                                LightSystem.OverrideLights = overrideLights;
+                                LightSystem.OverrideAmbientColor = overrideAmbientColor;
+                            });
 
                         renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
@@ -513,18 +514,19 @@ internal class ThumbnailCache
                         light.color = Color.White;
 
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
-                            cameraTransform.Matrix, Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize), () =>
-                        {
-                            LightSystem.OverrideLights = [light];
+                            cameraTransform.Matrix, Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize), cameraTransform.Position,
+                            () =>
+                            {
+                                LightSystem.OverrideLights = [light];
 
-                            LightSystem.OverrideAmbientColor = Color.Black;
+                                LightSystem.OverrideAmbientColor = Color.Black;
 
-                            RenderSystem.Instance.RenderEntity(camera, cameraTransform,
-                                tempEntity, tempEntity.GetComponent<Transform>(), false);
+                                RenderSystem.Instance.RenderEntity(camera, cameraTransform,
+                                    tempEntity, tempEntity.GetComponent<Transform>(), false);
 
-                            LightSystem.OverrideLights = overrideLights;
-                            LightSystem.OverrideAmbientColor = overrideAmbientColor;
-                        });
+                                LightSystem.OverrideLights = overrideLights;
+                                LightSystem.OverrideAmbientColor = overrideAmbientColor;
+                            });
 
                         renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {

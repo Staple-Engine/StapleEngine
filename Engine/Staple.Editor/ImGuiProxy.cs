@@ -576,7 +576,7 @@ internal class ImGuiProxy
             }
 
             RenderSystem.Render(null, Scene.current == null ? CameraClearMode.SolidColor : CameraClearMode.None, StapleEditor.ClearColor,
-                new(0, 0, 1, 1), Matrix4x4.Identity, ortho,
+                new(0, 0, 1, 1), Matrix4x4.Identity, ortho, Vector3.Zero,
                 () =>
                 {
                     currentVertex = 0;

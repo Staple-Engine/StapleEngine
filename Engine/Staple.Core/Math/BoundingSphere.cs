@@ -8,17 +8,17 @@ namespace Staple;
 /// </summary>
 /// <param name="center">The center of the sphere</param>
 /// <param name="radius">The radius of the sphere</param>
-public readonly struct BoundingSphere(Vector3 center, float radius)
+public struct BoundingSphere(Vector3 center, float radius)
 {
     /// <summary>
     /// The center of this sphere
     /// </summary>
-    public readonly Vector3 center = center;
+    public Vector3 center = center;
 
     /// <summary>
     /// The radius of this sphere
     /// </summary>
-    public readonly float radius = radius;
+    public float radius = radius;
 
     /// <summary>
     /// Creates a bounding sphere from a set of points

@@ -7,6 +7,9 @@ public class FirstPersonCamera : LifecycleComponent
     public bool allowLook = true;
     public bool allowMove = true;
 
+    [Tooltip("Will move on the Y axis too (requires allowMove and allowLook)")]
+    public bool allowVerticalMovement = false;
+
     public float sensitivity = 20;
 
     public float minVerticalRotation = -90;
@@ -84,7 +87,10 @@ public class FirstPersonCamera : LifecycleComponent
 
             var forward = Transform.Forward;
 
-            forward.Y = 0.0f;
+            if(!allowVerticalMovement)
+            {
+                forward.Y = 0.0f;
+            }
 
             if (forward != Vector3.Zero)
             {
@@ -93,7 +99,10 @@ public class FirstPersonCamera : LifecycleComponent
 
             var right = Transform.Right;
 
-            right.Y = 0.0f;
+            if (!allowVerticalMovement)
+            {
+                right.Y = 0.0f;
+            }
 
             if (right != Vector3.Zero)
             {
