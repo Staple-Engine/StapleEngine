@@ -2,7 +2,7 @@ implementing Staple;
 
 __include StapleInternal;
 
-#define MAX_STAPLE_LIGHT_COUNT 16
+#define MAX_STAPLE_LIGHT_COUNT 24
 
 public static const int MaxStapleLightCount = MAX_STAPLE_LIGHT_COUNT;
 

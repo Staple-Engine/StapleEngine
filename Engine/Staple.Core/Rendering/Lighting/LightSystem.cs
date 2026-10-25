@@ -19,9 +19,19 @@ public sealed class LightSystem
     }
 
     /// <summary>
-    /// Limit light count
+    /// Normal light count
     /// </summary>
     public const int MaxLights = 16;
+
+    /// <summary>
+    /// For lights that are being faded out, so they cull graciously
+    /// </summary>
+    public const int MaxFadeOutLights = 8;
+
+    /// <summary>
+    /// The total lights we use
+    /// </summary>
+    public const int TotalLights = MaxLights + MaxFadeOutLights;
 
     /// <summary>
     /// Enable or disable the light system
@@ -38,11 +48,16 @@ public sealed class LightSystem
     /// </summary>
     public static Color? OverrideAmbientColor = null;
 
+    /// <summary>
+    /// How fast the light transition should be
+    /// </summary>
+    public static float LightTransitionSpeed = 3;
+
     private readonly SceneQuery<Light> lightQuery = new();
 
-    private readonly Vector4[] cachedLightTypePositions = new Vector4[MaxLights];
-    private readonly Color[] cachedLightDiffuseIntensity = new Color[MaxLights];
-    private readonly Vector4[] cachedLightExtras = new Vector4[MaxLights];
+    private readonly Vector4[] cachedLightTypePositions = new Vector4[TotalLights];
+    private readonly Color[] cachedLightDiffuseIntensity = new Color[TotalLights];
+    private readonly Vector4[] cachedLightExtras = new Vector4[TotalLights];
 
     private readonly Dictionary<int, ShaderHandle[]> cachedInstancedMaterialInfo = [];
 
@@ -50,9 +65,9 @@ public sealed class LightSystem
     private Shader previousShader;
     private Vector4 previousLightCount;
     private Color previousLightAmbient;
-    private readonly Vector4[] previousLightTypePositions = new Vector4[MaxLights];
-    private readonly Color[] previousLightDiffuseIntensity = new Color[MaxLights];
-    private readonly Vector4[] previousLightExtras = new Vector4[MaxLights];
+    private readonly Vector4[] previousLightTypePositions = new Vector4[TotalLights];
+    private readonly Color[] previousLightDiffuseIntensity = new Color[TotalLights];
+    private readonly Vector4[] previousLightExtras = new Vector4[TotalLights];
 
     private readonly ExpandableContainer<Light> cachedLights = new();
 
@@ -69,6 +84,34 @@ public sealed class LightSystem
     {
         previousShader = null;
         previousMaterial = null;
+
+        foreach(var light in Lights)
+        {
+            switch(light.transition)
+            {
+                case CullingState.Visible:
+
+                    light.transitionTimer += Time.deltaTime * LightTransitionSpeed;
+
+                    if (light.transitionTimer >= 1)
+                    {
+                        light.transition = CullingState.None;
+                    }
+
+                    break;
+
+                case CullingState.Invisible:
+
+                    light.transitionTimer -= Time.deltaTime * LightTransitionSpeed;
+
+                    if (light.transitionTimer <= 0)
+                    {
+                        light.transition = CullingState.None;
+                    }
+
+                    break;
+            }
+        }
     }
 
     /// <summary>
@@ -170,18 +213,59 @@ public sealed class LightSystem
 
             if(cachedLights.Length > MaxLights)
             {
-                cachedLights.Resize(MaxLights, true);
+                var culledLights = cachedLights.Contents.Slice(MaxLights);
+
+                for(var i = 0; i < culledLights.Length; i++)
+                {
+                    var light = culledLights[i];
+
+                    switch(light.culling)
+                    {
+                        case CullingState.None:
+
+                            light.culling = CullingState.Invisible;
+
+                            break;
+
+                        case CullingState.Visible:
+
+                            light.culling = CullingState.Invisible;
+                            light.transition = i < MaxFadeOutLights ? CullingState.Invisible : CullingState.None;
+                            light.transitionTimer = 1;
+
+                            break;
+                    }
+                }
+
+                cachedLights.Resize(TotalLights, true);
+            }
+
+            var visibleLights = cachedLights.Contents.Slice(0, MaxLights);
+
+            foreach (var light in visibleLights)
+            {
+                if(light.culling == CullingState.Visible)
+                {
+                    continue;
+                }
+
+                light.culling = light.transition = CullingState.Visible;
+                light.transitionTimer = 0;
             }
         }
 
         var lightAmbient = AmbientColor;
+        var lightCount = 0;
 
         if(!disableLighting)
         {
-            var counter = 0;
-
             foreach(var light in cachedLights.Contents)
             {
+                if(light.culling == CullingState.Invisible && light.transition == CullingState.None)
+                {
+                    continue;
+                }
+
                 var t = light.Transform;
                 var p = t.Position;
                 var forward = t.Forward;
@@ -191,25 +275,31 @@ public sealed class LightSystem
                     p = -forward;
                 }
 
-                cachedLightTypePositions[counter] = new((float)light.type, p.X, p.Y, p.Z);
+                cachedLightTypePositions[lightCount] = new((float)light.type, p.X, p.Y, p.Z);
 
-                ref var diffuseIntensity = ref cachedLightDiffuseIntensity[counter];
+                ref var diffuseIntensity = ref cachedLightDiffuseIntensity[lightCount];
 
-                diffuseIntensity = light.color;
-                diffuseIntensity.a = light.intensity;
+                var intensity = light.intensity;
+
+                if(light.transition != CullingState.None)
+                {
+                    intensity *= light.transitionTimer;
+                }
+
+                diffuseIntensity = light.color.WithAlpha(intensity);
 
                 switch(light.type)
                 {
                     case LightType.Point:
 
-                        ref var extras = ref cachedLightExtras[counter];
+                        ref var extras = ref cachedLightExtras[lightCount];
 
                         extras.X = 1.0f / Math.Max(light.range * light.range, 0.00001f);
 
                         break;
                 }
 
-                counter++;
+                lightCount++;
             }
         }
 
@@ -225,7 +315,7 @@ public sealed class LightSystem
         var needsReplaceDiffuse = false;
         var needsReplaceExtras = false;
 
-        var newLightCount = new Vector4(cachedLights.Length, cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
+        var newLightCount = new Vector4(lightCount, cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
 
         if (previousShader != material.materialResource.shader ||
             previousMaterial != material)
@@ -241,7 +331,7 @@ public sealed class LightSystem
 
             needsReplaceAmbient = previousLightAmbient != lightAmbient;
 
-            for(var i = 0; i < MaxLights; i++)
+            for(var i = 0; i < TotalLights; i++)
             {
                 if(!needsReplaceTypePositions && cachedLightTypePositions[i] != previousLightTypePositions[i])
                 {
