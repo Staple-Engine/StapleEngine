@@ -21,7 +21,7 @@ public sealed class LightSystem
     /// <summary>
     /// Limit light count
     /// </summary>
-    public const int MaxLights = 128;
+    public const int MaxLights = 16;
 
     /// <summary>
     /// Enable or disable the light system
@@ -53,6 +53,8 @@ public sealed class LightSystem
     private readonly Vector4[] previousLightTypePositions = new Vector4[MaxLights];
     private readonly Color[] previousLightDiffuseIntensity = new Color[MaxLights];
     private readonly Vector4[] previousLightExtras = new Vector4[MaxLights];
+
+    private readonly ExpandableContainer<Light> cachedLights = new();
 
     public Color AmbientColor => OverrideAmbientColor ?? AppSettings.Active.ambientLight;
 
@@ -116,27 +118,59 @@ public sealed class LightSystem
             return false;
         }
 
-        var targets = Lights;
-
-        var lightCount = 0;
+        cachedLights.Clear();
 
         var layerMask = RenderSystem.CurrentCamera.camera.cullingLayers;
 
         if (!disableLighting)
         {
+            var targets = Lights;
+
+            int CompareLights(Light a, Light b)
+            {
+                //Both directional? same
+                if(a.type == LightType.Directional && b.type == LightType.Directional)
+                {
+                    return 0;
+                }
+
+                //A is directional? A is more important
+                if(a.type == LightType.Directional && b.type != LightType.Directional)
+                {
+                    return -1;
+                }
+
+                //Same for B
+                if (b.type == LightType.Directional)
+                {
+                    return 1;
+                }
+
+                //Otherwise, distance
+
+                var aDistance = (a.Transform.Position - cameraPosition).LengthSquared();
+                var bDistance = (b.Transform.Position - cameraPosition).LengthSquared();
+
+                return aDistance.CompareTo(bDistance);
+            }
+
             for (var i = 0; i < targets.Length; i++)
             {
-                if (!targets[i].Entity.IsValid || !layerMask.HasLayer(targets[i].Entity.Layer))
+                var target = targets[i];
+
+                if (!target.Entity.IsValid || !target.Enabled || !layerMask.HasLayer(target.Entity.Layer))
                 {
                     continue;
                 }
 
-                lightCount++;
+                cachedLights.Add(target);
+            }
 
-                if(lightCount >= MaxLights)
-                {
-                    break;
-                }
+            cachedLights.Contents.Sort(CompareLights);
+
+            if(cachedLights.Length > MaxLights)
+            {
+                cachedLights.Resize(MaxLights, true);
             }
         }
 
@@ -144,14 +178,10 @@ public sealed class LightSystem
 
         if(!disableLighting)
         {
-            for (int i = 0, counter = 0; i < targets.Length; i++)
-            {
-                if (!targets[i].Entity.IsValid || !layerMask.HasLayer(targets[i].Entity.Layer))
-                {
-                    continue;
-                }
+            var counter = 0;
 
-                var light = targets[i];
+            foreach(var light in cachedLights.Contents)
+            {
                 var t = light.Transform;
                 var p = t.Position;
                 var forward = t.Forward;
@@ -180,11 +210,6 @@ public sealed class LightSystem
                 }
 
                 counter++;
-
-                if(counter >= lightCount)
-                {
-                    break;
-                }
             }
         }
 
@@ -200,7 +225,7 @@ public sealed class LightSystem
         var needsReplaceDiffuse = false;
         var needsReplaceExtras = false;
 
-        var newLightCount = new Vector4(lightCount, cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
+        var newLightCount = new Vector4(cachedLights.Length, cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
 
         if (previousShader != material.materialResource.shader ||
             previousMaterial != material)
