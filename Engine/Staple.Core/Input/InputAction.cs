@@ -67,6 +67,16 @@ public sealed class InputAction
         /// Second axis used for a dual axis event
         /// </summary>
         public GamepadAxis secondAxis;
+
+        /// <summary>
+        /// Whether we should invert the horizontal movement
+        /// </summary>
+        public bool invertHorizontal;
+
+        /// <summary>
+        /// Whether we should invert the vertical movement
+        /// </summary>
+        public bool invertVertical;
     }
 
     /// <summary>
@@ -94,6 +104,16 @@ public sealed class InputAction
         /// Whether we want to check for vertical movement
         /// </summary>
         public bool vertical;
+
+        /// <summary>
+        /// Whether we should invert the horizontal movement
+        /// </summary>
+        public bool invertHorizontal;
+
+        /// <summary>
+        /// Whether we should invert the vertical movement
+        /// </summary>
+        public bool invertVertical;
     }
 
     /// <summary>
@@ -116,6 +136,16 @@ public sealed class InputAction
         /// Whether we want to check for vertical movement for an axis
         /// </summary>
         public bool vertical;
+
+        /// <summary>
+        /// Whether we should invert the horizontal movement
+        /// </summary>
+        public bool invertHorizontal;
+
+        /// <summary>
+        /// Whether we should invert the vertical movement
+        /// </summary>
+        public bool invertVertical;
 
         /// <summary>
         /// Whether we started pressing in the affected area

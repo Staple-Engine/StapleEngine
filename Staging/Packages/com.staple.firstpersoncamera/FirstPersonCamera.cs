@@ -22,43 +22,157 @@ public class FirstPersonCamera : LifecycleComponent
     private Vector2 angles;
     private IBody3D body;
 
+    private int movementKey;
+
+    private int lookKey;
+
+    private Vector2 movement;
+
+    private Vector2 look;
+
     protected virtual Vector2 GetLookMovement()
     {
-        return Enabled && Cursor.LockState == CursorLockMode.Locked ? Input.MouseRelativePosition : default;
-    }
-
-    protected virtual Vector2 GetCharacterMovement()
-    {
-        if(!Enabled || !Platform.IsPlaying)
+        if (!Enabled || !Platform.IsPlaying)
         {
             return default;
         }
 
-        return new(Input.GetKey(KeyCode.A) ? -1 : Input.GetKey(KeyCode.D) ? 1 : 0,
-            Input.GetKey(KeyCode.W) ? 1 : Input.GetKey(KeyCode.S) ? -1 : 0);
+        if (Platform.IsDesktopPlatform)
+        {
+            return Cursor.LockState == CursorLockMode.Locked ? look : default;
+        }
+        else if (Platform.IsMobilePlatform)
+        {
+            return look;
+        }
+
+        return default;
+    }
+
+    protected virtual Vector2 GetCharacterMovement()
+    {
+        if (!Enabled || !Platform.IsPlaying)
+        {
+            return default;
+        }
+
+        if (Platform.IsDesktopPlatform)
+        {
+            return Cursor.LockState == CursorLockMode.Locked ? movement : default;
+        }
+        else if (Platform.IsMobilePlatform)
+        {
+            return movement;
+        }
+
+        return default;
     }
 
     public override void Start()
     {
-        Cursor.LockState = CursorLockMode.Locked;
-        Cursor.Visible = false;
-
         body = Physics.GetBody3D(focus);
 
-        if(body == null && Physics.GetBody3D(Entity) != null)
+        if (body == null && Physics.GetBody3D(Entity) != null)
         {
             Log.Error($"First Person Camera: Warning: There's no body in the Focus entity, but the camera entity has it. Please use a focus entity.");
         }
+
+        if (Platform.IsDesktopPlatform)
+        {
+            Cursor.LockState = CursorLockMode.Locked;
+            Cursor.Visible = false;
+        }
+
+        lookKey = Input.AddDualAxisAction(new()
+        {
+            type = InputActionType.DualAxis,
+            devices =
+            [
+                new()
+                {
+                    device = InputDevice.Gamepad,
+                    gamepad = new()
+                    {
+                        firstAxis = GamepadAxis.RightX,
+                        secondAxis = GamepadAxis.RightY,
+                    }
+                },
+                new()
+                {
+                    device = InputDevice.Mouse,
+                    mouse = new()
+                    {
+                        horizontal = true,
+                        vertical = true,
+                        invertVertical = true,
+                    }
+                },
+                new()
+                {
+                    device = InputDevice.Touch,
+                    touch = new()
+                    {
+                        affectedArea = new(0.5f, 1, 0, 1),
+                    }
+                }
+            ],
+        },
+        (InputActionContext context, Vector2 value) =>
+        {
+            look = value;
+        });
+
+        movementKey = Input.AddDualAxisAction(new()
+        {
+            type = InputActionType.DualAxis,
+            devices =
+            [
+                new()
+                {
+                    device = InputDevice.Gamepad,
+                    gamepad = new()
+                    {
+                        firstAxis = GamepadAxis.LeftX,
+                        secondAxis = GamepadAxis.LeftY,
+                    }
+                },
+                new()
+                {
+                    device = InputDevice.Keyboard,
+                    keys = new()
+                    {
+                        secondPositive = KeyCode.W,
+                        secondNegative = KeyCode.S,
+                        firstNegative = KeyCode.A,
+                        firstPositive = KeyCode.D,
+                    }
+                },
+                new()
+                {
+                    device = InputDevice.Touch,
+                    touch = new()
+                    {
+                        affectedArea = new(0, 0.5f, 0, 1),
+                    }
+                }
+            ],
+        },
+        (InputActionContext context, Vector2 value) =>
+        {
+            movement = value;
+        });
     }
 
     public override void Update()
     {
-        if(!Enabled || !Platform.IsPlaying || Cursor.LockState != CursorLockMode.Locked)
+        if (!Enabled ||
+            !Platform.IsPlaying ||
+            (Platform.IsDesktopPlatform && Cursor.LockState != CursorLockMode.Locked))
         {
             return;
         }
 
-        if(allowLook)
+        if (allowLook)
         {
             var movement = GetLookMovement() * sensitivity * Time.deltaTime;
 
@@ -81,13 +195,13 @@ public class FirstPersonCamera : LifecycleComponent
             }
         }
 
-        if(allowMove)
+        if (allowMove)
         {
             var movement = GetCharacterMovement();
 
             var forward = Transform.Forward;
 
-            if(!allowVerticalMovement)
+            if (!allowVerticalMovement)
             {
                 forward.Y = 0.0f;
             }
@@ -113,7 +227,7 @@ public class FirstPersonCamera : LifecycleComponent
 
             var velocity = direction * moveSpeed;
 
-            if(body != null)
+            if (body != null)
             {
                 body.Velocity = velocity;
             }
@@ -122,5 +236,8 @@ public class FirstPersonCamera : LifecycleComponent
                 Transform.Position += velocity * Time.deltaTime;
             }
         }
+
+        movement = default;
+        look = default;
     }
 }

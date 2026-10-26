@@ -5,7 +5,6 @@ using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Threading;
-using static System.Collections.Specialized.BitVector32;
 
 namespace Staple;
 
@@ -376,6 +375,11 @@ public static class Input
 
                                 axis = GetGamepadAxis(device.deviceIndex, device.gamepad.firstAxis);
 
+                                if(device.gamepad.invertHorizontal)
+                                {
+                                    axis *= -1;
+                                }
+
                                 break;
 
                             case InputDevice.Keyboard:
@@ -390,14 +394,29 @@ public static class Input
                                 if(device.mouse.scroll)
                                 {
                                     axis = MouseDelta.Y;
+
+                                    if(device.mouse.invertVertical)
+                                    {
+                                        axis *= -1;
+                                    }
                                 }
                                 else if(device.mouse.horizontal)
                                 {
                                     axis = MouseRelativePosition.X;
+
+                                    if (device.mouse.invertHorizontal)
+                                    {
+                                        axis *= -1;
+                                    }
                                 }
                                 else if(device.mouse.vertical)
                                 {
                                     axis = -MouseRelativePosition.Y;
+
+                                    if (device.mouse.invertVertical)
+                                    {
+                                        axis *= -1;
+                                    }
                                 }
 
                                 break;
@@ -409,10 +428,20 @@ public static class Input
                                     if (device.touch.horizontal)
                                     {
                                         axis = touchAxis.X;
+
+                                        if (device.touch.invertHorizontal)
+                                        {
+                                            axis *= -1;
+                                        }
                                     }
                                     else if (device.touch.vertical)
                                     {
                                         axis = touchAxis.Y;
+
+                                        if (device.touch.invertVertical)
+                                        {
+                                            axis *= -1;
+                                        }
                                     }
                                 }
 
@@ -444,6 +473,16 @@ public static class Input
 
                                 axis.X = GetGamepadAxis(device.deviceIndex, device.gamepad.firstAxis);
                                 axis.Y = GetGamepadAxis(device.deviceIndex, device.gamepad.secondAxis);
+
+                                if(device.gamepad.invertHorizontal)
+                                {
+                                    axis.X *= -1;
+                                }
+
+                                if (device.gamepad.invertVertical)
+                                {
+                                    axis.Y *= -1;
+                                }
 
                                 break;
 
@@ -477,6 +516,16 @@ public static class Input
                                     }
                                 }
 
+                                if (device.mouse.invertHorizontal)
+                                {
+                                    axis.X *= -1;
+                                }
+
+                                if (device.mouse.invertVertical)
+                                {
+                                    axis.Y *= -1;
+                                }
+
                                 break;
 
                             case InputDevice.Touch:
@@ -484,6 +533,16 @@ public static class Input
                                 if (HandleTouchAxisBehaviour(device, out var touchAxis))
                                 {
                                     axis = touchAxis;
+
+                                    if (device.touch.invertHorizontal)
+                                    {
+                                        axis.X *= -1;
+                                    }
+
+                                    if (device.touch.invertVertical)
+                                    {
+                                        axis.Y *= -1;
+                                    }
                                 }
 
                                 break;
