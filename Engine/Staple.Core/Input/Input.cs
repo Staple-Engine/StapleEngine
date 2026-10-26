@@ -411,7 +411,7 @@ public static class Input
                                 }
                                 else if(device.mouse.vertical)
                                 {
-                                    axis = -MouseRelativePosition.Y;
+                                    axis = MouseRelativePosition.Y;
 
                                     if (device.mouse.invertVertical)
                                     {
@@ -455,7 +455,7 @@ public static class Input
                                 name = pair.Value.action.name,
                                 device = device.device,
                                 deviceIndex = device.deviceIndex,
-                            }, axis);
+                            }, axis * device.sensitivity);
                         }
                     }
 
@@ -512,7 +512,7 @@ public static class Input
 
                                     if (device.mouse.vertical)
                                     {
-                                        axis.Y = -MouseRelativePosition.Y;
+                                        axis.Y = MouseRelativePosition.Y;
                                     }
                                 }
 
@@ -555,7 +555,7 @@ public static class Input
                                 name = pair.Value.action.name,
                                 device = device.device,
                                 deviceIndex = device.deviceIndex,
-                            }, axis);
+                            }, axis * device.sensitivity);
                         }
                     }
 

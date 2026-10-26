@@ -77,6 +77,11 @@ public sealed class InputAction
         /// Whether we should invert the vertical movement
         /// </summary>
         public bool invertVertical;
+
+        /// <summary>
+        /// The sensitivity for axis events
+        /// </summary>
+        public float sensitivity = 1.0f;
     }
 
     /// <summary>
@@ -114,6 +119,11 @@ public sealed class InputAction
         /// Whether we should invert the vertical movement
         /// </summary>
         public bool invertVertical;
+
+        /// <summary>
+        /// The sensitivity for axis events
+        /// </summary>
+        public float sensitivity = 1.0f;
     }
 
     /// <summary>
@@ -146,6 +156,11 @@ public sealed class InputAction
         /// Whether we should invert the vertical movement
         /// </summary>
         public bool invertVertical;
+
+        /// <summary>
+        /// The sensitivity for axis events
+        /// </summary>
+        public float sensitivity = 1.0f;
 
         /// <summary>
         /// Whether we started pressing in the affected area
@@ -189,6 +204,15 @@ public sealed class InputAction
             InputDevice.Mouse => mouse != null,
             InputDevice.Touch => touch != null,
             _ => false,
+        };
+
+        public float sensitivity => device switch
+        {
+            InputDevice.Keyboard => 1,
+            InputDevice.Gamepad => gamepad?.sensitivity ?? 1,
+            InputDevice.Mouse => mouse?.sensitivity ?? 1,
+            InputDevice.Touch => touch?.sensitivity ?? 1,
+            _ => 1,
         };
     }
 

@@ -10,7 +10,11 @@ public class FirstPersonCamera : LifecycleComponent
     [Tooltip("Will move on the Y axis too (requires allowMove and allowLook)")]
     public bool allowVerticalMovement = false;
 
-    public float sensitivity = 20;
+    public float mouseSensitivity = 20;
+
+    public float gamepadSensitivity = 100;
+
+    public float touchSensitivity = 20;
 
     public float minVerticalRotation = -90;
     public float maxVerticalRotation = 90;
@@ -72,7 +76,7 @@ public class FirstPersonCamera : LifecycleComponent
     {
         body = Physics.GetBody3D(focus);
 
-        if (body == null && Physics.GetBody3D(Entity) != null)
+        if(body == null && Physics.GetBody3D(Entity) != null)
         {
             Log.Error($"First Person Camera: Warning: There's no body in the Focus entity, but the camera entity has it. Please use a focus entity.");
         }
@@ -95,6 +99,8 @@ public class FirstPersonCamera : LifecycleComponent
                     {
                         firstAxis = GamepadAxis.RightX,
                         secondAxis = GamepadAxis.RightY,
+                        invertVertical = true,
+                        sensitivity = gamepadSensitivity,
                     }
                 },
                 new()
@@ -104,7 +110,7 @@ public class FirstPersonCamera : LifecycleComponent
                     {
                         horizontal = true,
                         vertical = true,
-                        invertVertical = true,
+                        sensitivity = mouseSensitivity,
                     }
                 },
                 new()
@@ -113,6 +119,7 @@ public class FirstPersonCamera : LifecycleComponent
                     touch = new()
                     {
                         affectedArea = new(0.5f, 1, 0, 1),
+                        sensitivity = touchSensitivity,
                     }
                 }
             ],
@@ -172,9 +179,9 @@ public class FirstPersonCamera : LifecycleComponent
             return;
         }
 
-        if (allowLook)
+        if(allowLook)
         {
-            var movement = GetLookMovement() * sensitivity * Time.deltaTime;
+            var movement = GetLookMovement() * Time.deltaTime;
 
             angles.X += movement.Y;
             angles.Y += movement.X;
