@@ -904,23 +904,17 @@ public class JoltPhysics3D : IPhysics3D
 
     public IBody3D CreateBody(Entity entity, World world)
     {
-        RigidBody3D rigidBody = null;
-        Character3D character = null;
+        RigidBody3D rigidBody = entity.GetComponent<RigidBody3D>();
+        Character3D character = rigidBody != null ? entity.GetComponent<Character3D>() : null;
 
-        if (!world.TryGetComponent(entity, out rigidBody) && !world.TryGetComponent(entity, out character))
+        if (rigidBody == null && character == null)
         {
-            Log.Debug($"Failed to create body for entity {world.GetEntityName(entity)}: No RigidBody3D or Character3D component found",
-                LogTag);
+            Log.Error($"Failed to create body for entity {entity.Name}: No RigidBody3D or Character3D component found", LogTag);
 
             return null;
         }
 
-        if (!world.TryGetComponent<Transform>(entity, out var transform))
-        {
-            Log.Debug($"Failed to create body for entity {world.GetEntityName(entity)}: No Transform component found", LogTag);
-
-            return null;
-        }
+        var transform = entity.Transform;
 
         var compound = new MutableCompoundShapeSettings();
 
@@ -948,22 +942,7 @@ public class JoltPhysics3D : IPhysics3D
         {
             any = true;
 
-            var extents = boxCollider.size * transform.Scale;
-
-            if(extents.X <= MinExtents)
-            {
-                extents.X = MinExtents;
-            }
-
-            if (extents.Y <= MinExtents)
-            {
-                extents.Y = MinExtents;
-            }
-
-            if (extents.Z <= MinExtents)
-            {
-                extents.Z = MinExtents;
-            }
+            var extents = Vector3.Min(boxCollider.size * transform.Scale, Vector3.One * MinExtents);
 
             compound.AddShape(boxCollider.position, boxCollider.rotation.SafeNormalize(), new BoxShapeSettings(extents / 2));
         }
@@ -976,7 +955,9 @@ public class JoltPhysics3D : IPhysics3D
 
             if(radius <= 0)
             {
-                throw new ArgumentException($"SphereCollider3D {world.GetEntityName(entity)} Radius must be bigger than 0");
+                Log.Debug($"SphereCollider3D {entity.Name} Radius must be bigger than 0");
+
+                return null;
             }
 
             compound.AddShape(sphereCollider.position, sphereCollider.rotation.SafeNormalize(), new SphereShapeSettings(radius));
@@ -991,12 +972,16 @@ public class JoltPhysics3D : IPhysics3D
 
             if(radius <= 0)
             {
-                throw new ArgumentException($"CapsuleCollider3D {world.GetEntityName(entity)}  Radius must be bigger than 0");
+                Log.Debug($"CapsuleCollider3D {entity.Name}  Radius must be bigger than 0");
+
+                return null;
             }
 
             if (height <= 0)
             {
-                throw new ArgumentException($"CapsuleCollider3D {world.GetEntityName(entity)} Height must be bigger than 0");
+                Log.Debug($"CapsuleCollider3D {entity.Name} Height must be bigger than 0");
+
+                return null;
             }
 
             compound.AddShape(capsuleCollider.position, capsuleCollider.rotation.SafeNormalize(), new CapsuleShapeSettings(height / 2, radius));
@@ -1011,12 +996,16 @@ public class JoltPhysics3D : IPhysics3D
 
             if (radius <= 0)
             {
-                throw new ArgumentException($"CylinderCollider3D {world.GetEntityName(entity)} Radius must be bigger than 0");
+                Log.Debug($"CylinderCollider3D {entity.Name} Radius must be bigger than 0");
+
+                return null;
             }
 
             if (height <= 0)
             {
-                throw new ArgumentException($"CylinderCollider3D {world.GetEntityName(entity)} Height must be bigger than 0");
+                Log.Debug($"CylinderCollider3D {entity.Name} Height must be bigger than 0");
+
+                return null;
             }
 
             compound.AddShape(cylinderCollider.position, cylinderCollider.rotation.SafeNormalize(), new CylinderShapeSettings(height / 2, radius));
@@ -1030,27 +1019,37 @@ public class JoltPhysics3D : IPhysics3D
 
             if (mesh is null)
             {
-                throw new NullReferenceException($"MeshCollider3D {world.GetEntityName(entity)} Mesh is null");
+                Log.Debug($"MeshCollider3D {entity.Name} Mesh is null");
+
+                return null;
             }
 
             if (!mesh.isReadable)
             {
-                throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh is not readable", nameof(mesh));
+                Log.Debug($"MeshCollider3D {entity.Name} Mesh is not readable");
+
+                return null;
             }
 
             if (mesh.IndexCount % 3 != 0)
             {
-                throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have valid index count (should be multiple of 3)", nameof(mesh));
+                Log.Debug($"MeshCollider3D {entity.Name} Mesh doesn't have valid index count (should be multiple of 3)");
+
+                return null;
             }
 
             if ((mesh.Vertices?.Length ?? 0) == 0)
             {
-                throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have vertices", nameof(mesh));
+                Log.Debug($"MeshCollider3D {entity.Name} Mesh doesn't have vertices");
+
+                return null;
             }
 
             if ((mesh.Indices?.Length ?? 0) == 0)
             {
-                throw new ArgumentException($"MeshCollider3D {world.GetEntityName(entity)} Mesh doesn't have indices", nameof(mesh));
+                Log.Debug($"MeshCollider3D {entity.Name} Mesh doesn't have indices");
+
+                return null;
             }
 
             MeshShapeSettings settings;
@@ -1060,9 +1059,7 @@ public class JoltPhysics3D : IPhysics3D
 
             for (var i = 0; i < mesh.IndexCount; i += 3)
             {
-                triangles.Add(new IndexedTriangle(indices[i],
-                    indices[i + 1],
-                    indices[i + 2]));
+                triangles.Add(new IndexedTriangle(indices[i], indices[i + 1], indices[i + 2]));
             }
 
             settings = new MeshShapeSettings(mesh.Vertices, triangles.ToArray());
@@ -1072,7 +1069,7 @@ public class JoltPhysics3D : IPhysics3D
 
         if(!any)
         {
-            Log.Error($"Rigid Body for entity {world.GetEntityName(entity)} has no attached colliders, ignoring...", LogTag);
+            Log.Error($"Rigid Body for entity {entity.Name} has no attached colliders, ignoring...", LogTag);
 
             return null;
         }
@@ -1097,7 +1094,7 @@ public class JoltPhysics3D : IPhysics3D
             }
         }
 
-        Log.Error($"Failed to create body for entity {world.GetEntityName(entity)}", LogTag);
+        Log.Error($"Failed to create body for entity {entity.Name}", LogTag);
 
         return null;
     }

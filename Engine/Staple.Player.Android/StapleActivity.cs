@@ -85,6 +85,8 @@ public partial class StapleActivity : SDLActivity
                 LogError("Failed to create render window, exiting...");
 
                 System.Environment.Exit(1);
+
+                return;
             }
 
             var renderWindow = AppPlayer.instance.renderWindow;
@@ -229,8 +231,6 @@ public partial class StapleActivity : SDLActivity
         }
 
         renderWindow.RenderFrame(ref lastTime);
-
-        ThreadHelper.Update();
     }
 
     protected virtual string[] AdditionalLibraries()
@@ -257,10 +257,14 @@ public partial class StapleActivity : SDLActivity
 
     protected override void Main()
     {
+        ThreadHelper.Initialize();
+
         InitIfNeeded();
 
         while (!(AppPlayer.instance?.renderWindow.shouldStop ?? false))
         {
+            ThreadHelper.Update();
+
             Frame();
         }
     }
@@ -339,8 +343,6 @@ public partial class StapleActivity : SDLActivity
 
         AndroidPlatformProvider.Instance.assetManager = Assets;
 
-        ThreadHelper.Initialize();
-
         MessagePackInit.Initialize();
 
         var packages = Assets.List("").Where(x => x.EndsWith(".gif")).ToArray();
@@ -369,14 +371,11 @@ public partial class StapleActivity : SDLActivity
                 throw new Exception("Invalid app settings header");
             }
 
-            AppSettings.Current = SerializationUtils.MessagePackDeserialize<AppSettings>(data.AsMemory(offset), out _);
-
-            if (AppSettings.Current == null)
-            {
+            AppSettings.Current = SerializationUtils.MessagePackDeserialize<AppSettings>(data.AsMemory(offset), out _) ??
                 throw new Exception("Failed to deserialize app settings");
-            }
 
-            LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Current.layers), CollectionsMarshal.AsSpan(AppSettings.Current.sortingLayers));
+            LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Current.layers),
+                CollectionsMarshal.AsSpan(AppSettings.Current.sortingLayers));
         }
         catch (Exception e)
         {

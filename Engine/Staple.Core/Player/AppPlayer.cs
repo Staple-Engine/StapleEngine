@@ -86,144 +86,147 @@ internal class AppPlayer
         {
             AssetDatabase.Reload(null, () =>
             {
-                try
+                ThreadHelper.Dispatch(() =>
                 {
-                    var data = ResourceManager.instance.LoadFile("StapleAppIcon.png");
-
-                    if (data != null)
+                    try
                     {
-                        var rawInfo = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
+                        var data = ResourceManager.instance.LoadFile("StapleAppIcon.png");
 
-                        if (rawInfo != null)
+                        if (data != null)
                         {
-                            var width = 256;
-                            var height = (int)(rawInfo.height / (float)rawInfo.width * 256);
+                            var rawInfo = Texture.LoadStandard(data, StandardTextureColorComponents.RGBA);
 
-                            if (rawInfo.Resize(width, height))
+                            if (rawInfo != null)
                             {
-                                renderWindow.window.SetIcon(rawInfo);
+                                var width = 256;
+                                var height = (int)(rawInfo.height / (float)rawInfo.width * 256);
+
+                                if (rawInfo.Resize(width, height))
+                                {
+                                    renderWindow.window.SetIcon(rawInfo);
+                                }
                             }
                         }
                     }
-                }
-                catch (Exception)
-                {
-                }
-
-                Time.fixedDeltaTime = 1 / (float)AppSettings.Active.fixedTimeFrameRate;
-                Time.maximumFixedTimestepTime = AppSettings.Active.maximumFixedTimestepTime;
-
-                if(!skipFlow)
-                {
-                    Scene.sceneList = ResourceManager.instance.LoadSceneList();
-
-                    if (Scene.sceneList == null || Scene.sceneList.Count == 0)
+                    catch (Exception)
                     {
-                        Log.Error($"Failed to load scene list", LogTag);
+                    }
+
+                    Time.fixedDeltaTime = 1 / (float)AppSettings.Active.fixedTimeFrameRate;
+                    Time.maximumFixedTimestepTime = AppSettings.Active.maximumFixedTimestepTime;
+
+                    if (!skipFlow)
+                    {
+                        Scene.sceneList = ResourceManager.instance.LoadSceneList();
+
+                        if (Scene.sceneList == null || Scene.sceneList.Count == 0)
+                        {
+                            Log.Error($"Failed to load scene list", LogTag);
+
+                            renderWindow.shouldStop = true;
+
+                            throw new Exception("Failed to load scene list");
+                        }
+
+                        Log.Info("Loaded scene list", LogTag);
+                    }
+
+                    if (Physics3D.ImplType != null && !Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)))
+                    {
+                        Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D", LogTag);
 
                         renderWindow.shouldStop = true;
 
-                        throw new Exception("Failed to load scene list");
+                        throw new Exception("Failed to initialize physics");
                     }
 
-                    Log.Info("Loaded scene list", LogTag);
-                }
+                    var physicsInstance = Physics3D.ImplType != null ? ObjectCreation.CreateObject<IPhysics3D>(Physics3D.ImplType) : null;
 
-                if (Physics3D.ImplType != null && !Physics3D.ImplType.IsAssignableTo(typeof(IPhysics3D)))
-                {
-                    Log.Error($"Failed to initialize physics: {Physics3D.ImplType.FullName} doesn't implement IPhysics3D", LogTag);
-
-                    renderWindow.shouldStop = true;
-
-                    throw new Exception("Failed to initialize physics");
-                }
-
-                var physicsInstance = Physics3D.ImplType != null ? ObjectCreation.CreateObject<IPhysics3D>(Physics3D.ImplType) : null;
-
-                try
-                {
-                    Physics3D.Instance = new Physics3D(physicsInstance);
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e.ToString(), LogTag);
-
-                    renderWindow.shouldStop = true;
-
-                    throw new Exception("Failed to initialize physics");
-                }
-
-                SubsystemManager.instance.RegisterSubsystem(RenderSystem.Instance, RenderSystem.Priority);
-                SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.Instance, EntitySystemManager.Priority);
-                SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
-
-                if (Physics3D.Instance != null)
-                {
-                    SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
-                }
-
-                void HandleTypes<T>(string caption, Func<Type, bool> check, Action<T> callback)
-                {
-                    var types = TypeCache.AllTypes()
-                        .Where(x => check(x))
-                        .ToArray();
-
-                    Log.Info($"Loading {types.Length} {caption}s", LogTag);
-
-                    foreach (var type in types)
+                    try
                     {
-                        try
-                        {
-                            var instance = (T)Activator.CreateInstance(type);
-
-                            if (instance != null)
-                            {
-                                callback(instance);
-
-                                Log.Info($"Created {caption} {type.FullName}", LogTag);
-                            }
-                            else
-                            {
-                                Log.Info($"Failed to create {caption} {type.FullName}", LogTag);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Warning($"Failed to load {caption} {type.FullName}: {e}", LogTag);
-                        }
+                        Physics3D.Instance = new Physics3D(physicsInstance);
                     }
-                }
-
-                HandleTypes<RenderSystemBase>("render system",
-                    (x => typeof(RenderSystemBase).IsAssignableFrom(x) && x != typeof(RenderSystemBase)),
-                    (instance => RenderSystem.Instance.RegisterSystem(instance)));
-
-                HandleTypes<object>("entity system",
-                    (x => (typeof(IEntitySystemUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemUpdate)) ||
-                        (typeof(IEntitySystemFixedUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemFixedUpdate))),
-                    (instance => EntitySystemManager.Instance.RegisterSystem(instance)));
-
-                if (!skipFlow)
-                {
-                    var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
-
-                    if (scene == null)
+                    catch (Exception e)
                     {
-                        Log.Error($"Failed to load main scene", LogTag);
+                        Log.Error(e.ToString(), LogTag);
 
                         renderWindow.shouldStop = true;
 
-                        throw new Exception("Failed to load main scene");
+                        throw new Exception("Failed to initialize physics");
                     }
 
-                    Scene.SetActiveScene(scene);
+                    SubsystemManager.instance.RegisterSubsystem(RenderSystem.Instance, RenderSystem.Priority);
+                    SubsystemManager.instance.RegisterSubsystem(EntitySystemManager.Instance, EntitySystemManager.Priority);
+                    SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
 
-                    Log.Info("Loaded first scene", LogTag);
-                }
+                    if (Physics3D.Instance != null)
+                    {
+                        SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
+                    }
 
-                Log.Info("Finished initializing", LogTag);
+                    void HandleTypes<T>(string caption, Func<Type, bool> check, Action<T> callback)
+                    {
+                        var types = TypeCache.AllTypes()
+                            .Where(x => check(x))
+                            .ToArray();
 
-                initialized = true;
+                        Log.Info($"Loading {types.Length} {caption}s", LogTag);
+
+                        foreach (var type in types)
+                        {
+                            try
+                            {
+                                var instance = (T)Activator.CreateInstance(type);
+
+                                if (instance != null)
+                                {
+                                    callback(instance);
+
+                                    Log.Info($"Created {caption} {type.FullName}", LogTag);
+                                }
+                                else
+                                {
+                                    Log.Info($"Failed to create {caption} {type.FullName}", LogTag);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Warning($"Failed to load {caption} {type.FullName}: {e}", LogTag);
+                            }
+                        }
+                    }
+
+                    HandleTypes<RenderSystemBase>("render system",
+                        (x => typeof(RenderSystemBase).IsAssignableFrom(x) && x != typeof(RenderSystemBase)),
+                        (instance => RenderSystem.Instance.RegisterSystem(instance)));
+
+                    HandleTypes<object>("entity system",
+                        (x => (typeof(IEntitySystemUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemUpdate)) ||
+                            (typeof(IEntitySystemFixedUpdate).IsAssignableFrom(x) && x != typeof(IEntitySystemFixedUpdate))),
+                        (instance => EntitySystemManager.Instance.RegisterSystem(instance)));
+
+                    if (!skipFlow)
+                    {
+                        var scene = ResourceManager.instance.LoadScene(Scene.sceneList[0]);
+
+                        if (scene == null)
+                        {
+                            Log.Error($"Failed to load main scene", LogTag);
+
+                            renderWindow.shouldStop = true;
+
+                            throw new Exception("Failed to load main scene");
+                        }
+
+                        Scene.SetActiveScene(scene);
+
+                        Log.Info("Loaded first scene", LogTag);
+                    }
+
+                    Log.Info("Finished initializing", LogTag);
+
+                    initialized = true;
+                });
             });
         };
 
