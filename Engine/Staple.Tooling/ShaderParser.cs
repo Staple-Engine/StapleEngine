@@ -125,7 +125,7 @@ public static partial class ShaderParser
         var defaultBlendTo = BlendMode.Off;
         var defaultEnableDepth = true;
         var defaultEnableZWrite = true;
-        var defaultDepthTest = DepthTest.LessEqual;
+        var defaultDepthTest = DepthTest.GreaterEqual;
         var defaultRenderQueue = MaterialRenderQueue.Opaque;
         var defaultRenderOffset = 0;
 

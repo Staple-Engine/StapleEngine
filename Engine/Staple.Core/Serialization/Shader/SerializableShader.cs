@@ -115,7 +115,7 @@ public class SerializableShaderData
     public bool enableZWrite = true;
 
     [Key(14)]
-    public DepthTest depthTest = DepthTest.LessEqual;
+    public DepthTest depthTest = DepthTest.GreaterEqual;
 
     [Key(15)]
     public MaterialRenderQueue renderQueue = MaterialRenderQueue.Opaque;

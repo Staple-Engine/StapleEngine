@@ -619,7 +619,7 @@ End Fragment
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
         Assert.That(parsedData.enableZWrite[""], Is.True);
-        Assert.That(parsedData.depthTest[""], Is.EqualTo(DepthTest.LessEqual));
+        Assert.That(parsedData.depthTest[""], Is.EqualTo(DepthTest.GreaterEqual));
     }
 
     [Test]
@@ -646,7 +646,7 @@ End Fragment
         Assert.That(ShaderParser.Parse(shader, ShaderType.VertexFragment, out var parsedData), Is.True);
 
         Assert.That(parsedData.enableZWrite[""], Is.False);
-        Assert.That(parsedData.depthTest[""], Is.EqualTo(DepthTest.LessEqual));
+        Assert.That(parsedData.depthTest[""], Is.EqualTo(DepthTest.GreaterEqual));
     }
 
     [Test]
@@ -740,7 +740,7 @@ End Fragment
 
         Assert.That(parsedData.enableZWrite[""], Is.True);
         Assert.That(parsedData.enableDepth[""], Is.True);
-        Assert.That(parsedData.depthTest[""], Is.EqualTo(DepthTest.LessEqual));
+        Assert.That(parsedData.depthTest[""], Is.EqualTo(DepthTest.GreaterEqual));
         Assert.That(parsedData.blendMode[""], Is.EqualTo((BlendMode.Off, BlendMode.Off)));
 
         Assert.That(parsedData.enableZWrite["A"], Is.True);

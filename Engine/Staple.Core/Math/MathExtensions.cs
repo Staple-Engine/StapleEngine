@@ -655,6 +655,31 @@ public static class Matrix4x4Extensions
         }
 
         /// <summary>
+        /// Creates a perspective field of view matrix with a reverse z buffer
+        /// </summary>
+        /// <param name="fieldOfView">The field of view</param>
+        /// <param name="aspect">The aspect ratio</param>
+        /// <param name="zNear">The near plane</param>
+        /// <param name="zFar">The far plane</param>
+        /// <returns>The reverse Z perspective matrix</returns>
+        public static Matrix4x4 CreatePerspectiveFieldOfViewLeftHandedReverseZ(float fieldOfView, float aspect, float zNear, float zFar)
+        {
+            var outValue = new Matrix4x4();
+
+            var e = 1.0f / float.Tan(Math.Deg2Rad * fieldOfView * 0.5f);
+
+            //zNear/far are swapped on purpose
+
+            outValue.M11 = e / aspect;
+            outValue.M22 = e;
+            outValue.M33 = (zNear / (zNear - zFar));
+            outValue.M34 = 1;
+            outValue.M43 = (zNear * zFar / (zFar - zNear));
+
+            return outValue;
+        }
+
+        /// <summary>
         /// Gets a matrix4x4 containing the 3x3 portion of this matrix
         /// </summary>
         /// <returns>A matrix4x4 containing the 3x3 portion of this matrix</returns>

@@ -1378,7 +1378,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         var depthTarget = new SDL_GPUDepthStencilTargetInfo()
         {
-            clear_depth = 1,
+            clear_depth = 0,
             load_op = SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,
             store_op = SDL_GPUStoreOp.SDL_GPU_STOREOP_STORE,
             texture = depthTextureResource.texture,
@@ -2562,6 +2562,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             DepthTest.Never => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_NEVER,
             DepthTest.Less => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS,
             DepthTest.Equal => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_EQUAL,
+            DepthTest.LessEqual => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_LESS_OR_EQUAL,
             DepthTest.Greater => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_GREATER,
             DepthTest.NotEqual => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_NOT_EQUAL,
             DepthTest.GreaterEqual => SDL_GPUCompareOp.SDL_GPU_COMPAREOP_GREATER_OR_EQUAL,

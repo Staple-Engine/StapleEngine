@@ -50,7 +50,7 @@ internal struct RenderState
                 fragmentStorageBuffers = null,
                 enableDepth = true,
                 enableZWrite = true,
-                depthTest = DepthTest.LessEqual,
+                depthTest = DepthTest.GreaterEqual,
             };
         }
     }

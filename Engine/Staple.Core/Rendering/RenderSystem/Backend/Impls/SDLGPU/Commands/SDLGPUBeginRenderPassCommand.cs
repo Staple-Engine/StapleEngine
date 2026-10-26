@@ -91,7 +91,7 @@ internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend
 
         var depthTarget = new SDL_GPUDepthStencilTargetInfo()
         {
-            clear_depth = 1,
+            clear_depth = 0,
             load_op = clearMode switch
             {
                 CameraClearMode.None => SDL_GPULoadOp.SDL_GPU_LOADOP_LOAD,

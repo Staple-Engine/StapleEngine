@@ -76,7 +76,7 @@ internal partial class ShaderResource
 
         public bool enableZWrite = true;
 
-        public DepthTest depthTest = DepthTest.LessEqual;
+        public DepthTest depthTest = DepthTest.GreaterEqual;
 
         public MaterialRenderQueue renderQueue = MaterialRenderQueue.Opaque;
 

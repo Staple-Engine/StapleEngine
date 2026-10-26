@@ -222,7 +222,7 @@ public sealed class Camera : Component
                     return Matrix4x4.Identity;
                 }
 
-                return Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(Math.Deg2Rad * camera.fov, camera.Width / camera.Height,
+                return Matrix4x4.CreatePerspectiveFieldOfViewLeftHandedReverseZ(camera.fov, camera.Width / camera.Height,
                     camera.nearPlane, camera.farPlane);
 
             case CameraType.Orthographic:
@@ -267,8 +267,7 @@ public sealed class Camera : Component
                     return Matrix4x4.Identity;
                 }
 
-                return Matrix4x4.CreatePerspectiveFieldOfViewLeftHanded(Math.Deg2Rad * camera.fov, size.X / (float)size.Y,
-                    camera.nearPlane, camera.farPlane);
+                return Matrix4x4.CreatePerspectiveFieldOfViewLeftHandedReverseZ(camera.fov, size.X / (float)size.Y, camera.nearPlane, camera.farPlane);
 
             case CameraType.Orthographic:
 
