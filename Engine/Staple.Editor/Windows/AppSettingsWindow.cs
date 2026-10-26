@@ -207,6 +207,36 @@ internal class AppSettingsWindow : EditorWindow
                 AppSettings.Current.ambientLight = projectAppSettings.ambientLight;
             }
         }
+
+        EditorGUI.Label("Light Limits");
+
+        projectAppSettings.lightLimits ??= [];
+
+        foreach(var name in PlayerBackendManager.BackendNames)
+        {
+            var backend = PlayerBackendManager.Instance.GetBackend(name);
+
+            if(!projectAppSettings.lightLimits.TryGetValue(backend.platform, out var previous))
+            {
+                if(!AppSettings.Default.lightLimits.TryGetValue(backend.platform, out previous))
+                {
+                    previous = 32;
+                }
+
+                projectAppSettings.lightLimits.AddOrSetKey(backend.platform, previous);
+            }
+
+            var newValue = EditorGUI.IntField(name, $"AppSettings.{name}.LightCount", previous);
+
+            newValue = Math.ClampToInt(newValue, 0, LightSystem.MaxLights);
+
+            projectAppSettings.lightLimits.AddOrSetKey(backend.platform, newValue);
+
+            if(Platform.CurrentPlatform == backend.platform && previous != newValue)
+            {
+                LightSystem.Instance.SetMaxLightCount(newValue);
+            }
+        }
     }
 
     private void Rendering()

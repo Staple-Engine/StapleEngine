@@ -94,6 +94,16 @@ public static class Math
     public static float Clamp(float x, float min, float max) => x < min ? min : x > max ? max : x;
 
     /// <summary>
+    /// Limits a value to a min/max range
+    /// </summary>
+    /// <param name="x">The value</param>
+    /// <param name="min">The min value</param>
+    /// <param name="max">The max value</param>
+    /// <returns>The new value</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int ClampToInt(int x, int min, int max) => x < min ? min : x > max ? max : x;
+
+    /// <summary>
     /// Limits a value to 0/1
     /// </summary>
     /// <param name="x">The value</param>

@@ -66,6 +66,11 @@ public static class StaplePlayer
 
                 LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Active.layers),
                     CollectionsMarshal.AsSpan(AppSettings.Active.sortingLayers));
+
+                if(AppSettings.Active.lightLimits?.TryGetValue(Platform.CurrentPlatform.Value, out var lightCount) ?? false)
+                {
+                    LightSystem.Instance.SetMaxLightCount(lightCount);
+                }
             }
             catch (Exception e)
             {
@@ -82,6 +87,11 @@ public static class StaplePlayer
 
             LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Active.layers),
                 CollectionsMarshal.AsSpan(AppSettings.Active.sortingLayers));
+
+            if (AppSettings.Active.lightLimits?.TryGetValue(Platform.CurrentPlatform.Value, out var lightCount) ?? false)
+            {
+                LightSystem.Instance.SetMaxLightCount(lightCount);
+            }
         }
 
         new AppPlayer(args, true, skipFlow).Run();

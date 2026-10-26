@@ -163,6 +163,21 @@ public sealed class InputAction
         public float sensitivity = 1.0f;
 
         /// <summary>
+        /// Whether we require movement to send events
+        /// </summary>
+        public bool requireMovement = false;
+
+        /// <summary>
+        /// The deadzone before movement is considered active. This is a percentage, so for example, for 10% of the screen, you'll use 0.1f.
+        /// </summary>
+        public float deadZonePercentage;
+
+        /// <summary>
+        /// Whether we're past the deadzone
+        /// </summary>
+        internal bool inDeadZone = true;
+
+        /// <summary>
         /// Whether we started pressing in the affected area
         /// </summary>
         internal bool pressing;

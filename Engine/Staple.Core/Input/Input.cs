@@ -152,6 +152,7 @@ public static class Input
             if(!GetTouch(device.deviceIndex))
             {
                 device.touch.pressing = false;
+                device.touch.inDeadZone = true;
             }
 
             if(!device.touch.pressing)
@@ -172,6 +173,7 @@ public static class Input
                         {
                             device.deviceIndex = pointer;
 
+                            device.touch.inDeadZone = true;
                             device.touch.lastPosition = position;
                         }
 
@@ -186,11 +188,31 @@ public static class Input
 
                 var difference = current - device.touch.lastPosition;
 
-                if(difference == Vector2.Zero)
+                var distance = difference.Length();
+
+                var inDeadzone = device.touch.deadZonePercentage > 0 &&
+                    device.touch.inDeadZone &&
+                    distance / (float)Math.Min(Screen.Width, Screen.Height) < device.touch.deadZonePercentage;
+
+                if(inDeadzone)
+                {
+                    axis = default;
+
+                    return false;
+                }
+
+                device.touch.inDeadZone = false;
+
+                if (device.touch.requireMovement)
+                {
+                    device.touch.lastPosition = current;
+                }
+
+                if (difference == Vector2.Zero)
                 {
                     axis = difference;
 
-                    return true;
+                    return false;
                 }
 
                 var direction = Vector2.Normalize(difference);
@@ -411,7 +433,7 @@ public static class Input
                                 }
                                 else if(device.mouse.vertical)
                                 {
-                                    axis = MouseRelativePosition.Y;
+                                    axis = -MouseRelativePosition.Y;
 
                                     if (device.mouse.invertVertical)
                                     {
@@ -512,7 +534,7 @@ public static class Input
 
                                     if (device.mouse.vertical)
                                     {
-                                        axis.Y = MouseRelativePosition.Y;
+                                        axis.Y = -MouseRelativePosition.Y;
                                     }
                                 }
 

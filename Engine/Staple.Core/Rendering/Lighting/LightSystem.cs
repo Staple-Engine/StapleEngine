@@ -22,7 +22,7 @@ public sealed class LightSystem
     /// <summary>
     /// Normal light count
     /// </summary>
-    public const int MaxLights = 24;
+    public const int MaxLights = 32;
 
     /// <summary>
     /// For lights that are being faded out, so they cull graciously
@@ -30,9 +30,29 @@ public sealed class LightSystem
     public const int MaxFadeOutLights = 8;
 
     /// <summary>
-    /// The total lights we use
+    /// The absolute light limit
     /// </summary>
     public const int TotalLights = MaxLights + MaxFadeOutLights;
+
+    /// <summary>
+    /// Maximum lights (platform-specific)
+    /// </summary>
+    public int PlatformMaxLights = MaxLights;
+
+    /// <summary>
+    /// Maximum fade out lights (platform-specific)
+    /// </summary>
+    public int PlatformMaxFadeOutLights = MaxFadeOutLights;
+
+    /// <summary>
+    /// Whether to use fade out lights
+    /// </summary>
+    public bool UseFadeOutLights = true;
+
+    /// <summary>
+    /// The total lights we use
+    /// </summary>
+    public int PlatformTotalLights => PlatformMaxLights + (UseFadeOutLights ? PlatformMaxFadeOutLights : 0);
 
     /// <summary>
     /// Enable or disable the light system
@@ -208,9 +228,9 @@ public sealed class LightSystem
 
         cachedLights.Contents.Sort(CompareLights);
 
-        if (cachedLights.Length > MaxLights)
+        if (cachedLights.Length > PlatformMaxLights)
         {
-            var culledLights = cachedLights.Contents.Slice(MaxLights);
+            var culledLights = cachedLights.Contents.Slice(PlatformMaxLights);
 
             for (var i = 0; i < culledLights.Length; i++)
             {
@@ -227,17 +247,17 @@ public sealed class LightSystem
                     case CullingState.Visible:
 
                         light.culling = CullingState.Invisible;
-                        light.transition = i < MaxFadeOutLights ? CullingState.Invisible : CullingState.None;
+                        light.transition = i < PlatformMaxFadeOutLights ? CullingState.Invisible : CullingState.None;
                         light.transitionTimer = 1;
 
                         break;
                 }
             }
 
-            cachedLights.Resize(TotalLights, true);
+            cachedLights.Resize(PlatformTotalLights, true);
         }
 
-        var visibleLights = cachedLights.Contents.Slice(0, Math.Min(MaxLights, cachedLights.Contents.Length));
+        var visibleLights = cachedLights.Contents.Slice(0, Math.Min(PlatformMaxLights, cachedLights.Contents.Length));
 
         foreach (var light in visibleLights)
         {
@@ -482,5 +502,22 @@ public sealed class LightSystem
         }
 
         return true;
+    }
+
+    /// <summary>
+    /// Sets the maximum amount of lights to use for lighting
+    /// </summary>
+    /// <param name="count">The maximum amount of lights</param>
+    public void SetMaxLightCount(int count)
+    {
+        count = Math.ClampToInt(count, 0, MaxLights);
+
+        PlatformMaxLights = count;
+        PlatformMaxFadeOutLights = count / 4;
+
+        if(PlatformMaxFadeOutLights == 1)
+        {
+            PlatformMaxFadeOutLights = 0;
+        }
     }
 }

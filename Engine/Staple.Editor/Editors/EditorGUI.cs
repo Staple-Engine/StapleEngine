@@ -1016,7 +1016,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static int IntSlider(string label, string key, int value, int min, int max)
     {
-        Changed |= ImGui.SliderInt(MakeIdentifier("", key), ref value, min, max);
+        Changed |= ImGui.SliderInt(MakeIdentifier(label, key), ref value, min, max);
 
         return value;
     }
@@ -1030,7 +1030,7 @@ public static class EditorGUI
     /// <returns>The new value</returns>
     public static float FloatSlider(string label, string key, float value, float min, float max)
     {
-        Changed |= ImGui.SliderFloat(MakeIdentifier("", key), ref value, min, max);
+        Changed |= ImGui.SliderFloat(MakeIdentifier(label, key), ref value, min, max);
 
         return value;
     }

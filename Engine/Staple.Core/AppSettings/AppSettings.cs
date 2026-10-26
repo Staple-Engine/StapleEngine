@@ -1,4 +1,5 @@
 ﻿using MessagePack;
+using Staple.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -187,6 +188,12 @@ public class AppSettings
     [Key(28)]
     public X64InstructionLevel x64InstructionLevel = X64InstructionLevel.x86_64v2;
 
+    /// <summary>
+    /// The maximum amount of lights to use per platform
+    /// </summary>
+    [Key(29)]
+    public Dictionary<AppPlatform, int> lightLimits = [];
+
     [IgnoreMember]
     public static AppSettings Default
     {
@@ -240,6 +247,14 @@ public class AppSettings
                         ]
                     }
                 },
+                lightLimits = new()
+                {
+                    { AppPlatform.Android, 4 },
+                    { AppPlatform.iOS, 4 },
+                    { AppPlatform.Windows, LightSystem.MaxLights },
+                    { AppPlatform.Linux, LightSystem.MaxLights },
+                    { AppPlatform.MacOSX, LightSystem.MaxLights },
+                }
             };
         }
     }
@@ -273,12 +288,12 @@ public class AppSettings
             fixedTimeFrameRate = fixedTimeFrameRate,
             iOSDeploymentTarget = iOSDeploymentTarget,
             landscapeOrientation = landscapeOrientation,
-            layers = layers.Select(x => x).ToList(),
+            layers = [.. layers],
             multiThreadedRenderer = multiThreadedRenderer,
             portraitOrientation = portraitOrientation,
             renderers = newRenderers,
             runInBackground = runInBackground,
-            sortingLayers = sortingLayers.Select(x => x).ToList(),
+            sortingLayers = [.. sortingLayers],
             ambientLight = ambientLight,
             maximumFixedTimestepTime = maximumFixedTimestepTime,
             physicsFrameRate = physicsFrameRate,
@@ -289,6 +304,7 @@ public class AppSettings
             usePhysicsInterpolation = usePhysicsInterpolation,
             overrideNativeInstructionSetX64 = overrideNativeInstructionSetX64,
             x64InstructionLevel = x64InstructionLevel,
+            lightLimits = new(lightLimits),
         };
     }
 }
@@ -296,6 +312,7 @@ public class AppSettings
 [JsonSourceGenerationOptions(IncludeFields = true)]
 [JsonSerializable(typeof(List<string>))]
 [JsonSerializable(typeof(Dictionary<AppPlatform, List<RendererType>>))]
+[JsonSerializable(typeof(Dictionary<AppPlatform, int>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<X64InstructionLevel>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<AppProfilingMode>))]
 [JsonSerializable(typeof(JsonStringEnumConverter<AppPlatform>))]

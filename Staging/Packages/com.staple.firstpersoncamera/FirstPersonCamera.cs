@@ -16,6 +16,12 @@ public class FirstPersonCamera : LifecycleComponent
 
     public float touchSensitivity = 20;
 
+    [Range(0, 1)]
+    public float touchLookDeadZone;
+
+    [Range(0, 1)]
+    public float touchMoveDeadZone;
+
     public float minVerticalRotation = -90;
     public float maxVerticalRotation = 90;
 
@@ -99,7 +105,6 @@ public class FirstPersonCamera : LifecycleComponent
                     {
                         firstAxis = GamepadAxis.RightX,
                         secondAxis = GamepadAxis.RightY,
-                        invertVertical = true,
                         sensitivity = gamepadSensitivity,
                     }
                 },
@@ -120,13 +125,16 @@ public class FirstPersonCamera : LifecycleComponent
                     {
                         affectedArea = new(0.5f, 1, 0, 1),
                         sensitivity = touchSensitivity,
+                        requireMovement = true,
+                        deadZonePercentage = touchLookDeadZone,
                     }
                 }
             ],
         },
         (InputActionContext context, Vector2 value) =>
         {
-            look = value;
+            look.X = value.X;
+            look.Y = -value.Y;
         });
 
         movementKey = Input.AddDualAxisAction(new()
@@ -160,6 +168,7 @@ public class FirstPersonCamera : LifecycleComponent
                     touch = new()
                     {
                         affectedArea = new(0, 0.5f, 0, 1),
+                        deadZonePercentage = touchMoveDeadZone,
                     }
                 }
             ],

@@ -376,6 +376,11 @@ public partial class StapleActivity : SDLActivity
 
             LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Current.layers),
                 CollectionsMarshal.AsSpan(AppSettings.Current.sortingLayers));
+
+            if (AppSettings.Active.lightLimits?.TryGetValue(Platform.CurrentPlatform.Value, out var lightCount) ?? false)
+            {
+                LightSystem.Instance.SetMaxLightCount(lightCount);
+            }
         }
         catch (Exception e)
         {
