@@ -258,13 +258,15 @@ public sealed class MeshCombineSystem : RenderSystemBase
 
             var globalSize = Vector3.Abs(combine.combinedMeshBounds.size.Transformed(entry.transform.Rotation));
 
-            combine.localBounds = new(entry.transform.LocalPosition +
-                combine.combinedMeshBounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
-                localSize * entry.transform.NormalizedLocalScale);
+            var localCenter = entry.transform.LocalPosition +
+                combine.combinedMeshBounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.NormalizedLocalScale;
 
-            combine.UpdateBounds(new(entry.transform.Position +
-                combine.combinedMeshBounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
-                globalSize * entry.transform.NormalizedScale));
+            var globalCenter = entry.transform.Position + combine.combinedMeshBounds.center
+                .Transformed(entry.transform.Rotation) * entry.transform.NormalizedScale;
+
+            combine.localBounds = new(localCenter, localSize * entry.transform.NormalizedLocalScale);
+
+            combine.bounds = new(globalCenter, globalSize * entry.transform.NormalizedScale);
         }
     }
 

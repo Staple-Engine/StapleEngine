@@ -4,10 +4,10 @@
 /// Mesh Renderer component.
 /// Contains a mesh and its related materials.
 /// </summary>
-public sealed class MeshRenderer : Renderable
+public partial class MeshRenderer : Renderable
 {
     /// <summary>
     /// The mesh used for this
     /// </summary>
-    public Mesh mesh;
+    public partial Mesh mesh { get; set; }
 }

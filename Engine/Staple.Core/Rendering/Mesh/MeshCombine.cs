@@ -2,7 +2,7 @@
 
 namespace Staple;
 
-public sealed class MeshCombine : Renderable, IComponentDisposable
+public partial class MeshCombine : Renderable, IComponentDisposable
 {
     public enum MeshCombineChildMode
     {
@@ -11,7 +11,7 @@ public sealed class MeshCombine : Renderable, IComponentDisposable
     }
 
     [Tooltip("What to do for children after combining. Destroying renderers only applies in play mode")]
-    public MeshCombineChildMode childMode = MeshCombineChildMode.DisableRendering;
+    public partial MeshCombineChildMode childMode { get; set; }
 
     internal readonly List<Mesh> combinedMeshes = [];
     internal readonly List<Material> combinedMaterials = [];
@@ -19,6 +19,11 @@ public sealed class MeshCombine : Renderable, IComponentDisposable
 
     internal EntityQuery<MeshRenderer> renderers;
     internal bool processed;
+
+    public MeshCombine()
+    {
+        childMode = MeshCombineChildMode.DisableRendering;
+    }
 
     public void DisposeComponent()
     {

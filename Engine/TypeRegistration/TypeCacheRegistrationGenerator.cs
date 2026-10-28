@@ -43,6 +43,7 @@ namespace Staple
             "System.Collections.Generic.I",
             "System.Func",
             "System.Action",
+            "System.Span",
         ];
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -181,7 +182,7 @@ namespace StapleCodeGeneration
                         componentTypes.Add(typeName);
                     }
 
-                    foreach (var member in t.GetMembers().Where(x => x.Kind == SymbolKind.Field))
+                    foreach (var member in t.GetMembers().Where(x => x.Kind == SymbolKind.Field || x.Kind == SymbolKind.Property))
                     {
                         HandleSymbol(member);
                     }

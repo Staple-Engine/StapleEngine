@@ -103,7 +103,6 @@
 		<Compile Include="Attributes\AdditionalLibraryAttribute.cs" />
 		<Compile Include="Attributes\ButtonAttribute.cs" />
 		<Compile Include="Attributes\ComponentIconAttribute.cs" />
-		<Compile Include="Attributes\DisableWorldVersioningUpdatesAttribute.cs" />
 		<Compile Include="Attributes\HeaderAttribute.cs" />
 		<Compile Include="Attributes\MinAttribute.cs" />
 		<Compile Include="Attributes\MultilineAttribute.cs" />
@@ -128,10 +127,11 @@
 		<Compile Include="Audio\Readers\MP3AudioStream.cs" />
 		<Compile Include="Audio\Readers\OggAudioStream.cs" />
 		<Compile Include="Audio\Readers\WaveAudioStream.cs" />
+		<Compile Include="Entities\IComponentChangeReceiver.cs" />
 		<Compile Include="Entities\LifecycleComponent.cs" />
 		<Compile Include="Entities\Component.cs" />
 		<Compile Include="Entities\ComponentVersionTracker.cs" />
-		<Compile Include="Entities\IComponentVersion.cs" />
+		<Compile Include="Entities\VersionableComponent.cs" />
 		<Compile Include="Entities\Entity+Components.cs" />
 		<Compile Include="Entities\Entity+Instantiate.cs" />
 		<Compile Include="Entities\Entity+Iteration.cs" />

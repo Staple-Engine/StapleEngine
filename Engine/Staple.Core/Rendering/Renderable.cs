@@ -8,43 +8,38 @@ namespace Staple;
 /// Renderable base component
 /// </summary>
 [AbstractComponent]
-public class Renderable : Component, IComponentVersion
+public partial class Renderable : VersionableComponent
 {
-    /// <summary>
-    /// The version state of this renderable. Should be updated as you change properties like bounds.
-    /// </summary>
-    public ulong Version { get; protected set; }
-
     /// <summary>
     /// Whether to force the rendering to be disabled
     /// </summary>
-    public bool forceRenderingOff = false;
+    public partial bool forceRenderingOff { get; set; }
 
     /// <summary>
     /// Whether this receives shadows
     /// </summary>
-    public bool receiveShadows = true;
+    public partial bool receiveShadows { get; set; }
 
     /// <summary>
     /// The sorting layer for this renderer
     /// </summary>
     [SortingLayer]
-    public uint sortingLayer;
+    public partial uint sortingLayer { get; set; }
 
     /// <summary>
     /// The sorting order for this renderer
     /// </summary>
-    public int sortingOrder;
+    public partial int sortingOrder { get; set; }
 
     /// <summary>
     /// The world-space bounds
     /// </summary>
-    public AABB bounds;
+    public partial AABB bounds { get; set; }
 
     /// <summary>
     /// The local bounds
     /// </summary>
-    public AABB localBounds;
+    public AABB localBounds { get; set; }
 
     /// <summary>
     /// Whether this is visible
@@ -54,7 +49,7 @@ public class Renderable : Component, IComponentVersion
     /// <summary>
     /// The materials for this renderable
     /// </summary>
-    public List<Material> materials = [];
+    public partial List<Material> materials { get; set; }
 
     /// <summary>
     /// Whether this has been culled by another system
@@ -80,17 +75,9 @@ public class Renderable : Component, IComponentVersion
         }
     }
 
-    /// <summary>
-    /// Updates the <see cref="bounds"/> of this renderable if they changed
-    /// </summary>
-    /// <param name="bounds">The new bounds</param>
-    public void UpdateBounds(AABB bounds)
+    public Renderable()
     {
-        if(bounds != this.bounds)
-        {
-            Version++;
-
-            this.bounds = bounds;
-        }
+        receiveShadows = true;
+        materials = [];
     }
 }

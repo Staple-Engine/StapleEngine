@@ -862,7 +862,10 @@ internal partial class StapleEditor
 
         SubsystemManager.instance.RegisterSubsystem(AudioSystem.Instance, AudioSystem.Priority);
 
-        if (playerSettings.screenWidth <= 0 || playerSettings.screenHeight <= 0 || playerSettings.windowPosition.X < -1000 || playerSettings.windowPosition.Y < -1000)
+        if (playerSettings.screenWidth <= 0 ||
+            playerSettings.screenHeight <= 0 ||
+            playerSettings.windowPosition.X < -1000 ||
+            playerSettings.windowPosition.Y < -1000)
         {
             playerSettings.screenWidth = editorAppSettings.defaultWindowWidth;
             playerSettings.screenHeight = editorAppSettings.defaultWindowHeight;

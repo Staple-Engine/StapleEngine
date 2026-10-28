@@ -8,7 +8,7 @@ namespace Staple;
 /// Just remember, it's less effective than using a system if there's a lot of entities doing things!
 /// </summary>
 [AbstractComponent]
-public class LifecycleComponent : Component
+public class LifecycleComponent : VersionableComponent
 {
     /// <summary>
     /// Flag for knowing when to emit the Start() event

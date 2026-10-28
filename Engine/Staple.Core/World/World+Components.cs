@@ -50,6 +50,7 @@ public partial class World
                         if(entity.components.TryGetValue(key, out var container))
                         {
                             entity.componentsArray.Remove(container);
+                            entity.versionableComponentsArray.Remove(container);
 
                             entity.components.Remove(key);
                         }
@@ -113,12 +114,17 @@ public partial class World
 
             component.Enabled = true;
 
-            container = new ComponentHolder(hash, component, TypeCache.ComponentShouldBeVersionedByWorld(t.FullName), 0);
+            container = new ComponentHolder(hash, component);
 
             needsEmitWorldChange = true;
 
             entityInfo.components.Add(hash, container);
             entityInfo.componentsArray.Add(container);
+
+            if(container.versionable != null)
+            {
+                entityInfo.versionableComponentsArray.Add(container);
+            }
 
             container.component.Entity = entity;
 
@@ -136,12 +142,7 @@ public partial class World
 
             foreach (var req in requiredComponents)
             {
-                var instance = GetComponent(entity, req.type);
-
-                if(instance == null)
-                {
-                    instance = AddComponent(entity, req.type);
-                }
+                var instance = GetComponent(entity, req.type) ?? AddComponent(entity, req.type);
 
                 if(instance == null)
                 {
@@ -314,6 +315,7 @@ public partial class World
                         foreach(var c in entityInfo.componentsArray.Contents)
                         {
                             c.component.Transform = null;
+                            c.versionable?.Transform = null;
                         }
                     }
 
@@ -678,6 +680,11 @@ public partial class World
                     callbacks.RemoveAt(item);
                 }
             }
+
+            if (component is VersionableComponent v)
+            {
+                PropagateChangedComponentObservers(hash, v);
+            }
         }
     }
 
@@ -687,13 +694,12 @@ public partial class World
     /// <param name="component">The component that was added</param>
     internal void EmitChangedComponentEvent(Component component)
     {
-        var hash = component?.GetType().FullName.GetHashCode() ?? 0;
-
-        if (component == null ||
-            !TryGetEntity(component.Entity, out var entityInfo))
+        if (component == null)
         {
             return;
         }
+
+        var hash = component.GetType().FullName.GetHashCode();
 
         lock (globalLockObject)
         {
@@ -728,6 +734,11 @@ public partial class World
 
                     callbacks.RemoveAt(item);
                 }
+            }
+
+            if(component is VersionableComponent v)
+            {
+                PropagateChangedComponentObservers(hash, v);
             }
         }
     }
@@ -783,6 +794,24 @@ public partial class World
                     callbacks.RemoveAt(item);
                 }
             }
+        }
+    }
+
+    internal void PropagateChangedComponentObservers(int hash, VersionableComponent component)
+    {
+        if(component == null || !componentCompatibilityCache.TryGetValue(hash, out var compatibleHashes))
+        {
+            return;
+        }
+
+        foreach (var h in compatibleHashes)
+        {
+            if (!componentChanges.TryGetValue(h, out var box))
+            {
+                continue;
+            }
+
+            box.EmitChangedComponent(component);
         }
     }
 }

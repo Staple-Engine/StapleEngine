@@ -26,29 +26,12 @@ public partial class World
     /// <summary>
     /// Contains data about a component
     /// </summary>
-    internal class ComponentHolder(int hash, Component component, bool versionable, ulong version)
+    internal class ComponentHolder(int hash, Component component)
     {
         public int hash = hash;
         public Component component = component;
-        public IComponentVersion versionableComponent = versionable ? (IComponentVersion)component : null;
-        public bool versionable = versionable;
-        public ulong version = version;
 
-        public bool ShouldUpdate
-        {
-            get
-            {
-                if (!versionable ||
-                    versionableComponent.Version == version)
-                {
-                    return false;
-                }
-
-                version = versionableComponent.Version;
-
-                return true;
-            }
-        }
+        public VersionableComponent versionable = component as VersionableComponent;
     }
 
     /// <summary>
@@ -90,6 +73,11 @@ public partial class World
         /// List of components as an array
         /// </summary>
         public ExpandableContainer<ComponentHolder> componentsArray = new();
+
+        /// <summary>
+        /// List of versionable components as an array
+        /// </summary>
+        public ExpandableContainer<ComponentHolder> versionableComponentsArray = new();
 
         /// <summary>
         /// The entity's name
@@ -166,7 +154,7 @@ public partial class World
 
         public void EmitWorldReplacedEvent()
         {
-            EmitCustom((observer) =>
+            foreach(var observer in Observers)
             {
                 if (observer is not IWorldChangeReceiver receiver)
                 {
@@ -174,7 +162,7 @@ public partial class World
                 }
 
                 receiver.WorldReplaced(Current);
-            });
+            }
         }
     }
 
@@ -188,6 +176,26 @@ public partial class World
             }
 
             query.WorldChanged(Current);
+        }
+    }
+
+    private class ComponentChangedBox : ObservableBox
+    {
+        protected override void EmitAction(object observer)
+        {
+        }
+
+        public void EmitChangedComponent(VersionableComponent c)
+        {
+            foreach (var observer in Observers)
+            {
+                if (observer is not IComponentChangeReceiver receiver)
+                {
+                    continue;
+                }
+
+                receiver.MarkComponentChanged(c);
+            }
         }
     }
 
@@ -244,6 +252,7 @@ public partial class World
     private int entityCount;
     private static readonly WorldChangeBox worldChangeReceivers = new();
     private static readonly SceneQueryBox sceneQueries = new();
+    private static readonly Dictionary<int, ComponentChangedBox> componentChanges = [];
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentAddedCallbacks = [];
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentChangedCallbacks = [];
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentRemovedCallbacks = [];
@@ -301,6 +310,48 @@ public partial class World
         lock (globalLockObject)
         {
             worldChangeReceivers.RemoveObserver(receiver);
+        }
+    }
+
+    internal static void AddComponentChangeReceiver(IComponentChangeReceiver receiver)
+    {
+        if(receiver == null)
+        {
+            return;
+        }
+
+        lock(globalLockObject)
+        {
+            var world = Current;
+
+            var hash = receiver.ComponentHash;
+
+            if(!componentChanges.TryGetValue(hash, out var box))
+            {
+                box = new();
+
+                componentChanges.Add(hash, box);
+            }
+
+            box.AddObserver(receiver);
+
+            if (world == null || !world.componentCompatibilityCache.TryGetValue(receiver.ComponentHash, out var compatibleHashes))
+            {
+                return;
+            }
+
+            foreach (var entity in world.entities.Contents)
+            {
+                foreach (var container in entity.versionableComponentsArray.Contents)
+                {
+                    if(!compatibleHashes.Contains(container.hash))
+                    {
+                        continue;
+                    }
+
+                    receiver.MarkComponentChanged(container.versionable);
+                }
+            }
         }
     }
 
@@ -377,6 +428,14 @@ public partial class World
         if (isWorldReplaced)
         {
             worldChangeReceivers.EmitWorldReplacedEvent();
+
+            foreach(var entity in world.entities.Contents)
+            {
+                foreach(var container in entity.versionableComponentsArray.Contents)
+                {
+                    world.PropagateChangedComponentObservers(container.hash, container.versionable);
+                }
+            }
         }
         else
         {
@@ -407,6 +466,7 @@ public partial class World
                         if(entityInfo.components.TryGetValue(item.Item2, out var container))
                         {
                             entityInfo.componentsArray.Remove(container);
+                            entityInfo.versionableComponentsArray.Remove(container);
 
                             entityInfo.components.Remove(item.Item2);
 
@@ -451,6 +511,7 @@ public partial class World
 
                     info.components.Clear();
                     info.componentsArray.Clear();
+                    info.versionableComponentsArray.Clear();
 
                     removedComponents.RemoveWhere(x => x.Item1 == e);
 
@@ -513,6 +574,7 @@ public partial class World
 
                 entity.components.Clear();
                 entity.componentsArray.Clear();
+                entity.versionableComponentsArray.Clear();
             }
 
             entities.Clear();

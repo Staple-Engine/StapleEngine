@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Staple;
 
@@ -9,21 +8,9 @@ namespace Staple;
 /// Transform component.
 /// Contains rotation, position, scale, and parent entity.
 /// </summary>
-[DisableWorldVersioningUpdates]
-public class Transform : Component, IComponentVersion
+public class Transform : VersionableComponent
 {
-    private ulong lastVersion = 0;
-    internal ulong version;
-
-    /// <summary>
-    /// Whether the transform has changed.
-    /// This is used to force children to refresh themselves when the parent is modified.
-    /// </summary>
-    public ulong Version
-    {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        get => version;
-    }
+    private ulong lastVersion;
 
     /// <summary>
     /// Child transforms
@@ -374,9 +361,9 @@ public class Transform : Component, IComponentVersion
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void UpdateState()
     {
-        if (version > lastVersion)
+        if (Version > lastVersion)
         {
-            lastVersion = version;
+            lastVersion = Version;
 
             matrix = Matrix4x4.TRS(position, scale, rotation);
 
@@ -485,7 +472,7 @@ public class Transform : Component, IComponentVersion
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private void BumpVersion()
     {
-        version++;
+        Version++;
 
         if(Children.Length == 0)
         {

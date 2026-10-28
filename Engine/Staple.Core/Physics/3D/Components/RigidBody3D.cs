@@ -1,6 +1,6 @@
 ﻿namespace Staple;
 
-public partial class RigidBody3D : Component
+public partial class RigidBody3D : VersionableComponent
 {
     /// <summary>
     /// The actual body instance

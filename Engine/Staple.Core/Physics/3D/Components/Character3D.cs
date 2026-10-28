@@ -2,7 +2,7 @@
 
 namespace Staple;
 
-public partial class Character3D : Component
+public partial class Character3D : VersionableComponent
 {
     /// <summary>
     /// The actual body instance

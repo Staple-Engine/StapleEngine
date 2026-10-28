@@ -1,21 +1,47 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Staple;
 
 /// <summary>
-/// Tracks the version of <see cref="IComponentVersion"/> components
+/// Tracks the version of <see cref="VersionableComponent"/> components
 /// </summary>
 /// <typeparam name="T">The component</typeparam>
-public class ComponentVersionTracker<T> : IWorldChangeReceiver
-    where T: Component, IComponentVersion
+public class ComponentVersionTracker<T> : IWorldChangeReceiver, IComponentChangeReceiver
+    where T: VersionableComponent
 {
+    private class EntityComparer : IComparer<T>
+    {
+        public int Compare(T a, T b)
+        {
+            var aValid = a.Entity.IsValid;
+            var bValid = b.Entity.IsValid;
+
+            if(!aValid)
+            {
+                return bValid ? 1 : 0;
+            }
+            else if(!bValid)
+            {
+                return aValid ? -1 : 0;
+            }
+
+            return a.Entity.Identifier.ID.CompareTo(b.Entity.Identifier.ID);
+        }
+    }
+
     private readonly ExpandableContainer<ulong> versions = new();
     private readonly ExpandableContainer<int> generations = new();
+
+    public int ComponentHash { get; internal set; } = typeof(T).FullName.GetHashCode();
+
+    public SortedSet<T> ChangedComponents { get; private set; } = [with(new EntityComparer())];
 
     public ComponentVersionTracker()
     {
         World.AddChangeReceiver(this);
+        World.AddComponentChangeReceiver(this);
     }
 
     /// <summary>
@@ -83,6 +109,11 @@ public class ComponentVersionTracker<T> : IWorldChangeReceiver
         versions.ClearValues();
     }
 
+    public void ClearChanges()
+    {
+        ChangedComponents.Clear();
+    }
+
     public void WorldChanged(World world)
     {
     }
@@ -90,5 +121,16 @@ public class ComponentVersionTracker<T> : IWorldChangeReceiver
     public void WorldReplaced(World world)
     {
         Clear();
+    }
+
+    public void MarkComponentChanged(VersionableComponent component)
+    {
+        if(!(component?.Entity.IsValid ?? false) ||
+            component is not T t)
+        {
+            return;
+        }
+
+        ChangedComponents.Add(t);
     }
 }

@@ -96,6 +96,30 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
     public override void Prepare()
     {
         renderers.Clear();
+
+        foreach(var transform in transformVersions.ChangedComponents)
+        {
+            if(!transform.Entity.TryGetComponent<SkinnedMeshRenderer>(out var renderer) ||
+                renderer.mesh == null)
+            {
+                continue;
+            }
+
+            var localSize = renderer.mesh.bounds.size.Transformed(transform.LocalRotation).Abs();
+
+            var globalSize = renderer.mesh.bounds.size.Transformed(transform.Rotation).Abs();
+
+            var localCenter = transform.LocalPosition + renderer.mesh.bounds.center.Transformed(transform.LocalRotation) * transform.NormalizedLocalScale;
+
+            var globalCenter = transform.Position + renderer.mesh.bounds.center.Transformed(transform.Rotation) *
+                transform.NormalizedScale;
+
+            renderer.localBounds = new(localCenter, localSize * transform.NormalizedLocalScale);
+
+            renderer.bounds = new(globalCenter, globalSize * transform.NormalizedScale);
+        }
+
+        transformVersions.ClearChanges();
     }
 
     public override void Preprocess(IRenderQueue renderQueue)
@@ -179,20 +203,6 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
                     renderer.blendShapeNames = [];
                 }
-            }
-
-            if (transformVersions.ShouldUpdateComponent(entry.entity, in entry.transform))
-            {
-                var localSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.LocalRotation));
-
-                var globalSize = Vector3.Abs(renderer.mesh.bounds.size.Transformed(entry.transform.Rotation));
-
-                renderer.localBounds = new(entry.transform.LocalPosition +
-                    renderer.mesh.bounds.center.Transformed(entry.transform.LocalRotation) * entry.transform.LocalScale,
-                    localSize * entry.transform.NormalizedLocalScale);
-
-                renderer.UpdateBounds(new(entry.transform.Position + renderer.mesh.bounds.center.Transformed(entry.transform.Rotation) * entry.transform.Scale,
-                    globalSize * entry.transform.NormalizedScale));
             }
         }
     }

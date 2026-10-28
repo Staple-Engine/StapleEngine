@@ -5,9 +5,19 @@ namespace Staple;
 
 [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 [AbstractComponent]
-public partial class Component
+public class Component
 {
-    public partial bool Enabled { get; set; }
+    public bool Enabled
+    {
+        get;
+
+        set
+        {
+            field = value;
+
+            World.Current?.ReportChangedComponent(this);
+        }
+    }
 
     [field: NonSerialized]
     public Entity Entity { get; internal set; }

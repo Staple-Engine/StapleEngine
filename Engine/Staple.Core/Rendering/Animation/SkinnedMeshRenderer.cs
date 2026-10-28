@@ -7,17 +7,17 @@ namespace Staple;
 /// <summary>
 /// Skinned Mesh Renderer component
 /// </summary>
-public sealed class SkinnedMeshRenderer : Renderable, IComponentDisposable
+public partial class SkinnedMeshRenderer : Renderable, IComponentDisposable
 {
     /// <summary>
     /// The mesh used for this
     /// </summary>
-    public Mesh mesh;
+    public partial Mesh mesh { get; set; }
 
     /// <summary>
     /// Whether to disable skinning entirely for this renderer
     /// </summary>
-    public bool disableSkinning = false;
+    public partial bool disableSkinning { get; set; }
 
     /// <summary>
     /// Blend shape weights for this renderer
