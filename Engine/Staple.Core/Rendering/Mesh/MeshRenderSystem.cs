@@ -25,7 +25,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
     /// </summary>
     private class InstanceData
     {
-        public readonly ExpandableContainer<InstanceInfo> instanceInfos = new();
+        public readonly ExpandableContainer<InstanceInfo> instanceInfos = new(false);
     }
 
     /// <summary>
@@ -33,8 +33,8 @@ public sealed class MeshRenderSystem : RenderSystemBase
     /// </summary>
     private class StaticInstanceData
     {
-        public readonly ExpandableContainer<InstanceInfo> instanceInfos = new();
-        public readonly ExpandableContainer<MultidrawEntry> entries = new();
+        public readonly ExpandableContainer<InstanceInfo> instanceInfos = new(false);
+        public readonly ExpandableContainer<MultidrawEntry> entries = new(false);
         public int triangles;
     }
 

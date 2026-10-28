@@ -38,7 +38,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
             .Build();
     });
 
-    private readonly ExpandableContainer<RenderInfo> renderers = new();
+    private readonly ExpandableContainer<RenderInfo> renderers = new(false);
 
     private readonly SceneQuery<SkinnedMeshInstance> instances = new();
 
