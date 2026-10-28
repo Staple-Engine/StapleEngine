@@ -111,7 +111,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
             return;
         }
 
-        LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, disableLighting);
+        LightSystem.Instance.ApplyLightProperties(ref renderState);
 
         RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
     }
@@ -369,7 +369,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
                 material.ApplyProperties(ref renderState);
 
-                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, false);
+                LightSystem.Instance.ApplyLightProperties(ref renderState);
 
                 renderState.world = Matrix4x4.Identity;
 
@@ -401,7 +401,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
                 material.ApplyProperties(ref renderState);
 
-                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, false);
+                LightSystem.Instance.ApplyLightProperties(ref renderState);
 
                 var program = material.ShaderProgram;
 

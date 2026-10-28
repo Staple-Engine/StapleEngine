@@ -140,12 +140,12 @@ float4 FragmentMain(VertexOutput input) : SV_Target
 	}
 
 #ifdef NORMALMAP
-	float3 normalMapNormal = StapleGetTangentNormal(input.worldNormal, input.tangent, input.bitangent, input.coords, normalTexture);
-
-	float3 light = StapleProcessLights(input.worldPosition, normalMapNormal);
+	float3 normal = StapleGetTangentNormal(input.worldNormal, input.tangent, input.bitangent, input.coords, normalTexture);
 #else
-	float3 light = StapleProcessLights(input.worldPosition, normalize(input.worldNormal));
+	float3 normal = normalize(input.worldNormal);
 #endif
+
+	float3 light = StapleProcessPixelLights(input.worldPosition, normal);
  
 	return float4(light * diffuse.rgb, diffuse.a);
 }

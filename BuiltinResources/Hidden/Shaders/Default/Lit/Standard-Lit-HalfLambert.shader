@@ -145,7 +145,7 @@ float4 FragmentMain(VertexOutput input) : SV_Target
 	float3 normal = normalize(input.worldNormal);
 #endif
 
-	float3 light = StapleProcessLights(input.worldPosition, normal);
+	float3 light = StapleProcessPixelLights(input.worldPosition, normal);
  
 	return float4(light * diffuse.rgb, diffuse.a);
 }

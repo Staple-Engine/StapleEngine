@@ -591,7 +591,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
                 renderer.mesh.SetActive(ref renderState, j);
 
-                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, false);
+                LightSystem.Instance.ApplyLightProperties(ref renderState);
 
                 if(!lastDisableSkinning)
                 {

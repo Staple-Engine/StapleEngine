@@ -31,7 +31,7 @@ internal class TextureAssetEditor : AssetEditor
 
         ThumbnailCache.ClearSingle(path.Replace(".meta", ""));
 
-        previewTexture = ResourceManager.instance.LoadTexture(cachePath);
+        previewTexture = ResourceManager.instance.LoadTexture(cachePath, ignoreCache: true);
         originalTexture = metadata.shouldPack ? ThumbnailCache.GetTexture(path.Replace(".meta", "")) : null;
 
         if (previewTexture == null)

@@ -7,11 +7,8 @@ __include StapleLighting;
 public enum RenderQueue
 {
     Opaque = 0,
-
     AlphaTest = 1000,
-
     Transparent = 2000,
-
     Overlay = 3000,
 };
 
@@ -24,16 +21,6 @@ public cbuffer StapleRenderData
     public bool useWorldMatrix;
 	public RenderQueue renderQueue;
     public float time;
-#if defined(LIT) || (defined(SKINNING) && defined(STAPLE_VERTEX_SHADER))
-	public float padding0;
-#endif
-#ifdef LIT
-    float4 StapleLightCountViewPosition;
-    float4 StapleLightAmbientColor;
-    float4 StapleLightTypePosition[MaxStapleLightCount];
-    float4 StapleLightDiffuseIntensity[MaxStapleLightCount];
-    float4 StapleLightExtras[MaxStapleLightCount];
-#endif
 };
 
 #ifdef STAPLE_VERTEX_SHADER

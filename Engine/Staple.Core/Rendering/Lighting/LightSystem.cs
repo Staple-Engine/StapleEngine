@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 
@@ -11,28 +9,10 @@ namespace Staple.Internal;
 /// </summary>
 public sealed class LightSystem
 {
-    [StructLayout(LayoutKind.Sequential, Pack = 0)]
-    public struct LightInstance
-    {
-        public Matrix4x4 transform;
-        public Matrix3x3 normalMatrix;
-        public Vector3 padding;
-    }
-
     /// <summary>
     /// Normal light count
     /// </summary>
     public const int MaxLights = 32;
-
-    /// <summary>
-    /// For lights that are being faded out, so they cull graciously
-    /// </summary>
-    public const int MaxFadeOutLights = 8;
-
-    /// <summary>
-    /// The absolute light limit
-    /// </summary>
-    public const int TotalLights = MaxLights + MaxFadeOutLights;
 
     /// <summary>
     /// Maximum lights (platform-specific)
@@ -40,19 +20,9 @@ public sealed class LightSystem
     public int PlatformMaxLights = MaxLights;
 
     /// <summary>
-    /// Maximum fade out lights (platform-specific)
-    /// </summary>
-    public int PlatformMaxFadeOutLights = MaxFadeOutLights;
-
-    /// <summary>
-    /// Whether to use fade out lights
-    /// </summary>
-    public bool UseFadeOutLights = true;
-
-    /// <summary>
     /// The total lights we use
     /// </summary>
-    public int PlatformTotalLights => PlatformMaxLights + (UseFadeOutLights ? PlatformMaxFadeOutLights : 0);
+    public int PlatformTotalLights => PlatformMaxLights;
 
     /// <summary>
     /// Enable or disable the light system
@@ -76,22 +46,24 @@ public sealed class LightSystem
 
     private readonly SceneQuery<Light> lightQuery = new();
 
-    private readonly Vector4[] cachedLightTypePositions = new Vector4[TotalLights];
-    private readonly Color[] cachedLightDiffuseIntensity = new Color[TotalLights];
-    private readonly Vector4[] cachedLightExtras = new Vector4[TotalLights];
+    private readonly ExpandableContainer<Vector4> lightData = new(false);
 
-    private readonly Dictionary<int, ShaderHandle[]> cachedInstancedMaterialInfo = [];
+    private readonly Lazy<VertexLayout> lightBufferLayout = new(() =>
+    {
+        return VertexLayoutBuilder.CreateNew()
+            .Add(VertexAttribute.Position, VertexAttributeType.Float4)
+            .Build();
+    });
+
+    private VertexBuffer lightBuffer;
+
+    private VertexBuffer emptyBuffer;
 
     private Material previousMaterial;
     private Shader previousShader;
-    private Vector4 previousLightCount;
-    private Color previousLightAmbient;
     private int visibleLightCount;
-    private readonly Vector4[] previousLightTypePositions = new Vector4[TotalLights];
-    private readonly Color[] previousLightDiffuseIntensity = new Color[TotalLights];
-    private readonly Vector4[] previousLightExtras = new Vector4[TotalLights];
 
-    private readonly ExpandableContainer<Light> cachedLights = new();
+    private readonly ExpandableContainer<Light> cachedLights = new(false);
 
     public Color AmbientColor => OverrideAmbientColor ?? AppSettings.Active.ambientLight;
 
@@ -106,34 +78,6 @@ public sealed class LightSystem
     {
         previousShader = null;
         previousMaterial = null;
-
-        foreach(var light in Lights)
-        {
-            switch(light.transition)
-            {
-                case CullingState.Visible:
-
-                    light.transitionTimer += Time.deltaTime * LightTransitionSpeed;
-
-                    if (light.transitionTimer >= 1)
-                    {
-                        light.transition = CullingState.None;
-                    }
-
-                    break;
-
-                case CullingState.Invisible:
-
-                    light.transitionTimer -= Time.deltaTime * LightTransitionSpeed;
-
-                    if (light.transitionTimer <= 0)
-                    {
-                        light.transition = CullingState.None;
-                    }
-
-                    break;
-            }
-        }
     }
 
     /// <summary>
@@ -153,6 +97,7 @@ public sealed class LightSystem
         }
 
         cachedLights.Clear();
+        lightData.Clear();
 
         var targets = Lights;
         BoundingSphere sphere = default;
@@ -228,56 +173,11 @@ public sealed class LightSystem
 
         cachedLights.Contents.Sort(CompareLights);
 
-        if (cachedLights.Length > PlatformMaxLights)
-        {
-            var culledLights = cachedLights.Contents.Slice(PlatformMaxLights);
-
-            for (var i = 0; i < culledLights.Length; i++)
-            {
-                var light = culledLights[i];
-
-                switch (light.culling)
-                {
-                    case CullingState.None:
-
-                        light.culling = CullingState.Invisible;
-
-                        break;
-
-                    case CullingState.Visible:
-
-                        light.culling = CullingState.Invisible;
-                        light.transition = i < PlatformMaxFadeOutLights ? CullingState.Invisible : CullingState.None;
-                        light.transitionTimer = 1;
-
-                        break;
-                }
-            }
-
-            cachedLights.Resize(PlatformTotalLights, true);
-        }
-
-        var visibleLights = cachedLights.Contents.Slice(0, Math.Min(PlatformMaxLights, cachedLights.Contents.Length));
-
-        foreach (var light in visibleLights)
-        {
-            if (light == null || light.culling == CullingState.Visible)
-            {
-                continue;
-            }
-
-            light.culling = light.transition = CullingState.Visible;
-            light.transitionTimer = 0;
-        }
+        lightData.Add(new(cachedLights.Length, cameraPosition.X, cameraPosition.Y, cameraPosition.Z));
+        lightData.Add(new(PlatformMaxLights, AmbientColor.r, AmbientColor.g, AmbientColor.b));
 
         foreach (var light in cachedLights.Contents)
         {
-            if (light == null ||
-                (light.culling == CullingState.Invisible && light.transition == CullingState.None))
-            {
-                continue;
-            }
-
             var t = light.Transform;
             var p = t.Position;
             var forward = t.Forward;
@@ -287,34 +187,41 @@ public sealed class LightSystem
                 p = -forward;
             }
 
-            cachedLightTypePositions[visibleLightCount] = new((float)light.type, p.X, p.Y, p.Z);
-
-            ref var diffuseIntensity = ref cachedLightDiffuseIntensity[visibleLightCount];
+            lightData.Add(new((float)light.type, p.X, p.Y, p.Z));
 
             var intensity = light.intensity;
 
-            if (light.transition != CullingState.None)
-            {
-                intensity *= light.transitionTimer;
-            }
+            lightData.Add(light.color.WithAlpha(intensity));
 
-            diffuseIntensity = light.color.WithAlpha(intensity);
+            var extras = Vector4.Zero;
 
             switch (light.type)
             {
                 case LightType.Point:
-
-                    ref var extras = ref cachedLightExtras[visibleLightCount];
 
                     extras.X = 1.0f / Math.Max(light.range * light.range, 0.00001f);
 
                     break;
             }
 
-            visibleLightCount++;
+            lightData.Add(extras);
         }
 
-        return visibleLightCount > 0;
+        if(lightBuffer?.Disposed ?? true)
+        {
+            lightBuffer = VertexBuffer.Create(lightData.Contents, lightBufferLayout.Value, RenderBufferFlags.GraphicsRead);
+        }
+        else
+        {
+            lightBuffer.Update(lightData.Contents);
+        }
+
+        if(emptyBuffer?.Disposed ?? true)
+        {
+            emptyBuffer = VertexBuffer.Create([new Vector4(0, 1, 1, 1)], lightBufferLayout.Value, RenderBufferFlags.GraphicsRead);
+        }
+
+        return cachedLights.Length > 0;
     }
 
     /// <summary>
@@ -323,183 +230,14 @@ public sealed class LightSystem
     /// <param name="material">The material to use</param>
     /// <param name="cameraPosition">The position of the camera</param>
     /// <param name="disableLighting">Whether lighting should be disabled</param>
-    internal bool ApplyLightProperties(Material material, Vector3 cameraPosition, bool disableLighting)
+    internal bool ApplyLightProperties(ref RenderState state)
     {
-        if (!Enabled ||
-            !(material?.IsValid ?? false))
+        if (!Enabled)
         {
             return false;
         }
 
-        var key = HashCode.Combine(material.materialResource.shader.Guid.GuidHash, material.ShaderVariantKey);
-
-        static bool HandlesValid(Span<ShaderHandle> handles)
-        {
-            for (var i = 0; i < handles.Length; i++)
-            {
-                if (!handles[i].IsValid)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        if (!cachedInstancedMaterialInfo.TryGetValue(key, out var handles) || !HandlesValid(handles))
-        {
-            handles = [
-                material.GetShaderHandle("StapleLightCountViewPosition"),
-                material.GetShaderHandle("StapleLightAmbientColor"),
-                material.GetShaderHandle("StapleLightTypePosition"),
-                material.GetShaderHandle("StapleLightDiffuseIntensity"),
-                material.GetShaderHandle("StapleLightExtras"),
-            ];
-
-            cachedInstancedMaterialInfo.AddOrSetKey(key, handles);
-        }
-
-        if (!HandlesValid(handles))
-        {
-            return false;
-        }
-
-        var lightAmbient = AmbientColor;
-        var lightCount = 0;
-
-        if(!disableLighting)
-        {
-            foreach(var light in cachedLights.Contents)
-            {
-                if(light == null ||
-                    (light.culling == CullingState.Invisible && light.transition == CullingState.None))
-                {
-                    continue;
-                }
-
-                var t = light.Transform;
-                var p = t.Position;
-                var forward = t.Forward;
-
-                if (light.type == LightType.Directional)
-                {
-                    p = -forward;
-                }
-
-                cachedLightTypePositions[lightCount] = new((float)light.type, p.X, p.Y, p.Z);
-
-                ref var diffuseIntensity = ref cachedLightDiffuseIntensity[lightCount];
-
-                var intensity = light.intensity;
-
-                if(light.transition != CullingState.None)
-                {
-                    intensity *= light.transitionTimer;
-                }
-
-                diffuseIntensity = light.color.WithAlpha(intensity);
-
-                switch(light.type)
-                {
-                    case LightType.Point:
-
-                        ref var extras = ref cachedLightExtras[lightCount];
-
-                        extras.X = 1.0f / Math.Max(light.range * light.range, 0.00001f);
-
-                        break;
-                }
-
-                lightCount++;
-            }
-        }
-
-        var viewPosHandle = handles[0];
-        var lightAmbientHandle = handles[1];
-        var lightTypePositionHandle = handles[2];
-        var lightDiffuseHandle = handles[3];
-        var lightExtrasHandle = handles[4];
-
-        var needsReplaceCount = false;
-        var needsReplaceAmbient = false;
-        var needsReplaceTypePositions = false;
-        var needsReplaceDiffuse = false;
-        var needsReplaceExtras = false;
-
-        var newLightCount = new Vector4(lightCount, cameraPosition.X, cameraPosition.Y, cameraPosition.Z);
-
-        if (previousShader != material.materialResource.shader ||
-            previousMaterial != material)
-        {
-            previousShader = material.materialResource.shader;
-            previousMaterial = material;
-
-            needsReplaceCount = needsReplaceAmbient = needsReplaceTypePositions = needsReplaceDiffuse = needsReplaceExtras = true;
-        }
-        else
-        {
-            needsReplaceCount = previousLightCount != newLightCount;
-
-            needsReplaceAmbient = previousLightAmbient != lightAmbient;
-
-            for(var i = 0; i < TotalLights; i++)
-            {
-                if(!needsReplaceTypePositions && cachedLightTypePositions[i] != previousLightTypePositions[i])
-                {
-                    needsReplaceTypePositions = true;
-                }
-
-                if(!needsReplaceDiffuse && cachedLightDiffuseIntensity[i] != previousLightDiffuseIntensity[i])
-                {
-                    needsReplaceDiffuse = true;
-                }
-
-                if(!needsReplaceExtras && cachedLightExtras[i] != previousLightExtras[i])
-                {
-                    needsReplaceExtras = true;
-                }
-
-                if(needsReplaceDiffuse && needsReplaceTypePositions && needsReplaceExtras)
-                {
-                    break;
-                }
-            }
-        }
-
-        if(needsReplaceCount)
-        {
-            previousLightCount = newLightCount;
-
-            material.materialResource.shader.SetVector4(material.ShaderVariantKey, viewPosHandle, newLightCount);
-        }
-
-        if(needsReplaceAmbient)
-        {
-            previousLightAmbient = lightAmbient;
-
-            material.materialResource.shader.SetColor(material.ShaderVariantKey, lightAmbientHandle, lightAmbient);
-        }
-
-        if(needsReplaceTypePositions)
-        {
-            cachedLightTypePositions.AsSpan().CopyTo(previousLightTypePositions);
-
-            material.materialResource.shader.SetVector4(material.ShaderVariantKey, lightTypePositionHandle, cachedLightTypePositions);
-        }
-
-        if(needsReplaceDiffuse)
-        {
-            cachedLightDiffuseIntensity.AsSpan().CopyTo(previousLightDiffuseIntensity);
-
-            material.materialResource.shader.SetColor(material.ShaderVariantKey, lightDiffuseHandle, cachedLightDiffuseIntensity);
-        }
-
-        if (needsReplaceExtras)
-        {
-            cachedLightExtras.AsSpan().CopyTo(previousLightExtras);
-
-            material.materialResource.shader.SetVector4(material.ShaderVariantKey, lightExtrasHandle, cachedLightExtras);
-        }
+        state.ApplyStorageBufferIfNeeded("StapleLightData", (lightBuffer?.Disposed ?? true) ? emptyBuffer : lightBuffer);
 
         return true;
     }
@@ -510,14 +248,8 @@ public sealed class LightSystem
     /// <param name="count">The maximum amount of lights</param>
     public void SetMaxLightCount(int count)
     {
-        count = Math.ClampToInt(count, 0, MaxLights);
+        count = Math.ClampToInt(count, 0, 1000);
 
         PlatformMaxLights = count;
-        PlatformMaxFadeOutLights = count / 4;
-
-        if(PlatformMaxFadeOutLights == 1)
-        {
-            PlatformMaxFadeOutLights = 0;
-        }
     }
 }

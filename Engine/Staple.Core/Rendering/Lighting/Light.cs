@@ -26,19 +26,4 @@ public sealed class Light : Component
     /// Range if the type is <see cref="LightType.Point"/>
     /// </summary>
     public float range = 1;
-
-    /// <summary>
-    /// Whether this light is transitioning in some way
-    /// </summary>
-    internal CullingState transition = CullingState.None;
-
-    /// <summary>
-    /// The interpolation of the transition
-    /// </summary>
-    internal float transitionTimer;
-
-    /// <summary>
-    /// The current state regarding whether this was culled or not
-    /// </summary>
-    internal CullingState culling = CullingState.None;
 }

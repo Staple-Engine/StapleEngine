@@ -357,7 +357,7 @@ public sealed class MeshCombineSystem : RenderSystemBase
                     continue;
                 }
 
-                LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform.Position, false);
+                LightSystem.Instance.ApplyLightProperties(ref renderState);
 
                 RenderSystem.Submit(renderState, mesh.SubmeshTriangleCount(0), 1);
             }

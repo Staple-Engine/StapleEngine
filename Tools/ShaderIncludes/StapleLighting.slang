@@ -2,10 +2,6 @@ implementing Staple;
 
 __include StapleInternal;
 
-#define MAX_STAPLE_LIGHT_COUNT 40
-
-public static const int MaxStapleLightCount = MAX_STAPLE_LIGHT_COUNT;
-
 #ifdef LIT
 public struct LightSample
 {
@@ -83,12 +79,17 @@ public struct Light
 
 public int StapleLightCount()
 {
-    return int(StapleLightCountViewPosition.x);
+    return int(StapleLightData[0].x);
 }
 
 public float3 StapleLightViewPosition()
 {
-    return StapleLightCountViewPosition.yzw;
+    return StapleLightData[0].yzw;
+}
+
+public int StapleMaxPixelLightCount()
+{
+    return int(StapleLightData[1].x);
 }
 
 public float3 StapleLightNormal(float3 normal, float4x4 modelView)
@@ -125,22 +126,27 @@ public float3 StapleLightDiffuseFactor(float3 position, float3 normal, Light lig
     return sample.diffuse * nDotL;
 }
 
-public float3 StapleProcessLights(float3 worldPosition, float3 normal)
+public float3 StapleProcessPixelLights(float3 worldPosition, float3 normal)
 {
-    int count = StapleLightCount();
+    int count = min(StapleLightCount(), StapleMaxPixelLightCount());
+
+    float3 ambient = StapleLightData[1].yzw;
 
     if (count == 0)
     {
-        return StapleLightAmbientColor.rgb;
+        return ambient;
     }
 
     float3 diffuse = float3(0, 0, 0);
 
-    for (int i = 0; i < count; i++)
+    count *= 3;
+    count += 2;
+
+    for (int i = 2; i < count; i+=3)
     {
-        float4 typePosition = StapleLightTypePosition[i];
-        float4 diffuseIntensity = StapleLightDiffuseIntensity[i];
-        float4 extras = StapleLightExtras[i];
+        float4 typePosition = StapleLightData[i];
+        float4 diffuseIntensity = StapleLightData[i + 1];
+        float4 extras = StapleLightData[i + 2];
 
         LightType lightType = (LightType)typePosition.x;
         float3 lightPosition = typePosition.yzw;
@@ -152,6 +158,42 @@ public float3 StapleProcessLights(float3 worldPosition, float3 normal)
         diffuse += StapleLightDiffuseFactor(worldPosition, normal, light);
     }
 
-    return StapleLightAmbientColor.rgb + diffuse;
+    return ambient + diffuse;
+}
+
+public float3 StapleProcessVertexLights(float3 worldPosition, float3 normal)
+{
+    int count = StapleLightCount();
+    int maxPixelLights = StapleMaxPixelLightCount();
+
+    float3 ambient = StapleLightData[1].yzw;
+
+    if (count <= maxPixelLights)
+    {
+        return ambient;
+    }
+
+    float3 diffuse = float3(0, 0, 0);
+
+    count *= 3;
+    count += 2 + maxPixelLights * 3;
+
+    for (int i = 2 + maxPixelLights * 3; i < count; i += 3)
+    {
+        float4 typePosition = StapleLightData[i];
+        float4 diffuseIntensity = StapleLightData[i + 1];
+        float4 extras = StapleLightData[i + 2];
+
+        LightType lightType = (LightType)typePosition.x;
+        float3 lightPosition = typePosition.yzw;
+        float3 lightDiffuse = diffuseIntensity.rgb;
+        float lightIntensity = diffuseIntensity.a;
+
+        Light light = { lightType, lightPosition, lightDiffuse * lightIntensity, float3(0, 0, 0), extras };
+
+        diffuse += StapleLightDiffuseFactor(worldPosition, normal, light);
+    }
+
+    return ambient + diffuse;
 }
 #endif

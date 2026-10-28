@@ -64,7 +64,7 @@ public static class Graphics
             return;
         }
 
-        LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform?.Position ?? default, disableLighting);
+        LightSystem.Instance.ApplyLightProperties(ref renderState);
 
         RenderSystem.Submit(renderState, Mesh.TriangleCount(topology, indexCount), 1);
     }
@@ -114,7 +114,7 @@ public static class Graphics
             return;
         }
 
-        LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform?.Position ?? default, disableLighting);
+        LightSystem.Instance.ApplyLightProperties(ref renderState);
 
         RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
     }
@@ -164,7 +164,7 @@ public static class Graphics
             return;
         }
 
-        LightSystem.Instance.ApplyLightProperties(material, RenderSystem.CurrentCamera.transform?.Position ?? default, disableLighting);
+        LightSystem.Instance.ApplyLightProperties(ref renderState);
 
         RenderSystem.Backend.RenderTransient(vertices, layout, indices, renderState);
     }

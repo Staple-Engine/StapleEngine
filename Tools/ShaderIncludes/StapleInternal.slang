@@ -46,19 +46,45 @@ public static const int StapleUniformBufferSet = 0;
 
 #ifdef STAPLE_VERTEX_SHADER
 
-	#ifdef SKINNING
+	#ifdef LIT
+		#ifdef SKINNING
 
-		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 5
+			#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 6
+			#define SKINNING_BUFFER_INDEX 3
+			#define SKINNING_BLEND_SHAPE_DATA_BUFFER_INDEX 4
+			#define SKINNING_BLEND_SHAPE_PARAMETER_BUFFER_INDEX 5
 
+		#else
+
+			#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 3
+
+		#endif
 	#else
+		#ifdef SKINNING
 
-		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 2
+			#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 5
+			#define SKINNING_BUFFER_INDEX 2
+			#define SKINNING_BLEND_SHAPE_DATA_BUFFER_INDEX 3
+			#define SKINNING_BLEND_SHAPE_PARAMETER_BUFFER_INDEX 4
 
+		#else
+
+			#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 2
+
+		#endif
 	#endif
 
 #else
 
-	#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 0
+	#ifdef LIT
+
+		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 1
+
+	#else
+
+		#define STAPLE_INTERNAL_STORAGE_BUFFER_COUNT 0
+
+	#endif
 
 #endif
 
@@ -73,17 +99,32 @@ public StructuredBuffer<float4x4> StapleEntityTransforms;
 [[vk::binding(StapleInternalStorageBufferStart + 1, StapleSamplerStorageBufferSet)]]
 public StructuredBuffer<uint> StapleEntityTransformIDs;
 
-	#ifdef SKINNING
+	#ifdef LIT
 
 [[vk::binding(StapleInternalStorageBufferStart + 2, StapleSamplerStorageBufferSet)]]
+public StructuredBuffer<float4> StapleLightData;
+
+	#endif
+
+	#ifdef SKINNING
+
+[[vk::binding(StapleInternalStorageBufferStart + SKINNING_BUFFER_INDEX, StapleSamplerStorageBufferSet)]]
 public StructuredBuffer<float4> StapleBoneMatrices;
 
-[[vk::binding(StapleInternalStorageBufferStart + 3, StapleSamplerStorageBufferSet)]]
+[[vk::binding(StapleInternalStorageBufferStart + SKINNING_BLEND_SHAPE_DATA_BUFFER_INDEX, StapleSamplerStorageBufferSet)]]
 public StructuredBuffer<float4> StapleBlendShapeData;
 
-[[vk::binding(StapleInternalStorageBufferStart + 4, StapleSamplerStorageBufferSet)]]
+[[vk::binding(StapleInternalStorageBufferStart + SKINNING_BLEND_SHAPE_PARAMETER_BUFFER_INDEX, StapleSamplerStorageBufferSet)]]
 public StructuredBuffer<float4> StapleBlendShapeParameters;
 
 	#endif
+#else
+
+#ifdef LIT
+
+[[vk::binding(StapleInternalStorageBufferStart, StapleSamplerStorageBufferSet)]]
+public StructuredBuffer<float4> StapleLightData;
+
+#endif
 
 #endif
