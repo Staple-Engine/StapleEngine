@@ -14,14 +14,17 @@ public class GenericRenderQueue<T> : IRenderQueue where T: Component
     /// <summary>
     /// An item of this render queue
     /// </summary>
-    public struct Item
+    public class Item
     {
         public Entity entity;
         public Transform transform;
         public T component;
+        public Renderable renderable;
     }
 
     private readonly List<Item> items = [];
+
+    private readonly bool IsRenderable = typeof(T).IsAssignableTo(typeof(Renderable));
 
     public bool Empty => items.Count == 0;
 
@@ -42,6 +45,7 @@ public class GenericRenderQueue<T> : IRenderQueue where T: Component
             entity = entity,
             transform = transform,
             component = component,
+            renderable = component as Renderable,
         });
     }
 
@@ -67,8 +71,25 @@ public class GenericRenderQueue<T> : IRenderQueue where T: Component
 
     public void Sort(Vector3 origin, RenderableSortMode sortMode)
     {
+        if(!IsRenderable || sortMode == RenderableSortMode.None)
+        {
+            return;
+        }
+
         items.Sort((a, b) =>
         {
+            var visibleA = a.renderable.isVisible;
+            var visibleB = b.renderable.isVisible;
+
+            if(!visibleA)
+            {
+                return visibleB ? -1 : 0;
+            }
+            else if(!visibleB)
+            {
+                return 1;
+            }
+
             var distA = Vector3.DistanceSquared(origin, a.transform.Position);
             var distB = Vector3.DistanceSquared(origin, b.transform.Position);
 

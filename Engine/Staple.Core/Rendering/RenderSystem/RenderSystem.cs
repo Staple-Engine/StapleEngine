@@ -94,7 +94,9 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     {
         return renderQueue switch
         {
-            MaterialRenderQueue.Opaque => RenderableSortMode.FrontToBack,
+            //FrontToBack would help improve render perf due to early-z,
+            //but the downside of CPU time for rendering is not worth it for larger object scenes
+            MaterialRenderQueue.Opaque => RenderableSortMode.None, //RenderableSortMode.FrontToBack,
             _ => RenderableSortMode.BackToFront,
         };
     }
@@ -282,15 +284,6 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
                 var queue = container.queue;
 
-                if(container.transformTracker.ShouldUpdateComponent(CurrentCamera.transform.Entity, CurrentCamera.transform))
-                {
-                    var renderQueue = GetRenderQueue(renderIndex);
-
-                    var sortMode = RenderQueueSortMode(renderQueue);
-
-                    queue.Sort(CurrentCamera.transform.Position, sortMode);
-                }
-
                 system.renderSystem.system.Prepare();
 
                 system.renderSystem.system.Preprocess(queue);
@@ -327,6 +320,15 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                             RenderStats.culledDrawCalls++;
                         }
                     });
+
+                    if (container.transformTracker.ShouldUpdateComponent(CurrentCamera.transform.Entity, CurrentCamera.transform))
+                    {
+                        var renderQueue = GetRenderQueue(renderIndex);
+
+                        var sortMode = RenderQueueSortMode(renderQueue);
+
+                        queue.Sort(CurrentCamera.transform.Position, sortMode);
+                    }
                 }
 
                 system.renderSystem.system.Process(queue, set.camera, set.transform, renderIndex);
@@ -448,10 +450,6 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 //Assume RenderEntity is never gonna be able to use cached render orders
                 var renderQueue = GetRenderQueue(renderIndex);
 
-                var sortMode = RenderQueueSortMode(renderQueue);
-
-                queue.Sort(CurrentCamera.transform.Position, sortMode);
-
                 system.renderSystem.system.Prepare();
 
                 system.renderSystem.system.Preprocess(queue);
@@ -475,6 +473,13 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                             RenderStats.culledDrawCalls++;
                         }
                     });
+
+                    if (system.renderSystem.isRenderable)
+                    {
+                        var sortMode = RenderQueueSortMode(renderQueue);
+
+                        queue.Sort(CurrentCamera.transform.Position, sortMode);
+                    }
                 }
 
                 system.renderSystem.system.Process(queue, camera, cameraTransform, renderIndex);

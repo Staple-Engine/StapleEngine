@@ -271,15 +271,6 @@ internal partial class StapleEditor
 
                         var queue = container.queue;
 
-                        if(cameraTransform.Version != cameraTransformVersion)
-                        {
-                            var renderQueue = RenderSystem.GetRenderQueue(renderIndex);
-
-                            var sortMode = RenderSystem.RenderQueueSortMode(renderQueue);
-
-                            queue.Sort(cameraTransform.Position, sortMode);
-                        }
-
                         try
                         {
                             system.renderSystem.system.Preprocess(queue);
@@ -318,6 +309,15 @@ internal partial class StapleEditor
                                         ClearEntityBody(entity);
                                     }
                                 });
+
+                                if (cameraTransform.Version != cameraTransformVersion)
+                                {
+                                    var renderQueue = RenderSystem.GetRenderQueue(renderIndex);
+
+                                    var sortMode = RenderSystem.RenderQueueSortMode(renderQueue);
+
+                                    queue.Sort(cameraTransform.Position, sortMode);
+                                }
                             }
 
                             system.renderSystem.system.Process(queue, camera, cameraTransform, renderIndex);

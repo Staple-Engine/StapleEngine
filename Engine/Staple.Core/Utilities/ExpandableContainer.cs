@@ -85,7 +85,7 @@ public class ExpandableContainer<T>
     /// <summary>
     /// Adds a default item to the container. If there's already an existing item, it won't replace it.
     /// </summary>
-    public void AddDefault()
+    public ref T AddDefault()
     {
         if (Length + 1 >= contents.Length)
         {
@@ -93,10 +93,12 @@ public class ExpandableContainer<T>
 
             contents[Length - 1] = default;
 
-            return;
+            return ref contents[Length - 1];
         }
 
         Length++;
+
+        return ref contents[Length - 1];
     }
 
     /// <summary>
