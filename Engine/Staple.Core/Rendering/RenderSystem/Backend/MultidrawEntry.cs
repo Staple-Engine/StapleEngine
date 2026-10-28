@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-
-namespace Staple.Internal;
+﻿namespace Staple.Internal;
 
 internal class MultidrawEntry
 {
     public BufferAttributeContainer.Entries entries;
+    public int startIndex;
+    public int indexCount;
 
-    public readonly List<Transform> transforms = [];
+    public readonly ExpandableContainer<Transform> transforms = new(false);
 }

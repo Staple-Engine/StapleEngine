@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace Staple;
 
@@ -70,11 +71,13 @@ public abstract class RenderSystemBase(bool usesOwnRenderProcess, Type relatedCo
     /// </summary>
     public abstract void Shutdown();
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected static bool IsValidMaterial(Material material, int renderIndex)
     {
-        return (material?.IsValid ?? false) && material.RenderQueueIndex == renderIndex;
+        return (material?.RenderQueueIndex ?? -1) == renderIndex;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected static void IterateValidMaterials(Renderable renderable, int renderIndex, Action<int> callback)
     {
         if ((renderable?.materials?.Count ?? 0) == 0)
@@ -84,7 +87,7 @@ public abstract class RenderSystemBase(bool usesOwnRenderProcess, Type relatedCo
 
         for (var i = 0; i < renderable.materials.Count; i++)
         {
-            if (!IsValidMaterial(renderable.materials[i], renderIndex))
+            if ((renderable.materials[i]?.RenderQueueIndex ?? -1) != renderIndex)
             {
                 continue;
             }

@@ -10,6 +10,17 @@ internal class ManagedFreeformAllocator<T>
         public int start;
         public int length;
         public bool freed = false;
+
+        public int StateKey = 0;
+
+        public Action<Entry> onChanged;
+
+        internal void UpdateStateKey()
+        {
+            StateKey = HashCode.Combine(start, length);
+
+            onChanged?.Invoke(this);
+        }
     }
 
     internal readonly List<Entry> freeEntries = [];
@@ -61,6 +72,8 @@ internal class ManagedFreeformAllocator<T>
         {
             entry.start = newPosition;
 
+            entry.UpdateStateKey();
+
             newPosition += entry.length;
         }
 
@@ -86,6 +99,8 @@ internal class ManagedFreeformAllocator<T>
                 start = start,
                 length = length,
             };
+
+            outValue.UpdateStateKey();
 
             entries.Add(outValue);
 
@@ -118,6 +133,8 @@ internal class ManagedFreeformAllocator<T>
                     length = length,
                 };
 
+                outValue.UpdateStateKey();
+
                 entries.Add(outValue);
 
                 entries.Sort((a, b) => a.start.CompareTo(b.start));
@@ -133,6 +150,8 @@ internal class ManagedFreeformAllocator<T>
             start = buffer.Length - length,
             length = length,
         };
+
+        outValue.UpdateStateKey();
 
         entries.Add(outValue);
 

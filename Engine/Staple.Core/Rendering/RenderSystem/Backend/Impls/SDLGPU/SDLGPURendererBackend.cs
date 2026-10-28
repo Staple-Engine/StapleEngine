@@ -2264,7 +2264,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         foreach(var entry in entries)
         {
-            if(entry.transforms.Count == 0)
+            if(entry.transforms.Length == 0)
             {
                 continue;
             }
@@ -2281,7 +2281,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         foreach(var entry in entries)
         {
-            instanceCount += entry.transforms.Count;
+            instanceCount += entry.transforms.Length;
         }
 
         if (indirectCommandInstance + instanceCount > indirectEntityIndices.Length)
@@ -2298,17 +2298,17 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         {
             ref var entry = ref entries[i];
 
-            if(entry.transforms.Count == 0)
+            if(entry.transforms.Length == 0)
             {
                 continue;
             }
 
             ref var command = ref commandContents[indirectCommandPosition + commandIndex++];
 
-            var indices = (uint)entry.entries.indicesEntry.length;
-            var instances = (uint)entry.transforms.Count;
+            var indices = (uint)entry.indexCount;
+            var instances = (uint)entry.transforms.Length;
             var firstInstance = (uint)indirectCommandInstance;
-            var firstIndex = (uint)entry.entries.indicesEntry.start;
+            var firstIndex = (uint)(entry.entries.indicesEntry.start + entry.startIndex);
 
             if(!needsIndirectBufferUpdate)
             {
@@ -2323,7 +2323,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             command.first_instance = firstInstance;
             command.first_index = firstIndex;
 
-            for (var j = 0; j < entry.transforms.Count; j++)
+            var transforms = entry.transforms.Contents;
+
+            for (var j = 0; j < transforms.Length; j++)
             {
                 if(indirectCommandInstance >= indirectEntityIndices.Length)
                 {
@@ -2332,7 +2334,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
                 ref var entityIndex = ref indexContents[indirectCommandInstance++];
 
-                var index = (uint)(entry.transforms[j].Entity.Identifier.ID - 1);
+                var index = (uint)(transforms[j].Entity.Identifier.ID - 1);
 
                 if (!needsIndirectBufferUpdate)
                 {

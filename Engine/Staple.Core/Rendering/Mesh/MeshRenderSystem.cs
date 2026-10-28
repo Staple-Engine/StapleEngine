@@ -33,8 +33,9 @@ public sealed class MeshRenderSystem : RenderSystemBase
     /// </summary>
     private class StaticInstanceData
     {
-        public readonly ExpandableContainer<InstanceInfo> instanceInfos = new(false);
         public readonly ExpandableContainer<MultidrawEntry> entries = new(false);
+        public readonly Dictionary<int, MultidrawEntry> entryStateToEntries = [];
+        public Material material;
         public int triangles;
     }
 
@@ -127,14 +128,18 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
             foreach (var p in pair.Value.staticInstanceCache)
             {
-                p.Value.instanceInfos.Clear();
+                var info = p.Value;
 
-                p.Value.triangles = 0;
+                info.triangles = 0;
 
-                foreach (var entry in p.Value.entries.Contents)
+                foreach (var entry in info.entries.Contents)
                 {
                     entry.transforms.Clear();
                 }
+
+                info.entries.Clear();
+
+                info.entryStateToEntries.Clear();
             }
         }
 
@@ -207,37 +212,19 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
             if (!renderer.isVisible ||
                 renderer.mesh == null ||
-                renderer.materials == null ||
-                renderer.materials.Count == 0)
+                renderer.materials == null)
             {
                 continue;
             }
 
-            var skip = false;
-
-            for (var i = 0; i < renderer.materials.Count; i++)
-            {
-                if (!(renderer.materials[i]?.IsValid ?? false))
-                {
-                    skip = true;
-
-                    break;
-                }
-            }
-
-            if (skip)
-            {
-                continue;
-            }
-
-            void AddStatic(Material material, int submeshIndex)
+            void AddStatic(Material material, int submeshIndex, int startIndex, int indexCount, int entryStateKey)
             {
                 if(!IsValidMaterial(material, renderIndex))
                 {
                     return;
                 }
 
-                var key = HashCode.Combine(material.Guid.GuidHash);
+                var key = material.Guid.GuidHash;
 
                 if(!renderData.staticInstanceCache.TryGetValue(key, out var meshCache))
                 {
@@ -246,32 +233,28 @@ public sealed class MeshRenderSystem : RenderSystemBase
                     renderData.staticInstanceCache.Add(key, meshCache);
                 }
 
-                meshCache.instanceInfos.Add(new()
-                {
-                    mesh = renderer.mesh,
-                    material = material,
-                    transform = entry.transform,
-                    submeshIndex = submeshIndex,
-                });
+                meshCache.material = material;
 
                 meshCache.triangles += renderer.mesh.SubmeshTriangleCount(submeshIndex);
 
-                foreach (var item in meshCache.entries.Contents)
-                {
-                    if(item.entries == renderer.mesh.staticMeshEntries)
-                    {
-                        item.transforms.Add(entry.transform);
+                var meshKey = HashCode.Combine(entryStateKey, startIndex, indexCount);
 
-                        return;
-                    }
+                if (!meshCache.entryStateToEntries.TryGetValue(meshKey, out var drawEntry))
+                {
+                    ref var entries = ref meshCache.entries.AddDefault();
+
+                    entries ??= new();
+
+                    entries.entries = renderer.mesh.staticMeshEntries;
+                    entries.startIndex = startIndex;
+                    entries.indexCount = indexCount;
+
+                    meshCache.entryStateToEntries.AddOrSetKey(meshKey, entries);
+
+                    drawEntry = entries;
                 }
 
-                meshCache.entries.Add(new()
-                {
-                    entries = renderer.mesh.staticMeshEntries,
-                });
-
-                meshCache.entries.Contents[^1].transforms.Add(entry.transform);
+                drawEntry.transforms.Add(entry.transform);
             }
 
             void Add(Material material, int submeshIndex)
@@ -290,20 +273,21 @@ public sealed class MeshRenderSystem : RenderSystemBase
                     renderData.instanceCache.Add(key, meshCache);
                 }
 
-                meshCache.instanceInfos.Add(new()
-                {
-                    mesh = renderer.mesh,
-                    material = material,
-                    transform = entry.transform,
-                    submeshIndex = submeshIndex,
-                });
+                ref var instanceInfo = ref meshCache.instanceInfos.AddDefault();
+
+                instanceInfo.mesh = renderer.mesh;
+                instanceInfo.material = material;
+                instanceInfo.transform = entry.transform;
+                instanceInfo.submeshIndex = submeshIndex;
             }
 
             if(renderer.mesh.IsStaticMesh)
             {
+                var stateKey = renderer.mesh.staticMeshEntries.StateKey;
+
                 if (renderer.mesh.submeshes.Count == 0)
                 {
-                    AddStatic(renderer.materials[0], 0);
+                    AddStatic(renderer.materials[0], 0, 0, renderer.mesh.IndexCount, stateKey);
                 }
                 else
                 {
@@ -314,7 +298,9 @@ public sealed class MeshRenderSystem : RenderSystemBase
                             break;
                         }
 
-                        AddStatic(renderer.materials[i], i);
+                        var submesh = renderer.mesh.submeshes[i];
+
+                        AddStatic(renderer.materials[i], i, submesh.startIndex, submesh.indexCount, stateKey);
                     }
                 }
             }
@@ -348,7 +334,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
             foreach (var (_, contents) in renderData.staticInstanceCache)
             {
-                if (contents.instanceInfos.Length == 0)
+                if(contents.triangles == 0)
                 {
                     continue;
                 }
@@ -358,7 +344,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 renderState.instanceCount = 1;
                 renderState.instanceOffset = 0;
 
-                var material = contents.instanceInfos.Contents[0].material;
+                var material = contents.material;
 
                 material.DisableShaderKeyword(Shader.SkinningKeyword);
 

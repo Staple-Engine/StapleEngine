@@ -1101,7 +1101,7 @@ public sealed partial class RenderSystem
 
         foreach(var entry in entries)
         {
-            RenderStats.savedDrawCalls += entry.transforms.Count;
+            RenderStats.savedDrawCalls += entry.transforms.Length;
         }
 
         RenderStats.savedDrawCalls--;

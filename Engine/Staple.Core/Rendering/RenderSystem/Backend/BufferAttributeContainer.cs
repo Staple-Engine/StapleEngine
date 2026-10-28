@@ -29,26 +29,114 @@ internal class BufferAttributeContainer
 
     public class Entries
     {
-        public ManagedFreeformAllocator<Vector3>.Entry positionEntry;
-        public ManagedFreeformAllocator<Vector3>.Entry normalEntry;
-        public ManagedFreeformAllocator<Vector3>.Entry tangentEntry;
-        public ManagedFreeformAllocator<Vector3>.Entry bitangentEntry;
-        public ManagedFreeformAllocator<Color>.Entry color0Entry;
-        public ManagedFreeformAllocator<Color>.Entry color1Entry;
-        public ManagedFreeformAllocator<Color>.Entry color2Entry;
-        public ManagedFreeformAllocator<Color>.Entry color3Entry;
-        public ManagedFreeformAllocator<Vector2>.Entry texCoord0Entry;
-        public ManagedFreeformAllocator<Vector2>.Entry texCoord1Entry;
-        public ManagedFreeformAllocator<Vector2>.Entry texCoord2Entry;
-        public ManagedFreeformAllocator<Vector2>.Entry texCoord3Entry;
-        public ManagedFreeformAllocator<Vector2>.Entry texCoord4Entry;
-        public ManagedFreeformAllocator<Vector2>.Entry texCoord5Entry;
-        public ManagedFreeformAllocator<Vector2>.Entry texCoord6Entry;
-        public ManagedFreeformAllocator<Vector2>.Entry texCoord7Entry;
+        public readonly ManagedFreeformAllocator<Vector3>.Entry positionEntry;
+        public readonly ManagedFreeformAllocator<Vector3>.Entry normalEntry;
+        public readonly ManagedFreeformAllocator<Vector3>.Entry tangentEntry;
+        public readonly ManagedFreeformAllocator<Vector3>.Entry bitangentEntry;
+        public readonly ManagedFreeformAllocator<Color>.Entry color0Entry;
+        public readonly ManagedFreeformAllocator<Color>.Entry color1Entry;
+        public readonly ManagedFreeformAllocator<Color>.Entry color2Entry;
+        public readonly ManagedFreeformAllocator<Color>.Entry color3Entry;
+        public readonly ManagedFreeformAllocator<Vector2>.Entry texCoord0Entry;
+        public readonly ManagedFreeformAllocator<Vector2>.Entry texCoord1Entry;
+        public readonly ManagedFreeformAllocator<Vector2>.Entry texCoord2Entry;
+        public readonly ManagedFreeformAllocator<Vector2>.Entry texCoord3Entry;
+        public readonly ManagedFreeformAllocator<Vector2>.Entry texCoord4Entry;
+        public readonly ManagedFreeformAllocator<Vector2>.Entry texCoord5Entry;
+        public readonly ManagedFreeformAllocator<Vector2>.Entry texCoord6Entry;
+        public readonly ManagedFreeformAllocator<Vector2>.Entry texCoord7Entry;
 
-        public ManagedFreeformAllocator<int>.Entry indicesEntry;
+        public readonly ManagedFreeformAllocator<int>.Entry indicesEntry;
 
         public bool freed = false;
+
+        private bool needsStateKeyUpdate = true;
+
+        public int StateKey
+        {
+            get
+            {
+                if(needsStateKeyUpdate)
+                {
+                    needsStateKeyUpdate = false;
+
+                    var hashCode = new HashCode();
+
+                    hashCode.Add(positionEntry?.StateKey ?? 0);
+                    hashCode.Add(normalEntry?.StateKey ?? 0);
+                    hashCode.Add(tangentEntry?.StateKey ?? 0);
+                    hashCode.Add(bitangentEntry?.StateKey ?? 0);
+                    hashCode.Add(color0Entry?.StateKey ?? 0);
+                    hashCode.Add(color1Entry?.StateKey ?? 0);
+                    hashCode.Add(color2Entry?.StateKey ?? 0);
+                    hashCode.Add(color3Entry?.StateKey ?? 0);
+                    hashCode.Add(texCoord0Entry?.StateKey ?? 0);
+                    hashCode.Add(texCoord1Entry?.StateKey ?? 0);
+                    hashCode.Add(texCoord2Entry?.StateKey ?? 0);
+                    hashCode.Add(texCoord3Entry?.StateKey ?? 0);
+                    hashCode.Add(texCoord4Entry?.StateKey ?? 0);
+                    hashCode.Add(texCoord5Entry?.StateKey ?? 0);
+                    hashCode.Add(texCoord6Entry?.StateKey ?? 0);
+                    hashCode.Add(texCoord7Entry?.StateKey ?? 0);
+                    hashCode.Add(indicesEntry?.StateKey ?? 0);
+
+                    field = hashCode.ToHashCode();
+                }
+
+                return field;
+            }
+
+            set;
+        }
+
+        private void MarkNeedsUpdate<T>(ManagedFreeformAllocator<T>.Entry _) => needsStateKeyUpdate = true;
+
+        public Entries(ManagedFreeformAllocator<Vector3>.Entry positionEntry, ManagedFreeformAllocator<Vector3>.Entry normalEntry,
+            ManagedFreeformAllocator<Vector3>.Entry tangentEntry, ManagedFreeformAllocator<Vector3>.Entry bitangentEntry,
+            ManagedFreeformAllocator<Color>.Entry color0Entry, ManagedFreeformAllocator<Color>.Entry color1Entry,
+            ManagedFreeformAllocator<Color>.Entry color2Entry, ManagedFreeformAllocator<Color>.Entry color3Entry,
+            ManagedFreeformAllocator<Vector2>.Entry texCoord0Entry, ManagedFreeformAllocator<Vector2>.Entry texCoord1Entry,
+            ManagedFreeformAllocator<Vector2>.Entry texCoord2Entry, ManagedFreeformAllocator<Vector2>.Entry texCoord3Entry,
+            ManagedFreeformAllocator<Vector2>.Entry texCoord4Entry, ManagedFreeformAllocator<Vector2>.Entry texCoord5Entry,
+            ManagedFreeformAllocator<Vector2>.Entry texCoord6Entry,
+            ManagedFreeformAllocator<Vector2>.Entry texCoord7Entry, ManagedFreeformAllocator<int>.Entry indicesEntry)
+        {
+            this.positionEntry = positionEntry;
+            this.normalEntry = normalEntry;
+            this.tangentEntry = tangentEntry;
+            this.bitangentEntry = bitangentEntry;
+            this.color0Entry = color0Entry;
+            this.color1Entry = color1Entry;
+            this.color2Entry = color2Entry;
+            this.color3Entry = color3Entry;
+            this.texCoord0Entry = texCoord0Entry;
+            this.texCoord1Entry = texCoord1Entry;
+            this.texCoord2Entry = texCoord2Entry;
+            this.texCoord3Entry = texCoord3Entry;
+            this.texCoord4Entry = texCoord4Entry;
+            this.texCoord5Entry = texCoord5Entry;
+            this.texCoord6Entry = texCoord6Entry;
+            this.texCoord7Entry = texCoord7Entry;
+            this.indicesEntry = indicesEntry;
+
+            positionEntry.onChanged += MarkNeedsUpdate;
+            normalEntry.onChanged += MarkNeedsUpdate;
+            tangentEntry.onChanged += MarkNeedsUpdate;
+            bitangentEntry.onChanged += MarkNeedsUpdate;
+            color0Entry.onChanged += MarkNeedsUpdate;
+            color1Entry.onChanged += MarkNeedsUpdate;
+            color2Entry.onChanged += MarkNeedsUpdate;
+            color3Entry.onChanged += MarkNeedsUpdate;
+            texCoord0Entry.onChanged += MarkNeedsUpdate;
+            texCoord1Entry.onChanged += MarkNeedsUpdate;
+            texCoord2Entry.onChanged += MarkNeedsUpdate;
+            texCoord3Entry.onChanged += MarkNeedsUpdate;
+            texCoord4Entry.onChanged += MarkNeedsUpdate;
+            texCoord5Entry.onChanged += MarkNeedsUpdate;
+            texCoord6Entry.onChanged += MarkNeedsUpdate;
+            texCoord7Entry.onChanged += MarkNeedsUpdate;
+            indicesEntry.onChanged += MarkNeedsUpdate;
+        }
     }
 
     public readonly BufferAttributeSource<Vector3, VertexBuffer> Position = new(VertexAttribute.Position, BufferSlot.Position);
@@ -161,26 +249,23 @@ internal class BufferAttributeContainer
     {
         EntryCount++;
 
-        return new Entries()
-        {
-            positionEntry = Position.Allocate(elements),
-            normalEntry = Normal.Allocate(elements),
-            tangentEntry = Tangent.Allocate(elements),
-            bitangentEntry = Bitangent.Allocate(elements),
-            color0Entry = Color0.Allocate(elements),
-            color1Entry = Color1.Allocate(elements),
-            color2Entry = Color2.Allocate(elements),
-            color3Entry = Color3.Allocate(elements),
-            texCoord0Entry = TexCoord0.Allocate(elements),
-            texCoord1Entry = TexCoord1.Allocate(elements),
-            texCoord2Entry = TexCoord2.Allocate(elements),
-            texCoord3Entry = TexCoord3.Allocate(elements),
-            texCoord4Entry = TexCoord4.Allocate(elements),
-            texCoord5Entry = TexCoord5.Allocate(elements),
-            texCoord6Entry = TexCoord6.Allocate(elements),
-            texCoord7Entry = TexCoord7.Allocate(elements),
-            indicesEntry = Indices.Allocate(indices),
-        };
+        return new Entries(Position.Allocate(elements),
+            Normal.Allocate(elements),
+            Tangent.Allocate(elements),
+            Bitangent.Allocate(elements),
+            Color0.Allocate(elements),
+            Color1.Allocate(elements),
+            Color2.Allocate(elements),
+            Color3.Allocate(elements),
+            TexCoord0.Allocate(elements),
+            TexCoord1.Allocate(elements),
+            TexCoord2.Allocate(elements),
+            TexCoord3.Allocate(elements),
+            TexCoord4.Allocate(elements),
+            TexCoord5.Allocate(elements),
+            TexCoord6.Allocate(elements),
+            TexCoord7.Allocate(elements),
+            Indices.Allocate(indices));
     }
 
     public void Free(Entries entries)
