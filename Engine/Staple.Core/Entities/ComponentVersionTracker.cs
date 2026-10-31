@@ -54,7 +54,7 @@ public class ComponentVersionTracker<T> : IWorldChangeReceiver, IComponentChange
     /// <remarks>This method should be called only when you're completely sure the <paramref name="entity"/> is valid</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public bool ShouldUpdateComponent(Entity entity, in T component) =>
-        ShouldUpdateComponent(entity.Identifier.ID - 1, entity.Identifier.generation, in component);
+        ShouldUpdateComponent(entity.Identifier.ID - 1, entity.Identifier.generation, component);
 
     /// <summary>
     /// Checks whether we should update a component based on its version changing
@@ -66,7 +66,7 @@ public class ComponentVersionTracker<T> : IWorldChangeReceiver, IComponentChange
     /// <exception cref="ArgumentNullException">The component is null</exception>
     /// <remarks>This method should be called only when you're completely sure the <paramref name="index"/> is valid</remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public bool ShouldUpdateComponent(int index, int generation, in T component)
+    public bool ShouldUpdateComponent(int index, int generation, T component)
     {
         if (component == null)
         {

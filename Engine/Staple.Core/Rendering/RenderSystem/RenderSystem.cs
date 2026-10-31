@@ -14,19 +14,24 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <summary>
     /// Contains information on a render system and its capabilities
     /// </summary>
-    public readonly struct RenderSystemInfo(RenderSystemBase system, bool isRenderable)
+    public readonly struct RenderSystemInfo(RenderSystemBase system, bool isRenderable, bool useOwnRenderProcess)
     {
         public readonly RenderSystemBase system = system;
         public readonly bool isRenderable = isRenderable;
 
+        public readonly bool useOwnRenderProcess = useOwnRenderProcess;
+
         public override int GetHashCode()
         {
-            return HashCode.Combine(system, isRenderable);
+            return HashCode.Combine(system, isRenderable, useOwnRenderProcess);
         }
 
         public override bool Equals([NotNullWhen(true)] object obj)
         {
-            return obj is RenderSystemInfo info && info.system == system && info.isRenderable == isRenderable;
+            return obj is RenderSystemInfo info &&
+                info.system == system &&
+                info.isRenderable == isRenderable &&
+                info.useOwnRenderProcess == useOwnRenderProcess;
         }
 
         public static bool operator ==(RenderSystemInfo left, RenderSystemInfo right)
@@ -135,7 +140,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
             renderSystems.Add(new(system, system.RelatedComponent != null &&
                 (system.RelatedComponent.IsSubclassOf(typeof(Renderable)) ||
-                system.RelatedComponent == typeof(Renderable))));
+                system.RelatedComponent == typeof(Renderable)),
+                system.UsesOwnRenderProcess));
         }
     }
 
@@ -272,10 +278,78 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             }
         }
 
+        foreach (var system in set.renderSystems.Contents)
+        {
+            if (system.renderData == null)
+            {
+                continue;
+            }
+
+            foreach (var (_, queue) in system.queue)
+            {
+                system.renderSystem.system.Preprocess(queue.queue);
+            }
+        }
+
+        foreach (var renderable in renderables.Contents)
+        {
+            if (renderable == null)
+            {
+                continue;
+            }
+
+            if (renderable.cullingState == CullingState.Invisible)
+            {
+                RenderStats.culledDrawCalls++;
+
+                continue;
+            }
+
+            if (shouldCheckVisibility)
+            {
+                renderable.isVisible = renderable.Enabled &&
+                    !renderable.forceRenderingOff;
+
+                if (renderable.isVisible && cull)
+                {
+                    if (renderable.cullingState == CullingState.None)
+                    {
+                        renderable.isVisible = set.camera.IsVisible(renderable.bounds);
+
+                        renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                    }
+                }
+            }
+
+            if (!renderable.isVisible)
+            {
+                RenderStats.culledDrawCalls++;
+            }
+        }
+
+        foreach (var system in set.renderSystems.Contents)
+        {
+            if (system.renderData == null)
+            {
+                continue;
+            }
+
+            system.renderSystem.system.UpdateRenderDataVisibility(system.renderData, CurrentCamera.camera, CurrentCamera.transform);
+
+            system.renderSystem.system.Prepare();
+        }
+
         foreach (var renderIndex in set.renderIndices)
         {
             foreach (var system in set.renderSystems.Contents)
             {
+                if(system.renderData != null)
+                {
+                    system.renderData.Submit(renderIndex);
+
+                    continue;
+                }
+
                 if (!system.queue.TryGetValue(renderIndex, out var container) ||
                     container.queue.Empty)
                 {
@@ -288,47 +362,14 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
                 system.renderSystem.system.Preprocess(queue);
 
-                if (system.renderSystem.isRenderable)
+                if (system.renderSystem.isRenderable &&
+                    container.transformTracker.ShouldUpdateComponent(CurrentCamera.transform.Entity, CurrentCamera.transform))
                 {
-                    queue.IterateRenderables((entity, transform, renderable) =>
-                    {
-                        if (renderable.cullingState == CullingState.Invisible)
-                        {
-                            RenderStats.culledDrawCalls++;
+                    var renderQueue = GetRenderQueue(renderIndex);
 
-                            return;
-                        }
+                    var sortMode = RenderQueueSortMode(renderQueue);
 
-                        if (shouldCheckVisibility)
-                        {
-                            renderable.isVisible = renderable.Enabled &&
-                                !renderable.forceRenderingOff;
-
-                            if (renderable.isVisible && cull)
-                            {
-                                if (renderable.cullingState == CullingState.None)
-                                {
-                                    renderable.isVisible = set.camera.IsVisible(renderable.bounds);
-
-                                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
-                                }
-                            }
-                        }
-
-                        if (!renderable.isVisible)
-                        {
-                            RenderStats.culledDrawCalls++;
-                        }
-                    });
-
-                    if (container.transformTracker.ShouldUpdateComponent(CurrentCamera.transform.Entity, CurrentCamera.transform))
-                    {
-                        var renderQueue = GetRenderQueue(renderIndex);
-
-                        var sortMode = RenderQueueSortMode(renderQueue);
-
-                        queue.Sort(CurrentCamera.transform.Position, sortMode);
-                    }
+                    queue.Sort(CurrentCamera.transform.Position, sortMode);
                 }
 
                 system.renderSystem.system.Process(queue, set.camera, set.transform, renderIndex);
@@ -458,28 +499,13 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 {
                     queue.IterateRenderables((entity, transform, renderable) =>
                     {
-                        if (renderable.cullingState == CullingState.Invisible)
-                        {
-                            RenderStats.culledDrawCalls++;
-
-                            return;
-                        }
-
                         renderable.isVisible = true;
                         renderable.cullingState = CullingState.Visible;
-
-                        if (!renderable.isVisible)
-                        {
-                            RenderStats.culledDrawCalls++;
-                        }
                     });
 
-                    if (system.renderSystem.isRenderable)
-                    {
-                        var sortMode = RenderQueueSortMode(renderQueue);
+                    var sortMode = RenderQueueSortMode(renderQueue);
 
-                        queue.Sort(CurrentCamera.transform.Position, sortMode);
-                    }
+                    queue.Sort(CurrentCamera.transform.Position, sortMode);
                 }
 
                 system.renderSystem.system.Process(queue, camera, cameraTransform, renderIndex);

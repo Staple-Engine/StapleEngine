@@ -157,6 +157,11 @@ $@"
         get;
         set
         {{
+            if(field == value)
+            {{
+                return;
+            }}
+
             field = value;
 
             Version++;

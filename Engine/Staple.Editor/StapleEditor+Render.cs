@@ -362,11 +362,6 @@ internal partial class StapleEditor
                 }
             });
 
-        if(RenderSystem.Instance.CheckMaterialChanges())
-        {
-            renderQueue.WorldChanged(World.Current);
-        }
-
         cameraTransformVersion = cameraTransform.Version;
     }
 }

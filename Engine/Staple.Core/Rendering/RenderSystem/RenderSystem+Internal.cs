@@ -57,6 +57,7 @@ public sealed partial class RenderSystem
     public class RenderSystemQueueData
     {
         public IRenderQueue queue;
+
         public readonly ComponentVersionTracker<Transform> transformTracker = new();
     }
 
@@ -64,7 +65,11 @@ public sealed partial class RenderSystem
     {
         public RenderSystemInfo renderSystem;
 
+        public IRenderData renderData;
+
         public readonly SortedDictionary<int, RenderSystemQueueData> queue = [];
+
+        public bool UsesRenderData => !renderSystem.useOwnRenderProcess && renderSystem.isRenderable;
     }
 
     public class RenderSystemCameraSet
@@ -391,33 +396,6 @@ public sealed partial class RenderSystem
 
             systemInfo.system.Submit();
         }
-
-        if(CheckMaterialChanges())
-        {
-            World.Current?.RequestWorldUpdate();
-        }
-    }
-
-    /// <summary>
-    /// Verifies for any changed materials and requests a world update if that happens
-    /// </summary>
-    internal bool CheckMaterialChanges()
-    {
-        var renderablesContents = renderables.Contents;
-        var renderablesHashContents = renderableMaterialHashes.Contents;
-
-        for(var i = 0; i < renderablesContents.Length; i++)
-        {
-            if (renderablesContents[i] == null ||
-                renderablesContents[i].MaterialState == renderablesHashContents[i])
-            {
-                continue;
-            }
-
-            return true;
-        }
-
-        return false;
     }
 
     /// <summary>
@@ -781,6 +759,14 @@ public sealed partial class RenderSystem
 
                     system.renderSystem = renderSystemContent[i];
 
+                    system.renderData?.Clear();
+
+                    if(system.UsesRenderData)
+                    {
+                        //Should always replace, just in case the order changes
+                        system.renderData = system.renderSystem.system.CreateRenderData();
+                    }
+
                     foreach (var pair in system.queue)
                     {
                         pair.Value.queue.Clear();
@@ -852,6 +838,21 @@ public sealed partial class RenderSystem
 
                             container.queue.Add(transform.Entity, transform, component);
                         }
+                    }
+                }
+
+                foreach(var item in collected.renderSystems.Contents)
+                {
+                    if(!item.UsesRenderData || item.renderData == null)
+                    {
+                        continue;
+                    }
+
+                    item.renderData.Clear();
+
+                    foreach(var (renderIndex, queue) in item.queue)
+                    {
+                        item.renderSystem.system.PrepareRenderData(item.renderData, queue.queue, camera, camera.Transform, renderIndex);
                     }
                 }
             }
@@ -928,7 +929,7 @@ public sealed partial class RenderSystem
 
                     system.renderSystem = renderSystemContent[i];
 
-                    system.queue.Clear();
+                    system.renderData?.Clear();
 
                     foreach (var pair in system.queue)
                     {
@@ -1001,6 +1002,21 @@ public sealed partial class RenderSystem
 
                             container.queue.Add(transform.Entity, transform, component);
                         }
+                    }
+                }
+
+                foreach (var item in collected.renderSystems.Contents)
+                {
+                    if (!item.UsesRenderData || item.renderData == null)
+                    {
+                        continue;
+                    }
+
+                    item.renderData.Clear();
+
+                    foreach (var (renderIndex, queue) in item.queue)
+                    {
+                        item.renderSystem.system.PrepareRenderData(item.renderData, queue.queue, camera, camera.Transform, renderIndex);
                     }
                 }
             }
@@ -1091,20 +1107,39 @@ public sealed partial class RenderSystem
     /// </summary>
     /// <param name="state">The render state</param>
     /// <param name="entries">The entries for multidraw</param>
-    /// <param name="triangles">How many triangles are being rendered</param>
-    internal static void SubmitStatic(RenderState state, Span<MultidrawEntry> entries, int triangles)
+    internal static void SubmitStatic(RenderState state, Span<MultidrawEntry> entries)
     {
-        Backend.RenderStatic(state, entries);
-
-        RenderStats.drawCalls++;
-        RenderStats.triangleCount += triangles;
+        var instances = 0;
+        var triangleCount = 0;
 
         foreach(var entry in entries)
         {
-            RenderStats.savedDrawCalls += entry.transforms.Length;
+            var triangles = entry.indexCount / 3;
+
+            foreach(var transform in entry.transforms.Contents)
+            {
+                if(!transform.visible)
+                {
+                    continue;
+                }
+
+                instances++;
+
+                triangleCount += triangles;
+            }
         }
 
-        RenderStats.savedDrawCalls--;
+        if(instances == 0)
+        {
+            RenderStats.savedDrawCalls += instances;
+
+            return;
+        }
+
+        Backend.RenderStatic(state, entries);
+
+        RenderStats.drawCalls++;
+        RenderStats.triangleCount += triangleCount;
     }
     #endregion
 }

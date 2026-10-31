@@ -2246,10 +2246,29 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
     public void RenderStatic(RenderState state, Span<MultidrawEntry> entries)
     {
+        var commandCount = 0;
+        var instanceCount = 0;
+
+        foreach (var entry in entries)
+        {
+            if (entry.instanceCount == 0)
+            {
+                continue;
+            }
+
+            instanceCount += entry.instanceCount;
+
+            commandCount++;
+        }
+
+        if (instanceCount == 0)
+        {
+            return;
+        }
+
         state.renderTarget = currentRenderTarget;
 
-        if (entries.Length == 0 ||
-            state.shader == null ||
+        if (state.shader == null ||
             state.shaderInstance?.program is not SDLGPUShaderProgram { Type: ShaderType.VertexFragment } shader ||
             !TryGetStaticMeshRenderPipeline(state, out var pipeline))
         {
@@ -2259,21 +2278,6 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         CheckQueuedGraphicsPipeline(pipeline);
 
         GetUniformData(in state, false, shader, out var vertexUniformData, out var fragmentUniformData);
-
-        var commandCount = 0;
-        var instanceCount = 0;
-
-        foreach (var entry in entries)
-        {
-            if(entry.instanceCount == 0)
-            {
-                continue;
-            }
-
-            instanceCount += entry.instanceCount;
-
-            commandCount++;
-        }
 
         if(indirectCommandPosition + commandCount > indirectCommands.Length)
         {

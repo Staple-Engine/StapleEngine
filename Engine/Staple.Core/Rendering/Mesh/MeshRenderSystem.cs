@@ -39,7 +39,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
         public readonly ExpandableContainer<MultidrawEntry> entries = new(false);
         public readonly Dictionary<int, MultidrawEntry> entryStateToEntries = [];
         public Material material;
-        public int triangles;
+        public int instanceCount;
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 {
                     var info = p.Value;
 
-                    info.triangles = 0;
+                    info.instanceCount = 0;
 
                     foreach (var entry in info.entries.Contents)
                     {
@@ -127,8 +127,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
                     }
 
                     meshCache.material = material;
-
-                    meshCache.triangles += renderer.mesh.SubmeshTriangleCount(submeshIndex);
 
                     var meshKey = HashCode.Combine(entryStateKey, startIndex, indexCount);
 
@@ -251,6 +249,8 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
                 foreach(var (_, items) in contents.staticInstanceCache)
                 {
+                    items.instanceCount = 0;
+
                     foreach(var entry in items.entries.Contents)
                     {
                         entry.instanceCount = 0;
@@ -262,6 +262,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
                             if(transform.visible)
                             {
                                 entry.instanceCount++;
+                                items.instanceCount++;
                             }
                         }
                     }
@@ -280,7 +281,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
             foreach (var (_, contents) in renderData.staticInstanceCache)
             {
-                if (contents.triangles == 0)
+                if(contents.instanceCount == 0)
                 {
                     continue;
                 }
@@ -305,7 +306,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
                 renderState.world = Matrix4x4.Identity;
 
-                RenderSystem.SubmitStatic(renderState, contents.entries.Contents, contents.triangles);
+                RenderSystem.SubmitStatic(renderState, contents.entries.Contents);
             }
 
             foreach (var (_, contents) in renderData.instanceCache)
