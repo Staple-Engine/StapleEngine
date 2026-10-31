@@ -12,12 +12,13 @@ public sealed class MeshRenderSystem : RenderSystemBase
     /// <summary>
     /// Contains info on a mesh render instance
     /// </summary>
-    private struct InstanceInfo
+    private class InstanceInfo
     {
         public Mesh mesh;
         public int submeshIndex;
         public Material material;
         public Transform transform;
+        public bool visible;
     }
 
     /// <summary>
@@ -25,6 +26,8 @@ public sealed class MeshRenderSystem : RenderSystemBase
     /// </summary>
     private class InstanceData
     {
+        public MeshRenderer renderer;
+        public int instanceCount;
         public readonly ExpandableContainer<InstanceInfo> instanceInfos = new(false);
     }
 
@@ -48,22 +51,355 @@ public sealed class MeshRenderSystem : RenderSystemBase
         public readonly Dictionary<int, StaticInstanceData> staticInstanceCache = [];
     }
 
-    private readonly Dictionary<int, PerRenderIndexData> perRenderIndexData = [];
+    private class RenderData : IRenderData
+    {
+        public readonly Dictionary<int, PerRenderIndexData> perRenderIndexData = [];
 
-    private readonly Lazy<VertexLayout> instanceLayout = new(() => VertexLayoutBuilder.CreateNew()
-        .Add(VertexAttribute.TexCoord0, VertexAttributeType.Float4)
-        .Add(VertexAttribute.TexCoord1, VertexAttributeType.Float4)
-        .Add(VertexAttribute.TexCoord2, VertexAttributeType.Float4)
-        .Add(VertexAttribute.TexCoord3, VertexAttributeType.Float4)
-        .Build());
+        public void Clear()
+        {
+            foreach (var pair in perRenderIndexData)
+            {
+                foreach (var p in pair.Value.instanceCache)
+                {
+                    p.Value.instanceInfos.Clear();
+                }
 
-    private readonly ComponentVersionTracker<Transform> transformVersions = new();
+                foreach (var p in pair.Value.staticInstanceCache)
+                {
+                    var info = p.Value;
+
+                    info.triangles = 0;
+
+                    foreach (var entry in info.entries.Contents)
+                    {
+                        entry.instanceCount = 0;
+
+                        entry.transforms.Clear();
+                    }
+
+                    info.entries.Clear();
+
+                    info.entryStateToEntries.Clear();
+                }
+            }
+        }
+
+        public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
+        {
+            if (renderQueue is not GenericRenderQueue<MeshRenderer> queue)
+            {
+                return;
+            }
+
+            if (!perRenderIndexData.TryGetValue(renderIndex, out var renderData))
+            {
+                renderData = new();
+
+                perRenderIndexData.Add(renderIndex, renderData);
+            }
+
+            var items = queue.Items;
+
+            foreach (var entry in items)
+            {
+                var renderer = entry.component;
+
+                if (renderer.mesh == null ||
+                    renderer.materials == null)
+                {
+                    continue;
+                }
+
+                void AddStatic(Material material, int submeshIndex, int startIndex, int indexCount, int entryStateKey)
+                {
+                    if (!IsValidMaterial(material, renderIndex))
+                    {
+                        return;
+                    }
+
+                    var key = material.Guid.GuidHash;
+
+                    if (!renderData.staticInstanceCache.TryGetValue(key, out var meshCache))
+                    {
+                        meshCache = new();
+
+                        renderData.staticInstanceCache.Add(key, meshCache);
+                    }
+
+                    meshCache.material = material;
+
+                    meshCache.triangles += renderer.mesh.SubmeshTriangleCount(submeshIndex);
+
+                    var meshKey = HashCode.Combine(entryStateKey, startIndex, indexCount);
+
+                    if (!meshCache.entryStateToEntries.TryGetValue(meshKey, out var drawEntry))
+                    {
+                        ref var entries = ref meshCache.entries.AddDefault();
+
+                        entries ??= new();
+
+                        entries.entries = renderer.mesh.staticMeshEntries;
+                        entries.startIndex = startIndex;
+                        entries.indexCount = indexCount;
+
+                        meshCache.entryStateToEntries.AddOrSetKey(meshKey, entries);
+
+                        drawEntry = entries;
+                    }
+
+                    drawEntry.transforms.Add(new(entry.transform, renderer.isVisible, renderer));
+
+                    if(renderer.isVisible)
+                    {
+                        drawEntry.instanceCount++;
+                    }
+                }
+
+                void Add(Material material, int submeshIndex)
+                {
+                    if (!IsValidMaterial(material, renderIndex))
+                    {
+                        return;
+                    }
+
+                    var key = HashCode.Combine(renderer.mesh.Guid.GuidHash, material.Guid.GuidHash, submeshIndex);
+
+                    if (!renderData.instanceCache.TryGetValue(key, out var meshCache))
+                    {
+                        meshCache = new()
+                        {
+                            renderer = renderer,
+                        };
+
+                        renderData.instanceCache.Add(key, meshCache);
+                    }
+
+                    ref var instanceInfo = ref meshCache.instanceInfos.AddDefault();
+
+                    instanceInfo ??= new();
+
+                    instanceInfo.mesh = renderer.mesh;
+                    instanceInfo.material = material;
+                    instanceInfo.transform = entry.transform;
+                    instanceInfo.submeshIndex = submeshIndex;
+                    instanceInfo.visible = renderer.isVisible;
+                }
+
+                if (renderer.mesh.IsStaticMesh)
+                {
+                    var stateKey = renderer.mesh.staticMeshEntries.StateKey;
+
+                    if (renderer.mesh.submeshes.Count == 0)
+                    {
+                        AddStatic(renderer.materials[0], 0, 0, renderer.mesh.IndexCount, stateKey);
+                    }
+                    else
+                    {
+                        for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
+                        {
+                            if (i >= renderer.materials.Count)
+                            {
+                                break;
+                            }
+
+                            var submesh = renderer.mesh.submeshes[i];
+
+                            AddStatic(renderer.materials[i], i, submesh.startIndex, submesh.indexCount, stateKey);
+                        }
+                    }
+                }
+                else
+                {
+                    if (renderer.mesh.submeshes.Count == 0)
+                    {
+                        Add(renderer.materials[0], 0);
+                    }
+                    else
+                    {
+                        for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
+                        {
+                            if (i >= renderer.materials.Count)
+                            {
+                                break;
+                            }
+
+                            Add(renderer.materials[i], i);
+                        }
+                    }
+                }
+            }
+        }
+
+        public void UpdateVisibility()
+        {
+            foreach(var (_, contents) in perRenderIndexData)
+            {
+                foreach(var (_, items) in contents.instanceCache)
+                {
+                    items.instanceCount = 0;
+
+                    foreach(var instance in items.instanceInfos.Contents)
+                    {
+                        instance.visible = items.renderer.isVisible;
+
+                        if(instance.visible)
+                        {
+                            items.instanceCount++;
+                        }
+                    }
+                }
+
+                foreach(var (_, items) in contents.staticInstanceCache)
+                {
+                    foreach(var entry in items.entries.Contents)
+                    {
+                        entry.instanceCount = 0;
+
+                        foreach(var transform in entry.transforms.Contents)
+                        {
+                            transform.visible = transform.renderer.isVisible;
+
+                            if(transform.visible)
+                            {
+                                entry.instanceCount++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void Submit(int renderIndex)
+        {
+            if(!perRenderIndexData.TryGetValue(renderIndex, out var renderData))
+            {
+                return;
+            }
+
+            var renderState = RenderState.Default;
+
+            foreach (var (_, contents) in renderData.staticInstanceCache)
+            {
+                if (contents.triangles == 0)
+                {
+                    continue;
+                }
+
+                renderState.ClearStorageBuffers();
+
+                renderState.instanceCount = 1;
+                renderState.instanceOffset = 0;
+
+                var material = contents.material;
+
+                material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+                if (material.ShaderProgram == null)
+                {
+                    continue;
+                }
+
+                material.ApplyProperties(ref renderState);
+
+                LightSystem.Instance.ApplyLightProperties(ref renderState);
+
+                renderState.world = Matrix4x4.Identity;
+
+                RenderSystem.SubmitStatic(renderState, contents.entries.Contents, contents.triangles);
+            }
+
+            foreach (var (_, contents) in renderData.instanceCache)
+            {
+                if (contents.instanceCount == 0)
+                {
+                    continue;
+                }
+
+                renderState.ClearStorageBuffers();
+                renderState.instanceTransforms?.Clear();
+
+                renderState.instanceCount = contents.instanceCount;
+
+                var instanceData = contents.instanceInfos.Contents[0];
+
+                var material = instanceData.material;
+
+                material.DisableShaderKeyword(Shader.SkinningKeyword);
+
+                if (material.ShaderProgram == null)
+                {
+                    continue;
+                }
+
+                material.ApplyProperties(ref renderState);
+
+                LightSystem.Instance.ApplyLightProperties(ref renderState);
+
+                var program = material.ShaderProgram;
+
+                if (program == null)
+                {
+                    continue;
+                }
+
+                contents.instanceInfos.Contents[0].mesh.SetActive(ref renderState, contents.instanceInfos.Contents[0].submeshIndex);
+
+                if (contents.instanceCount > 1)
+                {
+                    renderState.instanceTransforms ??= new();
+
+                    foreach (var instance in contents.instanceInfos.Contents)
+                    {
+                        if (!instance.visible)
+                        {
+                            continue;
+                        }
+
+                        renderState.instanceTransforms.Add(instance.transform);
+                    }
+
+                    RenderSystem.Submit(renderState, instanceData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
+                        renderState.instanceCount);
+                }
+                else
+                {
+                    foreach (var item in contents.instanceInfos.Contents)
+                    {
+                        if (!item.visible)
+                        {
+                            continue;
+                        }
+
+                        renderState.world = item.transform.Matrix;
+
+                        item.mesh.SetActive(ref renderState, item.submeshIndex);
+
+                        RenderSystem.Submit(renderState, instanceData.mesh.SubmeshTriangleCount(item.submeshIndex), 1);
+                    }
+                }
+            }
+        }
+
+        public void Submit()
+        {
+            foreach(var key in perRenderIndexData.Keys)
+            {
+                Submit(key);
+            }
+        }
+    }
+
+    private readonly ComponentVersionTracker<MeshRenderer> rendererTracker = new();
+
+    private readonly RenderData renderData = new();
 
     public MeshRenderSystem() : base(false, typeof(MeshRenderer), typeof(GenericRenderQueue<MeshRenderer>))
     {
     }
 
     public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<MeshRenderer>();
+
+    public override IRenderData CreateRenderData() => new RenderData();
 
     #region Lifecycle
     public override void Startup()
@@ -119,37 +455,16 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
     public override void Prepare()
     {
-        foreach(var pair in perRenderIndexData)
+        renderData.Clear();
+
+        foreach (var renderer in rendererTracker.ChangedComponents)
         {
-            foreach (var p in pair.Value.instanceCache)
-            {
-                p.Value.instanceInfos.Clear();
-            }
-
-            foreach (var p in pair.Value.staticInstanceCache)
-            {
-                var info = p.Value;
-
-                info.triangles = 0;
-
-                foreach (var entry in info.entries.Contents)
-                {
-                    entry.transforms.Clear();
-                }
-
-                info.entries.Clear();
-
-                info.entryStateToEntries.Clear();
-            }
-        }
-
-        foreach (var transform in transformVersions.ChangedComponents)
-        {
-            if (!transform.Entity.TryGetComponent<MeshRenderer>(out var renderer) ||
-                renderer.mesh == null)
+            if (renderer.mesh == null)
             {
                 continue;
             }
+
+            var transform = renderer.Transform;
 
             var localSize = renderer.mesh.bounds.size.Transformed(transform.LocalRotation).Abs();
 
@@ -165,7 +480,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
             renderer.bounds = new(globalCenter, globalSize * transform.NormalizedScale);
         }
 
-        transformVersions.ClearChanges();
+        rendererTracker.ClearChanges();
     }
 
     public override void Preprocess(IRenderQueue renderQueue)
@@ -192,240 +507,32 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
     public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
     {
-        if (renderQueue is not GenericRenderQueue<MeshRenderer> queue)
+        renderData.Process(renderQueue, activeCamera, activeCameraTransform, renderIndex);
+    }
+
+    public override void PrepareRenderData(IRenderData renderData, IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform,
+        int renderIndex)
+    {
+        if(renderData is not RenderData data)
         {
             return;
         }
 
-        if(!perRenderIndexData.TryGetValue(renderIndex, out var renderData))
-        {
-            renderData = new();
+        data.Process(renderQueue, activeCamera, activeCameraTransform, renderIndex);
+    }
 
-            perRenderIndexData.Add(renderIndex, renderData);
+    public override void UpdateRenderDataVisibility(IRenderData renderData, Camera activeCamera, Transform activeCameraTransform)
+    {
+        if (renderData is not RenderData data)
+        {
+            return;
         }
 
-        var items = queue.Items;
-
-        foreach (var entry in items)
-        {
-            var renderer = entry.component;
-
-            if (!renderer.isVisible ||
-                renderer.mesh == null ||
-                renderer.materials == null)
-            {
-                continue;
-            }
-
-            void AddStatic(Material material, int submeshIndex, int startIndex, int indexCount, int entryStateKey)
-            {
-                if(!IsValidMaterial(material, renderIndex))
-                {
-                    return;
-                }
-
-                var key = material.Guid.GuidHash;
-
-                if(!renderData.staticInstanceCache.TryGetValue(key, out var meshCache))
-                {
-                    meshCache = new();
-
-                    renderData.staticInstanceCache.Add(key, meshCache);
-                }
-
-                meshCache.material = material;
-
-                meshCache.triangles += renderer.mesh.SubmeshTriangleCount(submeshIndex);
-
-                var meshKey = HashCode.Combine(entryStateKey, startIndex, indexCount);
-
-                if (!meshCache.entryStateToEntries.TryGetValue(meshKey, out var drawEntry))
-                {
-                    ref var entries = ref meshCache.entries.AddDefault();
-
-                    entries ??= new();
-
-                    entries.entries = renderer.mesh.staticMeshEntries;
-                    entries.startIndex = startIndex;
-                    entries.indexCount = indexCount;
-
-                    meshCache.entryStateToEntries.AddOrSetKey(meshKey, entries);
-
-                    drawEntry = entries;
-                }
-
-                drawEntry.transforms.Add(entry.transform);
-            }
-
-            void Add(Material material, int submeshIndex)
-            {
-                if (!IsValidMaterial(material, renderIndex))
-                {
-                    return;
-                }
-
-                var key = HashCode.Combine(renderer.mesh.Guid.GuidHash, material.Guid.GuidHash, submeshIndex);
-
-                if (!renderData.instanceCache.TryGetValue(key, out var meshCache))
-                {
-                    meshCache = new();
-
-                    renderData.instanceCache.Add(key, meshCache);
-                }
-
-                ref var instanceInfo = ref meshCache.instanceInfos.AddDefault();
-
-                instanceInfo.mesh = renderer.mesh;
-                instanceInfo.material = material;
-                instanceInfo.transform = entry.transform;
-                instanceInfo.submeshIndex = submeshIndex;
-            }
-
-            if(renderer.mesh.IsStaticMesh)
-            {
-                var stateKey = renderer.mesh.staticMeshEntries.StateKey;
-
-                if (renderer.mesh.submeshes.Count == 0)
-                {
-                    AddStatic(renderer.materials[0], 0, 0, renderer.mesh.IndexCount, stateKey);
-                }
-                else
-                {
-                    for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
-                    {
-                        if (i >= renderer.materials.Count)
-                        {
-                            break;
-                        }
-
-                        var submesh = renderer.mesh.submeshes[i];
-
-                        AddStatic(renderer.materials[i], i, submesh.startIndex, submesh.indexCount, stateKey);
-                    }
-                }
-            }
-            else
-            {
-                if (renderer.mesh.submeshes.Count == 0)
-                {
-                    Add(renderer.materials[0], 0);
-                }
-                else
-                {
-                    for (var i = 0; i < renderer.mesh.submeshes.Count; i++)
-                    {
-                        if (i >= renderer.materials.Count)
-                        {
-                            break;
-                        }
-
-                        Add(renderer.materials[i], i);
-                    }
-                }
-            }
-        }
+        data.UpdateVisibility();
     }
 
     public override void Submit()
     {
-        foreach(var (renderIndex, renderData) in perRenderIndexData)
-        {
-            var renderState = RenderState.Default;
-
-            foreach (var (_, contents) in renderData.staticInstanceCache)
-            {
-                if(contents.triangles == 0)
-                {
-                    continue;
-                }
-
-                renderState.ClearStorageBuffers();
-
-                renderState.instanceCount = 1;
-                renderState.instanceOffset = 0;
-
-                var material = contents.material;
-
-                material.DisableShaderKeyword(Shader.SkinningKeyword);
-
-                if (material.ShaderProgram == null)
-                {
-                    continue;
-                }
-
-                material.ApplyProperties(ref renderState);
-
-                LightSystem.Instance.ApplyLightProperties(ref renderState);
-
-                renderState.world = Matrix4x4.Identity;
-
-                RenderSystem.SubmitStatic(renderState, contents.entries.Contents, contents.triangles);
-            }
-
-            foreach (var (_, contents) in renderData.instanceCache)
-            {
-                if (contents.instanceInfos.Length == 0)
-                {
-                    continue;
-                }
-
-                renderState.ClearStorageBuffers();
-                renderState.instanceTransforms?.Clear();
-
-                renderState.instanceCount = 1;
-
-                var instanceData = contents.instanceInfos.Contents[0];
-
-                var material = instanceData.material;
-
-                material.DisableShaderKeyword(Shader.SkinningKeyword);
-
-                if (material.ShaderProgram == null)
-                {
-                    continue;
-                }
-
-                material.ApplyProperties(ref renderState);
-
-                LightSystem.Instance.ApplyLightProperties(ref renderState);
-
-                var program = material.ShaderProgram;
-
-                if (program == null)
-                {
-                    continue;
-                }
-
-                contents.instanceInfos.Contents[0].mesh.SetActive(ref renderState, contents.instanceInfos.Contents[0].submeshIndex);
-
-                if (contents.instanceInfos.Length > 1)
-                {
-                    renderState.instanceCount = contents.instanceInfos.Length;
-
-                    renderState.instanceTransforms ??= new();
-
-                    foreach (var instance in contents.instanceInfos.Contents)
-                    {
-                        renderState.instanceTransforms.Add(instance.transform);
-                    }
-
-                    RenderSystem.Submit(renderState, instanceData.mesh.SubmeshTriangleCount(contents.instanceInfos.Contents[0].submeshIndex),
-                        renderState.instanceCount);
-                }
-                else
-                {
-                    for (var i = 0; i < contents.instanceInfos.Length; i++)
-                    {
-                        var content = contents.instanceInfos.Contents[i];
-
-                        renderState.world = content.transform.Matrix;
-
-                        content.mesh.SetActive(ref renderState, content.submeshIndex);
-
-                        RenderSystem.Submit(renderState, instanceData.mesh.SubmeshTriangleCount(content.submeshIndex), 1);
-                    }
-                }
-            }
-        }
+        renderData.Submit();
     }
 }

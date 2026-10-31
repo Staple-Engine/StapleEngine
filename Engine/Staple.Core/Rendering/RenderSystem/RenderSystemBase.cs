@@ -33,6 +33,12 @@ public abstract class RenderSystemBase(bool usesOwnRenderProcess, Type relatedCo
     public abstract IRenderQueue CreateRenderQueue();
 
     /// <summary>
+    /// Creates a new instance of this render system's render data
+    /// </summary>
+    /// <returns>A new render data</returns>
+    public abstract IRenderData CreateRenderData();
+
+    /// <summary>
     /// Prepares the render system for rendering.
     /// Called before entities are processed.
     /// </summary>
@@ -46,15 +52,38 @@ public abstract class RenderSystemBase(bool usesOwnRenderProcess, Type relatedCo
     public abstract void Preprocess(IRenderQueue renderQueue);
 
     /// <summary>
-    /// Processes the entity.
-    /// This is when you should handle the entity's data in order to render.
+    /// Processes a render queue.
+    /// This is when you should handle the queue's data in order to render.
     /// </summary>
-    /// <param name="renderQueue">A list of all entities, transforms, and the related component</param>
+    /// <param name="renderQueue">A list of all renderables</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
     /// <param name="renderIndex">The <see cref="Material.RenderQueueIndex"/> for the material that should be renderered.
     /// Use this to ensure you're rendering the proper render queue from each material you process</param>
     public abstract void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex);
+
+    /// <summary>
+    /// Prepares the render data for this render system.
+    /// Use this to prepare all render data as if all objects should be visible.
+    /// You likely want to keep track of your renderers in the render data as well.
+    /// </summary>
+    /// <param name="renderData">The render data to prepare</param>
+    /// <param name="renderQueue">A list of all renderables</param>
+    /// <param name="activeCamera">The current active camera</param>
+    /// <param name="activeCameraTransform">The current active camera's transform</param>
+    /// <param name="renderIndex">The <see cref="Material.RenderQueueIndex"/> for the material that should be renderered.
+    /// Use this to ensure you're rendering the proper render queue from each material you process</param>
+    public abstract void PrepareRenderData(IRenderData renderData, IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform,
+        int renderIndex);
+
+    /// <summary>
+    /// Updates a render data's visiblity info.
+    /// Use this to update only whether an object should be rendered or not
+    /// </summary>
+    /// <param name="renderData">The render data to update</param>
+    /// <param name="activeCamera">The current active camera</param>
+    /// <param name="activeCameraTransform">The current active camera's transform</param>
+    public abstract void UpdateRenderDataVisibility(IRenderData renderData, Camera activeCamera, Transform activeCameraTransform);
 
     /// <summary>
     /// Submits all rendering commands to the renderer

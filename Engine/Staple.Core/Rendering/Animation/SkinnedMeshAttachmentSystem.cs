@@ -14,6 +14,8 @@ public class SkinnedMeshAttachmentSystem : RenderSystemBase
 
     public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshAttachment>();
 
+    public override IRenderData CreateRenderData() => null;
+
     public override void Startup()
     {
     }
@@ -23,6 +25,15 @@ public class SkinnedMeshAttachmentSystem : RenderSystemBase
     }
 
     public override void Prepare()
+    {
+    }
+
+    public override void PrepareRenderData(IRenderData renderData, IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform,
+        int renderIndex)
+    {
+    }
+
+    public override void UpdateRenderDataVisibility(IRenderData renderData, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 

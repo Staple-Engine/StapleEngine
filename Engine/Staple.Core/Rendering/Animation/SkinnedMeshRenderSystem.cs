@@ -65,6 +65,8 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
     public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshRenderer>();
 
+    public override IRenderData CreateRenderData() => null;
+
     public override void Startup()
     {
         World.AddComponentChangedCallback(typeof(SkinnedMeshRenderer),
@@ -501,6 +503,15 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                 instance.boneBuffer.Update(instance.boneMatrices.AsSpan());
             }
         }
+    }
+
+    public override void PrepareRenderData(IRenderData renderData, IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform,
+        int renderIndex)
+    {
+    }
+
+    public override void UpdateRenderDataVisibility(IRenderData renderData, Camera activeCamera, Transform activeCameraTransform)
+    {
     }
 
     public override void Submit()

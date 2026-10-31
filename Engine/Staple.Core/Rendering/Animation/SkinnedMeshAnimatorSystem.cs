@@ -14,6 +14,8 @@ public sealed class SkinnedMeshAnimatorSystem : RenderSystemBase
 
     public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SkinnedMeshAnimator>();
 
+    public override IRenderData CreateRenderData() => null;
+
     #region Lifecycle
     public override void Startup()
     {
@@ -36,6 +38,15 @@ public sealed class SkinnedMeshAnimatorSystem : RenderSystemBase
     }
     #endregion
 
+    public override void PrepareRenderData(IRenderData renderData, IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform,
+        int renderIndex)
+    {
+    }
+
+    public override void UpdateRenderDataVisibility(IRenderData renderData, Camera activeCamera, Transform activeCameraTransform)
+    {
+    }
+
     public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
     {
         if (renderQueue is not GenericRenderQueue<SkinnedMeshAnimator> queue)
@@ -54,7 +65,7 @@ public sealed class SkinnedMeshAnimatorSystem : RenderSystemBase
                 (animator.animation?.Length ?? 0) == 0 ||
                 !animator.mesh.meshAsset.Animations.ContainsKey(animator.animation))
             {
-                return;
+                continue;
             }
 
             if (animator.nodeCache.Length == 0 && animator.transformCache.Length == 0)

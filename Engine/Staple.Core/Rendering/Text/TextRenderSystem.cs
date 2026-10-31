@@ -27,6 +27,8 @@ public class TextRenderSystem : RenderSystemBase
 
     public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<Text>();
 
+    public override IRenderData CreateRenderData() => null;
+
     public override void Startup()
     {
     }
@@ -41,6 +43,15 @@ public class TextRenderSystem : RenderSystemBase
     }
 
     public override void Preprocess(IRenderQueue renderQueue)
+    {
+    }
+
+    public override void PrepareRenderData(IRenderData renderData, IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform,
+        int renderIndex)
+    {
+    }
+
+    public override void UpdateRenderDataVisibility(IRenderData renderData, Camera activeCamera, Transform activeCameraTransform)
     {
     }
 

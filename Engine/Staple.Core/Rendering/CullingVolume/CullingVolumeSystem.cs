@@ -11,6 +11,8 @@ public sealed class CullingVolumeSystem : RenderSystemBase
 
     public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<CullingVolume>();
 
+    public override IRenderData CreateRenderData() => null;
+
     #region Lifecycle
     public override void Prepare()
     {
@@ -29,6 +31,15 @@ public sealed class CullingVolumeSystem : RenderSystemBase
     }
 
     public override void Submit()
+    {
+    }
+
+    public override void PrepareRenderData(IRenderData renderData, IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform,
+        int renderIndex)
+    {
+    }
+
+    public override void UpdateRenderDataVisibility(IRenderData renderData, Camera activeCamera, Transform activeCameraTransform)
     {
     }
     #endregion

@@ -245,6 +245,7 @@
 		<Compile Include="Rendering\RenderSystem\Backend\MultidrawEntry.cs" />
 		<Compile Include="Rendering\RenderSystem\Backend\RenderState.cs" />
 		<Compile Include="Rendering\RenderSystem\GenericRenderQueue.cs" />
+		<Compile Include="Rendering\RenderSystem\IRenderData.cs" />
 		<Compile Include="Rendering\RenderSystem\IRenderQueue.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderableSortMode.cs" />
 		<Compile Include="Rendering\RenderSystem\RenderEntry.cs" />

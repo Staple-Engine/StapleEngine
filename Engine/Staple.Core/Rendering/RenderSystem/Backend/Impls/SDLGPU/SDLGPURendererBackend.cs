@@ -2261,13 +2261,16 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         GetUniformData(in state, false, shader, out var vertexUniformData, out var fragmentUniformData);
 
         var commandCount = 0;
+        var instanceCount = 0;
 
-        foreach(var entry in entries)
+        foreach (var entry in entries)
         {
-            if(entry.transforms.Length == 0)
+            if(entry.instanceCount == 0)
             {
                 continue;
             }
+
+            instanceCount += entry.instanceCount;
 
             commandCount++;
         }
@@ -2275,13 +2278,6 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         if(indirectCommandPosition + commandCount > indirectCommands.Length)
         {
             indirectCommands.Resize(indirectCommandPosition + commandCount, true);
-        }
-
-        var instanceCount = 0;
-
-        foreach(var entry in entries)
-        {
-            instanceCount += entry.transforms.Length;
         }
 
         if (indirectCommandInstance + instanceCount > indirectEntityIndices.Length)
@@ -2298,7 +2294,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         {
             ref var entry = ref entries[i];
 
-            if(entry.transforms.Length == 0)
+            if(entry.instanceCount == 0)
             {
                 continue;
             }
@@ -2306,7 +2302,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             ref var command = ref commandContents[indirectCommandPosition + commandIndex++];
 
             var indices = (uint)entry.indexCount;
-            var instances = (uint)entry.transforms.Length;
+            var instances = (uint)entry.instanceCount;
             var firstInstance = (uint)indirectCommandInstance;
             var firstIndex = (uint)(entry.entries.indicesEntry.start + entry.startIndex);
 
@@ -2323,18 +2319,17 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             command.first_instance = firstInstance;
             command.first_index = firstIndex;
 
-            var transforms = entry.transforms.Contents;
-
-            for (var j = 0; j < transforms.Length; j++)
+            foreach(var item in entry.transforms.Contents)
             {
-                if(indirectCommandInstance >= indirectEntityIndices.Length)
+                if (indirectCommandInstance >= indirectEntityIndices.Length ||
+                    !item.visible)
                 {
                     continue;
                 }
 
                 ref var entityIndex = ref indexContents[indirectCommandInstance++];
 
-                var index = (uint)(transforms[j].Entity.Identifier.ID - 1);
+                var index = (uint)item.transform.Entity.Index;
 
                 if (!needsIndirectBufferUpdate)
                 {

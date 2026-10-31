@@ -18,6 +18,17 @@ public class UICanvasSystem : RenderSystemBase
 
     public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<UICanvas>();
 
+    public override IRenderData CreateRenderData() => null;
+
+    public override void PrepareRenderData(IRenderData renderData, IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform,
+        int renderIndex)
+    {
+    }
+
+    public override void UpdateRenderDataVisibility(IRenderData renderData, Camera activeCamera, Transform activeCameraTransform)
+    {
+    }
+
     [OnAssetsReimported]
     internal static void OnAssetsReloaded()
     {
