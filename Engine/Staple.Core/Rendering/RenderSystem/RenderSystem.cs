@@ -18,8 +18,8 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     {
         public readonly RenderSystemBase system = system;
         public readonly bool isRenderable = isRenderable;
-
         public readonly bool useOwnRenderProcess = useOwnRenderProcess;
+        public readonly IRenderQueue globalQueue = system.CreateRenderQueue();
 
         public override int GetHashCode()
         {
@@ -285,10 +285,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 continue;
             }
 
-            foreach (var (_, queue) in system.queue)
-            {
-                system.renderSystem.system.Preprocess(queue.queue);
-            }
+            system.renderSystem.system.Preprocess(system.renderSystem.globalQueue);
         }
 
         foreach (var renderable in renderables.Contents)

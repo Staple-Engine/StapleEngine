@@ -49,6 +49,10 @@ public sealed class MeshRenderSystem : RenderSystemBase
     {
         public readonly Dictionary<int, InstanceData> instanceCache = [];
         public readonly Dictionary<int, StaticInstanceData> staticInstanceCache = [];
+
+        public readonly ExpandableContainer<InstanceData> instanceList = new(false);
+
+        public readonly ExpandableContainer<StaticInstanceData> staticInstanceList = new(false);
     }
 
     private class RenderData : IRenderData
@@ -124,6 +128,8 @@ public sealed class MeshRenderSystem : RenderSystemBase
                         meshCache = new();
 
                         renderData.staticInstanceCache.Add(key, meshCache);
+
+                        renderData.staticInstanceList.Add(meshCache);
                     }
 
                     meshCache.material = material;
@@ -170,6 +176,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
                         };
 
                         renderData.instanceCache.Add(key, meshCache);
+                        renderData.instanceList.Add(meshCache);
                     }
 
                     ref var instanceInfo = ref meshCache.instanceInfos.AddDefault();
@@ -279,7 +286,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
             var renderState = RenderState.Default;
 
-            foreach (var (_, contents) in renderData.staticInstanceCache)
+            foreach (var contents in renderData.staticInstanceList.Contents)
             {
                 if(contents.instanceCount == 0)
                 {
@@ -309,7 +316,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 RenderSystem.SubmitStatic(renderState, contents.entries.Contents);
             }
 
-            foreach (var (_, contents) in renderData.instanceCache)
+            foreach (var contents in renderData.instanceList.Contents)
             {
                 if (contents.instanceCount == 0)
                 {
@@ -497,12 +504,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
         {
             var renderer = entry.component;
 
-            if (renderer.mesh == null)
-            {
-                continue;
-            }
-
-            renderer.mesh.UploadMeshData();
+            renderer.mesh?.UploadMeshData();
         }
     }
 

@@ -738,6 +738,24 @@ public sealed partial class RenderSystem
 
             var renderSystemContent = CollectionsMarshal.AsSpan(renderSystems);
 
+            for (var i = 0; i < renderSystemContent.Length; i++)
+            {
+                var systemInfo = renderSystemContent[i];
+
+                systemInfo.globalQueue.Clear();
+
+                foreach (var transform in entityQuery.Contents)
+                {
+                    if (systemInfo.system.UsesOwnRenderProcess ||
+                        !transform.Entity.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                    {
+                        continue;
+                    }
+
+                    systemInfo.globalQueue.Add(transform.Entity, transform, component);
+                }
+            }
+
             foreach (var camera in cameras)
             {
                 renderQueue.AddDefault();
@@ -907,6 +925,24 @@ public sealed partial class RenderSystem
             }
 
             var renderSystemContent = CollectionsMarshal.AsSpan(renderSystems);
+
+            for (var i = 0; i < renderSystemContent.Length; i++)
+            {
+                var systemInfo = renderSystemContent[i];
+
+                systemInfo.globalQueue.Clear();
+
+                foreach (var transform in entityQuery.Contents)
+                {
+                    if (systemInfo.system.UsesOwnRenderProcess ||
+                        !transform.Entity.TryGetComponent(systemInfo.system.RelatedComponent, out var component))
+                    {
+                        continue;
+                    }
+
+                    systemInfo.globalQueue.Add(transform.Entity, transform, component);
+                }
+            }
 
             foreach (var camera in cameras)
             {
