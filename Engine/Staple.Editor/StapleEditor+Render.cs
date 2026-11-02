@@ -121,7 +121,7 @@ internal partial class StapleEditor
 
         Matrix4x4.Invert(world, out var view);
 
-        camera.UpdateFrustum(view, projection);
+        camera.UpdateFrustum(in view, in projection);
 
         if (selectedEntity.IsValid &&
             selectedEntity.TryGetComponent<Transform>(out var selectedTransform))

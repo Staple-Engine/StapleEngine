@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Staple.Internal;
 
@@ -24,81 +25,53 @@ internal class FrustumCuller
     /// </summary>
     /// <param name="view">The view matrix</param>
     /// <param name="projection">The projection matrix</param>
-    public void Update(Matrix4x4 view, Matrix4x4 projection)
+    public void Update(in Matrix4x4 view, in Matrix4x4 projection)
     {
         var clip = view * projection;
 
-        var vector = new Vector4(clip.M14 - clip.M11,
-            clip.M24 - clip.M21,
-            clip.M34 - clip.M31,
-            clip.M44 - clip.M41);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void HandlePlane(float A, float B, float C, float D, float NA, float NB, float NC, float ND, ref Plane plane)
+        {
+            var vector = new Vector3(A + NA, B + NB, C + NC);
 
-        var vector3 = vector.ToVector3();
+            var magnitude = vector.Length();
 
-        var magnitude = vector3.Length();
+            plane.Normal = vector.Normalized;
+            plane.D = (D + ND) / magnitude;
+        }
 
-        planes[0].Normal = vector3.Normalized;
-        planes[0].D = vector.W / magnitude;
+        static void HandlePlaneSimple(float A, float B, float C, float D, ref Plane plane)
+        {
+            var vector = new Vector3(A, B, C);
 
-        vector = new Vector4(clip.M14 + clip.M11,
-            clip.M24 + clip.M21,
-            clip.M34 + clip.M31,
-            clip.M44 + clip.M41);
+            var magnitude = vector.Length();
 
-        vector3 = vector.ToVector3();
+            plane.Normal = vector.Normalized;
+            plane.D = D / magnitude;
+        }
 
-        magnitude = vector3.Length();
+        //Left
+        HandlePlane(clip.M14, clip.M24, clip.M34, clip.M44,
+            clip.M11, clip.M21, clip.M31, clip.M41, ref planes[0]);
 
-        planes[1].Normal = vector3.Normalized;
-        planes[1].D = vector.W / magnitude;
+        //Right
+        HandlePlane(clip.M14, clip.M24, clip.M34, clip.M44,
+            -clip.M11, -clip.M21, -clip.M31, -clip.M41, ref planes[1]);
 
-        vector = new Vector4(clip.M14 + clip.M12,
-            clip.M24 + clip.M22,
-            clip.M34 + clip.M32,
-            clip.M44 + clip.M42);
+        //Top
+        HandlePlane(clip.M14, clip.M24, clip.M34, clip.M44,
+            -clip.M12, -clip.M22, -clip.M32, -clip.M42, ref planes[2]);
 
-        vector3 = vector.ToVector3();
+        //Bottom
+        HandlePlane(clip.M14, clip.M24, clip.M34, clip.M44,
+            clip.M12, clip.M22, clip.M32, clip.M42, ref planes[3]);
 
-        magnitude = vector3.Length();
+        //Near
+        HandlePlaneSimple(clip.M13, clip.M23, clip.M33, clip.M43, ref planes[4]);
 
-        planes[2].Normal = vector3.Normalized;
-        planes[2].D = vector.W / magnitude;
-
-        vector = new Vector4(clip.M14 - clip.M12,
-            clip.M24 - clip.M22,
-            clip.M34 - clip.M32,
-            clip.M44 - clip.M42);
-
-        vector3 = vector.ToVector3();
-
-        magnitude = vector3.Length();
-
-        planes[3].Normal = vector3.Normalized;
-        planes[3].D = vector.W / magnitude;
-
-        vector = new Vector4(clip.M14 - clip.M13,
-            clip.M24 - clip.M23,
-            clip.M34 - clip.M33,
-            clip.M44 - clip.M43);
-
-        vector3 = vector.ToVector3();
-
-        magnitude = vector3.Length();
-
-        planes[4].Normal = vector3.Normalized;
-        planes[4].D = vector.W / magnitude;
-
-        vector = new Vector4(clip.M14 + clip.M13,
-            clip.M24 + clip.M23,
-            clip.M34 + clip.M33,
-            clip.M44 + clip.M43);
-
-        vector3 = vector.ToVector3();
-
-        magnitude = vector3.Length();
-
-        planes[5].Normal = vector3.Normalized;
-        planes[5].D = vector.W / magnitude;
+        //Far
+        HandlePlane(clip.M14, clip.M24, clip.M34, clip.M44,
+            -clip.M13, -clip.M23, -clip.M33, -clip.M43, ref planes[5]);
     }
 
     /// <summary>
@@ -106,7 +79,7 @@ internal class FrustumCuller
     /// </summary>
     /// <param name="v">The point</param>
     /// <returns>Whether the point is visible</returns>
-    public bool PointTest(Vector3 v)
+    public bool PointTest(in Vector3 v)
     {
         for(var i = 0; i < 6; i++)
         {
@@ -127,7 +100,7 @@ internal class FrustumCuller
     /// <param name="center">The center of the sphere</param>
     /// <param name="radius">The radius of the sphere</param>
     /// <returns>The result of the test. If it's not Invisible, then it's at least partially visible</returns>
-    public FrustumResult SphereTest(Vector3 center, float radius)
+    public FrustumResult SphereTest(in Vector3 center, float radius)
     {
         for(var i = 0; i < 6; i++)
         {
@@ -149,14 +122,14 @@ internal class FrustumCuller
     /// </summary>
     /// <param name="sphere">The <see cref="BoundingSphere"/> to test</param>
     /// <returns>The result of the test. If it's not Invisible, then it's at least partially visible</returns>
-    public FrustumResult SphereTest(BoundingSphere sphere) => SphereTest(sphere.center, sphere.radius);
+    public FrustumResult SphereTest(in BoundingSphere sphere) => SphereTest(in sphere.center, sphere.radius);
 
     /// <summary>
     /// Checks if an Axis Aligned Bounding Box is visible
     /// </summary>
     /// <param name="aabb">The AABB</param>
     /// <returns>The result of the test. If it's not Invisible, then it's at least partially visible.</returns>
-    public FrustumResult AABBTest(AABB aabb)
+    public FrustumResult AABBTest(in AABB aabb)
     {
         var result = FrustumResult.Visible;
 

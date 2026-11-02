@@ -537,7 +537,8 @@ public sealed partial class RenderSystem
         return new AABB((Vector3)coordinate * SpatialPartitionSize + SpatialPartitionSizeHalfVector, SpatialPartitionSizeVector);
     }
 
-    internal void UpdateEntitySpatialData(int index, Transform transform, Renderable renderable, Span<bool> processed, Span<HashSet<Vector3Int>> spatials)
+    internal void UpdateEntitySpatialData(int index, Transform transform, Renderable renderable, Span<bool> processed,
+        Span<HashSet<Vector3Int>> spatials)
     {
         if(renderable == null)
         {
@@ -1086,14 +1087,14 @@ public sealed partial class RenderSystem
         var projection = Camera.Projection(camera);
         var view = cameraTransform.Matrix;
 
-        Matrix4x4.Invert(view, out view);
+        Matrix4x4.Invert(view, out var invView);
 
-        camera.UpdateFrustum(view, projection);
+        camera.UpdateFrustum(in invView, in projection);
 
         LightSystem.Instance.GatherVisibleLights(camera.frustumCuller, cameraTransform.Position, camera.cullingLayers);
 
         Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport,
-            in view, in projection);
+            in invView, in projection);
     }
 
     /// <summary>

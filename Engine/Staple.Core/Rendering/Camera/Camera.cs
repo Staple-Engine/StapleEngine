@@ -189,7 +189,7 @@ public sealed class Camera : Component
     /// </summary>
     /// <param name="bounds">The bounds to check</param>
     /// <returns>Whether it's visible</returns>
-    public bool IsVisible(AABB bounds)
+    public bool IsVisible(in AABB bounds)
     {
         return frustumCuller.AABBTest(bounds) != FrustumResult.Invisible;
     }
@@ -199,9 +199,9 @@ public sealed class Camera : Component
     /// </summary>
     /// <param name="view">The view matrix</param>
     /// <param name="projection">The projection matrix</param>
-    internal void UpdateFrustum(Matrix4x4 view, Matrix4x4 projection)
+    internal void UpdateFrustum(in Matrix4x4 view, in Matrix4x4 projection)
     {
-        frustumCuller.Update(view, projection);
+        frustumCuller.Update(in view, in projection);
     }
 
     /// <summary>

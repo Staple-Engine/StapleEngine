@@ -331,7 +331,10 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 continue;
             }
 
-            system.renderSystem.system.UpdateRenderDataVisibility(system.renderData, CurrentCamera.camera, CurrentCamera.transform);
+            if(shouldCheckVisibility)
+            {
+                system.renderSystem.system.UpdateRenderDataVisibility(system.renderData, CurrentCamera.camera, CurrentCamera.transform);
+            }
 
             system.renderSystem.system.Prepare();
         }
