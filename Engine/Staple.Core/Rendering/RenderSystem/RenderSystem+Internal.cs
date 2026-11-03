@@ -57,8 +57,6 @@ public sealed partial class RenderSystem
     public class RenderSystemQueueData
     {
         public IRenderQueue queue;
-
-        public readonly ComponentVersionTracker<Transform> transformTracker = new();
     }
 
     public class RenderSystemRenderQueue
@@ -77,6 +75,8 @@ public sealed partial class RenderSystem
         public Camera camera;
 
         public Transform transform;
+
+        public readonly ComponentVersionTracker<Transform> transformTracker = new();
 
         public readonly ExpandableContainer<RenderSystemRenderQueue> renderSystems = new(false);
 

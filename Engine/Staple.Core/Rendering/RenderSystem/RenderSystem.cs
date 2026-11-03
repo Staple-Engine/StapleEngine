@@ -291,7 +291,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 renderable.isVisible = renderable.Enabled &&
                     !renderable.forceRenderingOff;
 
-                if (renderable.isVisible && cull)
+                if (renderable.isVisible && cull && renderable.requiresPreciseCulling)
                 {
                     renderable.isVisible = set.camera.IsVisible(renderable.bounds);
 
@@ -320,12 +320,25 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
             system.renderSystem.system.Prepare();
         }
 
+        var shouldSort = set.transformTracker.ShouldUpdateComponent(CurrentCamera.transform.Entity, CurrentCamera.transform);
+
         foreach (var renderIndex in set.renderIndices)
         {
             foreach (var system in set.renderSystems.Contents)
             {
-                if(system.renderData != null)
+                var needsSorting = system.renderSystem.isRenderable && shouldSort;
+
+                if (system.renderData != null)
                 {
+                    if(needsSorting)
+                    {
+                        var renderQueue = GetRenderQueue(renderIndex);
+
+                        var sortMode = RenderQueueSortMode(renderQueue);
+
+                        system.renderData.Sort(renderIndex, CurrentCamera.transform.Position, sortMode);
+                    }
+
                     system.renderData.Submit(renderIndex);
 
                     continue;
@@ -343,8 +356,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
                 system.renderSystem.system.Preprocess(queue);
 
-                if (system.renderSystem.isRenderable &&
-                    container.transformTracker.ShouldUpdateComponent(CurrentCamera.transform.Entity, CurrentCamera.transform))
+                if (needsSorting)
                 {
                     var renderQueue = GetRenderQueue(renderIndex);
 

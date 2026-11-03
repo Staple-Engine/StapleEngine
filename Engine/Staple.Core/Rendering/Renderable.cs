@@ -47,6 +47,17 @@ public partial class Renderable : VersionableComponent
     public bool isVisible { get; internal set; }
 
     /// <summary>
+    /// Whether this <see cref="Renderable"/> requires precise culling.
+    /// If this <see cref="Renderable"/> requires a drawcall, you should set this to true to ensure it doesn't render unless needed.
+    /// </summary>
+    /// <remarks>
+    /// If this renderer requires a drawcall each time, this should always be true, unless you notice the performance dropping a lot.
+    /// Otherwise, if you can do instancing or <see cref="RenderSystem.SubmitStatic(RenderState, Span{MultidrawEntry})"/>, it should have much less
+    /// of a cost to render per object, and probably doesn't need this set up. Always verify performance first!
+    /// </remarks>
+    public bool requiresPreciseCulling { get; protected set; }
+
+    /// <summary>
     /// The materials for this renderable
     /// </summary>
     public partial List<Material> materials { get; set; }

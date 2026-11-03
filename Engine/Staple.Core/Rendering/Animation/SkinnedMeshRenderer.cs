@@ -60,6 +60,11 @@ public partial class SkinnedMeshRenderer : Renderable, IComponentDisposable
     /// </summary>
     public Span<float> BlendShapeWeights => CollectionsMarshal.AsSpan(blendShapeWeights);
 
+    public SkinnedMeshRenderer()
+    {
+        requiresPreciseCulling = true;
+    }
+
     /// <summary>
     /// Sets a blend shape's weight
     /// </summary>

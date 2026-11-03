@@ -237,9 +237,9 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
         public void UpdateVisibility()
         {
-            foreach(var (_, contents) in perRenderIndexData)
+            foreach(var (_, renderData) in perRenderIndexData)
             {
-                foreach(var (_, items) in contents.instanceCache)
+                foreach(var (_, items) in renderData.instanceCache)
                 {
                     items.instanceCount = 0;
 
@@ -254,7 +254,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
                     }
                 }
 
-                foreach(var (_, items) in contents.staticInstanceCache)
+                foreach(var (_, items) in renderData.staticInstanceCache)
                 {
                     items.instanceCount = 0;
 
@@ -273,6 +273,76 @@ public sealed class MeshRenderSystem : RenderSystemBase
                             }
                         }
                     }
+                }
+            }
+        }
+
+        public void Sort(int renderIndex, Vector3 origin, RenderableSortMode sortMode)
+        {
+            if(sortMode == RenderableSortMode.None)
+            {
+                return;
+            }
+
+            if (!perRenderIndexData.TryGetValue(renderIndex, out var renderData))
+            {
+                return;
+            }
+
+            foreach (var (_, items) in renderData.instanceCache)
+            {
+                items.instanceInfos.Contents.Sort((a, b) =>
+                {
+                    var visibleA = a.visible;
+                    var visibleB = b.visible;
+
+                    if (!visibleA)
+                    {
+                        return visibleB ? -1 : 0;
+                    }
+                    else if (!visibleB)
+                    {
+                        return 1;
+                    }
+
+                    var distA = Vector3.DistanceSquared(origin, a.transform.Position);
+                    var distB = Vector3.DistanceSquared(origin, b.transform.Position);
+
+                    return sortMode switch
+                    {
+                        RenderableSortMode.BackToFront => distB.CompareTo(distA),
+                        _ => distA.CompareTo(distB),
+                    };
+                });
+            }
+
+            foreach (var (_, items) in renderData.staticInstanceCache)
+            {
+                foreach (var entry in items.entries.Contents)
+                {
+                    entry.transforms.Contents.Sort((a, b) =>
+                    {
+                        var visibleA = a.visible;
+                        var visibleB = b.visible;
+
+                        if (!visibleA)
+                        {
+                            return visibleB ? -1 : 0;
+                        }
+                        else if (!visibleB)
+                        {
+                            return 1;
+                        }
+
+                        var distA = Vector3.DistanceSquared(origin, a.transform.Position);
+                        var distB = Vector3.DistanceSquared(origin, b.transform.Position);
+
+                        return sortMode switch
+                        {
+                            RenderableSortMode.BackToFront => distB.CompareTo(distA),
+                            _ => distA.CompareTo(distB),
+                        };
+                    });
                 }
             }
         }
