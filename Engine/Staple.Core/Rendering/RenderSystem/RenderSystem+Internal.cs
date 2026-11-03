@@ -123,7 +123,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Spatial location of each entity
     /// </summary>
-    internal Dictionary<Vector3Int, List<Transform>> spatialEntities = [];
+    internal Dictionary<Vector3Int, List<Renderable>> spatialEntities = [];
 
     /// <summary>
     /// Keeps track of where an entity was located the previous frame
@@ -174,12 +174,6 @@ public sealed partial class RenderSystem
     /// The frustum culler to use when we don't have a camera instance
     /// </summary>
     internal static readonly FrustumCuller frustumCuller = new();
-
-    /// <summary>
-    /// The already verified to be visible entities.
-    /// So we can ignore the ones that were already validated as visible when we find them again to be tested
-    /// </summary>
-    internal static readonly HashSet<Entity> visibleEntities = [];
 
     #endregion
 
@@ -417,8 +411,6 @@ public sealed partial class RenderSystem
 
             renderable.cullingState = CullingState.None;
         }
-
-        visibleEntities.Clear();
     }
 
     /// <summary>
@@ -553,12 +545,12 @@ public sealed partial class RenderSystem
 
         foreach (var lastSpatial in entitySpatialSet)
         {
-            if (!spatialEntities.TryGetValue(lastSpatial, out var transforms))
+            if (!spatialEntities.TryGetValue(lastSpatial, out var renderables))
             {
                 continue;
             }
 
-            transforms.Remove(transform);
+            renderables.Remove(renderable);
         }
 
         entitySpatialSet.Clear();
@@ -580,7 +572,7 @@ public sealed partial class RenderSystem
                 spatialEntities.Add(coordinate, newSpatialStorage);
             }
 
-            newSpatialStorage.Add(transform);
+            newSpatialStorage.Add(renderable);
 
             return false;
         });

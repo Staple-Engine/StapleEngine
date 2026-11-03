@@ -229,39 +229,23 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                     //Ensure it's marked as visible if it's visible at any point.
                     case CullingState.Visible:
 
-                        foreach (var transform in span)
+                        foreach (var renderable in span)
                         {
-                            if (visibleEntities.Contains(transform.Entity))
-                            {
-                                continue;
-                            }
-
-                            var renderable = renderables[transform.Entity.Identifier.ID - 1];
-
-                            if (renderable == null || renderable.cullingState != CullingState.Invisible) //No work, not invisible yet!
+                            if (renderable == null || renderable.cullingState == CullingState.Visible) //Already visible!
                             {
                                 continue;
                             }
 
                             //Ensure marked as visible
                             renderable.cullingState = CullingState.Visible;
-
-                            visibleEntities.Add(transform.Entity);
                         }
 
                         break;
 
                     case CullingState.Invisible:
 
-                        foreach (var transform in span)
+                        foreach (var renderable in span)
                         {
-                            if (visibleEntities.Contains(transform.Entity))
-                            {
-                                continue;
-                            }
-
-                            var renderable = renderables[transform.Entity.Identifier.ID - 1];
-
                             if (renderable == null || renderable.cullingState == CullingState.Visible) //Already passed a visible test!
                             {
                                 continue;
@@ -309,12 +293,9 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
                 if (renderable.isVisible && cull)
                 {
-                    if (renderable.cullingState == CullingState.None)
-                    {
-                        renderable.isVisible = set.camera.IsVisible(renderable.bounds);
+                    renderable.isVisible = set.camera.IsVisible(renderable.bounds);
 
-                        renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
-                    }
+                    renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
                 }
             }
 
