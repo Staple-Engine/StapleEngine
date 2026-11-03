@@ -19,6 +19,8 @@ namespace Staple.ProjectManagement;
 /// </summary>
 public partial class ProjectManager
 {
+    internal static readonly string StapleSourceGeneratorName = "TypeRegistration";
+
     internal static readonly string MessagePackVersion = "3.1.4";
 
     internal static readonly string SourceGeneratorAssemblyVersion = "4.12.0";
@@ -496,6 +498,17 @@ public partial class ProjectManager
 
         var target = Path.Combine(projectDirectory, fileName);
 
+        var stapleSourceGeneratorPath = Path.Combine(backend.basePath, "Runtime", StapleSourceGeneratorName, $"{StapleSourceGeneratorName}.csproj");
+
+        void AddStapleSourceGenerator(Project p)
+        {
+            p.AddItem("ProjectReference", stapleSourceGeneratorPath,
+                [
+                    new("OutputItemType", "Analyzer"),
+                    new("ReferenceOutputAssembly", "false"),
+                ]);
+        }
+
         var registration = Path.Combine(projectDirectory, mainProjectName, "GameRegistration.cs");
 
         if(!flags.HasFlag(ProjectGenerationFlags.IsSandbox))
@@ -647,6 +660,8 @@ public partial class ProjectManager
 
                                         asmProj = p;
 
+                                        AddStapleSourceGenerator(asmProj);
+
                                         if (def.allowUnsafeCode && !asmDefProperties.ContainsKey("AllowUnsafeBlocks"))
                                         {
                                             asmProj.SetProperty("AllowUnsafeBlocks", "true");
@@ -745,6 +760,8 @@ public partial class ProjectManager
                     if(flags.HasFlag(ProjectGenerationFlags.AllowMultiProject))
                     {
                         var (project, debugProperty, releaseProperty) = MakeProject(collection, projectDefines, asmDefProperties);
+
+                        AddStapleSourceGenerator(project);
 
                         if (flags.HasFlag(ProjectGenerationFlags.IsPlayer))
                         {
@@ -864,13 +881,7 @@ public partial class ProjectManager
             }
         }
 
-        var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
-
-        p.AddItem("ProjectReference", typeRegistrationPath,
-            [
-                new("OutputItemType", "Analyzer"),
-                new("ReferenceOutputAssembly", "false"),
-            ]);
+        AddStapleSourceGenerator(p);
 
         if (!flags.HasFlag(ProjectGenerationFlags.IsSandbox))
         {
