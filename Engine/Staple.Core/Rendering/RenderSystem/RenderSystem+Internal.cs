@@ -735,6 +735,11 @@ public sealed partial class RenderSystem
             {
                 var systemInfo = renderSystemContent[i];
 
+                if(systemInfo.globalQueue == null)
+                {
+                    continue;
+                }
+
                 systemInfo.globalQueue.Clear();
 
                 foreach (var transform in entityQuery.Contents)
@@ -922,6 +927,11 @@ public sealed partial class RenderSystem
             for (var i = 0; i < renderSystemContent.Length; i++)
             {
                 var systemInfo = renderSystemContent[i];
+
+                if (systemInfo.globalQueue == null)
+                {
+                    continue;
+                }
 
                 systemInfo.globalQueue.Clear();
 

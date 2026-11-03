@@ -2,7 +2,7 @@
 
 namespace Staple;
 
-public partial class MeshCombine : Renderable, IComponentDisposable
+public partial class MeshCombine : VersionableComponent, IComponentDisposable
 {
     public enum MeshCombineChildMode
     {

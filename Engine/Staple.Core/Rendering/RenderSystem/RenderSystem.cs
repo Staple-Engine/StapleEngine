@@ -264,7 +264,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
         foreach (var system in set.renderSystems.Contents)
         {
-            if (system.renderData == null)
+            if (system.renderData == null || system.renderSystem.globalQueue == null)
             {
                 continue;
             }

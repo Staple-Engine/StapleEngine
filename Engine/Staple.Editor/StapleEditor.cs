@@ -270,6 +270,11 @@ internal partial class StapleEditor
                     system.renderData = system.renderSystem.system.CreateRenderData();
                 }
 
+                if(system.renderSystem.globalQueue == null)
+                {
+                    continue;
+                }
+
                 system.renderSystem.globalQueue.Clear();
 
                 foreach(var transform in transforms.Contents)
