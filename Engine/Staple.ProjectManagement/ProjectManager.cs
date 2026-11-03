@@ -864,16 +864,16 @@ public partial class ProjectManager
             }
         }
 
+        var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
+
+        p.AddItem("ProjectReference", typeRegistrationPath,
+            [
+                new("OutputItemType", "Analyzer"),
+                new("ReferenceOutputAssembly", "false"),
+            ]);
+
         if (!flags.HasFlag(ProjectGenerationFlags.IsSandbox))
         {
-            var typeRegistrationPath = Path.Combine(backend.basePath, "Runtime", "TypeRegistration", "TypeRegistration.csproj");
-
-            p.AddItem("ProjectReference", typeRegistrationPath,
-                [
-                    new("OutputItemType", "Analyzer"),
-                    new("ReferenceOutputAssembly", "false"),
-                ]);
-
             p.AddItem("Compile", registration);
         }
 
@@ -914,8 +914,8 @@ public partial class ProjectManager
                             p.AddItem("ProjectReference", Path.Combine("..", name, $"{name}.csproj"),
                                 [
                                     new("OutputItemType", "Analyzer"),
-                                new("ReferenceOutputAssembly", "false"),
-                            ]);
+                                    new("ReferenceOutputAssembly", "false"),
+                                ]);
 
                             break;
                     }
