@@ -256,13 +256,73 @@ internal partial class StapleEditor
 
                 foreach (var system in renderQueue.renderQueue.Contents)
                 {
+                    if(system.renderData != null)
+                    {
+                        continue;
+                    }
+
                     system.renderSystem.system.Prepare();
                 }
+
+                foreach (var renderable in renderQueue.renderables.Contents)
+                {
+                    if (renderable == null)
+                    {
+                        continue;
+                    }
+
+                    if (renderable.cullingState == CullingState.Invisible)
+                    {
+                        continue;
+                    }
+
+                    renderable.isVisible = renderable.Enabled &&
+                        !renderable.forceRenderingOff;
+
+                    if (renderable.isVisible)
+                    {
+                        renderable.isVisible = camera.IsVisible(renderable.bounds);
+
+                        renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                    }
+                }
+
+                foreach (var system in renderQueue.renderQueue.Contents)
+                {
+                    if (system.renderData == null)
+                    {
+                        continue;
+                    }
+
+                    system.renderSystem.system.UpdateRenderDataVisibility(system.renderData, camera, cameraTransform);
+
+                    system.renderSystem.system.Prepare();
+                }
+
+                var shouldSort = cameraTransform.Version != cameraTransformVersion;
 
                 foreach (var renderIndex in renderQueue.renderIndices)
                 {
                     foreach (var system in renderQueue.renderQueue.Contents)
                     {
+                        var needsSorting = system.renderSystem.isRenderable && shouldSort;
+
+                        if (system.renderData != null)
+                        {
+                            if (needsSorting)
+                            {
+                                var renderQueue = RenderSystem.GetRenderQueue(renderIndex);
+
+                                var sortMode = RenderSystem.RenderQueueSortMode(renderQueue);
+
+                                system.renderData.Sort(renderIndex, cameraTransform.Position, sortMode);
+                            }
+
+                            system.renderData.Submit(renderIndex);
+
+                            continue;
+                        }
+
                         if (!system.queue.TryGetValue(renderIndex, out var container) ||
                             container.queue.Empty)
                         {
@@ -281,19 +341,6 @@ internal partial class StapleEditor
                                 {
                                     if (renderable.Enabled)
                                     {
-                                        renderable.isVisible = !renderable.forceRenderingOff &&
-                                            renderable.cullingState != CullingState.Invisible;
-
-                                        if (renderable.isVisible)
-                                        {
-                                            if (renderable.cullingState == CullingState.None)
-                                            {
-                                                renderable.isVisible = camera.IsVisible(renderable.bounds);
-
-                                                renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
-                                            }
-                                        }
-
                                         if (!renderable.isVisible)
                                         {
                                             RenderSystem.RenderStats.culledDrawCalls++;
@@ -310,7 +357,7 @@ internal partial class StapleEditor
                                     }
                                 });
 
-                                if (cameraTransform.Version != cameraTransformVersion)
+                                if (needsSorting)
                                 {
                                     var renderQueue = RenderSystem.GetRenderQueue(renderIndex);
 

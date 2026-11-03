@@ -183,6 +183,7 @@ internal partial class StapleEditor
     class RenderQueue(StapleEditor editor) : IWorldChangeReceiver
     {
         public readonly SceneQuery<Transform> transforms = new(true);
+        public readonly SceneQuery<Renderable> renderables = new(true);
         public readonly ExpandableContainer<RenderSystem.RenderSystemRenderQueue> renderQueue = new(false);
         public readonly List<Entity> disabledEntities = [];
         public readonly SortedSet<int> renderIndices = [];
@@ -256,9 +257,39 @@ internal partial class StapleEditor
 
                 system.renderSystem = renderSystemContent[i];
 
+                system.renderData?.Clear();
+
                 foreach (var pair in system.queue)
                 {
                     pair.Value.queue.Clear();
+                }
+
+                if (system.UsesRenderData)
+                {
+                    //Should always replace, just in case the order changes
+                    system.renderData = system.renderSystem.system.CreateRenderData();
+                }
+
+                system.renderSystem.globalQueue.Clear();
+
+                foreach(var transform in transforms.Contents)
+                {
+                    var entity = transform.Entity;
+
+                    var layer = entity.Layer;
+
+                    if (layer == LayerMask.NameToLayer(RenderTargetLayerName))
+                    {
+                        continue;
+                    }
+
+                    if (system.renderSystem.system.UsesOwnRenderProcess ||
+                        !transform.Entity.TryGetComponent(system.renderSystem.system.RelatedComponent, out var component))
+                    {
+                        continue;
+                    }
+
+                    system.renderSystem.globalQueue.Add(transform.Entity, transform, component);
                 }
             }
 
@@ -336,6 +367,22 @@ internal partial class StapleEditor
 
                         container.queue.Add(entity, transform, component);
                     }
+                }
+            }
+
+
+            foreach (var item in renderQueue.Contents)
+            {
+                if (!item.UsesRenderData || item.renderData == null)
+                {
+                    continue;
+                }
+
+                item.renderData.Clear();
+
+                foreach (var (renderIndex, queue) in item.queue)
+                {
+                    item.renderSystem.system.PrepareRenderData(item.renderData, queue.queue, editor.camera, editor.cameraTransform, renderIndex);
                 }
             }
         }
