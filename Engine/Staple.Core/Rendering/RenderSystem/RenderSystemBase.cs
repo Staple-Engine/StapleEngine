@@ -33,7 +33,7 @@ public abstract class RenderSystemBase(bool usesOwnRenderProcess, Type relatedCo
     public abstract IRenderQueue CreateRenderQueue();
 
     /// <summary>
-    /// Creates a new instance of this render system's render data
+    /// Creates a new instance of this render system's render data, if any
     /// </summary>
     /// <returns>A new render data</returns>
     public abstract IRenderData CreateRenderData();
@@ -45,17 +45,17 @@ public abstract class RenderSystemBase(bool usesOwnRenderProcess, Type relatedCo
     public abstract void Prepare();
 
     /// <summary>
-    /// Pre-processes an entity.
+    /// Pre-processes a render queue.
     /// Use this to prepare information before the rendering pass, such as updating bounds.
     /// </summary>
-    /// <param name="renderQueue">A list of all entities, transforms, and the related component</param>
+    /// <param name="renderQueue">The render queue to preprocess</param>
     public abstract void Preprocess(IRenderQueue renderQueue);
 
     /// <summary>
     /// Processes a render queue.
     /// This is when you should handle the queue's data in order to render.
     /// </summary>
-    /// <param name="renderQueue">A list of all renderables</param>
+    /// <param name="renderQueue">The render queue to process</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
     /// <param name="renderIndex">The <see cref="Material.RenderQueueIndex"/> for the material that should be renderered.
@@ -68,7 +68,7 @@ public abstract class RenderSystemBase(bool usesOwnRenderProcess, Type relatedCo
     /// You likely want to keep track of your renderers in the render data as well.
     /// </summary>
     /// <param name="renderData">The render data to prepare</param>
-    /// <param name="renderQueue">A list of all renderables</param>
+    /// <param name="renderQueue">A render queue to process</param>
     /// <param name="activeCamera">The current active camera</param>
     /// <param name="activeCameraTransform">The current active camera's transform</param>
     /// <param name="renderIndex">The <see cref="Material.RenderQueueIndex"/> for the material that should be renderered.
@@ -78,7 +78,8 @@ public abstract class RenderSystemBase(bool usesOwnRenderProcess, Type relatedCo
 
     /// <summary>
     /// Updates a render data's visiblity info.
-    /// Use this to update only whether an object should be rendered or not
+    /// Use this to update only whether an object should be rendered or not.
+    /// You likely want to check <see cref="Renderable.isVisible"/> and use that rather than frustum cull.
     /// </summary>
     /// <param name="renderData">The render data to update</param>
     /// <param name="activeCamera">The current active camera</param>
@@ -100,12 +101,24 @@ public abstract class RenderSystemBase(bool usesOwnRenderProcess, Type relatedCo
     /// </summary>
     public abstract void Shutdown();
 
+    /// <summary>
+    /// Checks whether a material is part of a specific render index
+    /// </summary>
+    /// <param name="material">The material</param>
+    /// <param name="renderIndex">The render index</param>
+    /// <returns>Whether the material has that render index</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected static bool IsValidMaterial(Material material, int renderIndex)
     {
         return (material?.RenderQueueIndex ?? -1) == renderIndex;
     }
 
+    /// <summary>
+    /// Iterates all valid materials in a renderable
+    /// </summary>
+    /// <param name="renderable">The renderable to iterate</param>
+    /// <param name="renderIndex">The render index we want</param>
+    /// <param name="callback">A callback that will be called with indices for <see cref="Renderable.materials"/> that match the render index</param>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected static void IterateValidMaterials(Renderable renderable, int renderIndex, Action<int> callback)
     {

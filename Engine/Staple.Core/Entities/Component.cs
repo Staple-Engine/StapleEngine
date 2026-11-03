@@ -19,9 +19,9 @@ public class Component
         }
     }
 
-    [field: NonSerialized]
+    [NonSerialized]
     public Entity Entity { get; internal set; }
 
-    [field: NonSerialized]
+    [NonSerialized]
     public Transform Transform { get; internal set; }
 }

@@ -355,7 +355,8 @@ internal static class StapleSerializer
     /// <param name="mode">The serialization mode we want to use</param>
     public static void SerializeField(FieldInfo field, object instance, StapleSerializerContext context, StapleSerializationMode mode)
     {
-        if (field.GetCustomAttribute<NonSerializedAttribute>() != null)
+        if (field.GetCustomAttribute<Staple.NonSerializedAttribute>() != null ||
+            field.GetCustomAttribute<System.NonSerializedAttribute>() != null)
         {
             return;
         }
@@ -691,7 +692,8 @@ internal static class StapleSerializer
     {
         var hasSerializeField = property.GetCustomAttribute<SerializeFieldAttribute>() != null;
 
-        if (property.GetCustomAttribute<NonSerializedAttribute>() != null ||
+        if (property.GetCustomAttribute<Staple.NonSerializedAttribute>() != null ||    
+            property.GetCustomAttribute<System.NonSerializedAttribute>() != null ||
             !property.CanRead ||
             !property.CanWrite ||
             property.GetMethod is not MethodInfo getMethod ||

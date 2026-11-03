@@ -79,7 +79,7 @@ internal class AssetSerializationTests
 
         internal int notSerialized = 0;
 
-        [NonSerialized]
+        [Staple.NonSerialized]
         public int notSerialized2 = 0;
     }
 
@@ -156,6 +156,9 @@ internal class AssetSerializationTests
         private int serializedField { get; set; }
 
         public int invalidField { get; private set; } = 1;
+
+        [Staple.NonSerialized]
+        public int dontSerializeField { get; set; } = 2;
 
         public void SetHiddenField(int value)
         {
@@ -541,6 +544,7 @@ internal class AssetSerializationTests
         asset.SetSerializedField(2);
         asset.SetHiddenField(1);
         asset.SetInvalidField(123);
+        asset.dontSerializeField = 123;
 
         var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
 
@@ -561,6 +565,7 @@ internal class AssetSerializationTests
             Assert.That(newAsset.GetHiddenField(), Is.EqualTo(0));
             Assert.That(newAsset.GetSerializedField(), Is.EqualTo(2));
             Assert.That(newAsset.invalidField, Is.EqualTo(1));
+            Assert.That(newAsset.dontSerializeField, Is.EqualTo(2));
         }
     }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Staple.Internal;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.InteropServices;
@@ -76,28 +77,7 @@ public class GenericRenderQueue<T> : IRenderQueue where T: Component
             return;
         }
 
-        items.Sort((a, b) =>
-        {
-            var visibleA = a.renderable.isVisible;
-            var visibleB = b.renderable.isVisible;
-
-            if(!visibleA)
-            {
-                return visibleB ? -1 : 0;
-            }
-            else if(!visibleB)
-            {
-                return 1;
-            }
-
-            var distA = Vector3.DistanceSquared(origin, a.transform.Position);
-            var distB = Vector3.DistanceSquared(origin, b.transform.Position);
-
-            return sortMode switch
-            {
-                RenderableSortMode.BackToFront => distB.CompareTo(distA),
-                _ => distA.CompareTo(distB),
-            };
-        });
+        items.Sort((a, b) => RenderSystem.RenderQueueSortComparer(a.renderable.isVisible, b.renderable.isVisible,
+            a.transform.Position, b.transform.Position, origin, sortMode));
     }
 }

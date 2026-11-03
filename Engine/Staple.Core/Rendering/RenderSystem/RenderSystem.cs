@@ -107,6 +107,38 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     }
 
     /// <summary>
+    /// Generic <see cref="Comparison{T}"/> helper for a render queue
+    /// </summary>
+    /// <param name="visibleA">Whether A is visible</param>
+    /// <param name="visibleB">Whether B is visible</param>
+    /// <param name="positionA">The position of A</param>
+    /// <param name="positionB">The position of B</param>
+    /// <param name="origin">The camera position</param>
+    /// <param name="sortMode">The sort mode</param>
+    /// <returns>The comparison result</returns>
+    public static int RenderQueueSortComparer(bool visibleA, bool visibleB, Vector3 positionA, Vector3 positionB, Vector3 origin,
+        RenderableSortMode sortMode)
+    {
+        if (!visibleA)
+        {
+            return visibleB ? -1 : 0;
+        }
+        else if (!visibleB)
+        {
+            return 1;
+        }
+
+        var distA = Vector3.DistanceSquared(origin, positionA);
+        var distB = Vector3.DistanceSquared(origin, positionB);
+
+        return sortMode switch
+        {
+            RenderableSortMode.BackToFront => distB.CompareTo(distA),
+            _ => distA.CompareTo(distB),
+        };
+    }
+
+    /// <summary>
     /// Registers a render system into this subsystem
     /// </summary>
     /// <param name="system">The system to add</param>

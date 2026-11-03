@@ -61,29 +61,27 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
         public void Clear()
         {
-            foreach (var pair in perRenderIndexData)
+            foreach (var renderData in perRenderIndexData.Values)
             {
-                foreach (var p in pair.Value.instanceCache)
+                foreach (var item in renderData.instanceList.Contents)
                 {
-                    p.Value.instanceInfos.Clear();
+                    item.instanceInfos.Clear();
                 }
 
-                foreach (var p in pair.Value.staticInstanceCache)
+                foreach (var item in renderData.staticInstanceList.Contents)
                 {
-                    var info = p.Value;
+                    item.instanceCount = 0;
 
-                    info.instanceCount = 0;
-
-                    foreach (var entry in info.entries.Contents)
+                    foreach (var entry in item.entries.Contents)
                     {
                         entry.instanceCount = 0;
 
                         entry.transforms.Clear();
                     }
 
-                    info.entries.Clear();
+                    item.entries.Clear();
 
-                    info.entryStateToEntries.Clear();
+                    item.entryStateToEntries.Clear();
                 }
             }
         }
@@ -237,28 +235,28 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
         public void UpdateVisibility()
         {
-            foreach(var (_, renderData) in perRenderIndexData)
+            foreach(var renderData in perRenderIndexData.Values)
             {
-                foreach(var (_, items) in renderData.instanceCache)
+                foreach(var item in renderData.instanceList.Contents)
                 {
-                    items.instanceCount = 0;
+                    item.instanceCount = 0;
 
-                    foreach(var instance in items.instanceInfos.Contents)
+                    foreach(var instance in item.instanceInfos.Contents)
                     {
-                        instance.visible = items.renderer.isVisible;
+                        instance.visible = item.renderer.isVisible;
 
                         if(instance.visible)
                         {
-                            items.instanceCount++;
+                            item.instanceCount++;
                         }
                     }
                 }
 
-                foreach(var (_, items) in renderData.staticInstanceCache)
+                foreach(var item in renderData.staticInstanceList.Contents)
                 {
-                    items.instanceCount = 0;
+                    item.instanceCount = 0;
 
-                    foreach(var entry in items.entries.Contents)
+                    foreach(var entry in item.entries.Contents)
                     {
                         entry.instanceCount = 0;
 
@@ -269,7 +267,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
                             if(transform.visible)
                             {
                                 entry.instanceCount++;
-                                items.instanceCount++;
+                                item.instanceCount++;
                             }
                         }
                     }
@@ -289,60 +287,18 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 return;
             }
 
-            foreach (var (_, items) in renderData.instanceCache)
+            foreach (var item in renderData.instanceList.Contents)
             {
-                items.instanceInfos.Contents.Sort((a, b) =>
-                {
-                    var visibleA = a.visible;
-                    var visibleB = b.visible;
-
-                    if (!visibleA)
-                    {
-                        return visibleB ? -1 : 0;
-                    }
-                    else if (!visibleB)
-                    {
-                        return 1;
-                    }
-
-                    var distA = Vector3.DistanceSquared(origin, a.transform.Position);
-                    var distB = Vector3.DistanceSquared(origin, b.transform.Position);
-
-                    return sortMode switch
-                    {
-                        RenderableSortMode.BackToFront => distB.CompareTo(distA),
-                        _ => distA.CompareTo(distB),
-                    };
-                });
+                item.instanceInfos.Contents.Sort((a, b) => RenderSystem.RenderQueueSortComparer(a.visible, b.visible,
+                    a.transform.Position, b.transform.Position, origin, sortMode));
             }
 
-            foreach (var (_, items) in renderData.staticInstanceCache)
+            foreach (var item in renderData.staticInstanceList.Contents)
             {
-                foreach (var entry in items.entries.Contents)
+                foreach (var entry in item.entries.Contents)
                 {
-                    entry.transforms.Contents.Sort((a, b) =>
-                    {
-                        var visibleA = a.visible;
-                        var visibleB = b.visible;
-
-                        if (!visibleA)
-                        {
-                            return visibleB ? -1 : 0;
-                        }
-                        else if (!visibleB)
-                        {
-                            return 1;
-                        }
-
-                        var distA = Vector3.DistanceSquared(origin, a.transform.Position);
-                        var distB = Vector3.DistanceSquared(origin, b.transform.Position);
-
-                        return sortMode switch
-                        {
-                            RenderableSortMode.BackToFront => distB.CompareTo(distA),
-                            _ => distA.CompareTo(distB),
-                        };
-                    });
+                    entry.transforms.Contents.Sort((a, b) => RenderSystem.RenderQueueSortComparer(a.visible, b.visible, a.transform.Position,
+                        b.transform.Position, origin, sortMode));
                 }
             }
         }

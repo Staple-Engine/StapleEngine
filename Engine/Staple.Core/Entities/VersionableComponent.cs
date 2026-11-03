@@ -4,7 +4,7 @@ namespace Staple;
 
 public class VersionableComponent : Component
 {
-    [field: NonSerialized]
+    [NonSerialized]
     public ulong Version
     {
         get;
