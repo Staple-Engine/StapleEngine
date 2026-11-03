@@ -18,7 +18,15 @@ internal class FrustumCuller
     /// <summary>
     /// The frustum planes
     /// </summary>
-    internal readonly Plane[] planes = new Plane[6];
+    internal readonly Vector3[] planes = new Vector3[6];
+    /// <summary>
+    /// The distances for the planes
+    /// </summary>
+    internal readonly float[] distances = new float[6];
+    /// <summary>
+    /// The planes combined into Vector4's
+    /// </summary>
+    internal readonly Vector4[] combinedPlanes = new Vector4[6];
 
     /// <summary>
     /// Updates the frustum culler's planes
@@ -30,48 +38,58 @@ internal class FrustumCuller
         var clip = view * projection;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static void HandlePlane(float A, float B, float C, float D, float NA, float NB, float NC, float ND, ref Plane plane)
+        static void HandlePlane(float A, float B, float C, float D, float NA, float NB, float NC, float ND, ref Vector3 plane,
+            ref float distance, ref Vector4 combined)
         {
             var vector = new Vector3(A + NA, B + NB, C + NC);
 
             var magnitude = vector.Length();
 
-            plane.Normal = vector.Normalized;
-            plane.D = (D + ND) / magnitude;
+            var normalized = vector.Normalized;
+
+            plane.X = combined.X = normalized.X;
+            plane.Y = combined.Y = normalized.Y;
+            plane.Z = combined.Z = normalized.Z;
+            distance = combined.W = (D + ND) / magnitude;
         }
 
-        static void HandlePlaneSimple(float A, float B, float C, float D, ref Plane plane)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void HandlePlaneSimple(float A, float B, float C, float D, ref Vector3 plane, ref float distance, ref Vector4 combined)
         {
             var vector = new Vector3(A, B, C);
 
             var magnitude = vector.Length();
 
-            plane.Normal = vector.Normalized;
-            plane.D = D / magnitude;
+            var normalized = vector.Normalized;
+
+            plane.X = combined.X = normalized.X;
+            plane.Y = combined.Y = normalized.Y;
+            plane.Z = combined.Z = normalized.Z;
+            distance = combined.W = D / magnitude;
         }
 
         //Left
         HandlePlane(clip.M14, clip.M24, clip.M34, clip.M44,
-            clip.M11, clip.M21, clip.M31, clip.M41, ref planes[0]);
+            clip.M11, clip.M21, clip.M31, clip.M41, ref planes[0], ref distances[0], ref combinedPlanes[0]);
 
         //Right
         HandlePlane(clip.M14, clip.M24, clip.M34, clip.M44,
-            -clip.M11, -clip.M21, -clip.M31, -clip.M41, ref planes[1]);
+            -clip.M11, -clip.M21, -clip.M31, -clip.M41, ref planes[1], ref distances[1], ref combinedPlanes[1]);
 
         //Top
         HandlePlane(clip.M14, clip.M24, clip.M34, clip.M44,
-            -clip.M12, -clip.M22, -clip.M32, -clip.M42, ref planes[2]);
+            -clip.M12, -clip.M22, -clip.M32, -clip.M42, ref planes[2], ref distances[2], ref combinedPlanes[2]);
 
         //Bottom
         HandlePlane(clip.M14, clip.M24, clip.M34, clip.M44,
-            clip.M12, clip.M22, clip.M32, clip.M42, ref planes[3]);
+            clip.M12, clip.M22, clip.M32, clip.M42, ref planes[3], ref distances[3], ref combinedPlanes[3]);
 
         //Near
-        HandlePlaneSimple(clip.M13, clip.M23, clip.M33, clip.M43, ref planes[4]);
+        HandlePlaneSimple(clip.M13, clip.M23, clip.M33, clip.M43, ref planes[4], ref distances[4], ref combinedPlanes[4]);
 
         //Far
         HandlePlane(clip.M14, clip.M24, clip.M34, clip.M44,
-            -clip.M13, -clip.M23, -clip.M33, -clip.M43, ref planes[5]);
+            -clip.M13, -clip.M23, -clip.M33, -clip.M43, ref planes[5], ref distances[5], ref combinedPlanes[5]);
     }
 
     /// <summary>
@@ -83,7 +101,10 @@ internal class FrustumCuller
     {
         for(var i = 0; i < 6; i++)
         {
-            var dot = Vector3.Dot(planes[i].Normal, v) + planes[i].D;
+            ref var normal = ref planes[i];
+            ref var distance = ref distances[i];
+
+            var dot = Vector3.Dot(normal, v) + distance;
 
             if (dot < -Math.Epsilon)
             {
@@ -104,11 +125,9 @@ internal class FrustumCuller
     {
         for(var i = 0; i < 6; i++)
         {
-            var plane = planes[i];
-            var normal = plane.Normal;
-            var distance = plane.D;
+            ref var plane = ref combinedPlanes[i];
 
-            if(normal.X * center.X + normal.Y * center.Y + normal.Z * center.Z + distance <= -radius)
+            if(plane.X * center.X + plane.Y * center.Y + plane.Z * center.Z + plane.W <= -radius)
             {
                 return FrustumResult.Invisible;
             }
@@ -138,16 +157,14 @@ internal class FrustumCuller
 
         for (var i = 0; i < 6; i++)
         {
-            var plane = planes[i];
-            var normal = plane.Normal;
-            var planeVector = new Vector4(normal.X, normal.Y, normal.Z, plane.D);
+            ref var normal = ref planes[i];
+            ref var distance = ref distances[i];
 
-            var positive = new Vector4(normal.X > 0 ? max.X : min.X,
-                normal.Y > 0 ? max.Y : min.Y,
-                normal.Z > 0 ? max.Z : min.Z,
-                1.0f);
+            var positive = new Vector3(normal.X >= 0 ? max.X : min.X,
+                normal.Y >= 0 ? max.Y : min.Y,
+                normal.Z >= 0 ? max.Z : min.Z);
 
-            var t = Vector4.Dot(positive, planeVector);
+            var t = positive.Dot(normal) + distance;
 
             if(t < 0)
             {

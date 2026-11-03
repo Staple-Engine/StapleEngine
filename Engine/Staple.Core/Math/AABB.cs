@@ -114,6 +114,49 @@ public readonly struct AABB
     }
 
     /// <summary>
+    /// Transforms this AABB with a matrix
+    /// </summary>
+    /// <param name="matrix">The matrix to transform with</param>
+    /// <returns>The transformed AABB</returns>
+    public readonly AABB Transform(in Matrix4x4 matrix)
+    {
+        var corners = Corners;
+
+        for(var i = 0; i < corners.Length; i++)
+        {
+            ref var corner = ref corners[i];
+
+            corner = corner.Transformed(matrix);
+        }
+
+        return AABB.CreateFromPoints(corners);
+    }
+
+    /// <summary>
+    /// Transforms this AABB with a <see cref="Staple.Transform"/> in local space
+    /// </summary>
+    /// <param name="transform">The transform</param>
+    /// <returns>The AABB, transformed</returns>
+    public readonly AABB TransformLocal(Transform transform)
+    {
+        var matrix = transform.LocalMatrix;
+
+        return Transform(in matrix);
+    }
+
+    /// <summary>
+    /// Transforms this AABB with a <see cref="Staple.Transform"/> in globalspace
+    /// </summary>
+    /// <param name="transform">The transform</param>
+    /// <returns>The AABB, transformed</returns>
+    public readonly AABB Transform(Transform transform)
+    {
+        var matrix = transform.Matrix;
+
+        return Transform(in matrix);
+    }
+
+    /// <summary>
     /// Creates an AABB from a min/max vector
     /// </summary>
     /// <param name="min">the minimum value</param>

@@ -86,6 +86,19 @@ public class Transform : VersionableComponent
     }
 
     /// <summary>
+    /// Gets the transform's Local Transformation Matrix
+    /// </summary>
+    public ref readonly Matrix4x4 LocalMatrix
+    {
+        get
+        {
+            UpdateState();
+
+            return ref matrix;
+        }
+    }
+
+    /// <summary>
     /// The world-space position
     /// </summary>
     public Vector3 Position
