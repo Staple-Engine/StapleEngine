@@ -104,6 +104,8 @@ public class SpriteRenderSystem : RenderSystemBase
 
     public override IRenderQueue CreateRenderQueue() => new GenericRenderQueue<SpriteRenderer>();
 
+    public override IRenderData CreateRenderData() => null;
+
     /// <summary>
     /// Calculates nine patch geometry for a part of the sprite 
     /// </summary>
@@ -356,7 +358,7 @@ public class SpriteRenderSystem : RenderSystemBase
 
             r.localBounds = new AABB(Vector3.Zero, size);
 
-            r.UpdateBounds(new AABB(entry.transform.Position, size));
+            r.bounds = new(entry.transform.Position, size);
         }
     }
 
@@ -605,5 +607,14 @@ public class SpriteRenderSystem : RenderSystemBase
                 s.material.MainTexture = t;
             }
         }
+    }
+
+    public override void PrepareRenderData(IRenderData renderData, IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform,
+        int renderIndex)
+    {
+    }
+
+    public override void UpdateRenderDataVisibility(IRenderData renderData, Camera activeCamera, Transform activeCameraTransform)
+    {
     }
 }
