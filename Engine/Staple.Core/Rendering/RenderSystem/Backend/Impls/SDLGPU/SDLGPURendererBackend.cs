@@ -1060,7 +1060,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         {
             fixed(SDL_GPUTexture **t = &swapchainTexture)
             {
-                if (!SDL3.SDL_WaitAndAcquireGPUSwapchainTexture(commandBuffer, window.window, t, &w, &h))
+                if (!SDL3.SDL_WaitAndAcquireGPUSwapchainTexture(commandBuffer, window.window, t, &w, &h) || swapchainTexture == null)
                 {
                     SDL3.SDL_CancelGPUCommandBuffer(commandBuffer);
 
