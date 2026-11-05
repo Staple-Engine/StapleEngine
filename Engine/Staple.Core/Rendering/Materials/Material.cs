@@ -649,8 +649,7 @@ public sealed class Material : IGuidAsset
     /// <param name="state">The render state to apply to</param>
     internal void ApplyProperties(ref RenderState state)
     {
-        if(materialResource?.shader == null ||
-            !materialResource.shader.shaderResource.instances.TryGetValue(ShaderVariantKey, out var shaderInstance))
+        if(materialResource?.shader == null || shaderInstance == null)
         {
             state.shader = null;
             state.shaderInstance = null;

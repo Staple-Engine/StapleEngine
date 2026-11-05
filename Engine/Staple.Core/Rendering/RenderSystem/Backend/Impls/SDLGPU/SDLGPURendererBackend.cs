@@ -2083,7 +2083,11 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             item.used = false;
         }
 
-        state.shaderInstance.SetValue(StapleRenderDataWorldUniformName, state.world);
+        if(useWorldMatrix)
+        {
+            state.shaderInstance.SetValue(StapleRenderDataWorldUniformName, state.world);
+        }
+
         state.shaderInstance.SetValue(StapleRenderDataViewUniformName, viewData.renderData.view);
         state.shaderInstance.SetValue(StapleRenderDataProjectionUniformName, viewData.renderData.projection);
         state.shaderInstance.SetValue(StapleRenderDataUseWorldMatrixUniformName, useWorldMatrix);
