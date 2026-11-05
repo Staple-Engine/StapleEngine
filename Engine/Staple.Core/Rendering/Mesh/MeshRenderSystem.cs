@@ -53,6 +53,10 @@ public sealed class MeshRenderSystem : RenderSystemBase
         public readonly ExpandableContainer<InstanceData> instanceList = new(false);
 
         public readonly ExpandableContainer<StaticInstanceData> staticInstanceList = new(false);
+
+        public readonly ExpandableContainer<InstanceData> usableInstanceList = new(false);
+
+        public readonly ExpandableContainer<StaticInstanceData> usableStaticInstanceList = new(false);
     }
 
     private class RenderData : IRenderData
@@ -237,7 +241,10 @@ public sealed class MeshRenderSystem : RenderSystemBase
         {
             foreach(var renderData in perRenderIndexData.Values)
             {
-                foreach(var item in renderData.instanceList.Contents)
+                renderData.usableInstanceList.Clear();
+                renderData.usableStaticInstanceList.Clear();
+
+                foreach (var item in renderData.instanceList.Contents)
                 {
                     item.instanceCount = 0;
 
@@ -249,6 +256,11 @@ public sealed class MeshRenderSystem : RenderSystemBase
                         {
                             item.instanceCount++;
                         }
+                    }
+
+                    if(item.instanceCount > 0)
+                    {
+                        renderData.usableInstanceList.Add(item);
                     }
                 }
 
@@ -271,6 +283,11 @@ public sealed class MeshRenderSystem : RenderSystemBase
                             }
                         }
                     }
+
+                    if(item.instanceCount > 0)
+                    {
+                        renderData.usableStaticInstanceList.Add(item);
+                    }
                 }
             }
         }
@@ -287,13 +304,13 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 return;
             }
 
-            foreach (var item in renderData.instanceList.Contents)
+            foreach (var item in renderData.usableInstanceList.Contents)
             {
                 item.instanceInfos.Contents.Sort((a, b) => RenderSystem.RenderQueueSortComparer(a.visible, b.visible,
                     a.transform.Position, b.transform.Position, origin, sortMode));
             }
 
-            foreach (var item in renderData.staticInstanceList.Contents)
+            foreach (var item in renderData.usableStaticInstanceList.Contents)
             {
                 foreach (var entry in item.entries.Contents)
                 {
@@ -312,13 +329,8 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
             var renderState = RenderState.Default;
 
-            foreach (var contents in renderData.staticInstanceList.Contents)
+            foreach (var contents in renderData.usableStaticInstanceList.Contents)
             {
-                if(contents.instanceCount == 0)
-                {
-                    continue;
-                }
-
                 renderState.ClearStorageBuffers();
 
                 renderState.instanceCount = 1;
@@ -342,13 +354,8 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 RenderSystem.SubmitStatic(renderState, contents.entries.Contents);
             }
 
-            foreach (var contents in renderData.instanceList.Contents)
+            foreach (var contents in renderData.usableInstanceList.Contents)
             {
-                if (contents.instanceCount == 0)
-                {
-                    continue;
-                }
-
                 renderState.ClearStorageBuffers();
                 renderState.instanceTransforms?.Clear();
 
@@ -409,6 +416,8 @@ public sealed class MeshRenderSystem : RenderSystemBase
                         item.mesh.SetActive(ref renderState, item.submeshIndex);
 
                         RenderSystem.Submit(renderState, instanceData.mesh.SubmeshTriangleCount(item.submeshIndex), 1);
+
+                        break;
                     }
                 }
             }
@@ -498,6 +507,8 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 continue;
             }
 
+            renderer.mesh.UploadMeshData();
+
             var transform = renderer.Transform;
 
             var localSize = renderer.mesh.bounds.size.Transformed(transform.LocalRotation).Abs();
@@ -519,19 +530,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
     public override void Preprocess(IRenderQueue renderQueue)
     {
-        if (renderQueue is not GenericRenderQueue<MeshRenderer> queue)
-        {
-            return;
-        }
-
-        var items = queue.Items;
-
-        foreach (var entry in items)
-        {
-            var renderer = entry.component;
-
-            renderer.mesh?.UploadMeshData();
-        }
     }
 
     public override void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)

@@ -1168,9 +1168,9 @@ public sealed partial class RenderSystem
             }
         }
 
-        if(instances == 0)
+        if (instances == 0)
         {
-            RenderStats.savedDrawCalls += instances;
+            RenderStats.culledDrawCalls++;
 
             return;
         }
@@ -1178,6 +1178,7 @@ public sealed partial class RenderSystem
         Backend.RenderStatic(state, entries);
 
         RenderStats.drawCalls++;
+        RenderStats.instanceCount += instances;
         RenderStats.triangleCount += triangleCount;
     }
     #endregion

@@ -9,8 +9,8 @@ internal class MaterialResource
     public Shader shader;
     public MaterialMetadata metadata;
 
-    public readonly Dictionary<MaterialResourceParameter, int> vertexTextureBindings = [];
-    public readonly Dictionary<MaterialResourceParameter, int> fragmentTextureBindings = [];
+    public readonly Dictionary<StringID, int> vertexTextureBindings = [];
+    public readonly Dictionary<StringID, int> fragmentTextureBindings = [];
 
     public Texture[] vertexSamplers;
 

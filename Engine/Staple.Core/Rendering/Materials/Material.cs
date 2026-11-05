@@ -325,28 +325,28 @@ public sealed class Material : IGuidAsset
         vertexTextureBindings.Clear();
         fragmentTextureBindings.Clear();
 
-        foreach(var pair in shaderInstance.vertexTextureBindings)
+        foreach(var (key, binding) in shaderInstance.vertexTextureBindings)
         {
-            if (!parameters.TryGetValue(pair.Key, out var p))
+            if (!parameters.TryGetValue(key, out var p))
             {
                 continue;
             }
 
-            vertexTextureBindings.Add(p, pair.Value);
+            vertexTextureBindings.Add(key, binding);
 
-            vertexSamplers[pair.Value] = p.textureValue;
+            vertexSamplers[binding] = p.textureValue;
         }
 
-        foreach (var pair in shaderInstance.fragmentTextureBindings)
+        foreach (var (key, binding) in shaderInstance.fragmentTextureBindings)
         {
-            if (!parameters.TryGetValue(pair.Key, out var p))
+            if (!parameters.TryGetValue(key, out var p))
             {
                 continue;
             }
 
-            fragmentTextureBindings.Add(p, pair.Value);
+            fragmentTextureBindings.Add(key, binding);
 
-            fragmentSamplers[pair.Value] = p.textureValue;
+            fragmentSamplers[binding] = p.textureValue;
         }
 
         (materialResource.vertexSamplers, materialResource.fragmentSamplers, materialResource.parameters) =
@@ -673,7 +673,7 @@ public sealed class Material : IGuidAsset
         state.renderQueue = RenderQueue;
         state.renderQueueIndex = RenderQueueIndex;
 
-        foreach (var parameter in parameters.Values)
+        foreach (var (key, parameter) in parameters)
         {
             if(!parameter.shaderHandle.IsValid)
             {
@@ -689,12 +689,12 @@ public sealed class Material : IGuidAsset
                         continue;
                     }
 
-                    if (vertexTextureBindings.TryGetValue(parameter, out var binding))
+                    if (vertexTextureBindings.TryGetValue(key, out var binding))
                     {
                         vertexSamplers[binding] = parameter.textureValue;
                     }
 
-                    if (fragmentTextureBindings.TryGetValue(parameter, out binding))
+                    if (fragmentTextureBindings.TryGetValue(key, out binding))
                     {
                         fragmentSamplers[binding] = parameter.textureValue;
                     }
