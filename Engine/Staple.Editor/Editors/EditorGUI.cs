@@ -366,10 +366,12 @@ public static class EditorGUI
     /// <returns>Whether the button was clicked</returns>
     public static void Button(string label, string key, Action handler)
     {
-        if(ImGui.Button(MakeIdentifier(label, key)))
+        if (!ImGui.Button(MakeIdentifier(label, key)))
         {
-            ExecuteHandler(handler, $"Button {label}");
+            return;
         }
+
+        ExecuteHandler(handler, $"Button {label}");
     }
 
     /// <summary>
@@ -383,10 +385,7 @@ public static class EditorGUI
     {
         ImGui.BeginDisabled();
 
-        if(ImGui.Button(MakeIdentifier(label, key)))
-        {
-            ExecuteHandler(handler, $"ButtonDisabled {label}");
-        }
+        Button(label, key, handler);
 
         ImGui.EndDisabled();
     }
@@ -1395,43 +1394,49 @@ public static class EditorGUI
     /// <param name="clickHandler">A handler with the tab index to render called when the tab item is clicked</param>
     public static void TabBar(string[] titles, string key, Action<int> handler, Action<int> clickHandler)
     {
-        if(ImGui.BeginTabBar(MakeIdentifier("", key)))
+        if (!ImGui.BeginTabBar(MakeIdentifier("", key)))
         {
-            for(var i = 0; i < titles.Length; i++)
+            return;
+        }
+
+        for(var i = 0; i < titles.Length; i++)
+        {
+            var title = titles[i];
+
+            //Apparently using IDs here doesn't work out, so we don't.
+            //The tab bar itself seems to work independently as long as we use IDs for it.
+            if (!ImGui.BeginTabItem(title))
             {
-                var title = titles[i];
-
-                //Apparently using IDs here doesn't work out, so we don't.
-                //The tab bar itself seems to work independently as long as we use IDs for it.
-                if (ImGui.BeginTabItem(title))
-                {
-                    try
-                    {
-                        handler?.Invoke(i);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Debug($"[EditorGUI] TabBar item {title} exception: {e}");
-                    }
-
-                    ImGui.EndTabItem();
-                }
-
-                if (ImGui.IsItemClicked())
-                {
-                    try
-                    {
-                        clickHandler?.Invoke(i);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Debug($"[EditorGUI] TabBar item {title} click exception: {e}");
-                    }
-                }
+                continue;
             }
 
-            ImGui.EndTabBar();
+            try
+            {
+                handler?.Invoke(i);
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[EditorGUI] TabBar item {title} exception: {e}");
+            }
+
+            ImGui.EndTabItem();
+
+            if (!ImGui.IsItemClicked())
+            {
+                continue;
+            }
+
+            try
+            {
+                clickHandler?.Invoke(i);
+            }
+            catch (Exception e)
+            {
+                Log.Debug($"[EditorGUI] TabBar item {title} click exception: {e}");
+            }
         }
+
+        ImGui.EndTabBar();
     }
 
     /// <summary>
@@ -1502,12 +1507,14 @@ public static class EditorGUI
     /// <param name="handler">The content of the menu bar. You probably want to call Menu and MenuItem</param>
     public static void MenuBar(Action handler)
     {
-        if(ImGui.BeginMenuBar())
+        if (!ImGui.BeginMenuBar())
         {
-            ExecuteHandler(handler, $"MenuBar");
-
-            ImGui.EndMenuBar();
+            return;
         }
+
+        ExecuteHandler(handler, $"MenuBar");
+
+        ImGui.EndMenuBar();
     }
 
     /// <summary>
@@ -1518,12 +1525,14 @@ public static class EditorGUI
     /// <param name="handler">A handler called if the menu is used</param>
     public static void Menu(string name, string key, Action handler)
     {
-        if(ImGui.BeginMenu(MakeIdentifier(name, key)))
+        if (!ImGui.BeginMenu(MakeIdentifier(name, key)))
         {
-            ExecuteHandler(handler, $"Menu {name}");
-
-            ImGui.EndMenu();
+            return;
         }
+
+        ExecuteHandler(handler, $"Menu {name}");
+
+        ImGui.EndMenu();
     }
 
     /// <summary>
@@ -1533,10 +1542,12 @@ public static class EditorGUI
     /// <param name="handler">A handler called if the item is clicked</param>
     public static void MenuItem(string name, string key, Action handler)
     {
-        if(ImGui.MenuItem(MakeIdentifier(name, key)))
+        if (!ImGui.MenuItem(MakeIdentifier(name, key)))
         {
-            ExecuteHandler(handler, $"MenuItem {name}");
+            return;
         }
+
+        ExecuteHandler(handler, $"MenuItem {name}");
     }
 
     /// <summary>
@@ -1553,10 +1564,12 @@ public static class EditorGUI
     /// <param name="text">The text for the tooltip</param>
     public static void Tooltip(string text)
     {
-        if (ImGui.IsItemHovered())
+        if (!ImGui.IsItemHovered())
         {
-            ImGui.SetTooltip(text);
+            return;
         }
+
+        ImGui.SetTooltip(text);
     }
 
     /// <summary>
@@ -1567,10 +1580,12 @@ public static class EditorGUI
     /// <param name="handler">The handler to execute when it's selected</param>
     public static void Selectable(string text, string key, Action handler, SelectableFlags flags = SelectableFlags.None)
     {
-        if (ImGui.Selectable(MakeIdentifier(text, key), (ImGuiSelectableFlags)flags))
+        if (!ImGui.Selectable(MakeIdentifier(text, key), (ImGuiSelectableFlags)flags))
         {
-            ExecuteHandler(handler, $"{text} Selectable");
+            return;
         }
+
+        ExecuteHandler(handler, $"{text} Selectable");
     }
 
     /// <summary>
@@ -1580,17 +1595,19 @@ public static class EditorGUI
     /// <param name="success">Triggered if successful</param>
     public static void DragDropTarget(string payload, Action success)
     {
-        if(ImGui.BeginDragDropTarget())
+        if (!ImGui.BeginDragDropTarget())
         {
-            var result = ImGui.AcceptDragDropPayload(payload);
-
-            if(!result.IsNull)
-            {
-                success();
-            }
-
-            ImGui.EndDragDropTarget();
+            return;
         }
+
+        var result = ImGui.AcceptDragDropPayload(payload);
+
+        if(!result.IsNull)
+        {
+            success();
+        }
+
+        ImGui.EndDragDropTarget();
     }
 
     /// <summary>
@@ -1600,47 +1617,49 @@ public static class EditorGUI
     /// <param name="callback">The callback to call with the target</param>
     public static void DragDropTarget(Type type, Action<object> callback)
     {
-        if (ImGui.BeginDragDropTarget())
+        if (!ImGui.BeginDragDropTarget())
         {
-            if(type == typeof(Entity))
-            {
-                var payload = ImGui.AcceptDragDropPayload("ENTITY");
-
-                unsafe
-                {
-                    if (payload.Handle != null && StapleEditor.instance.draggedEntity.IsValid)
-                    {
-                        var e = StapleEditor.instance.draggedEntity;
-
-                        StapleEditor.instance.draggedEntity = default;
-
-                        Changed = true;
-
-                        callback(e);
-                    }
-                }
-            }
-            else if(type == typeof(Component) ||
-                type.IsAssignableTo(typeof(Component)))
-            {
-                var payload = ImGui.AcceptDragDropPayload("ENTITY");
-
-                unsafe
-                {
-                    if (payload.Handle != null && StapleEditor.instance.draggedEntity.IsValid &&
-                        StapleEditor.instance.draggedEntity.TryGetComponent(type, out var component))
-                    {
-                        StapleEditor.instance.draggedEntity = default;
-
-                        Changed = true;
-
-                        callback(component);
-                    }
-                }
-            }
-
-            ImGui.EndDragDropTarget();
+            return;
         }
+
+        if(type == typeof(Entity))
+        {
+            var payload = ImGui.AcceptDragDropPayload("ENTITY");
+
+            unsafe
+            {
+                if (payload.Handle != null && StapleEditor.instance.draggedEntity.IsValid)
+                {
+                    var e = StapleEditor.instance.draggedEntity;
+
+                    StapleEditor.instance.draggedEntity = default;
+
+                    Changed = true;
+
+                    callback(e);
+                }
+            }
+        }
+        else if(type == typeof(Component) ||
+            type.IsAssignableTo(typeof(Component)))
+        {
+            var payload = ImGui.AcceptDragDropPayload("ENTITY");
+
+            unsafe
+            {
+                if (payload.Handle != null && StapleEditor.instance.draggedEntity.IsValid &&
+                    StapleEditor.instance.draggedEntity.TryGetComponent(type, out var component))
+                {
+                    StapleEditor.instance.draggedEntity = default;
+
+                    Changed = true;
+
+                    callback(component);
+                }
+            }
+        }
+
+        ImGui.EndDragDropTarget();
     }
 
     /// <summary>
@@ -1651,10 +1670,12 @@ public static class EditorGUI
     /// <param name="handler">Content for the window frame</param>
     public static void WindowFrame(string key, Vector2 size, Action handler)
     {
-        if(ImGui.BeginChild(key, size))
+        if (!ImGui.BeginChild(key, size))
         {
-            ExecuteHandler(handler, $"Window {key}");
+            return;
         }
+
+        ExecuteHandler(handler, $"Window {key}");
 
         ImGui.EndChild();
     }
@@ -1680,12 +1701,14 @@ public static class EditorGUI
     {
         QueueFrameEndAction(() =>
         {
-            if (ImGui.BeginPopup(key))
+            if (!ImGui.BeginPopup(key))
             {
-                ExecuteHandler(handler, $"Popup {key}");
+                return;
 
-                ImGui.EndPopup();
             }
+            ExecuteHandler(handler, $"Popup {key}");
+
+            ImGui.EndPopup();
         });
     }
 
@@ -1853,64 +1876,71 @@ public static class EditorGUI
     /// <param name="rowHandler">A callback for when a row is done</param>
     /// <param name="setupColumnHandler">A callback for what header title and width you want for the column</param>
     /// <param name="rowColumnHandler">a callback for a row and column</param>
-    /// <param name="rowClickHandler">A callback for when a row is clicked</param>
+    /// <param name="rowClickHandler">A callback for when a row is clicked. If it's null, the columns won't be selectable</param>
     public static void Table(string key, int rows, int columns, bool showHeader, Action<int> rowHandler,
         Func<int, (string, float)> setupColumnHandler, Action<int, int> rowColumnHandler, Action<int> rowClickHandler)
     {
-        if(ImGui.BeginTable(key, columns))
+        if (!ImGui.BeginTable(key, columns))
         {
-            for(var i = 0; i < columns; i++)
+            return;
+        }
+
+        for(var i = 0; i < columns; i++)
+        {
+            InnerBlock(i, () =>
             {
-                InnerBlock(i, () =>
+                var result = ExecuteHandler(setupColumnHandler, $"{key} column  width", i);
+
+                if (result.Item1 == null)
                 {
-                    var result = ExecuteHandler(setupColumnHandler, $"{key} column  width", i);
+                    return;
+                }
 
-                    if (result.Item1 != null)
-                    {
-                        if (result.Item2 > 0)
-                        {
-                            ImGui.TableSetupColumn(result.Item1, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, result.Item2);
-                        }
-                        else
-                        {
-                            ImGui.TableSetupColumn(result.Item1);
-                        }
-                    }
-                });
-            }
-
-            if(showHeader)
-            {
-                ImGui.TableHeadersRow();
-            }
-
-            for (var i = 0; i < rows; i++)
-            {
-                ImGui.TableNextRow();
-
-                InnerBlock(i, () =>
+                if (result.Item2 > 0)
                 {
-                    ExecuteHandler(rowHandler, $"{key} row {i}", i);
+                    ImGui.TableSetupColumn(result.Item1, ImGuiTableColumnFlags.WidthFixed | ImGuiTableColumnFlags.NoResize, result.Item2);
+                }
+                else
+                {
+                    ImGui.TableSetupColumn(result.Item1);
+                }
+            });
+        }
 
-                    for (var j = 0; j < columns; j++)
+        if(showHeader)
+        {
+            ImGui.TableHeadersRow();
+        }
+
+        for (var i = 0; i < rows; i++)
+        {
+            ImGui.TableNextRow();
+
+            InnerBlock(i, () =>
+            {
+                ExecuteHandler(rowHandler, $"{key} row {i}", i);
+
+                for (var j = 0; j < columns; j++)
+                {
+                    ImGui.TableNextColumn();
+
+                    InnerBlock(j, () =>
                     {
-                        ImGui.TableNextColumn();
+                        ExecuteHandler(rowColumnHandler, $"{key} row {i} column {j}", i, j);
+                    });
+                }
 
-                        InnerBlock(j, () =>
-                        {
-                            ExecuteHandler(rowColumnHandler, $"{key} row {i} column {j}", i, j);
-                        });
-                    }
-
+                if(rowClickHandler != null)
+                {
                     SameLine();
 
                     Selectable("", $"{key}.Row{i}", () => rowClickHandler?.Invoke(i),
                         SelectableFlags.SpanAllColumns | SelectableFlags.AllowDoubleClick);
-                });
-            }
-
-            ImGui.EndTable();
+                }
+            });
         }
+
+        ImGui.EndTable();
     }
 
     /// <summary>
