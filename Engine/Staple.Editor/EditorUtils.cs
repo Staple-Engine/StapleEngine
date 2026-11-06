@@ -130,6 +130,23 @@ public static class EditorUtils
     }
 
     /// <summary>
+    /// Checks if a directory exists at a specific path
+    /// </summary>
+    /// <param name="path">The directory's path</param>
+    /// <returns>Whether it exists</returns>
+    public static bool DirectoryExists(string path)
+    {
+        try
+        {
+            return Directory.Exists(path);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Attempts to copy a directory and its contents to another location
     /// </summary>
     /// <param name="source">The source path</param>

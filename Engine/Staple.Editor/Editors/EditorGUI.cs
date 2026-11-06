@@ -19,6 +19,8 @@ public static class EditorGUI
     {
         None = ImGuiSelectableFlags.None,
         SpanAllColumns = ImGuiSelectableFlags.SpanAllColumns,
+        AllowDoubleClick = ImGuiSelectableFlags.AllowDoubleClick,
+        Disabled = ImGuiSelectableFlags.Disabled,
     }
 
     internal static ImGuiIOPtr io;
@@ -128,7 +130,7 @@ public static class EditorGUI
                 treeViewStates.Remove(key);
             }
 
-            keys = collapsingHeaderStates.Keys.ToArray();
+            keys = [.. collapsingHeaderStates.Keys];
 
             foreach(var key in keys)
             {
@@ -775,7 +777,7 @@ public static class EditorGUI
     {
         value ??= "";
 
-        Changed |= ImGui.InputTextMultiline(MakeIdentifier("", key), ref value, (uint)maxLength, size);
+        Changed |= ImGui.InputTextMultiline(MakeIdentifier(label, key), ref value, (uint)maxLength, size);
 
         return value;
     }
@@ -913,14 +915,12 @@ public static class EditorGUI
             editor.ShowAssetPicker(type, key, ignoredGuids ?? [], filter);
         }
 
-        if(!pendingObjectPickers.ContainsKey(key))
+        if(!pendingObjectPickers.TryGetValue(key, out var c))
         {
             pendingObjectPickers.Add(key, current);
         }
-        else if (pendingObjectPickers[key] != current)
+        else if (c != current)
         {
-            var newValue = pendingObjectPickers[key];
-
             pendingObjectPickers.Remove(key);
 
             if(current is string)
@@ -935,7 +935,7 @@ public static class EditorGUI
                 }
             }
 
-            return newValue;
+            return c;
         }
 
         return current;
@@ -1096,7 +1096,7 @@ public static class EditorGUI
 
         ImGui.SameLine();
 
-        var clicked = ImGui.Selectable(label);
+        var clicked = ImGui.Selectable(MakeIdentifier(label, key));
 
         ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
 
@@ -1169,7 +1169,7 @@ public static class EditorGUI
 
         ImGui.SameLine();
 
-        var clicked = ImGui.Selectable(label);
+        var clicked = ImGui.Selectable(MakeIdentifier(label, key));
 
         ExecuteHandler(prefixHandler, $"TreeNode {label} prefix");
 
@@ -1904,7 +1904,8 @@ public static class EditorGUI
 
                     SameLine();
 
-                    Selectable("", $"{key}.Row{i}", () => rowClickHandler?.Invoke(i), SelectableFlags.SpanAllColumns);
+                    Selectable("", $"{key}.Row{i}", () => rowClickHandler?.Invoke(i),
+                        SelectableFlags.SpanAllColumns | SelectableFlags.AllowDoubleClick);
                 });
             }
 

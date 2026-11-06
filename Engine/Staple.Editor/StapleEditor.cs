@@ -1044,6 +1044,14 @@ internal partial class StapleEditor
 
                 lastProjects ??= new();
 
+                for(var i = lastProjects.items.Count - 1; i >= 0; i--)
+                {
+                    if(!EditorUtils.DirectoryExists(lastProjects.items[i].path))
+                    {
+                        lastProjects.items.RemoveAt(i);
+                    }
+                }
+
                 //Might re-enable this later
                 /*
                 if((lastProjects.lastOpenProject?.Length ?? 0) > 0)
@@ -1238,58 +1246,53 @@ internal partial class StapleEditor
 
                 ImGui.Spacing();
 
-                if (ImGui.BeginTable("##ProjectsList", 3))
-                {
-                    var items = lastProjects.items.OrderByDescending(x => x.date).ToArray();
+                var items = lastProjects.items.OrderByDescending(x => x.date).ToArray();
 
-                    for (var i = 0; i < items.Length; i++)
+                EditorGUI.Table("##ProjectsList", items.Length, 3, true, null,
+                    (column) =>
                     {
-                        var item = items[i];
-
-                        try
+                        return column switch
                         {
-                            if (!Directory.Exists(item.path))
-                            {
-                                continue;
-                            }
-                        }
-                        catch (Exception)
+                            0 => ("Name", 0),
+                            1 => ("Path", 0),
+                            2 => ("Date", 0),
+                            _ => default,
+                        };
+                    },
+                    (row, column) =>
+                    {
+                        var item = items[row];
+
+                        switch(column)
                         {
-                            continue;
+                            case 0: //Name
+
+                                EditorGUI.Label(item.name);
+
+                                break;
+
+                            case 1: //Path
+
+                                EditorGUI.Label(item.path);
+
+                                break;
+
+                            case 2: //Date
+
+                                EditorGUI.Label(item.date.ToString());
+
+                                break;
                         }
-
-                        ImGui.TableNextRow();
-
-                        ImGui.TableSetColumnIndex(0);
-
-                        var selected = false;
-
-                        ImGui.Selectable($"{item.name}##PL{i}0");
-
-                        selected |= ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
-
-                        ImGui.TableSetColumnIndex(1);
-
-                        ImGui.Selectable(item.path);
-
-                        selected |= ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
-
-                        ImGui.TableSetColumnIndex(2);
-
-                        ImGui.Selectable(item.date.ToShortDateString());
-
-                        selected |= ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left);
-
-                        if (selected)
+                    },
+                    (row) =>
+                    {
+                        if(!ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
                         {
-                            LoadProject(item.path);
-
-                            break;
+                            return;
                         }
-                    }
 
-                    ImGui.EndTable();
-                }
+                        LoadProject(items[row].path);
+                    });
 
                 ImGui.End();
 
