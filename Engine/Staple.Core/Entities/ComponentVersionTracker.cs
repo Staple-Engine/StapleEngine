@@ -38,10 +38,18 @@ public class ComponentVersionTracker<T> : IWorldChangeReceiver, IComponentChange
 
     public SortedSet<T> ChangedComponents { get; private set; } = [with(new EntityComparer())];
 
-    public ComponentVersionTracker()
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="checkComponentChanges">Whether to check for <see cref="ChangedComponents"/></param>
+    public ComponentVersionTracker(bool checkComponentChanges)
     {
-        World.AddChangeReceiver(this);
-        World.AddComponentChangeReceiver(this);
+        World.AddWorldChangeReceiver(this);
+
+        if(checkComponentChanges)
+        {
+            World.AddComponentChangeReceiver(this);
+        }
     }
 
     /// <summary>

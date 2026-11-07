@@ -150,7 +150,7 @@ internal class ResourceManager : IWorldChangeReceiver
 
     public ResourceManager()
     {
-        World.AddChangeReceiver(this);
+        World.AddWorldChangeReceiver(this);
     }
 
     /// <summary>

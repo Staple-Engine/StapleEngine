@@ -39,7 +39,7 @@ public class SkinnedMeshInstance : Component, IComponentDisposable
     /// <summary>
     /// Keeps track of changed transforms
     /// </summary>
-    internal ComponentVersionTracker<Transform> transformTracker = new();
+    internal ComponentVersionTracker<Transform> transformTracker = new(false);
 
     /// <summary>
     /// List of modifiers

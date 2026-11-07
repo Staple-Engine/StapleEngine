@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 
 namespace Staple;
 
@@ -8,6 +9,18 @@ namespace Staple;
 /// </summary>
 public interface IRenderData
 {
+    public struct RenderItem
+    {
+        public Renderable renderable;
+        public Transform transform;
+        public Entity entity;
+    }
+
+    /// <summary>
+    /// Gets all renderables in the render data
+    /// </summary>
+    Span<RenderItem> Renderables { get; }
+
     /// <summary>
     /// Clear the render data's data.
     /// </summary>

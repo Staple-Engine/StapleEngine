@@ -294,6 +294,16 @@ internal partial class StapleEditor
                         continue;
                     }
 
+                    foreach(var item in system.renderData.Renderables)
+                    {
+                        if (!sceneTransformTracker.ShouldUpdateComponent(item.entity, item.transform))
+                        {
+                            continue;
+                        }
+
+                        ReplaceEntityBodyIfNeeded(item.entity, item.renderable.bounds);
+                    }
+
                     system.renderSystem.system.UpdateRenderDataVisibility(system.renderData, camera, cameraTransform);
 
                     system.renderSystem.system.Prepare();

@@ -10,8 +10,6 @@ namespace Staple.Internal;
 /// </summary>
 public sealed class MeshCombineSystem : RenderSystemBase
 {
-    private readonly ComponentVersionTracker<Transform> transformVersions = new();
-
     private readonly SceneQuery<MeshCombine> combines = new(false);
 
     public MeshCombineSystem() : base(true, typeof(MeshCombine), typeof(GenericRenderQueue<MeshCombine>))

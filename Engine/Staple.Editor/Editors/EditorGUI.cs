@@ -861,7 +861,7 @@ public static class EditorGUI
                 {
                     var cacheIndex = guid.IndexOf(StapleEditor.instance.currentPlatform.ToString());
 
-                    guid = guid.Substring(cacheIndex + $"{StapleEditor.instance.currentPlatform}0".Length).Replace("\\", "/");
+                    guid = guid[(cacheIndex + $"{StapleEditor.instance.currentPlatform}0".Length)..].Replace("\\", "/");
 
                     guid = AssetDatabase.GetAssetGuid(guid) ?? guid;
                 }

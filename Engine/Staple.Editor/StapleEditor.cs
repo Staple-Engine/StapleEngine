@@ -455,7 +455,7 @@ internal partial class StapleEditor
 
     private Mesh gridMesh;
 
-    private readonly ComponentVersionTracker<Transform> sceneTransformTracker = new();
+    private readonly ComponentVersionTracker<Transform> sceneTransformTracker = new(false);
 
     private RenderQueue renderQueue;
 
@@ -937,7 +937,7 @@ internal partial class StapleEditor
             return;
         }
 
-        World.AddChangeReceiver(renderQueue);
+        World.AddWorldChangeReceiver(renderQueue);
 
         window.OnInit = () =>
         {
@@ -1028,7 +1028,7 @@ internal partial class StapleEditor
 
                 RenderSystem.Instance.Startup();
 
-                World.AddChangeReceiver(RenderSystem.Instance);
+                World.AddWorldChangeReceiver(RenderSystem.Instance);
 
                 cameraTransform.Position = new Vector3(0, 1, -5);
 

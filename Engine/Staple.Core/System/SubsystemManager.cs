@@ -62,7 +62,7 @@ internal class SubsystemManager
 
             if (subsystem is IWorldChangeReceiver worldChangeReceiver)
             {
-                World.AddChangeReceiver(worldChangeReceiver);
+                World.AddWorldChangeReceiver(worldChangeReceiver);
             }
 
             needsRecalculation = true;

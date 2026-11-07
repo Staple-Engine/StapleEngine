@@ -285,7 +285,7 @@ public partial class World
         }
     }
 
-    internal static void AddChangeReceiver(IWorldChangeReceiver receiver)
+    internal static void AddWorldChangeReceiver(IWorldChangeReceiver receiver)
     {
         if(receiver == null)
         {
@@ -300,7 +300,7 @@ public partial class World
         }
     }
 
-    internal static void RemoveChangeReceiver(IWorldChangeReceiver receiver)
+    internal static void RemoveWorldChangeReceiver(IWorldChangeReceiver receiver)
     {
         if (receiver == null)
         {

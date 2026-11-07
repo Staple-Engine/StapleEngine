@@ -720,7 +720,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             staticMeshVertexBuffersElementSize[i] = BufferAttributeContainer.BufferElementSize(i);
         }
 
-        World.AddChangeReceiver(this);
+        World.AddWorldChangeReceiver(this);
 
         return true;
     }
@@ -922,7 +922,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
             return;
         }
 
-        World.RemoveChangeReceiver(this);
+        World.RemoveWorldChangeReceiver(this);
 
         foreach (var pair in graphicsPipelines)
         {

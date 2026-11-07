@@ -76,7 +76,7 @@ public sealed partial class RenderSystem
 
         public Transform transform;
 
-        public readonly ComponentVersionTracker<Transform> transformTracker = new();
+        public readonly ComponentVersionTracker<Transform> transformTracker = new(false);
 
         public readonly ExpandableContainer<RenderSystemRenderQueue> renderSystems = new(false);
 
@@ -138,12 +138,12 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Tracker for each entity's transform
     /// </summary>
-    private readonly ComponentVersionTracker<Transform> entityTransformTracker = new();
+    private readonly ComponentVersionTracker<Transform> entityTransformTracker = new(true);
 
     /// <summary>
     /// Tracker for each entity's renderable
     /// </summary>
-    private readonly ComponentVersionTracker<Renderable> entityRenderableTracker = new();
+    private readonly ComponentVersionTracker<Renderable> entityRenderableTracker = new(true);
 
     /// <summary>
     /// Tracks all changed entity transforms in ranges (key is start index, value is length)

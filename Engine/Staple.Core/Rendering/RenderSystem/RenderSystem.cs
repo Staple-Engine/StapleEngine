@@ -167,7 +167,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
             if (system is IWorldChangeReceiver receiver)
             {
-                World.AddChangeReceiver(receiver);
+                World.AddWorldChangeReceiver(receiver);
             }
 
             renderSystems.Add(new(system, system.RelatedComponent != null &&

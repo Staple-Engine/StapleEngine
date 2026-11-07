@@ -154,7 +154,7 @@ internal sealed class EntitySystemManager : ISubsystem
 
             if (system is IWorldChangeReceiver receiver)
             {
-                World.AddChangeReceiver(receiver);
+                World.AddWorldChangeReceiver(receiver);
             }
 
             if (system is IEntitySystemFixedUpdate fixedUpdate)

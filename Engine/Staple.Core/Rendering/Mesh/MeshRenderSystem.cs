@@ -63,6 +63,10 @@ public sealed class MeshRenderSystem : RenderSystemBase
     {
         public readonly Dictionary<int, PerRenderIndexData> perRenderIndexData = [];
 
+        public readonly ExpandableContainer<IRenderData.RenderItem> renderItems = new(false);
+
+        public Span<IRenderData.RenderItem> Renderables => renderItems.Contents;
+
         public void Clear()
         {
             foreach (var renderData in perRenderIndexData.Values)
@@ -88,6 +92,8 @@ public sealed class MeshRenderSystem : RenderSystemBase
                     item.entryStateToEntries.Clear();
                 }
             }
+
+            renderItems.Clear();
         }
 
         public void Process(IRenderQueue renderQueue, Camera activeCamera, Transform activeCameraTransform, int renderIndex)
@@ -115,6 +121,12 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 {
                     continue;
                 }
+
+                ref var renderItem = ref renderItems.AddDefault();
+
+                renderItem.entity = entry.entity;
+                renderItem.renderable = renderer;
+                renderItem.transform = entry.transform;
 
                 void AddStatic(Material material, int submeshIndex, int startIndex, int indexCount, int entryStateKey)
                 {
@@ -432,7 +444,10 @@ public sealed class MeshRenderSystem : RenderSystemBase
         }
     }
 
-    private readonly ComponentVersionTracker<MeshRenderer> rendererTracker = new();
+    private readonly ComponentVersionTracker<MeshRenderer> rendererTracker = new(true);
+    private readonly ComponentVersionTracker<Transform> transformTracker = new(false);
+
+    private readonly HashSet<(MeshRenderer, Transform)> trackedTransforms = [];
 
     private readonly RenderData renderData = new();
 
@@ -511,6 +526,18 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
             var transform = renderer.Transform;
 
+            trackedTransforms.Add((renderer, transform));
+        }
+
+        rendererTracker.ClearChanges();
+
+        foreach(var (renderer, transform) in trackedTransforms)
+        {
+            if(!transformTracker.ShouldUpdateComponent(transform.Entity, transform))
+            {
+                continue;
+            }
+
             var localSize = renderer.mesh.bounds.size.Transformed(transform.LocalRotation).Abs();
 
             var globalSize = renderer.mesh.bounds.size.Transformed(transform.Rotation).Abs();
@@ -524,8 +551,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
             renderer.bounds = new(globalCenter, globalSize * transform.NormalizedScale);
         }
-
-        rendererTracker.ClearChanges();
     }
 
     public override void Preprocess(IRenderQueue renderQueue)

@@ -42,7 +42,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
 
     private readonly SceneQuery<SkinnedMeshInstance> instances = new();
 
-    private readonly ComponentVersionTracker<Transform> transformVersions = new();
+    private readonly ComponentVersionTracker<Transform> transformVersions = new(true);
 
     private static readonly Dictionary<StringID, VertexBuffer> cachedBlendShapeBuffers = [];
 
