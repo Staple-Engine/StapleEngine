@@ -10,6 +10,23 @@ namespace Staple.Internal;
 /// </summary>
 public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 {
+    public class CameraInfo
+    {
+        public Camera camera;
+        public Transform transform;
+        public VertexBuffer lightData;
+
+        public CameraInfo Clone()
+        {
+            return new()
+            {
+                camera = camera,
+                transform = transform,
+                lightData = lightData,
+            };
+        }
+    }
+
     public SubsystemType type { get; } = SubsystemType.Update;
 
     /// <summary>
@@ -25,7 +42,7 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <summary>
     /// The current camera
     /// </summary>
-    public static (Camera camera, Transform transform) CurrentCamera { get; internal set; }
+    public static CameraInfo CurrentCamera { get; internal set; } = new();
 
     /// <summary>
     /// Whether to split the render world into parts based on a virtual grid
@@ -199,13 +216,41 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     }
 
     /// <summary>
+    /// Renders with specific camera info
+    /// </summary>
+    /// <param name="target">The render target, if any</param>
+    /// <param name="clearMode">How to clear the target</param>
+    /// <param name="clearColor">The color to clear if clearMode is <see cref="CameraClearMode.SolidColor"/></param>
+    /// <param name="viewport">The viewport area to render to (normalized coordinates for x, y, width, height)</param>
+    /// <param name="cameraTransform">The transform of the camera</param>
+    /// <param name="cameraPosition">The position of the camera</param>
+    /// <param name="projection">The projection matrix</param>
+    /// <param name="callback">A callback to render the content</param>
+    /// <param name="lightBuffer">The light data buffer</param>
+    public static void Render(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
+        Matrix4x4 cameraTransform, Matrix4x4 projection, Vector3 cameraPosition, Action callback, ref VertexBuffer lightBuffer)
+    {
+        var previous = RenderTarget.Current;
+
+        RenderTarget.Current = target;
+
+        PrepareRender(target, clearMode, clearColor, viewport, cameraTransform, projection, cameraPosition, ref lightBuffer);
+
+        callback?.Invoke();
+
+        RenderTarget.Current = previous;
+    }
+
+    /// <summary>
     /// Renders in the standard mode (no interpolator)
     /// </summary>
     /// <param name="set">The camera's entity</param>
     /// <param name="cull">Whether to cull invisible elements</param>
     public void RenderStandard(RenderSystemCameraSet set, bool cull)
     {
-        CurrentCamera = (set.camera, set.transform);
+        CurrentCamera.camera = set.camera;
+        CurrentCamera.transform = set.transform;
+        CurrentCamera.lightData = set.camera.lightBuffer;
 
         PrepareCamera(set.camera, set.transform);
 
@@ -394,9 +439,24 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     {
         using var p1 = new PerformanceProfiler(PerformanceProfilerType.Rendering);
 
-        var c = CurrentCamera;
+        var c = CurrentCamera.Clone();
 
-        CurrentCamera = (camera, cameraTransform);
+        CurrentCamera.camera = camera;
+        CurrentCamera.transform = cameraTransform;
+
+        var projection = Camera.Projection(camera);
+        var view = cameraTransform.Matrix;
+
+        Matrix4x4.Invert(view, out var invView);
+
+        if (camera.Changed(cameraTransform))
+        {
+            camera.UpdateFrustum(in invView, in projection);
+
+            LightSystem.Instance.GatherVisibleLights(camera.frustumCuller, cameraTransform.Position, camera.cullingLayers, ref camera.lightBuffer);
+        }
+
+        CurrentCamera.lightData = camera.lightBuffer;
 
         ClearCullingStates();
 

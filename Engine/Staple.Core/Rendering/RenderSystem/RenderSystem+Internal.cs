@@ -1173,9 +1173,14 @@ public sealed partial class RenderSystem
 
         Matrix4x4.Invert(view, out var invView);
 
-        camera.UpdateFrustum(in invView, in projection);
+        if(camera.Changed(cameraTransform))
+        {
+            camera.UpdateFrustum(in invView, in projection);
 
-        LightSystem.Instance.GatherVisibleLights(camera.frustumCuller, cameraTransform.Position, camera.cullingLayers);
+            LightSystem.Instance.GatherVisibleLights(camera.frustumCuller, cameraTransform.Position, camera.cullingLayers, ref camera.lightBuffer);
+        }
+
+        CurrentCamera.lightData = camera.lightBuffer;
 
         Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport,
             in invView, in projection);
@@ -1198,7 +1203,32 @@ public sealed partial class RenderSystem
 
         frustumCuller.Update(view, projection);
 
-        LightSystem.Instance.GatherVisibleLights(frustumCuller, cameraPosition, LayerMask.Everything);
+        CurrentCamera.lightData = null;
+
+        Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection);
+    }
+
+    /// <summary>
+    /// Prepares a render pass
+    /// </summary>
+    /// <param name="target">The render target, if any</param>
+    /// <param name="clearMode">How to clear the target</param>
+    /// <param name="clearColor">The color to clear if clearMode is <see cref="CameraClearMode.SolidColor"/></param>
+    /// <param name="viewport">The viewport area to render to (normalized coordinates for x, y, width, height)</param>
+    /// <param name="cameraTransform">The transform of the camera</param>
+    /// <param name="projection">The projection matrix</param>
+    /// <param name="cameraPosition">The position of the camera</param>
+    /// <param name="lightBuffer">The light data buffer</param>
+    private static void PrepareRender(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
+        Matrix4x4 cameraTransform, Matrix4x4 projection, Vector3 cameraPosition, ref VertexBuffer lightBuffer)
+    {
+        Matrix4x4.Invert(cameraTransform, out var view);
+
+        frustumCuller.Update(view, projection);
+
+        LightSystem.Instance.GatherVisibleLights(frustumCuller, cameraPosition, LayerMask.Everything, ref lightBuffer);
+
+        CurrentCamera.lightData = lightBuffer;
 
         Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection);
     }

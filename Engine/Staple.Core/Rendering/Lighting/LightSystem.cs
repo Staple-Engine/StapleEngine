@@ -55,13 +55,7 @@ public sealed class LightSystem
             .Build();
     });
 
-    private VertexBuffer lightBuffer;
-
     private VertexBuffer emptyBuffer;
-
-    private Material previousMaterial;
-    private Shader previousShader;
-    private int visibleLightCount;
 
     private readonly ExpandableContainer<Light> cachedLights = new(false);
 
@@ -76,8 +70,6 @@ public sealed class LightSystem
     /// </summary>
     internal void StartFrame()
     {
-        previousShader = null;
-        previousMaterial = null;
     }
 
     /// <summary>
@@ -86,11 +78,10 @@ public sealed class LightSystem
     /// <param name="frustum">The camera's frustum culler</param>
     /// <param name="cameraPosition">The position of the camera</param>
     /// <param name="layerMask">The layer mask of the camera</param>
+    /// <param name="lightBuffer">The light buffer to store the data into</param>
     /// <returns>Whether we gathered data or not</returns>
-    internal bool GatherVisibleLights(FrustumCuller frustum, Vector3 cameraPosition, LayerMask layerMask)
+    internal bool GatherVisibleLights(FrustumCuller frustum, Vector3 cameraPosition, LayerMask layerMask, ref VertexBuffer lightBuffer)
     {
-        visibleLightCount = 0;
-
         if (!Enabled)
         {
             return false;
@@ -237,7 +228,9 @@ public sealed class LightSystem
             return false;
         }
 
-        state.ApplyStorageBufferIfNeeded("StapleLightData", (lightBuffer?.Disposed ?? true) ? emptyBuffer : lightBuffer);
+        var lightData = RenderSystem.CurrentCamera.lightData;
+
+        state.ApplyStorageBufferIfNeeded("StapleLightData", (lightData?.Disposed ?? true) ? emptyBuffer : lightData);
 
         return true;
     }

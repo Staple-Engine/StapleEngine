@@ -148,4 +148,23 @@ public struct LayerMask
 
         return AllLayers.IndexOf(name);
     }
+
+    public static bool operator ==(LayerMask a, LayerMask b) => a.value == b.value;
+
+    public static bool operator !=(LayerMask a, LayerMask b) => a.value != b.value;
+
+    public override readonly int GetHashCode()
+    {
+        return value.GetHashCode();
+    }
+
+    public override readonly bool Equals(object obj)
+    {
+        if (obj is not LayerMask o)
+        {
+            return false;
+        }
+
+        return value == o.value;
+    }
 }

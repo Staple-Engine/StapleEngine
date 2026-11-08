@@ -445,9 +445,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
     }
 
     private readonly ComponentVersionTracker<MeshRenderer> rendererTracker = new(true);
-    private readonly ComponentVersionTracker<Transform> transformTracker = new(false);
-
-    private readonly HashSet<(MeshRenderer, Transform)> trackedTransforms = [];
+    private readonly ComponentVersionTracker<Transform> transformTracker = new(true);
 
     private readonly RenderData renderData = new();
 
@@ -511,46 +509,52 @@ public sealed class MeshRenderSystem : RenderSystemBase
         RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
     }
 
+    private static void UpdateRendererBounds(Transform transform, MeshRenderer renderer)
+    {
+        var localSize = renderer.mesh.bounds.size.Transformed(transform.LocalRotation).Abs();
+
+        var globalSize = renderer.mesh.bounds.size.Transformed(transform.Rotation).Abs();
+
+        var localCenter = transform.LocalPosition + renderer.mesh.bounds.center.Transformed(transform.LocalRotation) * transform.NormalizedLocalScale;
+
+        var globalCenter = transform.Position + renderer.mesh.bounds.center.Transformed(transform.Rotation) *
+            transform.NormalizedScale;
+
+        renderer.localBounds = new(localCenter, localSize * transform.NormalizedLocalScale);
+
+        renderer.bounds = new(globalCenter, globalSize * transform.NormalizedScale);
+    }
+
     public override void Prepare()
     {
         renderData.Clear();
 
         foreach (var renderer in rendererTracker.ChangedComponents)
         {
-            if (renderer.mesh == null)
+            if (renderer.mesh is null)
             {
                 continue;
             }
 
             renderer.mesh.UploadMeshData();
 
-            var transform = renderer.Transform;
-
-            trackedTransforms.Add((renderer, transform));
+            UpdateRendererBounds(renderer.Transform, renderer);
         }
 
         rendererTracker.ClearChanges();
 
-        foreach(var (renderer, transform) in trackedTransforms)
+        foreach(var transform in transformTracker.ChangedComponents)
         {
-            if(!transformTracker.ShouldUpdateComponent(transform.Entity, transform))
+            if(!transform.Entity.TryGetComponent<MeshRenderer>(out var renderer) ||
+                renderer.mesh is null)
             {
                 continue;
             }
 
-            var localSize = renderer.mesh.bounds.size.Transformed(transform.LocalRotation).Abs();
-
-            var globalSize = renderer.mesh.bounds.size.Transformed(transform.Rotation).Abs();
-
-            var localCenter = transform.LocalPosition + renderer.mesh.bounds.center.Transformed(transform.LocalRotation) * transform.NormalizedLocalScale;
-
-            var globalCenter = transform.Position + renderer.mesh.bounds.center.Transformed(transform.Rotation) *
-                transform.NormalizedScale;
-
-            renderer.localBounds = new(localCenter, localSize * transform.NormalizedLocalScale);
-
-            renderer.bounds = new(globalCenter, globalSize * transform.NormalizedScale);
+            UpdateRendererBounds(transform, renderer);
         }
+
+        transformTracker.ClearChanges();
     }
 
     public override void Preprocess(IRenderQueue renderQueue)

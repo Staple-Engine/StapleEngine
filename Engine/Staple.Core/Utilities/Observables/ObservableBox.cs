@@ -17,7 +17,7 @@ internal abstract class ObservableBox : IObservableBox
     }
 
     private readonly List<ObserverInfo> observers = [];
-    private readonly ExpandableContainer<object> stagingObservers = new();
+    private readonly ExpandableContainer<object> stagingObservers = new(false);
 
     /// <summary>
     /// Gets all the valid observer objects.

@@ -232,7 +232,8 @@ internal partial class StapleEditor
             systemInfo.system.Prepare();
         }
 
-        RenderSystem.CurrentCamera = (camera, cameraTransform);
+        RenderSystem.CurrentCamera.camera = camera;
+        RenderSystem.CurrentCamera.transform = cameraTransform;
 
         RenderSystem.Render(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
             cameraTransform.Matrix, projection, cameraTransform.Position,
@@ -424,7 +425,8 @@ internal partial class StapleEditor
                         Gizmo.WireframeBox(aabb.center, Quaternion.Identity, aabb.size, Color.White);
                     }
                 }
-            });
+            },
+            ref camera.lightBuffer);
 
         cameraTransformVersion = cameraTransform.Version;
     }

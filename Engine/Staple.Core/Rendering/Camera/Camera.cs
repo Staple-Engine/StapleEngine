@@ -8,7 +8,7 @@ namespace Staple;
 /// Camera component
 /// </summary>
 [ComponentIcon("Camera.png")]
-public sealed class Camera : Component
+public partial class Camera : VersionableComponent, IComponentDisposable
 {
     /// <summary>
     /// Contains information on a spatial partition entry
@@ -34,59 +34,59 @@ public sealed class Camera : Component
     /// <summary>
     /// How to render elements of the camera
     /// </summary>
-    public CameraViewMode viewMode = CameraViewMode.Default;
+    public partial CameraViewMode viewMode { get; set; }
 
     /// <summary>
     /// How to clear the camera
     /// </summary>
-    public CameraClearMode clearMode = CameraClearMode.SolidColor;
+    public partial CameraClearMode clearMode { get; set; }
 
     /// <summary>
     /// The type of camera
     /// </summary>
-    public CameraType cameraType = CameraType.Perspective;
+    public partial CameraType cameraType { get; set; }
 
     /// <summary>
     /// The camera's orthographic size, equal to half the screen size in world units
     /// </summary>
     [Min(1)]
-    public float orthographicSize = 5;
+    public partial float orthographicSize { get; set; }
 
     /// <summary>
     /// The field of view
     /// </summary>
-    public float fov = 90;
+    public partial float fov { get; set; }
 
     /// <summary>
     /// The near plane. You probably want a near plane of 0 for Orthographic cameras.
     /// </summary>
-    public float nearPlane = 0.01f;
+    public partial float nearPlane { get; set; }
 
     /// <summary>
     /// The far plane
     /// </summary>
-    public float farPlane = 1000;
+    public partial float farPlane { get; set; }
 
     /// <summary>
     /// The camera viewport (X: x, Y: y, Z: width, W: height)
     /// Width and Height are normalized
     /// </summary>
-    public Vector4 viewport = new(0, 0, 1, 1);
+    public partial Vector4 viewport { get; set; }
 
     /// <summary>
     /// The camera depth. Cameras are sorted by depth, from lower to higher.
     /// </summary>
-    public float depth = 0;
+    public partial float depth { get; set; }
 
     /// <summary>
     /// The clear color for the camera
     /// </summary>
-    public Color32 clearColor = Color32.LightBlue;
+    public partial Color32 clearColor { get; set; }
 
     /// <summary>
     /// The layers this camera handles
     /// </summary>
-    public LayerMask cullingLayers = LayerMask.Everything;
+    public partial LayerMask cullingLayers { get; set; }
 
     /// <summary>
     /// Actual width of this camera viewport
@@ -107,6 +107,62 @@ public sealed class Camera : Component
     /// Contains information on spatial nodes for this particular camera
     /// </summary>
     internal readonly Dictionary<Vector3Int, SpatialNodeInfo> spatialNodes = [];
+
+    internal ulong transformVersion = 0;
+
+    internal ulong cameraVersion = 0;
+
+    internal VertexBuffer lightBuffer;
+
+    public Camera()
+    {
+        viewMode = CameraViewMode.Default;
+        clearMode = CameraClearMode.SolidColor;
+        cameraType = CameraType.Perspective;
+        orthographicSize = 5;
+        fov = 90;
+        nearPlane = 0.01f;
+        farPlane = 1000;
+        viewport = new(0, 0, 1, 1);
+        clearColor = Color32.LightBlue;
+        cullingLayers = LayerMask.Everything;
+    }
+
+    public void DisposeComponent()
+    {
+        lightBuffer?.Destroy();
+
+        lightBuffer = null;
+    }
+
+    /// <summary>
+    /// Compares this camera's current transform version with another transform to see if changed
+    /// </summary>
+    /// <param name="cameraTransform">The camera transform</param>
+    /// <returns>Whether it changed</returns>
+    /// <remarks>This doesn't use <see cref="Component.Transform"/> because of the editor not using a normal entity</remarks>
+    internal bool Changed(Transform cameraTransform)
+    {
+        var version = cameraTransform.Version;
+
+        if(version != transformVersion)
+        {
+            transformVersion = version;
+
+            return true;
+        }
+
+        version = Version;
+
+        if(version != cameraVersion)
+        {
+            cameraVersion = version;
+
+            return true;
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Gets the camera's frustum corners

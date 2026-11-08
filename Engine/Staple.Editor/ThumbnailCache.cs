@@ -48,6 +48,8 @@ internal class ThumbnailCache
     private static readonly Lock renderRequestLock = new();
     private static bool mayRenderInMainThread = true;
 
+    private static VertexBuffer lightBuffer;
+
     internal static string basePath;
 
     /// <summary>
@@ -254,7 +256,8 @@ internal class ThumbnailCache
 
                                 LightSystem.OverrideLights = overrideLights;
                                 LightSystem.OverrideAmbientColor = overrideAmbientColor;
-                            });
+                            },
+                            ref lightBuffer);
 
                         renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
@@ -526,7 +529,8 @@ internal class ThumbnailCache
 
                                 LightSystem.OverrideLights = overrideLights;
                                 LightSystem.OverrideAmbientColor = overrideAmbientColor;
-                            });
+                            },
+                            ref lightBuffer);
 
                         renderTarget.GetColorTexture(0).ReadPixels((texture, data) =>
                         {
