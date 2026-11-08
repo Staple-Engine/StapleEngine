@@ -570,7 +570,7 @@ public partial class World
     /// </summary>
     /// <param name="entity">The entity to iterate</param>
     /// <param name="callback">A callback to handle the component</param>
-    internal void IterateCallableComponents(Entity entity, SingleCallableComponentCallback callback)
+    internal void IterateLifecycleComponents(Entity entity, SingleLifecycleComponentCallback callback)
     {
         if (!TryGetEntity(entity, out var entityInfo))
         {
@@ -600,25 +600,25 @@ public partial class World
     /// Iterates through every callable component type
     /// </summary>
     /// <param name="callback">A callback to execute with the component</param>
-    internal void IterateCallableComponents(CallableComponentCallback callback, bool checkPlaying = true)
+    internal void IterateLifecycleComponents(LifecycleComponentCallback callback, bool checkPlaying = true)
     {
         if (checkPlaying && !Platform.IsPlaying)
         {
             return;
         }
 
-        callableComponents ??= new();
+        lifecycleComponents ??= new();
 
         lock (lockObject)
         {
-            if (callableComponentTypes.Count == 0)
+            if (lifecycleComponentTypes.Count == 0)
             {
                 return;
             }
 
             try
             {
-                callback?.Invoke(callableComponents.Contents);
+                callback?.Invoke(lifecycleComponents.Contents);
             }
             catch (Exception e)
             {

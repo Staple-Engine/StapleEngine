@@ -210,33 +210,29 @@ internal class AppSettingsWindow : EditorWindow
 
         EditorGUI.Label("Light Limits");
 
-        projectAppSettings.lightLimits ??= [];
-
-        foreach(var name in PlayerBackendManager.BackendNames)
-        {
-            var backend = PlayerBackendManager.Instance.GetBackend(name);
-
-            if(!projectAppSettings.lightLimits.TryGetValue(backend.platform, out var previous))
+        EditorGUI.TabBar(PlayerBackendManager.BackendNames, "AppSettings.Rendering.Backends",
+            (index) =>
             {
-                if(!AppSettings.Default.lightLimits.TryGetValue(backend.platform, out previous))
+                var backend = PlayerBackendManager.Instance.GetBackend(PlayerBackendManager.BackendNames[index]);
+
+                if (!projectAppSettings.platforms.TryGetValue(backend.platform, out var platformData))
                 {
-                    previous = 32;
+                    return;
                 }
 
-                projectAppSettings.lightLimits.AddOrSetKey(backend.platform, previous);
-            }
+                var previous = platformData.lightLimit;
 
-            var newValue = EditorGUI.IntField(name, $"AppSettings.{name}.LightCount", previous);
+                var newValue = EditorGUI.IntField("Light Count", $"AppSettings.{index}.LightCount", previous);
 
-            newValue = Math.ClampToInt(newValue, 0, LightSystem.MaxLights);
+                newValue = Math.ClampToInt(newValue, 0, LightSystem.MaxLights);
 
-            projectAppSettings.lightLimits.AddOrSetKey(backend.platform, newValue);
+                platformData.lightLimit = newValue;
 
-            if(Platform.CurrentPlatform == backend.platform && previous != newValue)
-            {
-                LightSystem.Instance.SetMaxLightCount(newValue);
-            }
-        }
+                if (Platform.CurrentPlatform == backend.platform && previous != newValue)
+                {
+                    LightSystem.Instance.SetMaxLightCount(newValue);
+                }
+            }, null);
     }
 
     private void Rendering()
@@ -254,6 +250,11 @@ internal class AppSettingsWindow : EditorWindow
             (index) =>
             {
                 var backend = PlayerBackendManager.Instance.GetBackend(PlayerBackendManager.BackendNames[index]);
+
+                if (!projectAppSettings.platforms.TryGetValue(backend.platform, out var platformData))
+                {
+                    return;
+                }
 
                 if (backend.platform == AppPlatform.Windows ||
                     backend.platform == AppPlatform.Linux ||
@@ -301,12 +302,7 @@ internal class AppSettingsWindow : EditorWindow
 
                 EditorGUI.Label("Renderers");
 
-                if (!projectAppSettings.renderers.TryGetValue(backend.platform, out var renderers))
-                {
-                    renderers = [];
-
-                    projectAppSettings.renderers.Add(backend.platform, renderers);
-                }
+                var renderers = platformData.renderers;
 
                 for (var i = 0; i < renderers.Count; i++)
                 {
@@ -330,7 +326,54 @@ internal class AppSettingsWindow : EditorWindow
                 {
                     renderers.Add(backend.renderers.FirstOrDefault());
                 });
-            }, null);
+
+                EditorGUI.Label("Spatial Partitioning");
+
+                {
+                    var previous = platformData.useSpatialPartitioning;
+
+                    var current = platformData.useSpatialPartitioning = EditorGUI.Toggle("Use spatial partitioning",
+                        $"AppSettings.Rendering.Renderer{index}.UseSpatial", platformData.useSpatialPartitioning);
+
+                    if(current != previous && backend.platform == Platform.CurrentPlatform.Value)
+                    {
+                        RenderSystem.UseSpatialPartitioning = platformData.useSpatialPartitioning;
+
+                        RenderSystem.SetSpatialPartitionSize(platformData.spatialPartitionSize);
+                    }
+                }
+
+                if (!platformData.useSpatialPartitioning)
+                {
+                    return;
+                }
+
+                {
+                    var previous = platformData.autoBalanceSpatialPartitions;
+
+                    var current = platformData.autoBalanceSpatialPartitions = EditorGUI.Toggle("Auto balance spatial partitions",
+                        $"AppSettings.Rendering.Renderer{index}.AutobalanceSpatial", platformData.autoBalanceSpatialPartitions);
+
+                    if (previous != current && backend.platform == Platform.CurrentPlatform.Value)
+                    {
+                        RenderSystem.AutobalanceSpatialPartitions = current;
+                    }
+                }
+
+                if (!platformData.autoBalanceSpatialPartitions)
+                {
+                    var previous = platformData.spatialPartitionSize;
+
+                    var current = platformData.spatialPartitionSize = Math.ClampToInt(EditorGUI.IntField("Spatial partition size",
+                        $"AppSettings.Rendering.Renderer{index}.SpatialPartitionSize", platformData.spatialPartitionSize), 50, 2048);
+
+                    if(previous != current && backend.platform == Platform.CurrentPlatform.Value)
+                    {
+                        RenderSystem.SetSpatialPartitionSize(current);
+                    }
+                }
+            },
+            null);
     }
 
     public override void OnGUI()

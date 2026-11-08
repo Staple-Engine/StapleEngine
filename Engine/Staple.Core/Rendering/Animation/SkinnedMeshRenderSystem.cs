@@ -473,7 +473,7 @@ public class SkinnedMeshRenderSystem : RenderSystemBase
                     }
 
                     //Don't early skip so we can clear all the changed transforms
-                    needsUpdate |= instance.transformTracker.ShouldUpdateComponent(transform.Entity, in transform);
+                    needsUpdate |= instance.transformTracker.ShouldUpdateComponent(transform.Entity, transform);
                 }
             }
 

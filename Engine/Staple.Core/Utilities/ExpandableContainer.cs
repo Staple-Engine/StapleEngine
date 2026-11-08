@@ -212,4 +212,18 @@ public class ExpandableContainer<T>
             contents[i] = defaultValue;
         }
     }
+
+    /// <summary>
+    /// Sorts the available contents of this container
+    /// </summary>
+    /// <param name="comparison">The comparison to use</param>
+    public void Sort(Comparison<T> comparison)
+    {
+        if(Length == 0)
+        {
+            return;
+        }
+
+        Contents.Sort(comparison);
+    }
 }

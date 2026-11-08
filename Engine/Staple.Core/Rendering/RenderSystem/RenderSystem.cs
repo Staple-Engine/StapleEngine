@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
 
@@ -11,40 +10,6 @@ namespace Staple.Internal;
 /// </summary>
 public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 {
-    /// <summary>
-    /// Contains information on a render system and its capabilities
-    /// </summary>
-    public readonly struct RenderSystemInfo(RenderSystemBase system, bool isRenderable, bool useOwnRenderProcess)
-    {
-        public readonly RenderSystemBase system = system;
-        public readonly bool isRenderable = isRenderable;
-        public readonly bool useOwnRenderProcess = useOwnRenderProcess;
-        public readonly IRenderQueue globalQueue = system.CreateRenderQueue();
-
-        public override int GetHashCode()
-        {
-            return HashCode.Combine(system, isRenderable, useOwnRenderProcess);
-        }
-
-        public override bool Equals([NotNullWhen(true)] object obj)
-        {
-            return obj is RenderSystemInfo info &&
-                info.system == system &&
-                info.isRenderable == isRenderable &&
-                info.useOwnRenderProcess == useOwnRenderProcess;
-        }
-
-        public static bool operator ==(RenderSystemInfo left, RenderSystemInfo right)
-        {
-            return left.Equals(right);
-        }
-
-        public static bool operator !=(RenderSystemInfo left, RenderSystemInfo right)
-        {
-            return !(left == right);
-        }
-    }
-
     public SubsystemType type { get; } = SubsystemType.Update;
 
     /// <summary>
@@ -61,6 +26,16 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// The current camera
     /// </summary>
     public static (Camera camera, Transform transform) CurrentCamera { get; internal set; }
+
+    /// <summary>
+    /// Whether to split the render world into parts based on a virtual grid
+    /// </summary>
+    public static bool UseSpatialPartitioning = true;
+
+    /// <summary>
+    /// Whether to auto balance spatial partitions
+    /// </summary>
+    public static bool AutobalanceSpatialPartitions = true;
 
     /// <summary>
     /// The instance of this render system
@@ -247,49 +222,52 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
             ClearCullingStates();
 
-            var renderables = this.renderables.Contents;
-
-            foreach (var pair in spatialEntities)
+            if(UseSpatialPartitioning)
             {
-                var result = set.camera.IsSpatialNodeVisible(pair.Key, false);
+                var renderables = this.renderables.Contents;
 
-                var span = CollectionsMarshal.AsSpan(pair.Value);
-
-                switch (result)
+                foreach (var pair in spatialEntities)
                 {
-                    //Since we can process nodes in any way, it's possible for an entity to be visible then invisible and vice versa.
-                    //Ensure it's marked as visible if it's visible at any point.
-                    case CullingState.Visible:
+                    var result = set.camera.IsSpatialNodeVisible(pair.Key, false);
 
-                        foreach (var renderable in span)
-                        {
-                            if (renderable == null || renderable.cullingState == CullingState.Visible) //Already visible!
+                    var span = CollectionsMarshal.AsSpan(pair.Value);
+
+                    switch (result)
+                    {
+                        //Since we can process nodes in any way, it's possible for an entity to be visible then invisible and vice versa.
+                        //Ensure it's marked as visible if it's visible at any point.
+                        case CullingState.Visible:
+
+                            foreach (var renderable in span)
                             {
-                                continue;
+                                if (renderable == null || renderable.cullingState == CullingState.Visible) //Already visible!
+                                {
+                                    continue;
+                                }
+
+                                //Ensure marked as visible
+                                renderable.cullingState = CullingState.Visible;
                             }
 
-                            //Ensure marked as visible
-                            renderable.cullingState = CullingState.Visible;
-                        }
+                            break;
 
-                        break;
+                        case CullingState.Invisible:
 
-                    case CullingState.Invisible:
-
-                        foreach (var renderable in span)
-                        {
-                            if (renderable == null || renderable.cullingState == CullingState.Visible) //Already passed a visible test!
+                            foreach (var renderable in span)
                             {
-                                continue;
+                                if (renderable == null || renderable.cullingState == CullingState.Visible) //Already passed a visible test!
+                                {
+                                    continue;
+                                }
+
+                                renderable.isVisible = false;
+
+                                //Ensure marked as invisible
+                                renderable.cullingState = CullingState.Invisible;
                             }
 
-                            renderable.isVisible = false;
-
-                            //Ensure marked as invisible
-                            renderable.cullingState = CullingState.Invisible;
-                        }
-
-                        break;
+                            break;
+                    }
                 }
             }
         }
@@ -323,7 +301,9 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
                 renderable.isVisible = renderable.Enabled &&
                     !renderable.forceRenderingOff;
 
-                if (renderable.isVisible && cull && renderable.requiresPreciseCulling)
+                if (renderable.isVisible && cull &&
+                    (renderable.requiresPreciseCulling || !UseSpatialPartitioning) &&
+                    renderable.cullingState != CullingState.Invisible)
                 {
                     renderable.isVisible = set.camera.IsVisible(renderable.bounds);
 
@@ -520,13 +500,19 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
                 system.renderSystem.system.Preprocess(queue);
 
-                if (system.renderSystem.isRenderable)
+                if (system.renderSystem.isRenderable && !queue.Empty)
                 {
-                    queue.IterateRenderables((entity, transform, renderable) =>
+                    var items = queue.Renderables;
+
+                    for(var i = 0; i < items.Length; i++)
                     {
-                        renderable.isVisible = true;
-                        renderable.cullingState = CullingState.Visible;
-                    });
+                        ref var item = ref items[i];
+
+                        var renderable = item.renderable;
+
+                        renderable.isVisible = renderable.Enabled && !renderable.forceRenderingOff;
+                        renderable.cullingState = renderable.isVisible ? CullingState.Visible : CullingState.Invisible;
+                    }
 
                     var sortMode = RenderQueueSortMode(renderQueue);
 

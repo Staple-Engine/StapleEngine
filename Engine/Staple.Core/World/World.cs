@@ -20,17 +20,26 @@ public partial class World
 
     public delegate void OnComponentChangedCallback(World world, Component component);
 
-    public delegate void CallableComponentCallback(Span<LifecycleComponent> content);
-    public delegate void SingleCallableComponentCallback(LifecycleComponent component);
+    public delegate void LifecycleComponentCallback(Span<LifecycleComponent> content);
+
+    public delegate void SingleLifecycleComponentCallback(LifecycleComponent component);
 
     /// <summary>
     /// Contains data about a component
     /// </summary>
     internal class ComponentHolder(int hash, Component component)
     {
+        /// <summary>
+        /// The hash of the component
+        /// </summary>
         public int hash = hash;
+        /// <summary>
+        /// The component instance
+        /// </summary>
         public Component component = component;
-
+        /// <summary>
+        /// The <see cref="VersionableComponent"/> of this component, if any
+        /// </summary>
         public VersionableComponent versionable = component as VersionableComponent;
     }
 
@@ -199,6 +208,9 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// The current world instance, if any
+    /// </summary>
     public static World Current { get; internal set; } = new();
 
     /// <summary>
@@ -225,38 +237,125 @@ public partial class World
     /// </summary>
     public Span<Transform> RootEntities => rootEntities.Contents;
 
+    /// <summary>
+    /// World-specific thread lock
+    /// </summary>
     private readonly Lock lockObject = new();
+
+    /// <summary>
+    /// Global thread lock
+    /// </summary>
     private static readonly Lock globalLockObject = new();
 
+    /// <summary>
+    /// Keeps the inheritance info for a component (type fullname hash to set of type fullname hashes)
+    /// </summary>
     private readonly Dictionary<int, HashSet<int>> componentCompatibilityCache = [];
+
+    /// <summary>
+    /// Maps component type fullname hashes to component names
+    /// </summary>
     private readonly Dictionary<int, string> componentNameHashes = [];
-    private readonly HashSet<int> callableComponentTypes = [];
+
+    /// <summary>
+    /// <see cref="LifecycleComponent"/> hashes
+    /// </summary>
+    private readonly HashSet<int> lifecycleComponentTypes = [];
+
+    /// <summary>
+    /// List of pending destroyed entities
+    /// </summary>
     private readonly List<Entity> destroyedEntities = [];
+
+    /// <summary>
+    /// List of removed components per entity
+    /// </summary>
     private readonly HashSet<(Entity, int)> removedComponents = [];
-    private SceneQuery<LifecycleComponent> callableComponents;
-    private SceneQuery<Camera, Transform> cameras;
 
-    private readonly List<Camera> sortedCamerasBacking = [];
-    private readonly List<Transform> rootEntitiesBacking = [];
+    /// <summary>
+    /// All lifecycle components
+    /// </summary>
+    private SceneQuery<LifecycleComponent> lifecycleComponents;
 
-    internal readonly ExpandableContainer<EntityInfo> entities = new();
-    internal readonly ExpandableContainer<Camera> sortedCameras = new();
-    internal readonly ExpandableContainer<Transform> rootEntities = new();
+    /// <summary>
+    /// All cameras in the scene
+    /// </summary>
+    private SceneQuery<Camera> cameras;
 
+    /// <summary>
+    /// All entities
+    /// </summary>
+    internal readonly ExpandableContainer<EntityInfo> entities = new(false);
+
+    /// <summary>
+    /// All sorted cameras
+    /// </summary>
+    internal readonly ExpandableContainer<Camera> sortedCameras = new(false);
+
+    /// <summary>
+    /// All root entities
+    /// </summary>
+    internal readonly ExpandableContainer<Transform> rootEntities = new(false);
+
+    /// <summary>
+    /// A cached list of all entities
+    /// </summary>
     private readonly ExpandableContainer<EntityInfo> cachedEntityList = new();
+
+    /// <summary>
+    /// Whether we need to emit a world change
+    /// </summary>
     private bool needsEmitWorldChange = false;
+
+    /// <summary>
+    /// List of all dead entities (by index)
+    /// </summary>
     private readonly SortedSet<int> deadEntities = [];
 
+    /// <summary>
+    /// List of all updated components
+    /// </summary>
     private readonly HashSet<Component> updatedComponents = [];
 
+    /// <summary>
+    /// Total entities
+    /// </summary>
     private int entityCount;
+
+    /// <summary>
+    /// Receivers for the world changing
+    /// </summary>
     private static readonly WorldChangeBox worldChangeReceivers = new();
+
+    /// <summary>
+    /// All scene queries
+    /// </summary>
     private static readonly SceneQueryBox sceneQueries = new();
+
+    /// <summary>
+    /// All component changes (component type hash to observer box)
+    /// </summary>
     private static readonly Dictionary<int, ComponentChangedBox> componentChanges = [];
+
+    /// <summary>
+    /// All callbacks for added components (component type hash to observer box)
+    /// </summary>
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentAddedCallbacks = [];
+
+    /// <summary>
+    /// All callbacks for changed components (component type hash to observer box)
+    /// </summary>
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentChangedCallbacks = [];
+
+    /// <summary>
+    /// All callbacks for removed components (component type hash to observer box)
+    /// </summary>
     private static readonly Dictionary<int, List<OnComponentChangedCallback>> componentRemovedCallbacks = [];
 
+    /// <summary>
+    /// Adds a scene query receiver to the observer list
+    /// </summary>
+    /// <param name="receiver">The receiver</param>
     internal static void AddSceneQuery(ISceneQuery receiver)
     {
         if (receiver == null)
@@ -272,6 +371,10 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Removes a scene query receiver from the observer list
+    /// </summary>
+    /// <param name="receiver">The receiver</param>
     internal static void RemoveSceneQuery(ISceneQuery receiver)
     {
         if (receiver == null)
@@ -285,6 +388,10 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Adds a world change receiver to the observer list
+    /// </summary>
+    /// <param name="receiver">The receiver</param>
     internal static void AddWorldChangeReceiver(IWorldChangeReceiver receiver)
     {
         if(receiver == null)
@@ -300,6 +407,10 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Removes a world change receiver from the observer list
+    /// </summary>
+    /// <param name="receiver">The receiver</param>
     internal static void RemoveWorldChangeReceiver(IWorldChangeReceiver receiver)
     {
         if (receiver == null)
@@ -313,6 +424,10 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Adds a component change receiver to the observer list
+    /// </summary>
+    /// <param name="receiver">The receiver</param>
     internal static void AddComponentChangeReceiver(IComponentChangeReceiver receiver)
     {
         if(receiver == null)
@@ -355,6 +470,10 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Emits a world change event
+    /// </summary>
+    /// <param name="isWorldReplaced">Whether it's a world replaced event</param>
     internal static void EmitWorldChangedEvent(bool isWorldReplaced)
     {
         var world = Current;
@@ -383,43 +502,31 @@ public partial class World
         }
 
         {
-            world.sortedCamerasBacking.Clear();
+            world.sortedCameras.Clear();
 
             var cameras = Scene.Query<Camera>(false);
 
             foreach (Camera camera in cameras)
             {
-                world.sortedCamerasBacking.Add(camera);
+                world.sortedCameras.Add(camera);
             }
 
-            world.sortedCamerasBacking.Sort((x, y) => x.depth.CompareTo(y.depth));
-
-            if(world.sortedCameras.Length != world.sortedCamerasBacking.Count)
-            {
-                world.sortedCameras.Resize(world.sortedCamerasBacking.Count, false);
-            }
-
-            CollectionsMarshal.AsSpan(world.sortedCamerasBacking).CopyTo(world.sortedCameras.Contents);
+            world.sortedCameras.Contents.Sort((x, y) => x.depth.CompareTo(y.depth));
 
             {
                 var transforms = Scene.Query<Transform>(true);
 
-                world.rootEntitiesBacking.Clear();
+                world.rootEntities.Clear();
 
                 foreach(var t in transforms)
                 {
-                    if(t.Parent == null)
+                    if (t.Parent != null)
                     {
-                        world.rootEntitiesBacking.Add(t);
+                        continue;
                     }
-                }
 
-                if(world.rootEntities.Length != world.rootEntitiesBacking.Count)
-                {
-                    world.rootEntities.Resize(world.rootEntitiesBacking.Count, false);
+                    world.rootEntities.Add(t);
                 }
-
-                CollectionsMarshal.AsSpan(world.rootEntitiesBacking).CopyTo(world.rootEntities.Contents);
             }
         }
 
@@ -443,6 +550,9 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Requests a world update next frame
+    /// </summary>
     internal void RequestWorldUpdate()
     {
         lock (lockObject)
@@ -451,6 +561,9 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Called at the start of the frame
+    /// </summary>
     internal void StartFrame()
     {
         lock(lockObject)
@@ -555,6 +668,9 @@ public partial class World
         }
     }
 
+    /// <summary>
+    /// Disposes this <see cref="World"/>'s entities and resources
+    /// </summary>
     internal void Dispose()
     {
         lock(lockObject)

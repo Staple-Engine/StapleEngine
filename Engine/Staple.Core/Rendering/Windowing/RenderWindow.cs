@@ -522,7 +522,7 @@ internal class RenderWindow
 
         currentPlatform = platform.Value;
 
-        if (!AppSettings.Active.renderers.TryGetValue(currentPlatform, out renderers))
+        if (!AppSettings.Active.platforms.TryGetValue(currentPlatform, out var platformData))
         {
             Log.Error($"No Renderers found for platform {platform}, terminating...", LogTag);
 
@@ -545,6 +545,8 @@ internal class RenderWindow
             return;
         }
 
+        renderers = platformData.renderers;
+
         var size = window.Size;
 
         (width, height) = (size.X, size.Y);
@@ -553,51 +555,57 @@ internal class RenderWindow
 
         var ok = false;
 
-        if (renderers != null)
+        if(renderers == null)
         {
-            Log.Info($"Attempting to find the right renderer", LogTag);
+            Log.Error($"No valid renderers! Exiting...", LogTag);
 
-            foreach (var renderer in renderers)
+            Environment.Exit(1);
+
+            return;
+        }
+
+        Log.Info($"Attempting to find the right renderer", LogTag);
+
+        foreach (var renderer in renderers)
+        {
+            Log.Info($"Trying {renderer}", LogTag);
+
+            unsafe
             {
-                Log.Info($"Trying {renderer}", LogTag);
+                ok = RenderSystem.Backend.Initialize(renderer, debugRendering, window, renderFlags);
 
-                unsafe
+                if (ok)
                 {
-                    ok = RenderSystem.Backend.Initialize(renderer, debugRendering, window, renderFlags);
+                    Log.Info($"{renderer} OK!", LogTag);
 
-                    if (ok)
-                    {
-                        Log.Info($"{renderer} OK!", LogTag);
+                    CurrentRenderer = renderer;
 
-                        CurrentRenderer = renderer;
-
-                        break;
-                    }
+                    break;
                 }
             }
+        }
 
-            if (!ok)
+        if (!ok)
+        {
+            Log.Error($"Failed to find a working renderer, terminating...", LogTag);
+
+            rendererReferences--;
+
+            if (rendererReferences == 0)
             {
-                Log.Error($"Failed to find a working renderer, terminating...", LogTag);
-
-                rendererReferences--;
-
-                if (rendererReferences == 0)
-                {
-                    RenderSystem.Backend.Destroy();
-                }
-
-                windowReferences--;
-
-                if(windowReferences == 0)
-                {
-                    window.Terminate();
-                }
-
-                Environment.Exit(1);
-
-                return;
+                RenderSystem.Backend.Destroy();
             }
+
+            windowReferences--;
+
+            if(windowReferences == 0)
+            {
+                window.Terminate();
+            }
+
+            Environment.Exit(1);
+
+            return;
         }
     }
 

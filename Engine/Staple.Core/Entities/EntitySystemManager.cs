@@ -302,7 +302,7 @@ internal sealed class EntitySystemManager : ISubsystem
                 system.FixedUpdate(time);
             }
 
-            World.Current?.IterateCallableComponents((contents) =>
+            World.Current?.IterateLifecycleComponents((contents) =>
             {
                 for(var i = 0; i < contents.Length; i++)
                 {
@@ -345,7 +345,7 @@ internal sealed class EntitySystemManager : ISubsystem
                 system.Update(time);
             }
 
-            World.Current?.IterateCallableComponents((contents) =>
+            World.Current?.IterateLifecycleComponents((contents) =>
             {
                 for(var i = 0; i < contents.Length; i++)
                 {
@@ -383,7 +383,7 @@ internal sealed class EntitySystemManager : ISubsystem
                 }
             });
 
-            World.Current?.IterateCallableComponents((contents) =>
+            World.Current?.IterateLifecycleComponents((contents) =>
             {
                 for (var i = 0; i < contents.Length; i++)
                 {

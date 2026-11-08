@@ -38,7 +38,7 @@ public partial class World
                     needsEmitWorldChange = true;
 
                     componentCompatibilityCache.Remove(key);
-                    callableComponentTypes.Remove(key);
+                    lifecycleComponentTypes.Remove(key);
 
                     foreach (var pair in componentCompatibilityCache)
                     {
@@ -182,7 +182,7 @@ public partial class World
             }
 
             if(!Scene.InstancingComponent &&
-                callableComponentTypes.Count != 0 &&
+                lifecycleComponentTypes.Count != 0 &&
                 container.component is LifecycleComponent callback)
             {
                 if(callback.ShouldExecuteEvents)
@@ -216,7 +216,7 @@ public partial class World
 
         if (t.IsSubclassOf(typeof(LifecycleComponent)))
         {
-            callableComponentTypes.Add(hash);
+            lifecycleComponentTypes.Add(hash);
         }
 
         if (added)
@@ -319,7 +319,7 @@ public partial class World
                         }
                     }
 
-                    if (callableComponentTypes.Count != 0 &&
+                    if (lifecycleComponentTypes.Count != 0 &&
                         container.component is LifecycleComponent callback &&
                         callback.ShouldExecuteEvents)
                     {

@@ -345,10 +345,17 @@ internal partial class StapleEditor
                         {
                             system.renderSystem.system.Preprocess(queue);
 
-                            if (system.renderSystem.isRenderable)
+                            if (system.renderSystem.isRenderable && !queue.Empty)
                             {
-                                queue.IterateRenderables((entity, transform, renderable) =>
+                                var items = queue.Renderables;
+
+                                for (var i = 0; i < items.Length; i++)
                                 {
+                                    ref var item = ref items[i];
+
+                                    var renderable = item.renderable;
+                                    var transform = item.transform;
+
                                     if (renderable.Enabled)
                                     {
                                         if (!renderable.isVisible)
@@ -356,16 +363,16 @@ internal partial class StapleEditor
                                             RenderSystem.RenderStats.culledDrawCalls++;
                                         }
 
-                                        if (sceneTransformTracker.ShouldUpdateComponent(entity, in transform))
+                                        if (sceneTransformTracker.ShouldUpdateComponent(item.entity, transform))
                                         {
-                                            ReplaceEntityBodyIfNeeded(entity, renderable.bounds);
+                                            ReplaceEntityBodyIfNeeded(item.entity, renderable.bounds);
                                         }
                                     }
                                     else
                                     {
-                                        ClearEntityBody(entity);
+                                        ClearEntityBody(item.entity);
                                     }
-                                });
+                                }
 
                                 if (needsSorting)
                                 {

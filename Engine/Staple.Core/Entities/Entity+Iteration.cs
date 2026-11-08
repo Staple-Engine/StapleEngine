@@ -15,8 +15,8 @@ public partial struct Entity
     /// Iterates through the <see cref="LifecycleComponent"/> components of this entity
     /// </summary>
     /// <param name="callback">A callback to handle the component</param>
-    public readonly void IterateCallableComponents(World.SingleCallableComponentCallback callback)
+    public readonly void IterateLifecycleComponents(World.SingleLifecycleComponentCallback callback)
     {
-        World.Current?.IterateCallableComponents(this, callback);
+        World.Current?.IterateLifecycleComponents(this, callback);
     }
 }

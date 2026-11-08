@@ -15,6 +15,60 @@ namespace Staple;
 public class AppSettings
 {
     /// <summary>
+    /// Platform-specific data
+    /// </summary>
+    [MessagePackObject]
+    [Serializable]
+    public class PerPlatformData
+    {
+        /// <summary>
+        /// Which renderers to use
+        /// </summary>
+        [Key(0)]
+        public List<RendererType> renderers = [];
+
+        /// <summary>
+        /// Maximum amount of lights
+        /// </summary>
+        [Key(1)]
+        public int lightLimit;
+
+        /// <summary>
+        /// Whether to use spatial partitioning for rendering
+        /// </summary>
+        [Key(2)]
+        public bool useSpatialPartitioning = true;
+
+        /// <summary>
+        /// Whether to auto balance the spatial partition size
+        /// </summary>
+        [Key(3)]
+        public bool autoBalanceSpatialPartitions = true;
+
+        /// <summary>
+        /// The starting spatial partitioning size. If <see cref="autoBalanceSpatialPartitioning"/> is false, this is how it starts.
+        /// </summary>
+        [Key(4)]
+        public int spatialPartitionSize = 50;
+
+        /// <summary>
+        /// Makes a copy of this
+        /// </summary>
+        /// <returns>The copy</returns>
+        public PerPlatformData Clone()
+        {
+            return new()
+            {
+                renderers = [.. renderers],
+                autoBalanceSpatialPartitions = autoBalanceSpatialPartitions,
+                lightLimit = lightLimit,
+                spatialPartitionSize = spatialPartitionSize,
+                useSpatialPartitioning = useSpatialPartitioning,
+            };
+        }
+    }
+
+    /// <summary>
     /// Whether to run in the background (not pause)
     /// </summary>
     [Key(0)]
@@ -57,10 +111,10 @@ public class AppSettings
     public List<string> sortingLayers = [];
 
     /// <summary>
-    /// Which renderers to use per platform
+    /// Data per platform
     /// </summary>
     [Key(7)]
-    public Dictionary<AppPlatform, List<RendererType>> renderers = [];
+    public Dictionary<AppPlatform, PerPlatformData> platforms = [];
 
     /// <summary>
     /// Default mode for the game window
@@ -188,12 +242,6 @@ public class AppSettings
     [Key(28)]
     public X64InstructionLevel x64InstructionLevel = X64InstructionLevel.x86_64v2;
 
-    /// <summary>
-    /// The maximum amount of lights to use per platform
-    /// </summary>
-    [Key(29)]
-    public Dictionary<AppPlatform, int> lightLimits = [];
-
     [IgnoreMember]
     public static AppSettings Default
     {
@@ -214,47 +262,64 @@ public class AppSettings
                 [
                     "Default",
                 ],
-                renderers = new()
+                platforms = new()
                 {
                     {
                         AppPlatform.Windows,
-                        [
-                            RendererType.Direct3D12, RendererType.Vulkan
-                        ]
+                        new()
+                        {
+                            renderers =
+                            [
+                                RendererType.Direct3D12, RendererType.Vulkan
+                            ],
+                            lightLimit = LightSystem.MaxLights,
+                        }
                     },
                     {
                         AppPlatform.Linux,
-                        [
-                            RendererType.Vulkan
-                        ]
+                        new()
+                        {
+                            renderers =
+                            [
+                                RendererType.Vulkan
+                            ],
+                            lightLimit = LightSystem.MaxLights,
+                        }
                     },
                     {
                         AppPlatform.MacOSX,
-                        [
-                            RendererType.Metal
-                        ]
+                        new()
+                        {
+                            renderers =
+                            [
+                                RendererType.Metal
+                            ],
+                            lightLimit = LightSystem.MaxLights,
+                        }
                     },
                     {
                         AppPlatform.Android,
-                        [
-                            RendererType.Vulkan
-                        ]
+                        new()
+                        {
+                            renderers =
+                            [
+                                RendererType.Vulkan
+                            ],
+                            lightLimit = 4,
+                        }
                     },
                     {
                         AppPlatform.iOS,
-                        [
-                            RendererType.Metal
-                        ]
+                        new()
+                        {
+                            renderers =
+                            [
+                                RendererType.Metal
+                            ],
+                            lightLimit = 4,
+                        }
                     }
                 },
-                lightLimits = new()
-                {
-                    { AppPlatform.Android, 4 },
-                    { AppPlatform.iOS, 4 },
-                    { AppPlatform.Windows, LightSystem.MaxLights },
-                    { AppPlatform.Linux, LightSystem.MaxLights },
-                    { AppPlatform.MacOSX, LightSystem.MaxLights },
-                }
             };
         }
     }
@@ -266,11 +331,11 @@ public class AppSettings
 
     internal AppSettings Clone()
     {
-        var newRenderers = new Dictionary<AppPlatform, List<RendererType>>();
+        var newPlatformData = new Dictionary<AppPlatform, PerPlatformData>();
 
-        foreach(var pair in renderers)
+        foreach(var (platform, data) in platforms)
         {
-            newRenderers.Add(pair.Key, pair.Value.Select(x => x).ToList());
+            newPlatformData.Add(platform, data.Clone());
         }
 
         return new()
@@ -280,7 +345,7 @@ public class AppSettings
             appVersion = appVersion,
             appDisplayVersion = appDisplayVersion,
             appName = appName,
-            colliderMask = colliderMask.Select(x => x.Clone()).ToArray(),
+            colliderMask = [.. colliderMask.Select(x => x.Clone())],
             companyName = companyName,
             defaultWindowHeight = defaultWindowHeight,
             defaultWindowWidth = defaultWindowWidth,
@@ -291,7 +356,6 @@ public class AppSettings
             layers = [.. layers],
             multiThreadedRenderer = multiThreadedRenderer,
             portraitOrientation = portraitOrientation,
-            renderers = newRenderers,
             runInBackground = runInBackground,
             sortingLayers = [.. sortingLayers],
             ambientLight = ambientLight,
@@ -304,7 +368,7 @@ public class AppSettings
             usePhysicsInterpolation = usePhysicsInterpolation,
             overrideNativeInstructionSetX64 = overrideNativeInstructionSetX64,
             x64InstructionLevel = x64InstructionLevel,
-            lightLimits = new(lightLimits),
+            platforms = newPlatformData,
         };
     }
 }
@@ -323,6 +387,7 @@ public class AppSettings
 [JsonSerializable(typeof(int))]
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(AppSettings))]
+[JsonSerializable(typeof(AppSettings.PerPlatformData))]
 internal partial class AppSettingsSerializationContext : JsonSerializerContext
 {
 }

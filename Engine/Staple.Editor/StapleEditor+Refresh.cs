@@ -118,11 +118,11 @@ internal partial class StapleEditor
             {
                 try
                 {
-                    if (projectAppSettings.renderers.TryGetValue(platform, out var renderers))
+                    if (projectAppSettings.platforms.TryGetValue(platform, out var platformData))
                     {
                         var rendererParameters = new HashSet<string>();
 
-                        foreach (var item in renderers)
+                        foreach (var item in platformData.renderers)
                         {
                             switch (item)
                             {
@@ -369,11 +369,11 @@ internal partial class StapleEditor
                 {
                     try
                     {
-                        if (projectAppSettings.renderers.TryGetValue(platform, out var renderers))
+                        if (projectAppSettings.platforms.TryGetValue(platform, out var platformData))
                         {
                             var rendererParameters = new HashSet<string>();
 
-                            foreach (var item in renderers)
+                            foreach (var item in platformData.renderers)
                             {
                                 switch (item)
                                 {

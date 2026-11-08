@@ -446,9 +446,14 @@ public static class EditorUtils
         cameraTransform = instance.cameraTransform;
     }
 
+    /// <summary>
+    /// Executes a callback on <see cref="LifecycleComponent"/>
+    /// </summary>
+    /// <param name="callback">A callback to call for each valid <see cref="LifecycleComponent"/></param>
+    /// <param name="eventType">The event type, for debugging</param>
     internal static void ExecuteEditorEvent(Action<LifecycleComponent> callback, string eventType)
     {
-        World.Current?.IterateCallableComponents((contents) =>
+        World.Current?.IterateLifecycleComponents((contents) =>
         {
             for (var i = 0; i < contents.Length; i++)
             {

@@ -377,9 +377,14 @@ public partial class StapleActivity : SDLActivity
             LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Current.layers),
                 CollectionsMarshal.AsSpan(AppSettings.Current.sortingLayers));
 
-            if (AppSettings.Active.lightLimits?.TryGetValue(Platform.CurrentPlatform.Value, out var lightCount) ?? false)
+            if (AppSettings.Active.platforms?.TryGetValue(Platform.CurrentPlatform.Value, out var platformData) ?? false)
             {
-                LightSystem.Instance.SetMaxLightCount(lightCount);
+                RenderSystem.UseSpatialPartitioning = platformData.useSpatialPartitioning;
+                RenderSystem.AutobalanceSpatialPartitions = platformData.autoBalanceSpatialPartitions;
+
+                RenderSystem.SetSpatialPartitionSize(platformData.spatialPartitionSize);
+
+                LightSystem.Instance.SetMaxLightCount(platformData.lightLimit);
             }
         }
         catch (Exception e)

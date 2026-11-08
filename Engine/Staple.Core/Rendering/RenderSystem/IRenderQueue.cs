@@ -8,10 +8,22 @@ namespace Staple;
 /// </summary>
 public interface IRenderQueue
 {
+    public struct Item
+    {
+        public Entity entity;
+        public Transform transform;
+        public Renderable renderable;
+    }
+
     /// <summary>
     /// Whether the render queue is empty
     /// </summary>
     bool Empty { get; }
+
+    /// <summary>
+    /// A list of all renderables in this queue. Not sorted with <see cref="Sort(Vector3, RenderableSortMode)"/>
+    /// </summary>
+    Span<Item> Renderables { get; }
 
     /// <summary>
     /// Adds an item to the render queue
@@ -25,12 +37,6 @@ public interface IRenderQueue
     /// Clears the render queue
     /// </summary>
     void Clear();
-
-    /// <summary>
-    /// Iterates the renderables in this render queue. Will not do anything if the contained items are not renderabloes
-    /// </summary>
-    /// <param name="callback">A callback that will be called for each renderable in the render queue</param>
-    void IterateRenderables(Action<Entity, Transform, Renderable> callback);
 
     /// <summary>
     /// Sorts the renderables, based on an origin point and a sort mode

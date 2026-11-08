@@ -1001,7 +1001,7 @@ internal class ResourceManager : IWorldChangeReceiver
             {
                 foreach (var pair in localIDs)
                 {
-                    pair.Value.Entity.IterateCallableComponents((callback) =>
+                    pair.Value.Entity.IterateLifecycleComponents((callback) =>
                     {
                         if (!callback.ShouldExecuteEvents)
                         {

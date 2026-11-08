@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -11,7 +12,72 @@ namespace Staple.Internal;
 public sealed partial class RenderSystem
 {
     #region Fields and Classes
+    /// <summary>
+    /// Contains information on a render system and its capabilities
+    /// </summary>
+    public readonly struct RenderSystemInfo(RenderSystemBase system, bool isRenderable, bool useOwnRenderProcess)
+    {
+        public readonly RenderSystemBase system = system;
+        public readonly bool isRenderable = isRenderable;
+        public readonly bool useOwnRenderProcess = useOwnRenderProcess;
+        public readonly IRenderQueue globalQueue = system.CreateRenderQueue();
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(system, isRenderable, useOwnRenderProcess);
+        }
+
+        public override bool Equals([NotNullWhen(true)] object obj)
+        {
+            return obj is RenderSystemInfo info &&
+                info.system == system &&
+                info.isRenderable == isRenderable &&
+                info.useOwnRenderProcess == useOwnRenderProcess;
+        }
+
+        public static bool operator ==(RenderSystemInfo left, RenderSystemInfo right)
+        {
+            return left.Equals(right);
+        }
+
+        public static bool operator !=(RenderSystemInfo left, RenderSystemInfo right)
+        {
+            return !(left == right);
+        }
+    }
+
+    public class RenderSystemQueueData
+    {
+        public IRenderQueue queue;
+    }
+
+    public class RenderSystemRenderQueue
+    {
+        public RenderSystemInfo renderSystem;
+
+        public IRenderData renderData;
+
+        public readonly SortedDictionary<int, RenderSystemQueueData> queue = [];
+
+        public bool UsesRenderData => !renderSystem.useOwnRenderProcess && renderSystem.isRenderable;
+    }
+
+    public class RenderSystemCameraSet
+    {
+        public Camera camera;
+
+        public Transform transform;
+
+        public readonly ComponentVersionTracker<Transform> transformTracker = new(false);
+
+        public readonly ExpandableContainer<RenderSystemRenderQueue> renderSystems = new(false);
+
+        public readonly SortedSet<int> renderIndices = [];
+    }
+
     internal static readonly string LogTag = "RenderSystem";
+
+    internal static byte Priority = 1;
 
     /// <summary>
     /// Size of spatial partitioning cells
@@ -54,37 +120,6 @@ public sealed partial class RenderSystem
     internal static Vector3 SpatialPartitionSizeHalfVector = new(SpatialPartitionSize / 2.0f, SpatialPartitionSize / 2.0f,
         SpatialPartitionSize / 2.0f);
 
-    public class RenderSystemQueueData
-    {
-        public IRenderQueue queue;
-    }
-
-    public class RenderSystemRenderQueue
-    {
-        public RenderSystemInfo renderSystem;
-
-        public IRenderData renderData;
-
-        public readonly SortedDictionary<int, RenderSystemQueueData> queue = [];
-
-        public bool UsesRenderData => !renderSystem.useOwnRenderProcess && renderSystem.isRenderable;
-    }
-
-    public class RenderSystemCameraSet
-    {
-        public Camera camera;
-
-        public Transform transform;
-
-        public readonly ComponentVersionTracker<Transform> transformTracker = new(false);
-
-        public readonly ExpandableContainer<RenderSystemRenderQueue> renderSystems = new(false);
-
-        public readonly SortedSet<int> renderIndices = [];
-    }
-
-    internal static byte Priority = 1;
-
     /// <summary>
     /// Render thread lock
     /// </summary>
@@ -118,7 +153,7 @@ public sealed partial class RenderSystem
     /// <summary>
     /// All transforms of each entity
     /// </summary>
-    internal readonly ExpandableContainer<Matrix4x4> entityTransforms = new(1024);
+    internal readonly ExpandableContainer<Matrix4x4> entityTransforms = new(1024, false);
 
     /// <summary>
     /// Spatial location of each entity
@@ -128,12 +163,12 @@ public sealed partial class RenderSystem
     /// <summary>
     /// Keeps track of where an entity was located the previous frame
     /// </summary>
-    private readonly ExpandableContainer<HashSet<Vector3Int>> lastSpatialEntities = new(1024);
+    private readonly ExpandableContainer<HashSet<Vector3Int>> lastSpatialEntities = new(1024, false);
 
     /// <summary>
     /// Keeps track of which entities we already processed
     /// </summary>
-    private readonly ExpandableContainer<bool> processedSpatialEntities = new(1024);
+    private readonly ExpandableContainer<bool> processedSpatialEntities = new(1024, false);
 
     /// <summary>
     /// Tracker for each entity's transform
@@ -435,6 +470,10 @@ public sealed partial class RenderSystem
         }
     }
 
+    /// <summary>
+    /// Sets the current spatial partition size
+    /// </summary>
+    /// <param name="size">The spatial partition size</param>
     internal static void SetSpatialPartitionSize(int size)
     {
         SpatialPartitionSize = size;
@@ -452,6 +491,11 @@ public sealed partial class RenderSystem
         Instance.changedEntityTransformRanges.Clear();
     }
 
+    /// <summary>
+    /// Gets the spatial coordinate for a position
+    /// </summary>
+    /// <param name="position">The position</param>
+    /// <returns>The spatial coordinate</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static Vector3Int GetEntitySpatialLocation(Vector3 position)
     {
@@ -523,12 +567,25 @@ public sealed partial class RenderSystem
         }
     }
 
+    /// <summary>
+    /// Creates the <see cref="AABB"/> of a coordinate
+    /// </summary>
+    /// <param name="coordinate">The spatial coordinate</param>
+    /// <returns>The <see cref="AABB"/></returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static AABB MakeSpatialAABB(Vector3Int coordinate)
     {
         return new AABB((Vector3)coordinate * SpatialPartitionSize + SpatialPartitionSizeHalfVector, SpatialPartitionSizeVector);
     }
 
+    /// <summary>
+    /// Updates an entity's spatial data
+    /// </summary>
+    /// <param name="index">The entity index</param>
+    /// <param name="transform">The entity transform</param>
+    /// <param name="renderable">The entity renderable</param>
+    /// <param name="processed">Which entities were already processed</param>
+    /// <param name="spatials">The spatial nodes used by each entity</param>
     internal void UpdateEntitySpatialData(int index, Transform transform, Renderable renderable, Span<bool> processed,
         Span<HashSet<Vector3Int>> spatials)
     {
@@ -578,9 +635,15 @@ public sealed partial class RenderSystem
         });
     }
 
+    /// <summary>
+    /// Balances spatial entity nodes, if needed.
+    /// </summary>
+    /// <param name="world">The current world</param>
     internal void BalanceSpatialNodes(World world)
     {
-        if(spatialEntities.Count <= TargetSpatialPartitionNodeCount)
+        if(!UseSpatialPartitioning ||
+            !AutobalanceSpatialPartitions ||
+            spatialEntities.Count <= TargetSpatialPartitionNodeCount)
         {
             return;
         }
@@ -613,10 +676,14 @@ public sealed partial class RenderSystem
             }
 
             entityTransforms.Resize(newSize, true);
-            lastSpatialEntities.Resize(newSize, true);
-            processedSpatialEntities.Resize(newSize, true);
             renderables.Resize(newSize, false);
             renderableMaterialHashes.Resize(newSize, false);
+
+            if (UseSpatialPartitioning)
+            {
+                lastSpatialEntities.Resize(newSize, true);
+                processedSpatialEntities.Resize(newSize, true);
+            }
 
             var renderableSpan = renderables.Contents;
             var renderableMaterialHashesContents = renderableMaterialHashes.Contents;
@@ -658,16 +725,21 @@ public sealed partial class RenderSystem
             changedEntityTransformRanges.Add(startIndex, length);
         }
 
+        entityTransformTracker.ClearChanges();
+        entityRenderableTracker.ClearChanges();
+
+        if (!UseSpatialPartitioning)
+        {
+            return;
+        }
+
         foreach (var renderable in entityRenderableTracker.ChangedComponents)
         {
             UpdateEntitySpatialData(renderable.Entity.Index, renderable.Transform, renderable, processedSpatialEntities.Contents,
                 lastSpatialEntities.Contents);
         }
 
-        entityTransformTracker.ClearChanges();
-        entityRenderableTracker.ClearChanges();
-
-        if(spatialEntities.Count > TargetSpatialPartitionNodeCount)
+        if(AutobalanceSpatialPartitions && spatialEntities.Count > TargetSpatialPartitionNodeCount)
         {
             BalanceSpatialNodes(world);
         }
@@ -695,19 +767,25 @@ public sealed partial class RenderSystem
                 renderableMaterialHashes.Resize(newSize, false);
             }
 
-            processedSpatialEntities.ClearValues();
-
-            foreach (var set in lastSpatialEntities.Contents)
+            if(UseSpatialPartitioning)
             {
-                set?.Clear();
-            }
+                processedSpatialEntities.ClearValues();
 
-            foreach(var pair in spatialEntities)
-            {
-                pair.Value.Clear();
-            }
+                foreach (var set in lastSpatialEntities.Contents)
+                {
+                    set?.Clear();
+                }
 
-            SpatialPartitionSize = StartingSpatialPartitionSize;
+                foreach (var pair in spatialEntities)
+                {
+                    pair.Value.Clear();
+                }
+
+                if (AutobalanceSpatialPartitions)
+                {
+                    SpatialPartitionSize = StartingSpatialPartitionSize;
+                }
+            }
 
             {
                 var renderableContents = renderables.Contents;
@@ -895,7 +973,10 @@ public sealed partial class RenderSystem
                 renderableMaterialHashes.Resize(newSize, false);
             }
 
-            processedSpatialEntities.ClearValues();
+            if (UseSpatialPartitioning)
+            {
+                processedSpatialEntities.ClearValues();
+            }
 
             {
                 var renderableContents = renderables.Contents;

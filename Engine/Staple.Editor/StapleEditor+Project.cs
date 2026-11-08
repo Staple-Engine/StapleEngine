@@ -111,6 +111,16 @@ internal partial class StapleEditor
             projectAppSettings = AppSettings.Default;
         }
 
+        if((projectAppSettings.platforms?.Count ?? 0) == 0)
+        {
+            projectAppSettings.platforms = [];
+
+            foreach(var (key, data) in AppSettings.Default.platforms)
+            {
+                projectAppSettings.platforms.Add(key, data.Clone());
+            }
+        }
+
         LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
 
         AddEditorLayers();
@@ -125,15 +135,19 @@ internal partial class StapleEditor
 
         LightSystem.Enabled = projectAppSettings.enableLighting;
 
-        foreach (var pair in projectAppSettings.renderers)
+        foreach (var platform in Enum.GetValues<AppPlatform>())
         {
-            try
-            {
-                Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging", pair.Key.ToString()));
-            }
-            catch (Exception)
-            {
-            }
+            EditorUtils.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging", platform.ToString()));
+        }
+
+        if (projectAppSettings.platforms.TryGetValue(Platform.CurrentPlatform.Value, out var platformData))
+        {
+            RenderSystem.UseSpatialPartitioning = platformData.useSpatialPartitioning;
+            RenderSystem.AutobalanceSpatialPartitions = platformData.autoBalanceSpatialPartitions;
+
+            RenderSystem.SetSpatialPartitionSize(platformData.spatialPartitionSize);
+
+            LightSystem.Instance.SetMaxLightCount(platformData.lightLimit);
         }
 
         var lastSession = GetLastSession();
@@ -334,17 +348,21 @@ internal partial class StapleEditor
             return;
         }
 
+        if((projectAppSettings.platforms?.Count ?? 0) == 0)
+        {
+            projectAppSettings.platforms = [];
+
+            foreach(var (key, data) in AppSettings.Default.platforms)
+            {
+                projectAppSettings.platforms.Add(key, data.Clone());
+            }
+        }
+
         LayerMask.SetLayers(CollectionsMarshal.AsSpan(projectAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
 
-        foreach (var pair in projectAppSettings.renderers)
+        foreach (var platform in Enum.GetValues<AppPlatform>())
         {
-            try
-            {
-                Directory.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging", pair.Key.ToString()));
-            }
-            catch (Exception)
-            {
-            }
+            EditorUtils.CreateDirectory(Path.Combine(BasePath, "Cache", "Staging", platform.ToString()));
         }
 
         projectBrowser.currentPlatform = currentPlatform;

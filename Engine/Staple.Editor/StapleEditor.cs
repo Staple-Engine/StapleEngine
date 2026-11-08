@@ -654,7 +654,7 @@ internal partial class StapleEditor
         editorAppSettings.runInBackground = true;
         editorAppSettings.appName = "Staple Editor";
         editorAppSettings.companyName = "Staple Engine";
-        editorAppSettings.renderers[AppPlatform.Windows] = [ RendererType.Vulkan ];
+        editorAppSettings.platforms[AppPlatform.Windows].renderers = [ RendererType.Vulkan ];
 
         LayerMask.SetLayers(CollectionsMarshal.AsSpan(editorAppSettings.layers), CollectionsMarshal.AsSpan(editorAppSettings.sortingLayers));
 

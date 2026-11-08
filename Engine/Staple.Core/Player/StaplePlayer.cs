@@ -67,9 +67,14 @@ public static class StaplePlayer
                 LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Active.layers),
                     CollectionsMarshal.AsSpan(AppSettings.Active.sortingLayers));
 
-                if(AppSettings.Active.lightLimits?.TryGetValue(Platform.CurrentPlatform.Value, out var lightCount) ?? false)
+                if(AppSettings.Active.platforms?.TryGetValue(Platform.CurrentPlatform.Value, out var platformData) ?? false)
                 {
-                    LightSystem.Instance.SetMaxLightCount(lightCount);
+                    RenderSystem.UseSpatialPartitioning = platformData.useSpatialPartitioning;
+                    RenderSystem.AutobalanceSpatialPartitions = platformData.autoBalanceSpatialPartitions;
+
+                    RenderSystem.SetSpatialPartitionSize(platformData.spatialPartitionSize);
+
+                    LightSystem.Instance.SetMaxLightCount(platformData.lightLimit);
                 }
             }
             catch (Exception e)
@@ -88,9 +93,14 @@ public static class StaplePlayer
             LayerMask.SetLayers(CollectionsMarshal.AsSpan(AppSettings.Active.layers),
                 CollectionsMarshal.AsSpan(AppSettings.Active.sortingLayers));
 
-            if (AppSettings.Active.lightLimits?.TryGetValue(Platform.CurrentPlatform.Value, out var lightCount) ?? false)
+            if (AppSettings.Active.platforms?.TryGetValue(Platform.CurrentPlatform.Value, out var platformData) ?? false)
             {
-                LightSystem.Instance.SetMaxLightCount(lightCount);
+                RenderSystem.UseSpatialPartitioning = platformData.useSpatialPartitioning;
+                RenderSystem.AutobalanceSpatialPartitions = platformData.autoBalanceSpatialPartitions;
+
+                RenderSystem.SetSpatialPartitionSize(platformData.spatialPartitionSize);
+
+                LightSystem.Instance.SetMaxLightCount(platformData.lightLimit);
             }
         }
 

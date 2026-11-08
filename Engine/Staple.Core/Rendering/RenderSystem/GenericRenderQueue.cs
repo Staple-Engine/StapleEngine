@@ -23,51 +23,49 @@ public class GenericRenderQueue<T> : IRenderQueue where T: Component
         public Renderable renderable;
     }
 
-    private readonly List<Item> items = [];
+    private readonly ExpandableContainer<Item> items = new(false);
+
+    private readonly ExpandableContainer<IRenderQueue.Item> queueItems = new(false);
 
     private readonly bool IsRenderable = typeof(T).IsAssignableTo(typeof(Renderable));
 
-    public bool Empty => items.Count == 0;
+    public bool Empty => items.Length == 0;
 
-    /// <summary>
-    /// Gets all items in a more efficient way than querying the internal list each iteration
-    /// </summary>
-    public Span<Item> Items => CollectionsMarshal.AsSpan(items);
+    public Span<Item> Items => items.Contents;
 
-    public void Add(Entity entity, Transform transform, object item)
+    public Span<IRenderQueue.Item> Renderables => queueItems.Contents;
+
+    public void Add(Entity entity, Transform transform, object component)
     {
-        if(item is not T component)
+        if(component is not T c)
         {
             return;
         }
 
-        items.Add(new()
+        ref var item = ref items.AddDefault();
+
+        item ??= new();
+
+        item.entity = entity;
+        item.transform = transform;
+        item.component = c;
+
+        if(IsRenderable)
         {
-            entity = entity,
-            transform = transform,
-            component = component,
-            renderable = component as Renderable,
-        });
+            item.renderable = c as Renderable;
+
+            ref var queueItem = ref queueItems.AddDefault();
+
+            queueItem.entity = entity;
+            queueItem.transform = transform;
+            queueItem.renderable = item.renderable;
+        }
     }
 
     public void Clear()
     {
         items.Clear();
-    }
-
-    public void IterateRenderables(Action<Entity, Transform, Renderable> callback)
-    {
-        if(typeof(T) != typeof(Renderable) && !typeof(T).IsSubclassOf(typeof(Renderable)))
-        {
-            return;
-        }
-
-        var items = Items;
-
-        foreach(var i in items)
-        {
-            callback(i.entity, i.transform, i.component as Renderable);
-        }
+        queueItems.Clear();
     }
 
     public void Sort(Vector3 origin, RenderableSortMode sortMode)
