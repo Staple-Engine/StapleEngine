@@ -224,8 +224,6 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
 
             if(UseSpatialPartitioning)
             {
-                var renderables = this.renderables.Contents;
-
                 foreach (var pair in spatialEntities)
                 {
                     var result = set.camera.IsSpatialNodeVisible(pair.Key, false);

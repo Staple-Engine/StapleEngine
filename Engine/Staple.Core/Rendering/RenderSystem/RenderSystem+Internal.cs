@@ -725,11 +725,11 @@ public sealed partial class RenderSystem
             changedEntityTransformRanges.Add(startIndex, length);
         }
 
-        entityTransformTracker.ClearChanges();
-        entityRenderableTracker.ClearChanges();
-
         if (!UseSpatialPartitioning)
         {
+            entityTransformTracker.ClearChanges();
+            entityRenderableTracker.ClearChanges();
+
             return;
         }
 
@@ -739,7 +739,10 @@ public sealed partial class RenderSystem
                 lastSpatialEntities.Contents);
         }
 
-        if(AutobalanceSpatialPartitions && spatialEntities.Count > TargetSpatialPartitionNodeCount)
+        entityTransformTracker.ClearChanges();
+        entityRenderableTracker.ClearChanges();
+
+        if (AutobalanceSpatialPartitions && spatialEntities.Count > TargetSpatialPartitionNodeCount)
         {
             BalanceSpatialNodes(world);
         }
@@ -834,9 +837,7 @@ public sealed partial class RenderSystem
 
             foreach (var camera in cameras)
             {
-                renderQueue.AddDefault();
-
-                ref var collected = ref renderQueue.Contents[renderQueue.Length - 1];
+                ref var collected = ref renderQueue.AddDefault();
 
                 collected ??= new();
 
