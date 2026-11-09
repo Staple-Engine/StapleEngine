@@ -112,7 +112,11 @@ public float3 StapleGetTangentNormal(float3 normal, float3 tangent, float3 bitan
 {
     float3x3 tbn = float3x3(normalize(tangent), normalize(bitangent), normalize(normal));
 
+#ifdef STAPLE_VERTEX_SHADER
+    float3 normalMapNormal = normalize(normalMap.SampleLevel(uv, 0).xyz * 2.0 - 1.0);
+#else
     float3 normalMapNormal = normalize(normalMap.Sample(uv).xyz * 2.0 - 1.0);
+#endif
 
     return normalize(mul(normalMapNormal, tbn));
 }
@@ -142,7 +146,7 @@ public float3 StapleProcessPixelLights(float3 worldPosition, float3 normal)
     count *= 3;
     count += 2;
 
-    for (int i = 2; i < count; i+=3)
+    for (int i = 2; i < count; i += 3)
     {
         float4 typePosition = StapleLightData[i];
         float4 diffuseIntensity = StapleLightData[i + 1];
@@ -161,24 +165,32 @@ public float3 StapleProcessPixelLights(float3 worldPosition, float3 normal)
     return ambient + diffuse;
 }
 
+public bool StapleShouldProcessVertexLights()
+{
+    int count = StapleLightCount();
+    int maxPixelLights = StapleMaxPixelLightCount();
+
+    return count > maxPixelLights;
+}
+
 public float3 StapleProcessVertexLights(float3 worldPosition, float3 normal)
 {
     int count = StapleLightCount();
     int maxPixelLights = StapleMaxPixelLightCount();
 
-    float3 ambient = StapleLightData[1].yzw;
-
     if (count <= maxPixelLights)
     {
-        return ambient;
+        return float3(0, 0, 0);
     }
 
     float3 diffuse = float3(0, 0, 0);
 
-    count *= 3;
-    count += 2 + maxPixelLights * 3;
+    int start = 2 + maxPixelLights * 3;
 
-    for (int i = 2 + maxPixelLights * 3; i < count; i += 3)
+    count *= 3;
+    count += start;
+
+    for (int i = start; i < count; i += 3)
     {
         float4 typePosition = StapleLightData[i];
         float4 diffuseIntensity = StapleLightData[i + 1];
@@ -194,6 +206,6 @@ public float3 StapleProcessVertexLights(float3 worldPosition, float3 normal)
         diffuse += StapleLightDiffuseFactor(worldPosition, normal, light);
     }
 
-    return ambient + diffuse;
+    return diffuse;
 }
 #endif

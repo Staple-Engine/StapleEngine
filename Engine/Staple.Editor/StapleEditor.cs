@@ -681,7 +681,8 @@ internal partial class StapleEditor
 
         buildBackend = PlayerBackendManager.Instance.GetBackend(currentPlatform).name;
 
-        if (!ResourceManager.instance.LoadPak(Path.Combine(Storage.StapleBasePath, "DefaultResources", $"DefaultResources-{Platform.CurrentPlatform.Value}.pak")))
+        if (!ResourceManager.instance.LoadPak(Path.Combine(Storage.StapleBasePath, "DefaultResources",
+            $"DefaultResources-{Platform.CurrentPlatform.Value}.pak")))
         {
             Log.Error("Failed to load default resources pak");
 

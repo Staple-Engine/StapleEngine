@@ -131,11 +131,11 @@ internal unsafe class SDLGPURenderStaticCommand(SDLGPURendererBackend backend, R
 
                 counter++;
             }
-        }
 
-        fixed (SDL_GPUBuffer** ptr = buffers)
-        {
-            SDL3.SDL_BindGPUVertexStorageBuffers(renderPass, (uint)storageBufferBindingStart, ptr, (uint)counter);
+            fixed (SDL_GPUBuffer** ptr = buffers)
+            {
+                SDL3.SDL_BindGPUVertexStorageBuffers(renderPass, 0, ptr, (uint)counter);
+            }
         }
 
         if (hasFragmentStorageBuffers)
@@ -174,7 +174,7 @@ internal unsafe class SDLGPURenderStaticCommand(SDLGPURendererBackend backend, R
 
             fixed (SDL_GPUBuffer** ptr = buffers)
             {
-                SDL3.SDL_BindGPUFragmentStorageBuffers(renderPass, (uint)firstBinding, ptr, (uint)counter);
+                SDL3.SDL_BindGPUFragmentStorageBuffers(renderPass, 0, ptr, (uint)counter);
             }
         }
 

@@ -202,13 +202,13 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="projection">The projection matrix</param>
     /// <param name="callback">A callback to render the content</param>
     public static void Render(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
-        Matrix4x4 cameraTransform, Matrix4x4 projection, Vector3 cameraPosition, Action callback)
+        in Matrix4x4 cameraTransform, in Matrix4x4 projection, Vector3 cameraPosition, Action callback)
     {
         var previous = RenderTarget.Current;
 
         RenderTarget.Current = target;
 
-        PrepareRender(target, clearMode, clearColor, viewport, cameraTransform, projection, cameraPosition);
+        PrepareRender(target, clearMode, clearColor, viewport, in cameraTransform, in projection, cameraPosition);
 
         callback?.Invoke();
 
@@ -228,13 +228,13 @@ public sealed partial class RenderSystem : ISubsystem, IWorldChangeReceiver
     /// <param name="callback">A callback to render the content</param>
     /// <param name="lightBuffer">The light data buffer</param>
     public static void Render(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
-        Matrix4x4 cameraTransform, Matrix4x4 projection, Vector3 cameraPosition, Action callback, ref VertexBuffer lightBuffer)
+        in Matrix4x4 cameraTransform, in Matrix4x4 projection, Vector3 cameraPosition, Action callback, ref VertexBuffer lightBuffer)
     {
         var previous = RenderTarget.Current;
 
         RenderTarget.Current = target;
 
-        PrepareRender(target, clearMode, clearColor, viewport, cameraTransform, projection, cameraPosition, ref lightBuffer);
+        PrepareRender(target, clearMode, clearColor, viewport, in cameraTransform, in projection, cameraPosition, ref lightBuffer);
 
         callback?.Invoke();
 

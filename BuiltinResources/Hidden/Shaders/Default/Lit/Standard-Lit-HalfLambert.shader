@@ -43,10 +43,13 @@ struct VertexOutput
 	float3 worldNormal;
 	float2 coords;
 	float3 normal;
+	
 #ifdef NORMALMAP
 	float3 tangent;
 	float3 bitangent;
 #endif
+
+	float3 lightDiffuse;
 
 	uint instanceID;
 };
@@ -75,6 +78,12 @@ struct Input
     uint instanceID : SV_InstanceID;
 	uint baseVertex : SV_StartVertexLocation;
 	uint vertexID : SV_VertexID;
+};
+
+[[vk::binding(0, StapleSamplerStorageBufferSet)]]
+cbuffer Textures
+{
+	Sampler2D normalTexture;
 };
 
 [shader("vertex")]
@@ -110,6 +119,21 @@ VertexOutput VertexMain(Input input)
 	output.worldNormal = StapleLightNormal(input.normal, model);
 
 	output.instanceID = input.instanceID;
+	
+	float3 lightDiffuse = float3(0, 0, 0);
+	
+	if(StapleShouldProcessVertexLights())
+	{
+#ifdef NORMALMAP
+		float3 normal = StapleGetTangentNormal(output.worldNormal, output.tangent, output.bitangent, output.coords, normalTexture);
+#else
+		float3 normal = normalize(output.worldNormal);
+#endif
+
+		lightDiffuse = StapleProcessVertexLights(output.worldPosition, normal);
+	}
+	
+	output.lightDiffuse = lightDiffuse;
 
 	return output;
 }
@@ -145,7 +169,7 @@ float4 FragmentMain(VertexOutput input) : SV_Target
 	float3 normal = normalize(input.worldNormal);
 #endif
 
-	float3 light = StapleProcessPixelLights(input.worldPosition, normal);
+	float3 light = StapleProcessPixelLights(input.worldPosition, normal) + input.lightDiffuse;
  
 	return float4(light * diffuse.rgb, diffuse.a);
 }

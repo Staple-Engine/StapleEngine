@@ -1182,8 +1182,7 @@ public sealed partial class RenderSystem
 
         CurrentCamera.lightData = camera.lightBuffer;
 
-        Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport,
-            in invView, in projection);
+        Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport, in invView, in projection);
     }
 
     /// <summary>
@@ -1197,11 +1196,11 @@ public sealed partial class RenderSystem
     /// <param name="projection">The projection matrix</param>
     /// <param name="cameraPosition">The position of the camera</param>
     private static void PrepareRender(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
-        Matrix4x4 cameraTransform, Matrix4x4 projection, Vector3 cameraPosition)
+        in Matrix4x4 cameraTransform, in Matrix4x4 projection, Vector3 cameraPosition)
     {
         Matrix4x4.Invert(cameraTransform, out var view);
 
-        frustumCuller.Update(view, projection);
+        frustumCuller.Update(in view, in projection);
 
         CurrentCamera.lightData = null;
 
@@ -1220,11 +1219,11 @@ public sealed partial class RenderSystem
     /// <param name="cameraPosition">The position of the camera</param>
     /// <param name="lightBuffer">The light data buffer</param>
     private static void PrepareRender(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
-        Matrix4x4 cameraTransform, Matrix4x4 projection, Vector3 cameraPosition, ref VertexBuffer lightBuffer)
+        in Matrix4x4 cameraTransform, in Matrix4x4 projection, Vector3 cameraPosition, ref VertexBuffer lightBuffer)
     {
         Matrix4x4.Invert(cameraTransform, out var view);
 
-        frustumCuller.Update(view, projection);
+        frustumCuller.Update(in view, in projection);
 
         LightSystem.Instance.GatherVisibleLights(frustumCuller, cameraPosition, LayerMask.Everything, ref lightBuffer);
 
@@ -1241,6 +1240,13 @@ public sealed partial class RenderSystem
     /// <param name="instances">How many instances are being rendered</param>
     internal static void Submit(RenderState state, int triangles, int instances)
     {
+        if(state.shaderInstance == null ||
+            (state.vertexStorageBuffers?.Count ?? 0) != state.shaderInstance.vertexUniforms.storageBuffers.Count - 2 ||
+            (state.fragmentStorageBuffers?.Count ?? 0) != state.shaderInstance.fragmentUniforms.storageBuffers.Count)
+        {
+            return;
+        }
+
         Backend.Render(state);
 
         RenderStats.drawCalls++;
@@ -1260,6 +1266,13 @@ public sealed partial class RenderSystem
     /// <param name="entries">The entries for multidraw</param>
     internal static void SubmitStatic(RenderState state, Span<MultidrawEntry> entries)
     {
+        if (state.shaderInstance == null ||
+            (state.vertexStorageBuffers?.Count ?? 0) != state.shaderInstance.vertexUniforms.storageBuffers.Count - 2 ||
+            (state.fragmentStorageBuffers?.Count ?? 0) != state.shaderInstance.fragmentUniforms.storageBuffers.Count)
+        {
+            return;
+        }
+
         var instances = 0;
         var triangleCount = 0;
 

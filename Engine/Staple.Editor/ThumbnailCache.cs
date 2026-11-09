@@ -243,8 +243,11 @@ internal class ThumbnailCache
                         light.type = LightType.Directional;
                         light.color = Color.White;
 
+                        var cameraTransformMatrix = cameraTransform.Matrix;
+                        var cameraProjection = Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize);
+
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
-                            cameraTransform.Matrix, Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize), cameraTransform.Position,
+                            in cameraTransformMatrix, in cameraProjection, cameraTransform.Position,
                             () =>
                             {
                                 LightSystem.OverrideLights = [light];
@@ -516,8 +519,11 @@ internal class ThumbnailCache
                         light.type = LightType.Directional;
                         light.color = Color.White;
 
+                        var cameraTransformMatrix = cameraTransform.Matrix;
+                        var cameraProjection = Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize);
+
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
-                            cameraTransform.Matrix, Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize), cameraTransform.Position,
+                            in cameraTransformMatrix, in cameraProjection, cameraTransform.Position,
                             () =>
                             {
                                 LightSystem.OverrideLights = [light];

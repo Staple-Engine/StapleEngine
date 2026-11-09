@@ -234,9 +234,12 @@ internal partial class StapleEditor
 
         RenderSystem.CurrentCamera.camera = camera;
         RenderSystem.CurrentCamera.transform = cameraTransform;
+        RenderSystem.CurrentCamera.lightData = camera.lightBuffer;
+
+        var cameraMatrix = cameraTransform.Matrix;
 
         RenderSystem.Render(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
-            cameraTransform.Matrix, projection, cameraTransform.Position,
+            in cameraMatrix, in projection, cameraTransform.Position,
             () =>
             {
                 RenderGrid(camera, new(0.7f, 0.7f, 0.7f, 0.8f), new(0.8f, 0.8f, 0.8f, 0.8f), new(0.2f, 0.2f, 0.2f, 0.8f));
