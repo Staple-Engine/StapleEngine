@@ -1124,11 +1124,6 @@ internal partial class StapleEditor
                                     });
                                 }
                             }
-
-                            if (EditorGUI.Changed)
-                            {
-                                selectedEntity.SetComponent(localComponent);
-                            }
                         });
                     },
                     () =>

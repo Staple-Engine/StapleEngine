@@ -697,7 +697,6 @@ public sealed partial class RenderSystem
             }
         }
 
-        var renderablesContents = renderables.Contents;
         var transforms = entityTransforms.Contents;
 
         foreach(var transform in entityTransformTracker.ChangedComponents)

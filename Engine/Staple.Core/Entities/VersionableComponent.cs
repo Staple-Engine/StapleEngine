@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Staple;
+﻿namespace Staple;
 
 public class VersionableComponent : Component
 {

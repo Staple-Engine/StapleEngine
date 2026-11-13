@@ -361,8 +361,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
                 LightSystem.Instance.ApplyLightProperties(ref renderState);
 
-                renderState.world = Matrix4x4.Identity;
-
                 RenderSystem.SubmitStatic(renderState, contents.entries.Contents);
             }
 
@@ -531,14 +529,14 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
         foreach (var renderer in rendererTracker.ChangedComponents)
         {
-            if (renderer.mesh is null)
+            if (renderer.mesh is null || renderer.Transform is not Transform transform)
             {
                 continue;
             }
 
             renderer.mesh.UploadMeshData();
 
-            UpdateRendererBounds(renderer.Transform, renderer);
+            UpdateRendererBounds(transform, renderer);
         }
 
         rendererTracker.ClearChanges();

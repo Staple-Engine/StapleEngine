@@ -1,6 +1,4 @@
-﻿using Staple.Internal;
-
-namespace Staple;
+﻿namespace Staple;
 
 /// <summary>
 /// Light component
