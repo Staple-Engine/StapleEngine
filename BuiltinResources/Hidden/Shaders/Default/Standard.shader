@@ -1,6 +1,8 @@
 Type VertexFragment
 
-Blend SrcAlpha OneMinusSrcAlpha
+Variants TRANSPARENT
+
+variant: TRANSPARENT Blend SrcAlpha OneMinusSrcAlpha
 
 Begin Parameters
 

@@ -2,9 +2,9 @@ Type VertexFragment
 
 ShaderDefines LIT
 
-Blend SrcAlpha OneMinusSrcAlpha
+Variants TRANSPARENT, NORMALMAP
 
-Variants NORMALMAP
+variant: TRANSPARENT Blend SrcAlpha OneMinusSrcAlpha
 
 Begin Parameters
 
