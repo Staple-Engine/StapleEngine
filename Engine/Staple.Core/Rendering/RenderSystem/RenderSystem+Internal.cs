@@ -701,6 +701,19 @@ public sealed partial class RenderSystem
 
         foreach(var transform in entityTransformTracker.ChangedComponents)
         {
+            if(!transform.Entity.IsValid)
+            {
+                if(length > 0)
+                {
+                    changedEntityTransformRanges.Add(startIndex, length);
+                }
+
+                startIndex = -1;
+                length = 0;
+
+                continue;
+            }
+
             transforms[transform.Entity.Index] = transform.Matrix;
 
             length++;

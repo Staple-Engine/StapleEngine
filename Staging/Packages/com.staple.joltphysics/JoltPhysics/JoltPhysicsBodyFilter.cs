@@ -13,7 +13,7 @@ internal class JoltPhysicsBodyFilter : BodyFilter
         {
             var localBody = physics.GetBody(bodyID);
 
-            if(localBody is not JoltBodyPair pair)
+            if(localBody is not JoltBodyPair && localBody is not JoltCharacterPair)
             {
                 return false;
             }

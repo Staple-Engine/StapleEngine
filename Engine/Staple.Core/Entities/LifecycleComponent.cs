@@ -51,24 +51,25 @@ public class LifecycleComponent : VersionableComponent
 
     /// <summary>
     /// Called once per frame.
-    /// You should use Time.deltaTime if you need a delta time here.
     /// </summary>
-    public virtual void Update()
+    /// <param name="deltaTime">The delta time since the last frame</param>
+    public virtual void Update(float deltaTime)
     {
     }
 
     /// <summary>
     /// Called once per fixed update tick.
-    /// You should use Time.fixedDeltaTime if you need a delta time here.
     /// </summary>
-    public virtual void FixedUpdate()
+    /// <param name="deltaTime">The delta time since the fixed update tick</param>
+    public virtual void FixedUpdate(float deltaTime)
     {
     }
 
     /// <summary>
     /// Called at the end of each frame
     /// </summary>
-    public virtual void LateUpdate()
+    /// <param name="deltaTime">The delta time since the last frame</param>
+    public virtual void LateUpdate(float deltaTime)
     {
     }
 }

@@ -1460,7 +1460,7 @@ internal partial class StapleEditor
                 }
             }
 
-            EditorUtils.ExecuteEditorEvent((callback) => callback.Update(), nameof(LifecycleComponent.Update));
+            EditorUtils.ExecuteEditorEvent((callback) => callback.Update(Time.deltaTime), nameof(LifecycleComponent.Update));
 
             EditorGUI.OnFrameEnd();
 
@@ -1583,7 +1583,7 @@ internal partial class StapleEditor
             }
             else
             {
-                EditorUtils.ExecuteEditorEvent((callback) => callback.FixedUpdate(), nameof(LifecycleComponent.FixedUpdate));
+                EditorUtils.ExecuteEditorEvent((callback) => callback.FixedUpdate(Time.fixedDeltaTime), nameof(LifecycleComponent.FixedUpdate));
             }
         };
 

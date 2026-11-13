@@ -315,7 +315,7 @@ internal sealed class EntitySystemManager : ISubsystem
 
                     try
                     {
-                        component.FixedUpdate();
+                        component.FixedUpdate(time);
                     }
                     catch (Exception e)
                     {
@@ -373,7 +373,7 @@ internal sealed class EntitySystemManager : ISubsystem
 
                     try
                     {
-                        component.Update();
+                        component.Update(time);
                     }
                     catch (Exception e)
                     {
@@ -396,7 +396,7 @@ internal sealed class EntitySystemManager : ISubsystem
 
                     try
                     {
-                        component.LateUpdate();
+                        component.LateUpdate(time);
                     }
                     catch (Exception e)
                     {

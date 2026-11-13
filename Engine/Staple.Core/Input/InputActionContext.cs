@@ -19,4 +19,9 @@ public struct InputActionContext
     /// The device index (check InputAction for details of how this works)
     /// </summary>
     public int deviceIndex;
+
+    /// <summary>
+    /// Whether the action should reset its current state (like the button or axis was let go)
+    /// </summary>
+    public bool ShouldReset => deviceIndex < 0;
 }

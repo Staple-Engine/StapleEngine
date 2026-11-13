@@ -152,14 +152,14 @@ public class GameNetworkManagerBase : LifecycleComponent
     /// <summary>
     /// The update event. Might be overwritten. Should call `base.Update();` at some point.
     /// </summary>
-    public override void Update()
+    public override void Update(float deltaTime)
     {
         server?.Update();
 
         client?.Update();
     }
 
-    public override void FixedUpdate()
+    public override void FixedUpdate(float deltaTime)
     {
         client?.FixedUpdate();
     }

@@ -905,7 +905,7 @@ public class JoltPhysics3D : IPhysics3D
     public IBody3D CreateBody(Entity entity, World world)
     {
         RigidBody3D rigidBody = entity.GetComponent<RigidBody3D>();
-        Character3D character = rigidBody != null ? entity.GetComponent<Character3D>() : null;
+        Character3D character = rigidBody == null ? entity.GetComponent<Character3D>() : null;
 
         if (rigidBody == null && character == null)
         {
@@ -1229,7 +1229,7 @@ public class JoltPhysics3D : IPhysics3D
 
             foreach(var hit in results)
             {
-                if (TryFindBody(hit.BodyID, out body))
+                if (TryFindBodyOrCharacter(hit.BodyID, out body))
                 {
                     var distance = Vector3.DistanceSquared(body.Position, ray.position);
 
@@ -1252,6 +1252,13 @@ public class JoltPhysics3D : IPhysics3D
             }
 
             body = lastBody;
+
+            if(body == null)
+            {
+                raycastHit = default;
+
+                return false;
+            }
 
             raycastHit = new(body, fraction, ray.position + ray.direction * fraction * maxDistance);
 

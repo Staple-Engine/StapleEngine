@@ -241,6 +241,8 @@ public static class Input
 
         foreach (var pair in inputCallbacks)
         {
+            var any = false;
+
             switch(pair.Value.action.type)
             {
                 case InputActionType.Press:
@@ -472,6 +474,8 @@ public static class Input
 
                         if(axis != 0)
                         {
+                            any = true;
+
                             ExecuteSafelyAxis(pair.Value.onAxis, new()
                             {
                                 name = pair.Value.action.name,
@@ -479,6 +483,15 @@ public static class Input
                                 deviceIndex = device.deviceIndex,
                             }, axis * device.sensitivity);
                         }
+                    }
+
+                    if(!any)
+                    {
+                        ExecuteSafelyAxis(pair.Value.onAxis, new()
+                        {
+                            name = pair.Value.action.name,
+                            deviceIndex = -1,
+                        }, 0);
                     }
 
                     break;
@@ -572,6 +585,8 @@ public static class Input
 
                         if (axis != Vector2.Zero)
                         {
+                            any = true;
+
                             ExecuteSafelyDualAxis(pair.Value.onDualAxis, new()
                             {
                                 name = pair.Value.action.name,
@@ -579,6 +594,15 @@ public static class Input
                                 deviceIndex = device.deviceIndex,
                             }, axis * device.sensitivity);
                         }
+                    }
+
+                    if(!any)
+                    {
+                        ExecuteSafelyDualAxis(pair.Value.onDualAxis, new()
+                        {
+                            name = pair.Value.action.name,
+                            deviceIndex = -1,
+                        }, default);
                     }
 
                     break;

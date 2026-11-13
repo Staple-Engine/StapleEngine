@@ -40,6 +40,8 @@ public class FirstPersonCamera : LifecycleComponent
 
     private Vector2 look;
 
+    private Transform focusTransform;
+
     protected virtual Vector2 GetLookMovement()
     {
         if (!Enabled || !Platform.IsPlaying)
@@ -86,6 +88,8 @@ public class FirstPersonCamera : LifecycleComponent
         {
             Log.Error($"First Person Camera: Warning: There's no body in the Focus entity, but the camera entity has it. Please use a focus entity.");
         }
+
+        focusTransform = focus.Transform ?? Transform;
 
         if (Platform.IsDesktopPlatform)
         {
@@ -179,7 +183,7 @@ public class FirstPersonCamera : LifecycleComponent
         });
     }
 
-    public override void Update()
+    public override void Update(float deltaTime)
     {
         if (!Enabled ||
             !Platform.IsPlaying ||
@@ -188,9 +192,9 @@ public class FirstPersonCamera : LifecycleComponent
             return;
         }
 
-        if(allowLook)
+        if (allowLook)
         {
-            var movement = GetLookMovement() * Time.deltaTime;
+            var movement = GetLookMovement() * deltaTime;
 
             angles.X += movement.Y;
             angles.Y += movement.X;
@@ -249,11 +253,8 @@ public class FirstPersonCamera : LifecycleComponent
             }
             else
             {
-                Transform.Position += velocity * Time.deltaTime;
+                focusTransform.Position += velocity * deltaTime;
             }
         }
-
-        movement = default;
-        look = default;
     }
 }
