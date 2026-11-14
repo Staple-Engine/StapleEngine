@@ -36,6 +36,23 @@ public static class EditorUtils
     });
 
     /// <summary>
+    /// Checks if a file exists at a specific path
+    /// </summary>
+    /// <param name="path">The file's path</param>
+    /// <returns>Whether it exists</returns>
+    public static bool FileExists(string path)
+    {
+        try
+        {
+            return File.Exists(path);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Attempts to copy a file
     /// </summary>
     /// <param name="source">The source file</param>

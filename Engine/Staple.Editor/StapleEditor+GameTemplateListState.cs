@@ -304,9 +304,13 @@ internal partial class StapleEditor
                                     var iconPath = Path.Combine(selectedGameTemplate.basePath, "Icon.png");
                                     var targetIconPath = Path.Combine(gameTemplateTargetFolder, "Settings", "Icon.png");
                                     var targetIconForegroundPath = Path.Combine(gameTemplateTargetFolder, "Settings", "Icon Foreground.png");
+                                    var sceneListPath = Path.Combine(selectedGameTemplate.basePath, "SceneList.json");
+                                    var targetSceneListPath = Path.Combine(gameTemplateTargetFolder, "Settings", "SceneList.json");
 
                                     if ((EditorUtils.DirectoryExists(contentsPath) && 
                                             !EditorUtils.CopyDirectory(contentsPath, targetContentsPath)) ||
+                                        (EditorUtils.FileExists(sceneListPath) &&
+                                            !EditorUtils.CopyFile(sceneListPath, targetSceneListPath)) ||
                                         !EditorUtils.CopyFile(iconPath, targetIconPath) ||
                                         !EditorUtils.CopyFile(iconPath, targetIconForegroundPath))
                                     {
