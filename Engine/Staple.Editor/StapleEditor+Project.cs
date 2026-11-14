@@ -239,6 +239,8 @@ internal partial class StapleEditor
 
         fileSystemWatcher.EnableRaisingEvents = true;
 
+        editorState = EditorState.InProject;
+
         RefreshStaging(currentPlatform,
             () =>
             {

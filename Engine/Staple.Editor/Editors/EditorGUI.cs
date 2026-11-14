@@ -23,6 +23,13 @@ public static class EditorGUI
         Disabled = ImGuiSelectableFlags.Disabled,
     }
 
+    public enum TextAlignment
+    {
+        Top,
+        Middle,
+        Bottom,
+    }
+
     internal static ImGuiIOPtr io;
     internal static StapleEditor editor;
 
@@ -339,20 +346,146 @@ public static class EditorGUI
     /// Shows a text label
     /// </summary>
     /// <param name="text">The text to show</param>
-    public static void Label(string text)
+    /// <param name="size">The font size</param>
+    public static void Label(string text, int size = ImGuiProxy.DefaultFontSize)
     {
+        ImGui.PushFont(ImGuiProxy.instance.editorFont, size);
+
         ImGui.Text(text);
+
+        ImGui.PopFont();
+    }
+
+    /// <summary>
+    /// Measures a text label
+    /// </summary>
+    /// <param name="text">The text</param>
+    /// <param name="size">The font size</param>
+    /// <param name="maxWidth">The maximum width, if any. Any value higher than 0 will be the max width.</param>
+    /// <returns>The measured text</returns>
+    public static Vector2 MeasureLabel(string text, int size = ImGuiProxy.DefaultFontSize, float maxWidth = 0)
+    {
+        ImGui.PushFont(ImGuiProxy.instance.editorFont, size);
+
+        var result = Vector2.Zero;
+
+        if (maxWidth > 0)
+        {
+            result = ImGui.CalcTextSize(text, maxWidth);
+        }
+        else
+        {
+            result = ImGui.CalcTextSize(text);
+        }
+
+        ImGui.PopFont();
+
+        return result;
+    }
+
+    /// <summary>
+    /// Shows a text label
+    /// </summary>
+    /// <param name="text">The text to show</param>
+    /// <param name="size">The font size</param>
+    /// <param name="alignment">The si</param>
+    public static void LabelAligned(string text, float containerSize, TextAlignment alignment = TextAlignment.Top,
+        int size = ImGuiProxy.DefaultFontSize)
+    {
+        ImGui.PushFont(ImGuiProxy.instance.editorFont, size);
+
+        var height = MeasureLabel(text, size).Y;
+
+        switch(alignment)
+        {
+            case TextAlignment.Middle:
+
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (containerSize - height) / 2);
+
+                break;
+
+            case TextAlignment.Bottom:
+
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + containerSize - height);
+
+                break;
+        }
+
+        ImGui.Text(text);
+
+        ImGui.PopFont();
     }
 
     /// <summary>
     /// Shows a header label
     /// </summary>
     /// <param name="text">The text to show</param>
-    public static void HeaderLabel(string text)
+    /// <param name="size">The size of the header</param>
+    public static void HeaderLabel(string text, int size = 22)
     {
-        ImGui.PushFont(ImGuiProxy.instance.headerFont, 22);
+        ImGui.PushFont(ImGuiProxy.instance.headerFont, size);
 
-        Label(text);
+        ImGui.Text(text);
+
+        ImGui.PopFont();
+    }
+
+    /// <summary>
+    /// Measures a header label
+    /// </summary>
+    /// <param name="text">The text</param>
+    /// <param name="size">The size of the header</param>
+    /// <param name="maxWidth">The maximum width, if any. Any value higher than 0 will be the max width.</param>
+    /// <returns>The measured text</returns>
+    public static Vector2 MeasureHeaderLabel(string text, int size = 22, float maxWidth = 0)
+    {
+        ImGui.PushFont(ImGuiProxy.instance.headerFont, size);
+
+        var result = Vector2.Zero;
+
+        if (maxWidth > 0)
+        {
+            result = ImGui.CalcTextSize(text, maxWidth);
+        }
+        else
+        {
+            result = ImGui.CalcTextSize(text);
+        }
+
+        ImGui.PopFont();
+
+        return result;
+    }
+
+    /// <summary>
+    /// Shows a text label
+    /// </summary>
+    /// <param name="text">The text to show</param>
+    /// <param name="size">The font size</param>
+    /// <param name="alignment">The si</param>
+    public static void HeaderAligned(string text, float containerSize, TextAlignment alignment = TextAlignment.Top,
+        int size = ImGuiProxy.DefaultFontSize)
+    {
+        ImGui.PushFont(ImGuiProxy.instance.headerFont, size);
+
+        var height = MeasureHeaderLabel(text, size).Y;
+
+        switch (alignment)
+        {
+            case TextAlignment.Middle:
+
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + (containerSize - height) / 2);
+
+                break;
+
+            case TextAlignment.Bottom:
+
+                ImGui.SetCursorPosY(ImGui.GetCursorPosY() + containerSize - height);
+
+                break;
+        }
+
+        ImGui.Text(text);
 
         ImGui.PopFont();
     }
@@ -367,6 +500,26 @@ public static class EditorGUI
     public static void Button(string label, string key, Action handler)
     {
         if (!ImGui.Button(MakeIdentifier(label, key)))
+        {
+            return;
+        }
+
+        ExecuteHandler(handler, $"Button {label}");
+    }
+
+    /// <summary>
+    /// Shows a button with an image
+    /// </summary>
+    /// <param name="label">The button label</param>
+    /// <param name="key">A unique key for this UI element</param>
+    /// <param name="image">The image to show</param>
+    /// <param name="imageSize">The size of the image</param>
+    /// <param name="handler">A handler to execute if the button is clicked</param>
+    /// <returns>Whether the button was clicked</returns>
+    public static void ImageButton(string label, string key, Texture image, Vector2 imageSize, Action handler)
+    {
+        if (image == null ||
+            !ImGui.ImageButton(MakeIdentifier(label, key), ImGuiProxy.GetImGuiTexture(image), imageSize))
         {
             return;
         }
@@ -1874,11 +2027,13 @@ public static class EditorGUI
     /// <param name="columns">The amount of columns</param>
     /// <param name="showHeader">Whether to how a header bar</param>
     /// <param name="rowHandler">A callback for when a row is done</param>
-    /// <param name="setupColumnHandler">A callback for what header title and width you want for the column</param>
+    /// <param name="setupColumnHandler">A callback for what header title and width you want for the column. Use 0 for the width for autosize.</param>
     /// <param name="rowColumnHandler">a callback for a row and column</param>
     /// <param name="rowClickHandler">A callback for when a row is clicked. If it's null, the columns won't be selectable</param>
+    /// <param name="rowHeight">The height of the row, if any. Pass 0 to ignore.</param>
     public static void Table(string key, int rows, int columns, bool showHeader, Action<int> rowHandler,
-        Func<int, (string, float)> setupColumnHandler, Action<int, int> rowColumnHandler, Action<int> rowClickHandler)
+        Func<int, (string, float)> setupColumnHandler, Action<int, int> rowColumnHandler, Action<int> rowClickHandler,
+        float rowHeight = 0)
     {
         if (!ImGui.BeginTable(key, columns))
         {
@@ -1914,7 +2069,14 @@ public static class EditorGUI
 
         for (var i = 0; i < rows; i++)
         {
-            ImGui.TableNextRow();
+            if(rowHeight > 0)
+            {
+                ImGui.TableNextRow(rowHeight);
+            }
+            else
+            {
+                ImGui.TableNextRow();
+            }
 
             InnerBlock(i, () =>
             {

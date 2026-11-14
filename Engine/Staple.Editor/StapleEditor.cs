@@ -99,6 +99,9 @@ internal partial class StapleEditor
         public string name;
         public string path;
         public DateTime date;
+
+        [NonSerialized]
+        internal Texture thumbnail;
     }
 
     [Serializable]
@@ -572,6 +575,11 @@ internal partial class StapleEditor
     private bool initialized = false;
 
     private bool showingTextInput = false;
+
+    private EditorState editorState = EditorState.ProjectList;
+
+    private Texture editorLogo;
+
     #endregion
 
     #region Game
@@ -950,7 +958,7 @@ internal partial class StapleEditor
 
                 var iconPath = Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "Icon.png");
 
-                ThumbnailCache.GetTexture(iconPath, force: true);
+                editorLogo = ThumbnailCache.GetTexture(iconPath, force: true);
 
                 if (ThumbnailCache.TryGetTextureData(iconPath, out var icon))
                 {
@@ -1216,98 +1224,23 @@ internal partial class StapleEditor
             ImGui.SetNextWindowPos(viewport.Pos);
             ImGui.SetNextWindowSize(viewport.Size);
 
-            if (projectAppSettings == null)
+            switch(editorState)
             {
-                ImGui.Begin("ProjectListContainer", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoDecoration);
+                case EditorState.ProjectList:
 
-                ImGui.SetNextWindowSize(new Vector2(800, 400));
-                ImGui.SetNextWindowPos(new Vector2(io.DisplaySize.X * 0.5f, io.DisplaySize.Y * 0.5f), ImGuiCond.Always, Vector2.One * 0.5f);
+                    HandleProjectListState(io);
 
-                ImGui.Begin("ProjectListContent", ImGuiWindowFlags.NoBackground |
-                    ImGuiWindowFlags.NoMove |
-                    ImGuiWindowFlags.NoResize |
-                    ImGuiWindowFlags.NoDocking |
-                    ImGuiWindowFlags.NoDecoration);
+                    break;
 
-                ImGui.Text("Project List");
+                case EditorState.InProject:
 
-                ImGui.Spacing();
+                    HandleInProjectState(io, viewport);
 
-                if (ImGui.Button("New"))
-                {
-                    ImGuiNewProject();
-                }
+                    break;
 
-                ImGui.SameLine();
+                case EditorState.GameTemplateList:
 
-                if (ImGui.Button("Open"))
-                {
-                    ImGuiOpenProject();
-                }
-
-                ImGui.Spacing();
-
-                var items = lastProjects.items.OrderByDescending(x => x.date).ToArray();
-
-                EditorGUI.Table("##ProjectsList", items.Length, 3, true, null,
-                    (column) =>
-                    {
-                        return column switch
-                        {
-                            0 => ("Name", 0),
-                            1 => ("Path", 0),
-                            2 => ("Date", 0),
-                            _ => default,
-                        };
-                    },
-                    (row, column) =>
-                    {
-                        var item = items[row];
-
-                        switch(column)
-                        {
-                            case 0: //Name
-
-                                EditorGUI.Label(item.name);
-
-                                break;
-
-                            case 1: //Path
-
-                                EditorGUI.Label(item.path);
-
-                                break;
-
-                            case 2: //Date
-
-                                EditorGUI.Label(item.date.ToString());
-
-                                break;
-                        }
-                    },
-                    (row) =>
-                    {
-                        if(!ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
-                        {
-                            return;
-                        }
-
-                        LoadProject(items[row].path);
-                    });
-
-                ImGui.End();
-
-                ImGui.End();
-            }
-            else
-            {
-                ImGui.SetNextWindowViewport(viewport.ID);
-
-                Dockspace();
-                Viewport(io);
-                Entities(io);
-                Inspector(io);
-                BottomPanel(io);
+                    break;
             }
 
             var currentWindows = new List<EditorWindow>(editorWindows);

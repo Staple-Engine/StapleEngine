@@ -15,6 +15,8 @@ namespace Staple.Editor;
 
 internal class ImGuiProxy
 {
+    public const int DefaultFontSize = 20;
+
     public ImGuiContextPtr ImGuiContext;
     public ImNodesContextPtr ImNodesContext;
     public ImPlotContextPtr ImPlotContext;
@@ -134,12 +136,12 @@ internal class ImGuiProxy
 
             fixed(byte *ptr = editorPtr)
             {
-                editorFont = io.Fonts.AddFontFromMemoryTTF(ptr, editor.Length, 20);
+                editorFont = io.Fonts.AddFontFromMemoryTTF(ptr, editor.Length, DefaultFontSize);
             }
 
             fixed(byte *ptr = headerPtr)
             {
-                headerFont = io.Fonts.AddFontFromMemoryTTF(ptr, header.Length, 22);
+                headerFont = io.Fonts.AddFontFromMemoryTTF(ptr, header.Length, DefaultFontSize + 3);
             }
 
             io.FontDefault = editorFont;
