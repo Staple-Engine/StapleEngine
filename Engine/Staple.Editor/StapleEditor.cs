@@ -640,6 +640,13 @@ internal partial class StapleEditor
     private bool forceCursorVisible = false;
     #endregion
 
+    #region Game Templates
+    public ProjectTemplateManager.ProjectTemplate selectedGameTemplate;
+    public string gameTemplateProjectName;
+    public string gameTemplateCompanyName;
+    public string gameTemplateTargetFolder;
+    #endregion
+
     private static WeakReference<StapleEditor> privInstance;
 
     public static StapleEditor instance => privInstance.TryGetTarget(out var target) ? target : null;
@@ -1026,7 +1033,7 @@ internal partial class StapleEditor
                         5, 0, 4,
                         2, 6, 7,
                         4, 5
-                        ],
+                    ],
 
                     MeshTopology = MeshTopology.LineStrip,
                 };
@@ -1061,6 +1068,9 @@ internal partial class StapleEditor
                     }
                 }
 
+                ProjectTemplateManager.Instance.LoadTemplates(Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "ProjectTemplates"),
+                    true);
+
                 //Might re-enable this later
                 /*
                 if((lastProjects.lastOpenProject?.Length ?? 0) > 0)
@@ -1069,7 +1079,7 @@ internal partial class StapleEditor
                 }
                 */
 
-                lock(backgroundLock)
+                lock (backgroundLock)
                 {
                     initialized = true;
                 }
@@ -1107,7 +1117,9 @@ internal partial class StapleEditor
                 forceCursorVisible = true;
             }
 
-            if (viewportType == ViewportType.Scene && Cursor.LockState == CursorLockMode.None)
+            if(editorState == EditorState.InProject &&
+                viewportType == ViewportType.Scene &&
+                Cursor.LockState == CursorLockMode.None)
             {
                 if (!io.WantTextInput)
                 {
@@ -1239,6 +1251,8 @@ internal partial class StapleEditor
                     break;
 
                 case EditorState.GameTemplateList:
+
+                    HandleGameTemplateListState(io);
 
                     break;
             }
@@ -1629,7 +1643,8 @@ internal partial class StapleEditor
 
         EditorUtils.CreateDirectory(Path.Combine(path, "Assets"));
 
-        if(!EditorUtils.CopyDirectory(Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "ProjectSettings"), Path.Combine(path, "Settings")))
+        if(!EditorUtils.CopyDirectory(Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "ProjectSettings"),
+            Path.Combine(path, "Settings")))
         {
             Log.Error($"Failed to create project: Failed to copy editor resources");
 

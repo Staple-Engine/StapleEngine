@@ -634,9 +634,6 @@ internal class ImGuiProxy
                             if (clipRect.X < fbWidth && clipRect.Y < fbHeight &&
                                 clipRect.Z >= 0 && clipRect.W >= 0)
                             {
-                                var x = (ushort)Math.Max(clipRect.X, 0);
-                                var y = (ushort)Math.Max(clipRect.Y, 0);
-
                                 var state = new RenderState()
                                 {
                                     sourceBlend = BlendMode.SrcAlpha,
@@ -645,7 +642,7 @@ internal class ImGuiProxy
                                     enableZWrite = false,
                                     enableDepth = false,
                                     primitiveType = MeshTopology.Triangles,
-                                    scissor = new(x, (int)clipRect.Z, y, (int)clipRect.W),
+                                    scissor = new((int)clipRect.X, (int)clipRect.Z, (int)clipRect.Y, (int)clipRect.W),
                                     indexBuffer = indexBuffer,
                                     vertexBuffer = vertexBuffer,
                                     startVertex = currentVertex + (int)drawCmd.VtxOffset,

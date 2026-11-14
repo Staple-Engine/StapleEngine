@@ -21,12 +21,11 @@ internal static class GeneratorAssetManager
 
     internal static void UpdateGeneratorAssets()
     {
-        generatorTypes = Assembly.GetCallingAssembly().GetTypes()
+        generatorTypes = [.. Assembly.GetCallingAssembly().GetTypes()
                 .Concat(Assembly.GetExecutingAssembly().GetTypes())
                 .Concat(TypeCache.types.Select(x => x.Value))
                 .Where(x => x.IsAssignableTo(typeof(IGeneratorAsset)) && x != typeof(IGeneratorAsset))
-                .Distinct()
-                .ToArray();
+                .Distinct()];
 
         generators.Clear();
 

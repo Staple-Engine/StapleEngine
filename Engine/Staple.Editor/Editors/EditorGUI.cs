@@ -1825,6 +1825,8 @@ public static class EditorGUI
     {
         if (!ImGui.BeginChild(key, size))
         {
+            ImGui.EndChild();
+
             return;
         }
 
@@ -2223,6 +2225,20 @@ public static class EditorGUI
         {
             ExecuteHandler(closed, $"{key} closed");
         }
+    }
+
+    public static void CenterHorizontally(float contentSize, float containerSize, bool absolute)
+    {
+        var from = absolute ? ImGui.GetCursorPosX() : 0;
+
+        ImGui.SetCursorPosX(from + (containerSize - contentSize) / 2);
+    }
+
+    public static void CenterVertically(float contentSize, float containerSize, bool absolute)
+    {
+        var from = absolute ? ImGui.GetCursorPosY() : 0;
+
+        ImGui.SetCursorPosY(from + (containerSize - contentSize) / 2);
     }
 
     public static void InnerBlock(int ID, Action handler)

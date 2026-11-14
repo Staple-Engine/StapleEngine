@@ -11,7 +11,10 @@ internal partial class StapleEditor
     {
         ImGui.SetNextWindowSize(new Vector2(io.DisplaySize.X, io.DisplaySize.Y));
 
-        ImGui.Begin("ProjectListContainer", ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoDecoration);
+        ImGui.Begin("ProjectListContainer", ImGuiWindowFlags.NoMove |
+            ImGuiWindowFlags.NoResize |
+            ImGuiWindowFlags.NoDocking |
+            ImGuiWindowFlags.NoDecoration);
 
         if(editorLogo != null)
         {
@@ -28,7 +31,9 @@ internal partial class StapleEditor
 
         if (ImGui.Button("New"))
         {
-            ImGuiNewProject();
+            editorState = EditorState.GameTemplateList;
+
+            //ImGuiNewProject();
         }
 
         ImGui.SameLine();

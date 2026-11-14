@@ -89,6 +89,7 @@
     <Compile Include="ProjectBrowser\ProjectBrowserResourceType.cs" />
     <Compile Include="StagingRefreshFlags.cs" />
     <Compile Include="StapleEditor+AssetDatabaseObserver.cs" />
+    <Compile Include="StapleEditor+GameTemplateListState.cs" />
     <Compile Include="StapleEditor+ImGuiStyle.cs" />
     <Compile Include="StapleEditor+InProjectState.cs" />
     <Compile Include="StapleEditor+MessageBox.cs" />
