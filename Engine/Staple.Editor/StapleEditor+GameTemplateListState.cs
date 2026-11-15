@@ -1,8 +1,8 @@
 ﻿using Hexa.NET.ImGui;
 using Newtonsoft.Json;
-using Staple.Internal;
 using Staple.ProjectManagement;
 using System.IO;
+using System.IO.Compression;
 using System.Numerics;
 
 namespace Staple.Editor;
@@ -31,6 +31,93 @@ internal partial class StapleEditor
         }
 
         EditorGUI.Space();
+
+        EditorGUI.Button("Import Template", "GameTemplateList.Import",
+            () =>
+            {
+                Platform.platformProvider.ShowOpenFileDialog("Browse template zip file", "OK", "Cancel", "",
+                    new()
+                    {
+                        { "Zip files", "zip" },
+                        { "All files", "*" }
+                    },
+                    true,
+                    (result) =>
+                    {
+                        var files = result.ToArray();
+                        var baseFolder = Path.Combine(EditorUtils.EditorPath.Value, "EditorResources", "ProjectTemplates");
+
+                        var counter = 0;
+
+                        void InstallTemplate(string source, string name)
+                        {
+                            var target = Path.Combine(baseFolder, name);
+
+                            EditorUtils.DeleteDirectory(target);
+
+                            EditorUtils.CreateDirectory(target);
+
+                            try
+                            {
+                                using var stream = File.Open(source, FileMode.Open);
+
+                                ZipFile.ExtractToDirectory(stream, target);
+                            }
+                            catch(System.Exception)
+                            {
+                                return;
+                            }
+                        }
+
+                        void Finish()
+                        {
+                            ProjectTemplateManager.Instance.LoadTemplates(baseFolder, true);
+                        }
+
+                        void Next()
+                        {
+                            if(counter >= files.Length)
+                            {
+                                Finish();
+
+                                return;
+                            }
+
+                            var file = files[counter];
+                            var fileName = Path.GetFileNameWithoutExtension(file);
+
+                            if (EditorUtils.DirectoryExists(Path.Combine(baseFolder, fileName)))
+                            {
+                                EditorUtils.ShowMessageBox($"The template {fileName} already exists. Would you like to replace it?", "Yes", "No",
+                                    () =>
+                                    {
+                                        InstallTemplate(file, fileName);
+
+                                        counter++;
+
+                                        Next();
+                                    },
+                                    () =>
+                                    {
+                                        counter++;
+
+                                        Next();
+                                    });
+                            }
+                            else
+                            {
+                                InstallTemplate(file, fileName);
+
+                                counter++;
+
+                                Next();
+                            }
+                        }
+
+                        Next();
+                    },
+                    null);
+            });
 
         {
             var buttonSize = EditorGUI.MeasureLabel("Back").X * 2;
