@@ -302,23 +302,35 @@ public class SpriteRenderSystem : RenderSystemBase
 
             Sprite sprite = null;
 
-            if (hasValidAnimation)
+            if (hasValidAnimation && r.useAnimation)
             {
                 if (Platform.IsPlaying)
                 {
-                    r.timer += Time.deltaTime;
-
-                    var timeStep = r.animation.frameRateIsMilliseconds ? 1000.0f / r.animation.frameRate : 1000.0f / r.animation.frameRate / 1000.0f;
-
-                    while (r.timer >= timeStep && timeStep > 0)
+                    if(r.animating)
                     {
-                        r.timer -= timeStep;
-
-                        r.currentFrame++;
-
-                        if (r.currentFrame >= r.animation.frames.Count)
+                        if(r.loopAnimation || r.currentFrame != r.animation.frames.Count - 1)
                         {
-                            r.currentFrame = 0;
+                            r.timer += Time.deltaTime;
+
+                            var timeStep = r.animation.frameRateIsMilliseconds ? 1000.0f / r.animation.frameRate :
+                                1000.0f / r.animation.frameRate / 1000.0f;
+
+                            while (r.timer >= timeStep && timeStep > 0)
+                            {
+                                r.timer -= timeStep;
+
+                                r.currentFrame++;
+
+                                if (r.currentFrame >= r.animation.frames.Count)
+                                {
+                                    r.currentFrame = r.loopAnimation ? 0 : r.animation.frames.Count - 1;
+                                }
+
+                                if(r.currentFrame == r.animation.frames.Count - 1)
+                                {
+                                    r.onAnimationFinished?.Invoke(r);
+                                }
+                            }
                         }
                     }
                 }
@@ -402,7 +414,7 @@ public class SpriteRenderSystem : RenderSystemBase
 
             Sprite sprite = null;
 
-            if (hasValidAnimation)
+            if (hasValidAnimation && r.useAnimation)
             {
                 if (r.currentFrame < 0 || r.currentFrame >= r.animation.frames.Count)
                 {
