@@ -44,5 +44,5 @@ devenv build\native\Dependencies.slnx  /Build "Debug|x64"
 
 devenv build\native\Dependencies.slnx  /Build "Release|x64"
 
-dotnet build build\dotnet\Dependencies_Dotnet.sln -c Debug -p:Platform="Any CPU" -o build\dotnet\bin\Debug\net10.0
-dotnet build build\dotnet\Dependencies_Dotnet.sln -c Release -p:Platform="Any CPU" -o build\dotnet\bin\Release\net10.0
+dotnet build build\dotnet\Dependencies_Dotnet.sln -c Debug -p:Platform="Any CPU" -o build\dotnet\bin\Debug\net11.0
+dotnet build build\dotnet\Dependencies_Dotnet.sln -c Release -p:Platform="Any CPU" -o build\dotnet\bin\Release\net11.0

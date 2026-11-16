@@ -62,5 +62,5 @@ xcodebuild -scheme StapleToolingSupport -configuration Release build -workspace 
 
 cd ../dotnet
 
-dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net10.0
-dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net10.0
+dotnet publish Dependencies_Dotnet.sln -c Debug -o bin/Debug/net11.0
+dotnet publish Dependencies_Dotnet.sln -c Release -o bin/Release/net11.0
