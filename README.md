@@ -34,19 +34,53 @@ You can grab binaries from the releases page. You also need the [.NET 11 SDK](ht
 
 Please note that binaries aren't as updated as the main branch, so you'll likely want to build either way.
 
+## Installing .NET 11 SDK
+
+<details>
+<summary>Windows and MacOS</summary>
+  Download the installer and run it.
+</details>
+<details>
+  <summary>Linux</summary>
+  
+```bash
+wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+chmod +x ./dotnet-install.sh
+./dotnet-install.sh --version 11.0.100
+```
+
+Don't forget to add to your shell profile (bashrc or zshrc or equivalent)
+
+```bash
+export DOTNET_ROOT=$HOME/.dotnet
+export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
+```
+
+</details>
+
+## Installing the Android SDK
+
+* Download the commandline tools from https://developer.android.com/studio#command-line-tools-only .
+* Extract them to some folder of your choice
+* Open a terminal to that folder, in the `cmdline-tools/bin` folder
+* Run `sdkmanager` 
+* Export `ANDROID_HOME` to the folder you extracted the zip to
+
 # Building
 
-You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 11 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/11.0).
+You will need [premake](https://premake.github.io/). Download it from wherever package manager works for you or from the site directly.
 
-Additionally, you need to download SDL Shadercross from the latest main branch at https://github.com/libsdl-org/SDL_shadercross/actions and store it at `Dependencies/SDL_shadercross`. Please note there's no easy way to auto get these as github considers these artifacts private and require authentication.
+You need to download SDL Shadercross from the latest main branch at https://github.com/libsdl-org/SDL_shadercross/actions and store it at `Dependencies/SDL_shadercross`.
+Please note there's no easy way to auto get these as github considers these artifacts private and require authentication.
+Open one of the `main` branch builds that were successful, then on the bottom right find the file that's fit for your platform.
 
 <details>
 
 <summary>Windows</summary>
 
-You need visual studio 2026.
+You need visual studio 2026 with cmake and desktop C++ development/.NET desktop/MAUI support enabled.
 
-To compile dependencies, open the visual studio dev terminal, go to the `Dependencies` directory, and run `build_windows`.
+To compile dependencies, open the visual studio dev terminal (not regular `cmd` or Windows Terminal), go to the `Dependencies` directory, and run `build_windows`.
 
 After that, you will need to compile the engine, so go to `Engine` and run `build_windows.cmd`.
 
@@ -60,7 +94,7 @@ After building the tools, go to the main folder of the repo and run `builddefaul
 
 <summary>MacOS</summary>
 
-You need xcode and .NET 11 SDK.
+You need xcode and .NET 11 SDK, as well as the Android SDK.
 
 To compile dependencies, go to `Dependencies` and run `build_macos.sh`.
 
@@ -81,64 +115,19 @@ After building the tools, go to the main folder of the repo and run `builddefaul
 #### Ubuntu
 
 ```bash
-sudo apt install premake git build-essential libxi-dev libxinerama-dev libxrandr-dev libxcursor-dev libgl1-mesa-dev libx11-dev libgtk-3-dev cmake clang
-```
-
-##### To install .NET
-
-```bash
-wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version 11.0.100
-```
-
-##### Don't forget to add to your shell
-
-```bash
-export DOTNET_ROOT=$HOME/.dotnet
-export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
+sudo apt install premake git build-essential libgtk-3-dev cmake clang
 ```
 
 #### Arch
 
 ```bash
-sudo pacman -S premake git base-devel libxi libxinerama libxcursor libx11 gtk3 cmake clang
-```
-
-##### To install .NET
-
-```bash
-wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version 11.0.100
-```
-
-##### Don't forget to add to your shell
-
-```bash
-export DOTNET_ROOT=$HOME/.dotnet
-export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
+sudo pacman -S premake git base-devel gtk3 cmake clang
 ```
 
 #### Fedora
 
 ```bash
 sudo dnf install premake cmake clang
-```
-
-##### To install .NET
-
-```bash
-wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version 11.0.100
-```
-
-##### Don't forget to add to your shell
-
-```bash
-export DOTNET_ROOT=$HOME/.dotnet
-export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
 ```
 
 ### Instructions (After required packages)
