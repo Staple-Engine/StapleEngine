@@ -30,13 +30,13 @@ Early state, usable for small demos
 
 # Installation
 
-You can grab binaries from the releases page. You also need the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
+You can grab binaries from the releases page. You also need the [.NET 11 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/11.0).
 
 Please note that binaries aren't as updated as the main branch, so you'll likely want to build either way.
 
 # Building
 
-You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0).
+You need [premake](https://premake.github.io/) to generate some project files, as well as the [.NET 11 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/11.0).
 
 Additionally, you need to download SDL Shadercross from the latest main branch at https://github.com/libsdl-org/SDL_shadercross/actions and store it at `Dependencies/SDL_shadercross`. Please note there's no easy way to auto get these as github considers these artifacts private and require authentication.
 
@@ -60,7 +60,7 @@ After building the tools, go to the main folder of the repo and run `builddefaul
 
 <summary>MacOS</summary>
 
-You need xcode and .NET 10 SDK.
+You need xcode and .NET 11 SDK.
 
 To compile dependencies, go to `Dependencies` and run `build_macos.sh`.
 
@@ -89,7 +89,7 @@ sudo apt install premake git build-essential libxi-dev libxinerama-dev libxrandr
 ```bash
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
 chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version 10.0.100
+./dotnet-install.sh --version 11.0.100
 ```
 
 ##### Don't forget to add to your shell
@@ -110,7 +110,7 @@ sudo pacman -S premake git base-devel libxi libxinerama libxcursor libx11 gtk3 c
 ```bash
 wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
 chmod +x ./dotnet-install.sh
-./dotnet-install.sh --version 10.0.100
+./dotnet-install.sh --version 11.0.100
 ```
 
 ##### Don't forget to add to your shell
