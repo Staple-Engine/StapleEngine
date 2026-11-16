@@ -62,9 +62,15 @@ export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools
 
 * Download the commandline tools from https://developer.android.com/studio#command-line-tools-only .
 * Extract them to some folder of your choice
-* Open a terminal to that folder, in the `cmdline-tools/bin` folder
-* Run `sdkmanager` 
 * Export `ANDROID_HOME` to the folder you extracted the zip to
+* Open a terminal to that folder, in the `cmdline-tools/bin` folder
+* Run `sdkmanager --sdk-root="$ANDROID_HOME" "platforms;android-37" "platform-tools" "build-tools;37.0.0" "emulator" "system-images;android-37;default;x86_64" "cmdline-tools;latest"`
+  * Note: Replace `$ANDROID_HOME` for `%ANDROID_HOME%` if on windows
+ 
+## Installing the Java SDK
+
+* Should already be installed on windows if you installed VS with Android SDK
+* For linux, you want OpenJDK (make sure it's the development version). The actual version varies depending on your distro.
 
 # Building
 
@@ -129,6 +135,8 @@ sudo pacman -S premake git base-devel gtk3 cmake clang
 ```bash
 sudo dnf install premake cmake clang
 ```
+
+* Note: The actual Java number may vary depending on your distro version
 
 ### Instructions (After required packages)
 
