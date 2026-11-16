@@ -6,27 +6,36 @@ CUTTLEFISH_FILENAME=cuttlefish-linux.tar.gz
 CUTTLEFISH_RELEASE=v2.10.2
 CUTTLEFISH_URL=https://github.com/akb825/Cuttlefish/releases/download/$CUTTLEFISH_RELEASE/$CUTTLEFISH_FILENAME
 
-curl -L -O $CUTTLEFISH_URL
+if [ ! -d cuttlefish ] ; then
 
-tar -zxf $CUTTLEFISH_FILENAME
+    curl -L -O $CUTTLEFISH_URL
 
-rm -f $CUTTLEFISH_FILENAME
+    tar -zxf $CUTTLEFISH_FILENAME
+
+    rm -f $CUTTLEFISH_FILENAME
+fi
 
 SLANG_RELEASE=2026.10.2
 SLANG_FILENAME=slang-$SLANG_RELEASE-linux-x86_64.tar.gz
 SLANG_URL=https://github.com/shader-slang/slang/releases/download/v$SLANG_RELEASE/$SLANG_FILENAME
 
-mkdir slang
+if [ ! -d slang ] ; then
 
-cd slang
+    rm -rf slang
 
-curl -L -O $SLANG_URL
+    mkdir slang
 
-tar -zxf $SLANG_FILENAME
+    cd slang
 
-rm -f $SLANG_FILENAME
+    curl -L -O $SLANG_URL
 
-cd ..
+    tar -zxf $SLANG_FILENAME
+
+    rm -f $SLANG_FILENAME
+
+    cd ..
+
+fi
 
 ./premake.sh --os=linux gmake
 

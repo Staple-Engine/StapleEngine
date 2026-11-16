@@ -50,6 +50,9 @@ project "StapleSupport"
 		path.join(SUPPORT_DIR, "*.hpp");
 	}
 
+	filter "system:linux"
+		libdirs { "build/native/freetype/Release" }
+
 	filter "system:macosx"
 		files { path.join(SUPPORT_DIR, "*.m") }
 

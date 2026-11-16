@@ -1,24 +1,36 @@
 #!/bin/sh
 
-STAPLE_REQUIRED_JDK_VERSION="21"
 STAPLE_JDK_CHECK_PASSED=""
 
 check_jvm() {
-	if [ -d "$1" ] && [ -f "$1/bin/java" ] && ("$1/bin/java" --version 2>&1 | grep "build $STAPLE_REQUIRED_JDK_VERSION." &> /dev/null); then
+	if [ -d "$1" ] && [ -f "$1/bin/javac" ] && ("$1/bin/javac" --version 2>&1 &> /dev/null); then
 		STAPLE_JDK_CHECK_PASSED="yes"
 		export JAVA_HOME="$1"
 	fi
 }
 
-if [ -n "$JAVA_HOME" ]; then
+if [ -z "$JAVA_HOME" ]; then
 	check_jvm "$JAVA_HOME"
 fi
+
 for candidate in /usr/lib/jvm/*; do
-	if [ -n "$STAPLE_JDK_CHECK_PASSED" ]; then
+	if [[ "$STAPLE_JDK_CHECK_PASSED" == "yes" ]]; then
 		break
 	fi
 	check_jvm "$candidate"
 done
+
+if [ -z "$JAVA_HOME" ]; then
+	echo "Missing Java JDK. Please ensure you have a compatible JDK installed!"
+	exit 1
+fi
+
+if [ -z "$ANDROID_HOME" ]; then
+	echo "Missing Android SDK. Please ensure you have a compatible Android SDK installed!"
+	exit 1
+fi
+
+dotnet workload restore
 
 dotnet build Engine.sln -c Debug
 dotnet build Engine.sln -c Release

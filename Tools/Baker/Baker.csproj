@@ -101,11 +101,8 @@
 	</PropertyGroup>
 	<PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows'))">
 		<PostBuildEvent>
-			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net11.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/libStapleToolingSupport.[DLL] $(SolutionDir)bin\
-			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net11.0\CrossCopy $(SolutionDir)../Dependencies/JsonNet/*.dll $(SolutionDir)bin\
-			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net11.0\CrossCopy $(SolutionDir)../Dependencies/SDL_shadercross/bin $(SolutionDir)bin\
-			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net11.0\CrossCopy $(SolutionDir)../Dependencies/slang $(SolutionDir)bin\
-			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net11.0\CrossCopy $(SolutionDir)../Dependencies/cuttlefish/* $(SolutionDir)bin\
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net11.0\CrossCopy $(SolutionDir)../Dependencies/build/native/bin/$(Configuration)/libStapleToolingSupport.[DLL] $(SolutionDir)bin/
+			$(SolutionDir)..\Dependencies\build\dotnet\bin\Release\net11.0\CrossCopy $(SolutionDir)../Dependencies/JsonNet/*.dll $(SolutionDir)bin/
 		</PostBuildEvent>
 	</PropertyGroup>
 </Project>
