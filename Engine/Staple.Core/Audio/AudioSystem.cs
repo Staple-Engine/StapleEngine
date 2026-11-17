@@ -13,7 +13,7 @@ namespace Staple.Internal;
 /// </summary>
 public class AudioSystem : ISubsystem
 {
-    private class AudioSourceInfo
+    internal class AudioSourceInfo
     {
         public WeakReference<AudioSource> source;
         public AudioClip clip;
@@ -85,7 +85,7 @@ public class AudioSystem : ISubsystem
     /// <summary>
     /// List of audio sources to be removed
     /// </summary>
-    private ExpandableContainer<AudioSourceInfo> removedAudioSources = new();
+    private readonly ExpandableContainer<AudioSourceInfo> removedAudioSources = new(false);
 
     /// <summary>
     /// List of audio listeners
@@ -271,41 +271,11 @@ public class AudioSystem : ISubsystem
             {
                 item.clip = source.audioClip;
 
-                LoadAudioClip(source.audioClip, (samples, channels, bits, sampleRate) =>
-                {
-                    if(samples == null || channels == 0 || bits == 0 || sampleRate == 0)
+                LoadAudioClipAsync(source.audioClip,
+                    (samples, channels, bits, sampleRate) =>
                     {
-                        Log.Debug($"Failed to load audio clip for {source.audioClip.Guid.Guid}", LogTag);
-
-                        return;
-                    }
-
-                    var clip = ObjectCreation.CreateObject<IAudioClip>(AudioClipImpl);
-
-                    if (clip != null && clip.Init(samples, channels, bits, sampleRate))
-                    {
-                        if (!source.audioSource.Bind(clip))
-                        {
-                            clip.Destroy();
-                            source.audioSource.Destroy();
-
-                            source.audioSource = null;
-                        }
-                        else
-                        {
-                            item.activeClip = clip;
-
-                            if (source.autoplay)
-                            {
-                                source.audioSource?.Play();
-                            }
-                        }
-                    }
-                    else
-                    {
-                        clip?.Destroy();
-                    }
-                });
+                        InitializeAudioClip(source, samples, channels, bits, sampleRate, true);
+                    });
             }
 
             if (source.audioSource != null)
@@ -390,12 +360,190 @@ public class AudioSystem : ISubsystem
     }
 
     /// <summary>
-    /// Attempts to load an audio clip
+    /// Ensures an <see cref="AudioSource"/>'s current clip is loaded
     /// </summary>
-    /// <param name="clip">The audio clip component</param>
+    /// <param name="source">The <see cref="AudioSource"/></param>
+    internal void EnsureValidClip(AudioSource source)
+    {
+        if (source?.audioClip is null ||
+            !TryGetAudioSourceInfo(source, out var info) ||
+            info.clip == source.audioClip)
+        {
+            return;
+        }
+
+        info.clip = source.audioClip;
+
+        if (!LoadAudioClip(source.audioClip, out var samples, out var channels, out var bitsPerSample, out var sampleRate))
+        {
+            return;
+        }
+
+        if(!InitializeAudioClip(source, samples, channels, bitsPerSample, sampleRate, false))
+        {
+            return;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to find an <see cref="AudioSourceInfo"/> from an <see cref="AudioSource"/>
+    /// </summary>
+    /// <param name="source">The <see cref="AudioSource"/></param>
+    /// <param name="info">The <see cref="AudioSourceInfo"/></param>
+    /// <returns>Whether it was found</returns>
+    internal bool TryGetAudioSourceInfo(AudioSource source, out AudioSourceInfo info)
+    {
+        foreach(var item in audioSources)
+        {
+            if(item.source.TryGetTarget(out var s) && s == source)
+            {
+                info = item;
+
+                return true;
+            }
+        }
+
+        info = default;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Initializes an audio clip for a source with its audio data
+    /// </summary>
+    /// <param name="source">The audio source</param>
+    /// <param name="samples">The audio samples</param>
+    /// <param name="channels">The audio channels</param>
+    /// <param name="bitsPerSample">The audio bits per sample</param>
+    /// <param name="sampleRate">The audio sample rate</param>
+    /// <param name="autoplay">Whether to autoplay if <see cref="AudioSource.autoplay"/></param>
+    /// <returns>Whether it was initialized</returns>
+    internal bool InitializeAudioClip(AudioSource source, short[] samples, int channels, int bitsPerSample, int sampleRate,
+        bool autoplay)
+    {
+        if (samples == null || channels == 0 || bitsPerSample == 0 || sampleRate == 0)
+        {
+            Log.Debug($"Failed to load audio clip for {source.audioClip.Guid.Guid}", LogTag);
+
+            return false;
+        }
+
+        if(!TryGetAudioSourceInfo(source, out var item))
+        {
+            return false;
+        }
+
+        var clip = ObjectCreation.CreateObject<IAudioClip>(AudioClipImpl);
+
+        if (clip != null && clip.Init(samples, channels, bitsPerSample, sampleRate))
+        {
+            if (!source.audioSource.Bind(clip))
+            {
+                clip.Destroy();
+                source.audioSource.Destroy();
+
+                source.audioSource = null;
+
+                return false;
+            }
+            else
+            {
+                item.activeClip = clip;
+
+                if (source.autoplay && autoplay)
+                {
+                    source.audioSource?.Play();
+                }
+
+                return true;
+            }
+        }
+        else
+        {
+            clip?.Destroy();
+
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to load an audio clip immediately. Will skip <see cref="AudioClipMetadata.loadInBackground"/>.
+    /// </summary>
+    /// <param name="clip">The audio clip</param>
+    /// <param name="samples">The decoded samples</param>
+    /// <param name="channels">The channels in the audio data</param>
+    /// <param name="bitsPerSample">The bits per sample</param>
+    /// <param name="sampleRate">The sample rate</param>
+    /// <returns>Whether we decoded the audio clip successfully</returns>
+    /// <remarks>MP3 format audio is notoriously slow. Try to either use OGG or WAV instead when able.</remarks>
+    internal bool LoadAudioClip(AudioClip clip, out short[] samples, out int channels, out int bitsPerSample, out int sampleRate)
+    {
+        if(clip == null)
+        {
+            samples = default;
+            channels = bitsPerSample = sampleRate = default;
+
+            return false;
+        }
+
+        if (clip.Samples != default)
+        {
+            samples = clip.Samples;
+            channels = clip.Channels;
+            bitsPerSample = clip.BitsPerSample;
+            sampleRate = clip.SampleRate;
+
+            return true;
+        }
+
+        try
+        {
+            var stream = clip.GetAudioStream();
+
+            if (stream == null || clip.audioResource == null)
+            {
+                Log.Debug($"Failed to get audio stream for {clip.Guid.Guid}", LogTag);
+
+                samples = default;
+                channels = bitsPerSample = sampleRate = default;
+
+                return false;
+            }
+
+            samples = stream.ReadAll();
+
+            clip.audioResource.sizeInBytes = samples.Length * sizeof(short);
+            clip.audioResource.samples = samples;
+
+            clip.audioResource.duration = (float)stream.TotalTime.TotalSeconds;
+            clip.audioResource.channels = stream.Channels;
+            clip.audioResource.bitsPerSample = stream.BitsPerSample;
+            clip.audioResource.sampleRate = stream.SampleRate;
+
+            channels = stream.Channels;
+            bitsPerSample = stream.BitsPerSample;
+            sampleRate = stream.SampleRate;
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            Log.Debug($"Failed to load audio clip {clip.Guid.Guid}: {e}", LogTag);
+        }
+
+        samples = default;
+        channels = bitsPerSample = sampleRate = default;
+
+        return false;
+    }
+
+    /// <summary>
+    /// Attempts to load an audio clip asynchronously
+    /// </summary>
+    /// <param name="clip">The audio clip</param>
     /// <param name="onFinish">Called when the loading finishes</param>
     /// <returns>A cancellation token</returns>
-    internal CancellationTokenSource LoadAudioClip(AudioClip clip, AudioClipLoadHandler onFinish)
+    internal CancellationTokenSource LoadAudioClipAsync(AudioClip clip, AudioClipLoadHandler onFinish)
     {
         var cts = new CancellationTokenSource();
 

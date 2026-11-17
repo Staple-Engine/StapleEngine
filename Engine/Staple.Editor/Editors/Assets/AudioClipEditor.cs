@@ -74,7 +74,7 @@ internal class AudioClipEditor : AssetEditor
 
                 clip = ResourceManager.instance.LoadAudioClip(cachePath);
 
-                cancellation = AudioSystem.Instance.LoadAudioClip(clip, (samples, channels, bits, sampleRate) =>
+                cancellation = AudioSystem.Instance.LoadAudioClipAsync(clip, (samples, channels, bits, sampleRate) =>
                 {
                     if (samples == default)
                     {

@@ -57,6 +57,8 @@ public sealed class AudioSource : Component
     /// </summary>
     public void Play()
     {
+        AudioSystem.Instance.EnsureValidClip(this);
+
         audioSource?.Play();
     }
 
