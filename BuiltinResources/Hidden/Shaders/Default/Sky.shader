@@ -1,3 +1,5 @@
+//Implementation based on https://infinitespace-studios.co.uk/general/monogame-equirectangular-skybox
+
 Type VertexFragment
 
 ZWrite Off

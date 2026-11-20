@@ -253,6 +253,13 @@ internal partial class StapleEditor
                     renderQueue.disabledEntities.Clear();
 
                     RenderSystem.Instance.ClearCullingStates();
+
+                    var firstCamera = World.Current.SortedCameras.Length > 0 ? World.Current.SortedCameras[0] : null;
+
+                    if(firstCamera != null && firstCamera.clearMode == CameraClearMode.Sky && (firstCamera.skyMaterial?.IsValid ?? false))
+                    {
+                        firstCamera.RenderSky(cameraTransform);
+                    }
                 }
 
                 foreach (var system in renderQueue.renderQueue.Contents)
