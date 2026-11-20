@@ -19,6 +19,7 @@ public enum ShaderUniformType
     Vector4,
     Color,
     Texture,
+    TextureCube,
     Matrix3x3,
     Matrix4x4,
     ReadOnlyBuffer,

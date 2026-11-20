@@ -47,6 +47,13 @@ internal partial class SDLGPURendererBackend
     internal static unsafe ResourceHandle<Texture> ReserveTextureResource(List<ResourceHandle<Texture>> handles, SDL_GPUTexture *texture,
         int width, int height, TextureFormat format, TextureFlags flags)
     {
+        var type = TextureType.Texture;
+
+        if(flags.HasFlag(TextureFlags.TextureTypeCube))
+        {
+            type = TextureType.CubeMap;
+        }
+
         var handle = new ResourceHandle<Texture>()
         {
             context = new TextureResource()
@@ -56,6 +63,7 @@ internal partial class SDLGPURendererBackend
                 width = width,
                 height = height,
                 format = format,
+                type = type,
             },
         };
 
@@ -153,9 +161,15 @@ internal partial class SDLGPURendererBackend
             var format = asset.metadata.Format;
 
             if ((asset.mips?.Length ?? 0) == 0 ||
-                !TryGetTextureFormat(format, flags, out var textureFormat))
+                !TryGetTextureFormat(format, flags, out var textureFormat) ||
+                (asset.metadata.type == TextureType.CubeMap && asset.mips[0].width != asset.mips[0].height / 6))
             {
                 return null;
+            }
+
+            if(asset.metadata.type == TextureType.CubeMap)
+            {
+                flags |= TextureFlags.TextureTypeCube;
             }
 
             var width = asset.mips[0].width;
@@ -164,11 +178,11 @@ internal partial class SDLGPURendererBackend
             var info = new SDL_GPUTextureCreateInfo()
             {
                 format = textureFormat,
-                width = (uint)width,
+                width = asset.metadata.type == TextureType.CubeMap ? (uint)height : (uint)width,
                 height = (uint)height,
                 type = GetTextureType(flags),
                 usage = GetTextureUsage(flags),
-                layer_count_or_depth = 1,
+                layer_count_or_depth = (uint)(asset.metadata.type == TextureType.CubeMap ? 6 : 1),
                 num_levels = (uint)asset.mips.Length,
             };
 
@@ -188,7 +202,7 @@ internal partial class SDLGPURendererBackend
                 return null;
             }
 
-            var outValue = new SDLGPUTexture(handle, width, height, format, flags, this, GetSamplerForTexture(flags));
+            var outValue = new SDLGPUTexture(handle, width, height, format, flags, asset.metadata.type, this, GetSamplerForTexture(flags));
 
             outValue.Update(asset.mips);
 
@@ -232,7 +246,7 @@ internal partial class SDLGPURendererBackend
                 return null;
             }
 
-            var outValue = new SDLGPUTexture(handle, width, height, format, flags, this, GetSamplerForTexture(flags));
+            var outValue = new SDLGPUTexture(handle, width, height, format, flags, GetStapleTextureType(flags), this, GetSamplerForTexture(flags));
 
             outValue.Update(data);
 
@@ -280,7 +294,7 @@ internal partial class SDLGPURendererBackend
 
             resource.length *= width * height;
 
-            return new SDLGPUTexture(handle, width, height, format, flags, this, GetSamplerForTexture(flags));
+            return new SDLGPUTexture(handle, width, height, format, flags, GetStapleTextureType(flags), this, GetSamplerForTexture(flags));
         }
     }
 
@@ -345,6 +359,34 @@ internal partial class SDLGPURendererBackend
         }
 
         return SDL_GPUTextureType.SDL_GPU_TEXTURETYPE_2D;
+    }
+
+    public static TextureType GetStapleTextureType(TextureFlags flags)
+    {
+        if (flags.HasFlag(TextureFlags.TextureTypeCube))
+        {
+            return TextureType.CubeMap;
+        }
+
+        if (flags.HasFlag(TextureFlags.TextureTypeCubeArray))
+        {
+            //TODO
+            //return TextureType.CubeArray;
+        }
+
+        if (flags.HasFlag(TextureFlags.TextureType2DArray))
+        {
+            //TODO
+            //return TextureType.TextureArray;
+        }
+
+        if (flags.HasFlag(TextureFlags.TextureType3D))
+        {
+            //TODO
+            //return TextureType.Texture3DArray;
+        }
+
+        return TextureType.Texture;
     }
 
     public static SDL_GPUTextureUsageFlags GetTextureUsage(TextureFlags flags)

@@ -89,6 +89,11 @@ public partial class Camera : VersionableComponent, IComponentDisposable
     public partial LayerMask cullingLayers { get; set; }
 
     /// <summary>
+    /// Sky material for this camera. Required if <see cref="clearMode"/> is <see cref="CameraClearMode.Sky"/>
+    /// </summary>
+    public partial Material skyMaterial { get; set; }
+
+    /// <summary>
     /// Actual width of this camera viewport
     /// </summary>
     internal float Width => viewport.Z * Screen.RenderTargetWidth;
@@ -113,6 +118,8 @@ public partial class Camera : VersionableComponent, IComponentDisposable
     internal ulong cameraVersion = 0;
 
     internal VertexBuffer lightBuffer;
+
+    internal Mesh skySphere;
 
     public Camera()
     {
@@ -461,5 +468,21 @@ public partial class Camera : VersionableComponent, IComponentDisposable
                 pair.Value.needsUpdate = true;
             }
         }
+    }
+
+    /// <summary>
+    /// Renders the sky. Assumes we have valid parameters.
+    /// </summary>
+    internal void RenderSky(Transform transform)
+    {
+        if(skySphere == null || skySphere.indexBuffer.Disposed || skySphere.vertexBuffer.Disposed)
+        {
+            skySphere = Mesh.GenerateSphere(32, 16, 1, false);
+
+            skySphere.UploadMeshData();
+        }
+
+        Graphics.RenderGeometry(skySphere.vertexBuffer, skySphere.indexBuffer, 0, 0, skySphere.IndexCount, skyMaterial,
+            transform.Matrix, skySphere.MeshTopology);
     }
 }

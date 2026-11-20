@@ -42,6 +42,11 @@ public class Texture : IGuidAsset
     public TextureFormat Format => textureResource?.impl?.Format ?? TextureFormat.RGBA8;
 
     /// <summary>
+    /// The type of this texture
+    /// </summary>
+    public TextureType Type => textureResource?.impl?.Type ?? TextureType.Texture;
+
+    /// <summary>
     /// The texture's sprite scale
     /// </summary>
     public float SpriteScale => 1.0f / (textureResource?.metadata?.spritePixelsPerUnit ?? 1);
@@ -311,6 +316,12 @@ public class Texture : IGuidAsset
                 {
                     flags |= TextureFlags.SRGB;
                 }
+
+                break;
+
+            case TextureType.CubeMap:
+
+                flags |= TextureFlags.TextureTypeCube;
 
                 break;
         }

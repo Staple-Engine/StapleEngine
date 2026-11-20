@@ -99,6 +99,12 @@ public class Utilities
 
                 return true;
 
+            case "textureCube":
+
+                type = ShaderUniformType.TextureCube;
+
+                return true;
+
             case "mat3":
 
                 type = ShaderUniformType.Matrix3x3;

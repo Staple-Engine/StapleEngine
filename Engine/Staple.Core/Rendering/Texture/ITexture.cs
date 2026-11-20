@@ -10,5 +10,7 @@ internal interface ITexture
 
     TextureFormat Format { get; }
 
+    TextureType Type { get; }
+
     void Destroy();
 }

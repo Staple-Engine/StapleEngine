@@ -151,6 +151,7 @@ static partial class Program
                         "float4" => (int)ShaderUniformType.Vector4,
                         "color" => (int)ShaderUniformType.Color,
                         "texture" => (int)ShaderUniformType.Texture,
+                        "textureCube" => (int)ShaderUniformType.TextureCube,
                         "float3x3" => (int)ShaderUniformType.Matrix3x3,
                         "float4x4" => (int)ShaderUniformType.Matrix4x4,
                         _ => -1

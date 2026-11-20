@@ -91,6 +91,7 @@ public enum TextureType
     Texture,
     NormalMap,
     Sprite,
+    CubeMap,
 }
 
 [JsonConverter(typeof(JsonStringEnumConverter<TextureWrap>))]
@@ -246,7 +247,7 @@ public class TextureMetadata
     public TextureType type = TextureType.Texture;
 
     [Key(2)]
-    public TextureMetadataFormat format = TextureMetadataFormat.BC3;
+    public TextureMetadataFormat format = TextureMetadataFormat.BC7;
 
     [Key(3)]
     public TextureMetadataQuality quality = TextureMetadataQuality.Default;

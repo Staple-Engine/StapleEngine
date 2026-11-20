@@ -74,6 +74,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         public SDL_GPUTransferBuffer *transferBuffer;
         public TextureFormat format;
         public TextureFlags flags;
+        public TextureType type;
         public int width;
         public int height;
 

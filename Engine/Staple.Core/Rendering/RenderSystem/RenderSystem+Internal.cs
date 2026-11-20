@@ -1194,8 +1194,20 @@ public sealed partial class RenderSystem
 
         CurrentCamera.lightData = camera.lightBuffer;
 
-        Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport, in invView, in projection,
+        var clearMode = camera.clearMode;
+
+        if(clearMode == CameraClearMode.Sky)
+        {
+            clearMode = CameraClearMode.Depth;
+        }
+
+        Backend.BeginRenderPass(RenderTarget.Current, clearMode, camera.clearColor, camera.viewport, in invView, in projection,
             cameraTransform.Position, cameraTransform.Forward);
+
+        if(camera.clearMode == CameraClearMode.Sky && (camera.skyMaterial?.IsValid ?? false))
+        {
+            camera.RenderSky(cameraTransform);
+        }
     }
 
     /// <summary>

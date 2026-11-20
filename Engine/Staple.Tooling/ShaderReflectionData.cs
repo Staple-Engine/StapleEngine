@@ -139,6 +139,12 @@ public class ShaderReflectionData
                             type = ShaderUniformType.Texture;
 
                             return true;
+
+                        case "textureCube":
+
+                            type = ShaderUniformType.TextureCube;
+
+                            return true;
                     }
 
                     break;
@@ -454,6 +460,7 @@ public class ShaderReflectionData
                     switch(uniformType)
                     {
                         case ShaderUniformType.Texture:
+                        case ShaderUniformType.TextureCube:
 
                             outValue.textures.Add(new()
                             {
@@ -583,7 +590,8 @@ public class ShaderReflectionData
                                         continue;
                                     }
 
-                                    if (uniformType == ShaderUniformType.Texture)
+                                    if (uniformType == ShaderUniformType.Texture ||
+                                        uniformType == ShaderUniformType.TextureCube)
                                     {
                                         continue;
                                     }
@@ -623,7 +631,8 @@ public class ShaderReflectionData
                 }
             }
 
-            if(data.type == ShaderUniformType.Texture)
+            if(data.type == ShaderUniformType.Texture ||
+                data.type == ShaderUniformType.TextureCube)
             {
                 outValue.textures.Add(data);
             }

@@ -18,5 +18,10 @@ public enum CameraClearMode
     /// <summary>
     /// Clear depth and color
     /// </summary>
-    SolidColor
+    SolidColor,
+
+    /// <summary>
+    /// Clear with a sky. Requires a sky material to be applied to the camera.
+    /// </summary>
+    Sky,
 }

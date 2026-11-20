@@ -23,6 +23,7 @@ internal class MaterialEditor : AssetEditor
         switch (uniform.type)
         {
             case ShaderUniformType.Texture:
+            case ShaderUniformType.TextureCube:
 
                 parameter.textureValue = uniform.defaultValue;
 
@@ -201,7 +202,7 @@ internal class MaterialEditor : AssetEditor
                     ShaderUniformType.Vector2 => MaterialParameterType.Vector2,
                     ShaderUniformType.Vector3 => MaterialParameterType.Vector3,
                     ShaderUniformType.Vector4 => MaterialParameterType.Vector4,
-                    ShaderUniformType.Texture => MaterialParameterType.Texture,
+                    ShaderUniformType.Texture or ShaderUniformType.TextureCube => MaterialParameterType.Texture,
                     ShaderUniformType.Color => MaterialParameterType.Color,
                     ShaderUniformType.Int => MaterialParameterType.Int,
                     ShaderUniformType.Float => MaterialParameterType.Float,
@@ -492,7 +493,7 @@ internal class MaterialEditor : AssetEditor
                             {
                                 return type switch
                                 {
-                                    ShaderUniformType.Texture => MaterialParameterType.Texture,
+                                    ShaderUniformType.Texture or ShaderUniformType.TextureCube => MaterialParameterType.Texture,
                                     ShaderUniformType.Int => MaterialParameterType.Int,
                                     ShaderUniformType.Float => MaterialParameterType.Float,
                                     ShaderUniformType.Vector2 => MaterialParameterType.Vector2,

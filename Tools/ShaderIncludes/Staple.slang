@@ -50,6 +50,12 @@ public float4x4 ViewWorld(float4x4 world)
 {
     return mul(view, world);
 }
+
+public float4x4 ProjectionView()
+{
+    return mul(projection, view);
+}
+
 #endif
 
 #if defined(SKINNING) && defined(STAPLE_VERTEX_SHADER)
