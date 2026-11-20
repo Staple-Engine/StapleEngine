@@ -357,7 +357,7 @@ public class SpriteRenderSystem : RenderSystemBase
 
             if(sprite == null)
             {
-                return;
+                continue;
             }
 
             var spriteSize = r.renderMode switch
@@ -438,7 +438,7 @@ public class SpriteRenderSystem : RenderSystemBase
 
             if (sprite == null)
             {
-                return;
+                continue;
             }
 
             var spriteSize = r.renderMode switch
