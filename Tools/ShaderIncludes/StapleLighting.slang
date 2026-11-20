@@ -82,11 +82,6 @@ public int StapleLightCount()
     return int(StapleLightData[0].x);
 }
 
-public float3 StapleLightViewPosition()
-{
-    return StapleLightData[0].yzw;
-}
-
 public int StapleMaxPixelLightCount()
 {
     return int(StapleLightData[1].x);

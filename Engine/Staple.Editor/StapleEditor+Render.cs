@@ -108,9 +108,9 @@ internal partial class StapleEditor
     /// <summary>
     /// Renders the scene
     /// </summary>
-    public void RenderScene()
+    public void RenderScene(ImGuiViewportPtr viewport)
     {
-        ImGuizmo.SetDrawlist(ImGui.GetWindowDrawList());
+        ImGuizmo.SetDrawlist(ImGui.GetBackgroundDrawList(viewport));
         ImGuizmo.SetOrthographic(false);
         ImGuizmo.SetRect(0, 0, window.Width, window.Height);
 
@@ -239,13 +239,10 @@ internal partial class StapleEditor
         var cameraMatrix = cameraTransform.Matrix;
 
         RenderSystem.Render(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
-            in cameraMatrix, in projection, cameraTransform.Position,
+            in cameraMatrix, in projection, cameraTransform.Position, cameraTransform.Forward,
+            LayerMask.Everything,
             () =>
             {
-                RenderGrid(camera, new(0.7f, 0.7f, 0.7f, 0.8f), new(0.8f, 0.8f, 0.8f, 0.8f), new(0.2f, 0.2f, 0.2f, 0.8f));
-
-                wireframeMaterial?.SetVector4("cameraPosition", new Vector4(cameraTransform.Position, 1));
-
                 if (World.Current != null)
                 {
                     foreach (var entity in renderQueue.disabledEntities)
@@ -428,6 +425,8 @@ internal partial class StapleEditor
                         Gizmo.WireframeBox(aabb.center, Quaternion.Identity, aabb.size, Color.White);
                     }
                 }
+
+                RenderGrid(camera, new(0.7f, 0.7f, 0.7f, 0.8f), new(0.8f, 0.8f, 0.8f, 0.8f), new(0.2f, 0.2f, 0.2f, 0.8f));
             },
             ref camera.lightBuffer);
 

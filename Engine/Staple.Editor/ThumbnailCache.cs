@@ -247,7 +247,8 @@ internal class ThumbnailCache
                         var cameraProjection = Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize);
 
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
-                            in cameraTransformMatrix, in cameraProjection, cameraTransform.Position,
+                            in cameraTransformMatrix, in cameraProjection, cameraTransform.Position, cameraTransform.Forward,
+                            new(LayerMask.GetMask(StapleEditor.RenderTargetLayerName)),
                             () =>
                             {
                                 LightSystem.OverrideLights = [light];
@@ -523,7 +524,8 @@ internal class ThumbnailCache
                         var cameraProjection = Camera.ProjectionCustomSize(camera, Vector2Int.One * ThumbnailSize);
 
                         RenderSystem.Render(renderTarget, camera.clearMode, camera.clearColor, new(0, 0, 1, 1),
-                            in cameraTransformMatrix, in cameraProjection, cameraTransform.Position,
+                            in cameraTransformMatrix, in cameraProjection, cameraTransform.Position, cameraTransform.Forward,
+                            new(LayerMask.GetMask(StapleEditor.RenderTargetLayerName)),
                             () =>
                             {
                                 LightSystem.OverrideLights = [light];

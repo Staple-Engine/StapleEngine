@@ -4,7 +4,8 @@ using System.Numerics;
 namespace Staple.Internal;
 
 internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend, RenderTarget target, CameraClearMode clearMode,
-    Color clearColor, Vector4 viewport, in Matrix4x4 view, in Matrix4x4 projection) : IRenderCommand
+    Color clearColor, Vector4 viewport, in Matrix4x4 view, in Matrix4x4 projection, Vector3 cameraPosition,
+    Vector3 cameraDirection) : IRenderCommand
 {
     public Matrix4x4 view = view;
     public Matrix4x4 projection = projection;
@@ -24,6 +25,8 @@ internal unsafe class SDLGPUBeginRenderPassCommand(SDLGPURendererBackend backend
         backend.viewData.viewport = viewport;
         backend.viewData.renderData.view = view;
         backend.viewData.renderData.projection = projection;
+        backend.viewData.renderData.cameraPosition = cameraPosition;
+        backend.viewData.renderData.cameraDirection = cameraDirection;
 
         SDL_GPUTexture *texture = null;
         SDL_GPUTexture *resolveTexture = null;

@@ -198,7 +198,7 @@ public class AppSettings
     /// What color to use for ambient lighting
     /// </summary>
     [Key(21)]
-    public Color ambientLight = Color.LightBlue;
+    public Color ambientLight = new("#363A42FF");
 
     /// <summary>
     /// Whether to show the performance profiler overlay

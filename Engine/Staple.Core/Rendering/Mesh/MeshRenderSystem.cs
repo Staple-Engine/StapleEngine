@@ -507,22 +507,6 @@ public sealed class MeshRenderSystem : RenderSystemBase
         RenderSystem.Submit(renderState, Mesh.TriangleCount(mesh.MeshTopology, mesh.IndexCount), 1);
     }
 
-    private static void UpdateRendererBounds(Transform transform, MeshRenderer renderer)
-    {
-        var localSize = renderer.mesh.bounds.size.Transformed(transform.LocalRotation).Abs();
-
-        var globalSize = renderer.mesh.bounds.size.Transformed(transform.Rotation).Abs();
-
-        var localCenter = transform.LocalPosition + renderer.mesh.bounds.center.Transformed(transform.LocalRotation) * transform.NormalizedLocalScale;
-
-        var globalCenter = transform.Position + renderer.mesh.bounds.center.Transformed(transform.Rotation) *
-            transform.NormalizedScale;
-
-        renderer.localBounds = new(localCenter, localSize * transform.NormalizedLocalScale);
-
-        renderer.bounds = new(globalCenter, globalSize * transform.NormalizedScale);
-    }
-
     public override void Prepare()
     {
         renderData.Clear();
@@ -536,7 +520,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
 
             renderer.mesh.UploadMeshData();
 
-            UpdateRendererBounds(transform, renderer);
+            UpdateRenderableBounds(renderer, renderer.mesh.bounds.center, renderer.mesh.bounds.size, transform);
         }
 
         rendererTracker.ClearChanges();
@@ -549,7 +533,7 @@ public sealed class MeshRenderSystem : RenderSystemBase
                 continue;
             }
 
-            UpdateRendererBounds(transform, renderer);
+            UpdateRenderableBounds(renderer, renderer.mesh.bounds.center, renderer.mesh.bounds.size, transform);
         }
 
         transformTracker.ClearChanges();

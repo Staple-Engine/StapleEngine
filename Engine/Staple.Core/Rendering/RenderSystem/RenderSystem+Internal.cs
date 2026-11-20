@@ -1194,11 +1194,12 @@ public sealed partial class RenderSystem
 
         CurrentCamera.lightData = camera.lightBuffer;
 
-        Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport, in invView, in projection);
+        Backend.BeginRenderPass(RenderTarget.Current, camera.clearMode, camera.clearColor, camera.viewport, in invView, in projection,
+            cameraTransform.Position, cameraTransform.Forward);
     }
 
     /// <summary>
-    /// Prepares a render pass
+    /// Prepares a render pass without lighting
     /// </summary>
     /// <param name="target">The render target, if any</param>
     /// <param name="clearMode">How to clear the target</param>
@@ -1207,8 +1208,9 @@ public sealed partial class RenderSystem
     /// <param name="cameraTransform">The transform of the camera</param>
     /// <param name="projection">The projection matrix</param>
     /// <param name="cameraPosition">The position of the camera</param>
+    /// <param name="cameraDirection">The camera's direction</param>
     private static void PrepareRender(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
-        in Matrix4x4 cameraTransform, in Matrix4x4 projection, Vector3 cameraPosition)
+        in Matrix4x4 cameraTransform, in Matrix4x4 projection, Vector3 cameraPosition, Vector3 cameraDirection)
     {
         Matrix4x4.Invert(cameraTransform, out var view);
 
@@ -1216,11 +1218,12 @@ public sealed partial class RenderSystem
 
         CurrentCamera.lightData = null;
 
-        Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection);
+        Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection,
+            cameraPosition, cameraDirection);
     }
 
     /// <summary>
-    /// Prepares a render pass
+    /// Prepares a render pass with lighting
     /// </summary>
     /// <param name="target">The render target, if any</param>
     /// <param name="clearMode">How to clear the target</param>
@@ -1229,19 +1232,23 @@ public sealed partial class RenderSystem
     /// <param name="cameraTransform">The transform of the camera</param>
     /// <param name="projection">The projection matrix</param>
     /// <param name="cameraPosition">The position of the camera</param>
+    /// <param name="cameraDirection">The direction of the camera</param>
+    /// <param name="cullingMask">The culling mask for the lights</param>
     /// <param name="lightBuffer">The light data buffer</param>
     private static void PrepareRender(RenderTarget target, CameraClearMode clearMode, Color clearColor, Vector4 viewport,
-        in Matrix4x4 cameraTransform, in Matrix4x4 projection, Vector3 cameraPosition, ref VertexBuffer lightBuffer)
+        in Matrix4x4 cameraTransform, in Matrix4x4 projection, Vector3 cameraPosition, Vector3 cameraDirection,
+        LayerMask cullingMask, ref VertexBuffer lightBuffer)
     {
         Matrix4x4.Invert(cameraTransform, out var view);
 
         frustumCuller.Update(in view, in projection);
 
-        LightSystem.Instance.GatherVisibleLights(frustumCuller, cameraPosition, LayerMask.Everything, ref lightBuffer);
+        LightSystem.Instance.GatherVisibleLights(frustumCuller, cameraPosition, cullingMask, ref lightBuffer);
 
         CurrentCamera.lightData = lightBuffer;
 
-        Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection);
+        Backend.BeginRenderPass(target ?? RenderTarget.Current, clearMode, clearColor, viewport, in view, in projection,
+            cameraPosition, cameraDirection);
     }
 
     /// <summary>

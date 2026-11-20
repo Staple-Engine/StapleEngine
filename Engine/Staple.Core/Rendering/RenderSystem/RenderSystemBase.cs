@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 
 namespace Staple;
@@ -136,5 +137,41 @@ public abstract class RenderSystemBase(bool usesOwnRenderProcess, Type relatedCo
 
             callback?.Invoke(i);
         }
+    }
+
+    /// <summary>
+    /// Updates the bounds for a renderable.
+    /// This simplifies processing renderable bounds across systems.
+    /// </summary>
+    /// <param name="center">The center of the content being rendered</param>
+    /// <param name="size">The size of the content being rendered</param>
+    /// <param name="transform">The transform of the renderable</param>
+    /// <remarks><see cref="center"/> and <see cref="size"/> should not have the local transform applied to it.</remarks>
+    protected void UpdateRenderableBounds(Renderable renderable, Vector3 center, Vector3 size, Transform transform)
+    {
+        var localSize = (size * transform.NormalizedLocalScale).Abs();
+
+        var localCenter = transform.LocalPosition + center * transform.NormalizedLocalScale;
+
+        renderable.localBounds = new(localCenter, localSize);
+
+        UpdateRenderableWorldBounds(renderable, transform);
+    }
+
+    /// <summary>
+    /// Updates the bounds of a renderable, expecting <see cref="Renderable.localBounds"/> to already be calculated
+    /// </summary>
+    /// <param name="renderable">The renderable to calculate the bounds for</param>
+    /// <param name="transform">The transform of the renderable</param>
+    protected void UpdateRenderableWorldBounds(Renderable renderable, Transform transform)
+    {
+        if (transform.Parent == null)
+        {
+            renderable.bounds = renderable.localBounds;
+
+            return;
+        }
+
+        renderable.bounds = renderable.localBounds.Transform(transform.Parent.Matrix);
     }
 }

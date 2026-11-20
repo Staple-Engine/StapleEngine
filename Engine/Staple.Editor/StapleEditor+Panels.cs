@@ -790,7 +790,7 @@ internal partial class StapleEditor
     /// Renders the viewport window
     /// </summary>
     /// <param name="io">The current ImGUI IO</param>
-    private void Viewport(ImGuiIOPtr io)
+    private void Viewport(ImGuiIOPtr io, ImGuiViewportPtr viewport)
     {
         ImGui.Begin("Viewport", ImGuiWindowFlags.NoBackground);
 
@@ -933,7 +933,7 @@ internal partial class StapleEditor
                 viewportRect.right = (int)(windowSize.X + windowPosition.X);
                 viewportRect.bottom = (int)(windowSize.Y + windowPosition.Y);
 
-                RenderScene();
+                RenderScene(viewport);
 
                 break;
 

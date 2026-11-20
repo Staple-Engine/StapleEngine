@@ -21,6 +21,11 @@ public cbuffer StapleRenderData
     public bool useWorldMatrix;
 	public RenderQueue renderQueue;
     public float time;
+    public float deltaTime;
+    public int frame;
+    public float2 viewportSize;
+    public float3 cameraPosition;
+    public float3 cameraDirection;
 };
 
 #ifdef STAPLE_VERTEX_SHADER

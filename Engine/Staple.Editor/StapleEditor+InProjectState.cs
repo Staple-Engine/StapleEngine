@@ -9,7 +9,7 @@ internal partial class StapleEditor
         ImGui.SetNextWindowViewport(viewport.ID);
 
         Dockspace();
-        Viewport(io);
+        Viewport(io, viewport);
         Entities(io);
         Inspector(io);
         BottomPanel(io);

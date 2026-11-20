@@ -27,8 +27,11 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     private static readonly StringID StapleRenderDataUseWorldMatrixUniformName = new(nameof(StapleRenderData.useWorldMatrix));
     private static readonly StringID StapleRenderDataRenderQueueUniformName = new(nameof(StapleRenderData.renderQueue));
     private static readonly StringID StapleRenderDataTimeUniformName = new(nameof(StapleRenderData.time));
-
-    internal static readonly int RenderDataByteSize = Marshal.SizeOf<StapleRenderData>();
+    private static readonly StringID StapleRenderDataDeltaTimeUniformName = new(nameof(StapleRenderData.deltaTime));
+    private static readonly StringID StapleRenderDataFrameUniformName = new(nameof(StapleRenderData.frame));
+    private static readonly StringID StapleRenderDataViewportUniformName = new(nameof(StapleRenderData.viewportSize));
+    private static readonly StringID StapleRenderDataCameraPositionUniformName = new(nameof(StapleRenderData.cameraPosition));
+    private static readonly StringID StapleRenderDataCameraDirectionUniformName = new(nameof(StapleRenderData.cameraDirection));
 
     internal static readonly int Matrix4x4ByteSize = Marshal.SizeOf<Matrix4x4>();
     internal static readonly int IndirectDrawCommandSize = Marshal.SizeOf<SDL_GPUIndexedIndirectDrawCommand>();
@@ -48,6 +51,11 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         public bool useWorldMatrix;
         public MaterialRenderQueue renderQueue;
         public float time;
+        public float deltaTime;
+        public int frame;
+        public Vector2 viewportSize;
+        public Vector3 cameraPosition;
+        public Vector3 cameraDirection;
     }
 
     internal class BufferResource
@@ -1407,7 +1415,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
     }
 
     public void BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
-        in Matrix4x4 view, in Matrix4x4 projection)
+        in Matrix4x4 view, in Matrix4x4 projection, Vector3 cameraPosition, Vector3 cameraDirection)
     {
         viewData.renderTarget = currentRenderTarget = target;
         viewData.clearMode = clear;
@@ -1415,10 +1423,12 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         viewData.viewport = viewport;
 
         viewData.renderData.view = view;
-
         viewData.renderData.projection = projection;
+        viewData.renderData.cameraPosition = cameraPosition;
+        viewData.renderData.cameraDirection = cameraDirection;
 
-        AddCommand(new SDLGPUBeginRenderPassCommand(this, target, clear, clearColor, viewport, view, projection));
+        AddCommand(new SDLGPUBeginRenderPassCommand(this, target, clear, clearColor, viewport, view, projection,
+            cameraPosition, cameraDirection));
     }
 
     public IShaderProgram CreateShaderVertexFragment(byte[] vertex, byte[] fragment,
@@ -2093,6 +2103,11 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
         state.shaderInstance.SetValue(StapleRenderDataUseWorldMatrixUniformName, useWorldMatrix);
         state.shaderInstance.SetValue(StapleRenderDataRenderQueueUniformName, (int)state.renderQueue);
         state.shaderInstance.SetValue(StapleRenderDataTimeUniformName, time);
+        state.shaderInstance.SetValue(StapleRenderDataDeltaTimeUniformName, Time.deltaTime);
+        state.shaderInstance.SetValue(StapleRenderDataFrameUniformName, (int)RenderSystem.CurrentFrame);
+        state.shaderInstance.SetValue(StapleRenderDataViewportUniformName, (Vector2)(viewData.renderTarget?.size ?? renderSize));
+        state.shaderInstance.SetValue(StapleRenderDataCameraPositionUniformName, viewData.renderData.cameraPosition);
+        state.shaderInstance.SetValue(StapleRenderDataCameraDirectionUniformName, viewData.renderData.cameraDirection);
 
         var counter = 0;
 

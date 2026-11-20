@@ -30,7 +30,7 @@ internal interface IRendererBackend
     void UpdateViewport(int width, int height);
 
     void BeginRenderPass(RenderTarget target, CameraClearMode clear, Color clearColor, Vector4 viewport,
-        in Matrix4x4 view, in Matrix4x4 projection);
+        in Matrix4x4 view, in Matrix4x4 projection, Vector3 cameraPosition, Vector3 cameraDirection);
 
     VertexLayoutBuilder CreateVertexLayoutBuilder();
 

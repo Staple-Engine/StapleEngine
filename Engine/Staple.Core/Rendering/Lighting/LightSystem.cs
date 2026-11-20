@@ -80,11 +80,11 @@ public sealed class LightSystem
     /// <param name="layerMask">The layer mask of the camera</param>
     /// <param name="lightBuffer">The light buffer to store the data into</param>
     /// <returns>Whether we gathered data or not</returns>
-    internal bool GatherVisibleLights(FrustumCuller frustum, Vector3 cameraPosition, LayerMask layerMask, ref VertexBuffer lightBuffer)
+    internal void GatherVisibleLights(FrustumCuller frustum, Vector3 cameraPosition, LayerMask layerMask, ref VertexBuffer lightBuffer)
     {
         if (!Enabled)
         {
-            return false;
+            return;
         }
 
         cachedLights.Clear();
@@ -99,7 +99,7 @@ public sealed class LightSystem
             sphere.center = light.Transform.Position;
             sphere.radius = light.range;
 
-            return frustum.SphereTest(sphere) != FrustumResult.Invisible;
+            return frustum.SphereTest(in sphere) != FrustumResult.Invisible;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -157,11 +157,6 @@ public sealed class LightSystem
             cachedLights.Add(target);
         }
 
-        if(cachedLights.Length == 0)
-        {
-            return false;
-        }
-
         cachedLights.Contents.Sort(CompareLights);
 
         lightData.Add(new(cachedLights.Length, cameraPosition.X, cameraPosition.Y, cameraPosition.Z));
@@ -211,8 +206,6 @@ public sealed class LightSystem
         {
             emptyBuffer = VertexBuffer.Create([new Vector4(0, 1, 1, 1)], lightBufferLayout.Value, RenderBufferFlags.GraphicsRead);
         }
-
-        return cachedLights.Length > 0;
     }
 
     /// <summary>
