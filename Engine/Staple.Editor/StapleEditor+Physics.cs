@@ -101,7 +101,12 @@ internal partial class StapleEditor
                 bounds = bounds,
             });
 
-            entityToPickBodies.Add(body.Entity, entity);
+            if(entityToPickBodies.TryGetValue(body.Entity, out var existing))
+            {
+                existing.Destroy();
+            }
+
+            entityToPickBodies.AddOrSetKey(body.Entity, entity);
         }
         else
         {

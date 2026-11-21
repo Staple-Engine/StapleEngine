@@ -933,7 +933,7 @@ internal partial class StapleEditor
                 viewportRect.right = (int)(windowSize.X + windowPosition.X);
                 viewportRect.bottom = (int)(windowSize.Y + windowPosition.Y);
 
-                RenderScene(viewport);
+                RenderScene();
 
                 break;
 

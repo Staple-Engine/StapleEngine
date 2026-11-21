@@ -108,9 +108,9 @@ internal partial class StapleEditor
     /// <summary>
     /// Renders the scene
     /// </summary>
-    public void RenderScene(ImGuiViewportPtr viewport)
+    public void RenderScene()
     {
-        ImGuizmo.SetDrawlist(ImGui.GetBackgroundDrawList(viewport));
+        ImGuizmo.SetDrawlist(ImGui.GetWindowDrawList());
         ImGuizmo.SetOrthographic(false);
         ImGuizmo.SetRect(0, 0, window.Width, window.Height);
 
