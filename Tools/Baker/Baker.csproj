@@ -83,7 +83,7 @@
 		<Compile Include="WorkScheduler.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="Alimer.Bindings.MeshOptimizer" Version="1.2.1" />
+	  <PackageReference Include="Alimer.Bindings.MeshOptimizer" Version="1.3.0" />
 	  <PackageReference Include="Evergine.Bindings.KTX" Version="2026.6.15.8" />
 	</ItemGroup>
 	<ItemGroup>

@@ -45,7 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="runtime.win-x64.Microsoft.DotNet.ILCompiler" Version="10.0.12" />
+    <PackageReference Include="runtime.win-x64.Microsoft.DotNet.ILCompiler" Version="11.0.0" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>

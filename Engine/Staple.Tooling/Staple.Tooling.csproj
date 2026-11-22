@@ -37,7 +37,7 @@
 	  <Compile Include="Vector4Filler.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <PackageReference Include="Alimer.Bindings.MeshOptimizer" Version="1.2.1" />
+	  <PackageReference Include="Alimer.Bindings.MeshOptimizer" Version="1.3.0" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Staple.Core\Staple.Core.csproj" />
