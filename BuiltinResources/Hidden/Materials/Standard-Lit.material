@@ -2,9 +2,6 @@
 	"shader": "15554607-8072-4d19-aa04-ad3437f7ba93",
 	"enabledShaderVariants": [],
 	"parameters": {
-		"ambientOcclusionTexture": {
-			"type": "Texture"
-		},
 		"diffuseColor": {
 			"type": "Color",
 			"colorValue": {
@@ -17,40 +14,7 @@
 		"diffuseTexture": {
 			"type": "Texture"
 		},
-		"displacementTexture": {
-			"type": "Texture"
-		},
-		"emissiveColor": {
-			"type": "Color",
-			"colorValue": {
-				"r": 255,
-				"g": 255,
-				"b": 255,
-				"a": 255
-			}
-		},
-		"emissiveTexture": {
-			"type": "Texture"
-		},
-		"heightTexture": {
-			"type": "Texture"
-		},
 		"normalTexture": {
-			"type": "Texture"
-		},
-		"reflectionTexture": {
-			"type": "Texture"
-		},
-		"specularColor": {
-			"type": "Color",
-			"colorValue": {
-				"r": 255,
-				"g": 255,
-				"b": 255,
-				"a": 255
-			}
-		},
-		"specularTexture": {
 			"type": "Texture"
 		},
 		"alphaThreshold": {

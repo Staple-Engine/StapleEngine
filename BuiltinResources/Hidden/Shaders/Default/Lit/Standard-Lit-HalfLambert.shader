@@ -8,22 +8,12 @@ variant: TRANSPARENT Blend SrcAlpha OneMinusSrcAlpha
 
 Begin Parameters
 
-texture ambientOcclusionTexture
 texture diffuseTexture = WHITE
 variant: NORMALMAP texture normalTexture
-texture displacementTexture
-texture emissiveTexture
-texture heightTexture
-texture specularTexture
 color diffuseColor = #FFFFFFFF
-color emissiveColor
-color specularColor
 float alphaThreshold = 0.25
 
 End Parameters
-
-Begin Instancing
-End Instancing
 
 Begin Common
 
@@ -145,13 +135,8 @@ Begin Fragment
 [[vk::binding(0, StapleSamplerStorageBufferSet)]]
 cbuffer Textures
 {
-	Sampler2D ambientOcclusionTexture;
 	Sampler2D diffuseTexture;
 	Sampler2D normalTexture;
-	Sampler2D displacementTexture;
-	Sampler2D emissiveTexture;
-	Sampler2D heightTexture;
-	Sampler2D specularTexture;
 };
 
 [shader("fragment")]

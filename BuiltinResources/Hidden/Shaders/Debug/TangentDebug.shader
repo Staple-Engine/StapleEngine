@@ -1,21 +1,14 @@
 Type VertexFragment
 
+Variants SHOWING_BITANGENT
+
 Begin Parameters
 
-[Toggle] float tangentOrBitangent
+[Toggle] variant: SHOWING_BITANGENT float bitangent
 
 End Parameters
 
-Begin Instancing
-End Instancing
-
 Begin Common
-
-[[vk::binding(StapleUniformBufferStart, StapleUniformBufferSet)]]
-cbuffer Uniforms
-{
-	float tangentOrBitangent;
-};
 
 struct VertexOutput
 {
@@ -42,6 +35,8 @@ struct Input
 
     uint baseInstance : SV_StartInstanceLocation;
     uint instanceID : SV_InstanceID;
+	uint baseVertex : SV_StartVertexLocation;
+	uint vertexID : SV_VertexID;
 };
 
 [shader("vertex")]
@@ -51,13 +46,14 @@ VertexOutput VertexMain(Input input)
 
 	float4x4 model = StapleWorldMatrix(input.baseInstance, input.instanceID);
 
+    float3 position = input.position;
+
 #ifdef SKINNING
 	model = StapleGetSkinningMatrix(model, input.indices, input.weights);
+	position += StapleGetBlendOffset(input.baseVertex + input.vertexID);
 #endif
 
 	float4x4 projectionViewWorld = ProjectionViewWorld(model);
-
-    float3 position = input.position;
 
     output.tangent = input.tangent;
 	output.bitangent = input.bitangent;
@@ -73,12 +69,11 @@ Begin Fragment
 [shader("fragment")]
 float4 FragmentMain(VertexOutput input) : SV_Target
 {
-	if(tangentOrBitangent == 1.0)
-	{
-		return float4(normalize(input.bitangent) * 0.5 + 0.5, 1);
-	}
-
+#ifdef SHOWING_BITANGENT
+	return float4(normalize(input.bitangent) * 0.5 + 0.5, 1);
+#else
 	return float4(normalize(input.tangent) * 0.5 + 0.5, 1);
+#endif
 }
 
 End Fragment

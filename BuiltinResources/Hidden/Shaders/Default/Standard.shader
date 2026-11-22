@@ -12,9 +12,6 @@ float alphaThreshold = 0.25
 
 End Parameters
 
-Begin Instancing
-End Instancing
-
 Begin Common
 
 [[vk::binding(StapleUniformBufferStart, StapleUniformBufferSet)]]

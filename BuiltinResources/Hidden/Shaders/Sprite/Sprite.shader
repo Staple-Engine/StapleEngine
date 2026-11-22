@@ -42,6 +42,8 @@ struct Input
 
     uint baseInstance : SV_StartInstanceLocation;
     uint instanceID : SV_InstanceID;
+	uint baseVertex : SV_StartVertexLocation;
+	uint vertexID : SV_VertexID;
 };
 
 [shader("vertex")]
@@ -56,6 +58,7 @@ VertexOutput VertexMain(Input input)
 
 #ifdef SKINNING
 	model = StapleGetSkinningMatrix(model, input.indices, input.weights);
+	position += StapleGetBlendOffset(input.baseVertex + input.vertexID);
 #endif
 
     output.color = color;
