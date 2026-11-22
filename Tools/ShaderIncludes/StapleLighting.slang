@@ -103,6 +103,11 @@ public float StapleLightScaling(float nDotL)
 #endif
 }
 
+public float StapleRimLightingFactor(float3 viewDirection, float3 normal)
+{
+    return 1 - dot(viewDirection, normal);
+}
+
 public float3 StapleGetTangentNormal(float3 normal, float3 tangent, float3 bitangent, float2 uv, Sampler2D normalMap)
 {
     float3x3 tbn = float3x3(normalize(tangent), normalize(bitangent), normalize(normal));
@@ -125,6 +130,26 @@ public float3 StapleLightDiffuseFactor(float3 position, float3 normal, Light lig
     return sample.diffuse * nDotL;
 }
 
+public Light StapleGetLight(int index)
+{
+    int count = StapleLightCount();
+
+    int bufferIndex = 2 + index * 3;
+
+    float4 typePosition = StapleLightData[bufferIndex];
+    float4 diffuseIntensity = StapleLightData[bufferIndex + 1];
+    float4 extras = StapleLightData[bufferIndex + 2];
+
+    LightType lightType = (LightType)typePosition.x;
+    float3 lightPosition = typePosition.yzw;
+    float3 lightDiffuse = diffuseIntensity.rgb;
+    float lightIntensity = diffuseIntensity.a;
+
+    Light light = { lightType, lightPosition, lightDiffuse * lightIntensity, float3(0, 0, 0), extras };
+
+    return light;
+}
+
 public float3 StapleProcessPixelLights(float3 worldPosition, float3 normal)
 {
     int count = min(StapleLightCount(), StapleMaxPixelLightCount());
@@ -138,21 +163,9 @@ public float3 StapleProcessPixelLights(float3 worldPosition, float3 normal)
 
     float3 diffuse = float3(0, 0, 0);
 
-    count *= 3;
-    count += 2;
-
-    for (int i = 2; i < count; i += 3)
+    for (int i = 0; i < count; i++)
     {
-        float4 typePosition = StapleLightData[i];
-        float4 diffuseIntensity = StapleLightData[i + 1];
-        float4 extras = StapleLightData[i + 2];
-
-        LightType lightType = (LightType)typePosition.x;
-        float3 lightPosition = typePosition.yzw;
-        float3 lightDiffuse = diffuseIntensity.rgb;
-        float lightIntensity = diffuseIntensity.a;
-
-        Light light = { lightType, lightPosition, lightDiffuse * lightIntensity, float3(0, 0, 0), extras };
+        Light light = StapleGetLight(i);
 
         diffuse += StapleLightDiffuseFactor(worldPosition, normal, light);
     }
@@ -180,23 +193,11 @@ public float3 StapleProcessVertexLights(float3 worldPosition, float3 normal)
 
     float3 diffuse = float3(0, 0, 0);
 
-    int start = 2 + maxPixelLights * 3;
+    int start = maxPixelLights;
 
-    count *= 3;
-    count += start;
-
-    for (int i = start; i < count; i += 3)
+    for (int i = 0; i < count; i++)
     {
-        float4 typePosition = StapleLightData[i];
-        float4 diffuseIntensity = StapleLightData[i + 1];
-        float4 extras = StapleLightData[i + 2];
-
-        LightType lightType = (LightType)typePosition.x;
-        float3 lightPosition = typePosition.yzw;
-        float3 lightDiffuse = diffuseIntensity.rgb;
-        float lightIntensity = diffuseIntensity.a;
-
-        Light light = { lightType, lightPosition, lightDiffuse * lightIntensity, float3(0, 0, 0), extras };
+        Light light = StapleGetLight(i + start);
 
         diffuse += StapleLightDiffuseFactor(worldPosition, normal, light);
     }

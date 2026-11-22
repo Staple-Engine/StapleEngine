@@ -93,14 +93,15 @@ VertexOutput VertexMain(Input input)
 
 	float4x4 model = StapleWorldMatrix(input.baseInstance, input.instanceID);
 	float3 position = input.position;
+	float3 normal = input.normal;
 
 #ifdef SKINNING
 	model = StapleGetSkinningMatrix(model, input.indices, input.weights);
 	position += StapleGetBlendOffset(input.baseVertex + input.vertexID);
+	normal = normalize(normal + StapleGetBlendNormalOffset(input.baseVertex + input.vertexID));
 #endif
 
 	float4x4 projectionViewWorld = ProjectionViewWorld(model);
-	float4x4 viewWorld = ViewWorld(model);
 
 	float4 vertexPosition = mul(projectionViewWorld, float4(position, 1.0));
 
@@ -109,14 +110,14 @@ VertexOutput VertexMain(Input input)
 	output.worldPosition = mul(model, float4(position, 1.0)).xyz;
 
 	output.coords = input.coords;
-	output.normal = input.normal;
+	output.normal = normal;
 
 #ifdef NORMALMAP
 	output.tangent = input.tangent;
 	output.bitangent = input.bitangent;
 #endif
 
-	output.worldNormal = StapleLightNormal(input.normal, model);
+	output.worldNormal = StapleLightNormal(normal, model);
 
 	output.instanceID = input.instanceID;
 	
