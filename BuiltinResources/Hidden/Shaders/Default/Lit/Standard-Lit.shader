@@ -21,8 +21,6 @@ Begin Common
 cbuffer Uniforms
 {
 	float4 diffuseColor;
-	float4 emissiveColor;
-	float4 specularColor;
 	float alphaThreshold;
 };
 

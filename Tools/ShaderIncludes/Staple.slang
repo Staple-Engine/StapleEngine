@@ -56,5 +56,16 @@ public float4x4 ProjectionView()
 {
     return mul(projection, view);
 }
-
 #endif
+
+public float3 StapleWorldSpaceViewDirection(float3 vertex, float4x4 model)
+{
+    float3 transformed = mul(model, float4(vertex, 1.0)).xyz;
+
+    return cameraPosition - transformed;
+}
+
+public float3 StapleObjectSpaceViewDirection(float3 vertex)
+{
+    return cameraPosition - vertex;
+}

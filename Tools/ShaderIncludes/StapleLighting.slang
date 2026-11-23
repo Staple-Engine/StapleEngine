@@ -5,9 +5,10 @@ __include StapleInternal;
 #ifdef LIT
 public struct LightSample
 {
-    float3 diffuse;
-    float3 direction;
-    float attenuation;
+    public LightType type;
+    public float3 diffuse;
+    public float3 direction;
+    public float attenuation;
 };
 
 public enum LightType
@@ -34,9 +35,11 @@ public struct Light
         this.extras = extras;
     }
 
-    LightSample Sample(float3 target)
+    public LightSample Sample(float3 target)
     {
         LightSample sample;
+
+        sample.type = type;
 
         switch (type)
         {
@@ -85,6 +88,11 @@ public int StapleLightCount()
 public int StapleMaxPixelLightCount()
 {
     return int(StapleLightData[1].x);
+}
+
+public float3 StapleLightAmbient()
+{
+    return StapleLightData[1].yzw;
 }
 
 public float3 StapleLightNormal(float3 normal, float4x4 modelView)
@@ -154,7 +162,7 @@ public float3 StapleProcessPixelLights(float3 worldPosition, float3 normal)
 {
     int count = min(StapleLightCount(), StapleMaxPixelLightCount());
 
-    float3 ambient = StapleLightData[1].yzw;
+    float3 ambient = StapleLightAmbient();
 
     if (count == 0)
     {
