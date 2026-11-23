@@ -238,7 +238,10 @@ internal partial class StapleEditor
 
         var cameraMatrix = cameraTransform.Matrix;
 
-        RenderSystem.Render(null, CameraClearMode.SolidColor, ClearColor, new(0, 0, 1, 1),
+        var firstCamera = (World.Current?.SortedCameras.Length ?? 0) > 0 ? World.Current.SortedCameras[0] : null;
+        var clearColor = firstCamera?.clearMode == CameraClearMode.SolidColor ? firstCamera.clearColor : ClearColor;
+
+        RenderSystem.Render(null, CameraClearMode.SolidColor, clearColor, new(0, 0, 1, 1),
             in cameraMatrix, in projection, cameraTransform.Position, cameraTransform.Forward,
             LayerMask.Everything,
             () =>
@@ -254,9 +257,7 @@ internal partial class StapleEditor
 
                     RenderSystem.Instance.ClearCullingStates();
 
-                    var firstCamera = World.Current.SortedCameras.Length > 0 ? World.Current.SortedCameras[0] : null;
-
-                    if(firstCamera != null && firstCamera.clearMode == CameraClearMode.Skybox && (firstCamera.skyMaterial?.IsValid ?? false))
+                    if(firstCamera?.clearMode == CameraClearMode.Skybox && (firstCamera.skyMaterial?.IsValid ?? false))
                     {
                         firstCamera.RenderSky(cameraTransform);
                     }
@@ -433,7 +434,10 @@ internal partial class StapleEditor
                     }
                 }
 
-                RenderGrid(camera, new(0.7f, 0.7f, 0.7f, 0.8f), new(0.8f, 0.8f, 0.8f, 0.8f), new(0.2f, 0.2f, 0.2f, 0.8f));
+                if(showGrid)
+                {
+                    RenderGrid(camera, new(0.7f, 0.7f, 0.7f, 0.8f), new(0.8f, 0.8f, 0.8f, 0.8f), new(0.2f, 0.2f, 0.2f, 0.8f));
+                }
             },
             ref camera.lightBuffer);
 

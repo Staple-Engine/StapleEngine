@@ -469,6 +469,8 @@ internal partial class StapleEditor
     private float cameraSpeedUp = 2.0f;
 
     private ulong cameraTransformVersion;
+
+    internal bool showGrid = true;
     #endregion
 
     #region Entities

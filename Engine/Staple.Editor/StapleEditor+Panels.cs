@@ -353,6 +353,11 @@ internal partial class StapleEditor
 
             EditorGUI.Menu("Edit", "Edit.Menu", () =>
             {
+                EditorGUI.MenuItem(showGrid ? "Hide Grid" : "Show Grid", "Edit.ToggleGrid", () =>
+                {
+                    showGrid = !showGrid;
+                });
+
                 EditorGUI.MenuItem("Recreate render device", "ResetDevice.Menu", () =>
                 {
                     window.forceContextLoss = true;
