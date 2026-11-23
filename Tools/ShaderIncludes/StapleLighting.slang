@@ -113,7 +113,7 @@ public float StapleLightScaling(float nDotL)
 
 public float StapleRimLightingFactor(float3 viewDirection, float3 normal)
 {
-    return 1 - dot(viewDirection, normal);
+    return 1 - saturate(dot(viewDirection, normal));
 }
 
 public float3 StapleGetTangentNormal(float3 normal, float3 tangent, float3 bitangent, float2 uv, Sampler2D normalMap)

@@ -419,6 +419,7 @@
 		<Compile Include="Utilities\ExpandableContainer.cs" />
 		<Compile Include="Utilities\MemoryAllocator.cs" />
 		<Compile Include="Utilities\MemoryUtils.cs" />
+		<Compile Include="Utilities\MeshUtilities.cs" />
 		<Compile Include="Utilities\NativePointerWrapper.cs" />
 		<Compile Include="Utilities\OptionalContainer.cs" />
 		<Compile Include="Utilities\Ref.cs" />

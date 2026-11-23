@@ -89,7 +89,7 @@ public partial class Camera : VersionableComponent, IComponentDisposable
     public partial LayerMask cullingLayers { get; set; }
 
     /// <summary>
-    /// Sky material for this camera. Required if <see cref="clearMode"/> is <see cref="CameraClearMode.Sky"/>
+    /// Sky material for this camera. Required if <see cref="clearMode"/> is <see cref="CameraClearMode.Skybox"/>
     /// </summary>
     public partial Material skyMaterial { get; set; }
 

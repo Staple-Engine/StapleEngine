@@ -256,7 +256,7 @@ internal partial class StapleEditor
 
                     var firstCamera = World.Current.SortedCameras.Length > 0 ? World.Current.SortedCameras[0] : null;
 
-                    if(firstCamera != null && firstCamera.clearMode == CameraClearMode.Sky && (firstCamera.skyMaterial?.IsValid ?? false))
+                    if(firstCamera != null && firstCamera.clearMode == CameraClearMode.Skybox && (firstCamera.skyMaterial?.IsValid ?? false))
                     {
                         firstCamera.RenderSky(cameraTransform);
                     }

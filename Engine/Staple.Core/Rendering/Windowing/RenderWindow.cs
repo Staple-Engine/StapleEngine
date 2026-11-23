@@ -713,14 +713,7 @@ internal class RenderWindow
 
         StapleHooks.ExecuteHooks(StapleHookEvent.FrameBegin, null);
 
-        try
-        {
-            OnUpdate?.Invoke();
-        }
-        catch (Exception e)
-        {
-            Log.Error($"Render Exception: {e}", LogTag);
-        }
+        OnUpdate?.Invoke();
 
         StapleHooks.ExecuteHooks(StapleHookEvent.FrameEnd, null);
 

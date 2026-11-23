@@ -1,0 +1,15 @@
+{
+  "shader": "d3d02e32-6a58-4de9-847d-897acb702eea",
+  "parameters": {
+    "sky": {
+      "type": "Texture",
+      "textureValue": "4796e54d-cdd2-4d57-a56b-456b813042c2",
+      "source": "Uniform"
+    }
+  },
+  "enabledShaderVariants": [],
+  "cullingMode": "None",
+  "overrideShaderRenderQueue": false,
+  "renderQueue": "Opaque",
+  "renderQueueOffset": 0
+}

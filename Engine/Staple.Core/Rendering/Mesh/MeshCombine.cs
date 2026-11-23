@@ -2,7 +2,7 @@
 
 namespace Staple;
 
-public partial class MeshCombine : VersionableComponent, IComponentDisposable
+public partial class MeshCombine : VersionableComponent
 {
     public enum MeshCombineChildMode
     {
@@ -13,20 +13,20 @@ public partial class MeshCombine : VersionableComponent, IComponentDisposable
     [Tooltip("What to do for children after combining. Destroying renderers only applies in play mode")]
     public partial MeshCombineChildMode childMode { get; set; }
 
+    [Tooltip("The source container with all mesh renderers")]
+    public Transform sourceContainer;
+
+    [Tooltip("The target container to store the result")]
+    public Transform targetContainer;
+
     internal readonly List<Mesh> combinedMeshes = [];
     internal readonly List<Material> combinedMaterials = [];
     internal AABB combinedMeshBounds;
 
-    internal EntityQuery<MeshRenderer> renderers;
     internal bool processed;
 
     public MeshCombine()
     {
         childMode = MeshCombineChildMode.DisableRendering;
-    }
-
-    public void DisposeComponent()
-    {
-        renderers?.Unregister();
     }
 }

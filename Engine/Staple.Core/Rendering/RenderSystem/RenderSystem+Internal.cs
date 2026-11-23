@@ -1196,7 +1196,7 @@ public sealed partial class RenderSystem
 
         var clearMode = camera.clearMode;
 
-        if(clearMode == CameraClearMode.Sky)
+        if(clearMode == CameraClearMode.Skybox)
         {
             clearMode = CameraClearMode.Depth;
         }
@@ -1204,7 +1204,7 @@ public sealed partial class RenderSystem
         Backend.BeginRenderPass(RenderTarget.Current, clearMode, camera.clearColor, camera.viewport, in invView, in projection,
             cameraTransform.Position, cameraTransform.Forward);
 
-        if(camera.clearMode == CameraClearMode.Sky && (camera.skyMaterial?.IsValid ?? false))
+        if(camera.clearMode == CameraClearMode.Skybox && (camera.skyMaterial?.IsValid ?? false))
         {
             camera.RenderSky(cameraTransform);
         }

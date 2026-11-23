@@ -1,0 +1,56 @@
+{
+  "guid": "4796e54d-cdd2-4d57-a56b-456b813042c2",
+  "type": "Texture",
+  "format": "BC7",
+  "quality": "Default",
+  "filter": "Linear",
+  "wrapU": "Repeat",
+  "wrapV": "Clamp",
+  "wrapW": "Repeat",
+  "premultiplyAlpha": false,
+  "maxSize": 2048,
+  "useMipmaps": true,
+  "isLinear": true,
+  "spritePixelsPerUnit": 100,
+  "readBack": false,
+  "keepOnCPU": false,
+  "spriteTextureMethod": "Single",
+  "spriteTextureGridSize": {
+    "X": 0,
+    "Y": 0
+  },
+  "sprites": [],
+  "shouldPack": false,
+  "padding": 0,
+  "trimDuplicates": false,
+  "border": {
+    "left": 0,
+    "right": 0,
+    "top": 0,
+    "bottom": 0
+  },
+  "overrides": {
+    "iOS": {
+      "shouldOverride": true,
+      "format": "ASTC4x4",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": false
+    },
+    "Android": {
+      "shouldOverride": true,
+      "format": "ASTC4x4",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": false
+    },
+    "Windows": {
+      "shouldOverride": false,
+      "format": "RGBA8",
+      "quality": "Default",
+      "maxSize": 2048,
+      "premultiplyAlpha": false
+    }
+  },
+  "typeName": "Staple.Texture"
+}

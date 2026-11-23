@@ -26,7 +26,7 @@
         "type": "Staple.Camera",
         "data": {
           "viewMode": "Default",
-          "clearMode": "SolidColor",
+          "clearMode": "Skybox",
           "cameraType": "Perspective",
           "orthographicSize": 5.0,
           "fov": 90.0,
@@ -39,7 +39,8 @@
             "w": 1.0
           },
           "clearColor": "#007FFFFF",
-          "cullingLayers": 4294967295
+          "cullingLayers": 4294967295,
+		  "skyMaterial": "020a80f9-1ebf-4289-8074-c871dc235c48"
         }
       }
     ],
