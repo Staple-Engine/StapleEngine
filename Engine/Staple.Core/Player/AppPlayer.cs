@@ -1,5 +1,6 @@
 ﻿using Staple.Internal;
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 
@@ -164,7 +165,9 @@ internal class AppPlayer
                         SubsystemManager.instance.RegisterSubsystem(Physics3D.Instance, Physics3D.Priority);
                     }
 
-                    void HandleTypes<T>(string caption, Func<Type, bool> check, Action<T> callback)
+                    void HandleTypes<
+                        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+                        T>(string caption, Func<Type, bool> check, Action<T> callback)
                     {
                         var types = TypeCache.AllTypes()
                             .Where(x => check(x))
@@ -176,7 +179,7 @@ internal class AppPlayer
                         {
                             try
                             {
-                                var instance = (T)Activator.CreateInstance(type);
+                                var instance = ObjectCreation.CreateObject<T>(type);
 
                                 if (instance != null)
                                 {

@@ -327,7 +327,8 @@ public static class TypeCache
 
         HashSet<string> inheritanceInfo = [];
 
-        void GatherInheritance(Type t)
+        void GatherInheritance([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+            Type t)
         {
             inheritanceInfo.Add(t.ToString());
 

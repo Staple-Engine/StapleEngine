@@ -659,25 +659,13 @@ internal class RenderWindow
 
                     RenderSystem.Backend.UpdateViewport(width, height);
 
-                    try
-                    {
-                        OnScreenSizeChange?.Invoke(hasFocus);
-                    }
-                    catch(Exception)
-                    {
-                    }
+                    OnScreenSizeChange?.Invoke(hasFocus);
 
                     break;
 
                 case AppEventType.MoveWindow:
 
-                    try
-                    {
-                        OnMove?.Invoke(window.Position);
-                    }
-                    catch (Exception)
-                    {
-                    }
+                    OnMove?.Invoke(window.Position);
 
                     break;
 

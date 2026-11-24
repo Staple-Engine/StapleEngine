@@ -1,5 +1,6 @@
 ﻿using Staple.Internal;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Staple;
 
@@ -168,7 +169,9 @@ public partial struct Entity
     /// <param name="A">The first component instance</param>
     /// <returns>The entity, or default</returns>
     /// <typeparam name="T">The first component type</typeparam>
-    public static Entity Create<T>(out T A) where T: Component
+    public static Entity Create<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T>(out T A) where T: Component
     {
         if (World.Current == null)
         {
@@ -199,7 +202,11 @@ public partial struct Entity
     /// <returns>The entity, or default</returns>
     /// <typeparam name="T">The first component type</typeparam>
     /// <typeparam name="T2">The second component type</typeparam>
-    public static Entity Create<T, T2>(out T A, out T2 B)
+    public static Entity Create<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T2>(out T A, out T2 B)
         where T : Component
         where T2 : Component
     {
@@ -237,7 +244,13 @@ public partial struct Entity
     /// <typeparam name="T">The first component type</typeparam>
     /// <typeparam name="T2">The second component type</typeparam>
     /// <typeparam name="T3">The third component type</typeparam>
-    public static Entity Create<T, T2, T3>(out T A, out T2 B, out T3 C)
+    public static Entity Create<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T2,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T3>(out T A, out T2 B, out T3 C)
         where T : Component
         where T2 : Component
         where T3 : Component
@@ -281,7 +294,15 @@ public partial struct Entity
     /// <typeparam name="T2">The second component type</typeparam>
     /// <typeparam name="T3">The third component type</typeparam>
     /// <typeparam name="T4">The fourth component type</typeparam>
-    public static Entity Create<T, T2, T3, T4>(out T A, out T2 B, out T3 C, out T4 D)
+    public static Entity Create<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T2,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T3,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T4>(out T A, out T2 B, out T3 C, out T4 D)
         where T : Component
         where T2 : Component
         where T3 : Component
@@ -331,7 +352,17 @@ public partial struct Entity
     /// <typeparam name="T3">The third component type</typeparam>
     /// <typeparam name="T4">The fourth component type</typeparam>
     /// <typeparam name="T5">The fifth component type</typeparam>
-    public static Entity Create<T, T2, T3, T4, T5>(out T A, out T2 B, out T3 C, out T4 D, out T5 E)
+    public static Entity Create<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T2,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T3,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T4,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T5>(out T A, out T2 B, out T3 C, out T4 D, out T5 E)
         where T : Component
         where T2 : Component
         where T3 : Component
@@ -407,7 +438,9 @@ public partial struct Entity
     /// <param name="A">The first component instance</param>
     /// <returns>The entity, or default</returns>
     /// <typeparam name="T">The first component type</typeparam>
-    public static Entity Create<T>(string name, out T A)
+    public static Entity Create<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T>(string name, out T A)
         where T : Component
     {
         var entity = Create(out A);
@@ -428,7 +461,11 @@ public partial struct Entity
     /// <returns>The entity, or default</returns>
     /// <typeparam name="T">The first component type</typeparam>
     /// <typeparam name="T2">The second component type</typeparam>
-    public static Entity Create<T, T2>(string name, out T A, out T2 B)
+    public static Entity Create<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T2>(string name, out T A, out T2 B)
         where T : Component
         where T2 : Component
     {
@@ -452,7 +489,13 @@ public partial struct Entity
     /// <typeparam name="T">The first component type</typeparam>
     /// <typeparam name="T2">The second component type</typeparam>
     /// <typeparam name="T3">The third component type</typeparam>
-    public static Entity Create<T, T2, T3>(string name, out T A, out T2 B, out T3 C)
+    public static Entity Create<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T2,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T3>(string name, out T A, out T2 B, out T3 C)
         where T : Component
         where T2 : Component
         where T3 : Component
@@ -479,7 +522,14 @@ public partial struct Entity
     /// <typeparam name="T2">The second component type</typeparam>
     /// <typeparam name="T3">The third component type</typeparam>
     /// <typeparam name="T4">The fourth component type</typeparam>
-    public static Entity Create<T, T2, T3, T4>(string name, out T A, out T2 B, out T3 C, out T4 D)
+    public static Entity Create<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T2,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T3,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T4>(string name, out T A, out T2 B, out T3 C, out T4 D)
         where T : Component
         where T2 : Component
         where T3 : Component
@@ -509,7 +559,17 @@ public partial struct Entity
     /// <typeparam name="T3">The third component type</typeparam>
     /// <typeparam name="T4">The fourth component type</typeparam>
     /// <typeparam name="T5">The fifth component type</typeparam>
-    public static Entity Create<T, T2, T3, T4, T5>(string name, out T A, out T2 B, out T3 C, out T4 D, out T5 E)
+    public static Entity Create<
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T2,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T3,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T4,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        T5>(string name, out T A, out T2 B, out T3 C, out T4 D, out T5 E)
         where T : Component
         where T2 : Component
         where T3 : Component

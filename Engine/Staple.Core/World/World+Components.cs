@@ -202,7 +202,8 @@ public partial class World
         }
     }
 
-    private void EnsureComponentInfo(Type t)
+    private void EnsureComponentInfo([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+        Type t)
     {
         var added = false;
         var hash = t.FullName.GetHashCode();
@@ -223,7 +224,8 @@ public partial class World
         {
             compatibleTypes.Add(hash);
 
-            void RecursiveAdd(Type target)
+            void RecursiveAdd([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+                Type target)
             {
                 foreach (var targetInterface in target.GetInterfaces())
                 {

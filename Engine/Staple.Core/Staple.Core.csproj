@@ -5,6 +5,8 @@
 		<TargetFrameworks>net11.0</TargetFrameworks>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
@@ -14,7 +16,7 @@
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
 		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
 	</PropertyGroup>
-	
+
 	<PropertyGroup Condition="$([MSBuild]::IsOSPlatform('macOS'))">
 		<DefineConstants>$(DefineConstants);OSX</DefineConstants>
 	</PropertyGroup>
@@ -50,7 +52,7 @@
 		<ErrorReport>prompt</ErrorReport>
 		<WarningLevel>4</WarningLevel>
 	</PropertyGroup>
-	
+
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
 		<PlatformTarget>AnyCPU</PlatformTarget>
 		<DebugType>portable</DebugType>
@@ -87,7 +89,7 @@
 			<HintPath>..\..\Dependencies\build\dotnet\bin\Release\net11.0\Evergine.Bindings.Vulkan.dll</HintPath>
 		</Reference>
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<EmbeddedResource Remove="MessagePack\**" />
 		<None Remove="MessagePack\**" />
@@ -501,19 +503,8 @@
 		<Compile Include="Utilities\Randomizer.cs" />
 		<Compile Include="Utilities\Storage.cs" />
 	</ItemGroup>
-	
-	<ItemGroup>
-	  <ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ErrorProne.NET.CoreAnalyzers" Version="0.8.2-beta.1">
-	    <PrivateAssets>all</PrivateAssets>
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
-	  <PackageReference Include="ErrorProne.NET.Structs" Version="0.6.1-beta.1">
-	    <PrivateAssets>all</PrivateAssets>
-	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	  </PackageReference>
+		<ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 	</ItemGroup>
 </Project>

@@ -44,6 +44,19 @@ namespace Staple
             "System.Func",
             "System.Action",
             "System.Span",
+            "Evergine.",
+            "SDL.",
+            "System.Buffers.",
+            "System.IO.",
+            "Standart.Hash.xxHash",
+            "System.Type",
+            "Staple.PerformanceProfiler",
+            "Staple.EntityQuery",
+            "Staple.SceneQuery",
+            "Staple.VertexBuffer",
+            "Staple.IndexBuffer",
+            "Staple.ExpandableContainer",
+            "Staple.World",
         ];
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -92,19 +105,77 @@ namespace StapleCodeGeneration
             var sizableTypes = new HashSet<string>();
             var componentTypes = new HashSet<string>();
             var typeSizes = new Dictionary<string, int>();
+            var componentFieldsAndProperties = new Dictionary<string, List<KeyValuePair<string, string>>>();
 
             void Perform(IAssemblySymbol symbol, bool isSelf)
             {
-                void HandleNamedSymbol(INamedTypeSymbol t, string baseTypeName)
+                bool IsValidNamedTypeSymbol(INamedTypeSymbol t)
                 {
-                    if (t.IsAbstract || t.IsGenericType || t.IsStatic || t.Name.EndsWith("Attribute") ||
+                    return !(t.IsAbstract || t.IsGenericType || t.IsStatic || t.Name.EndsWith("Attribute") ||
                         t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
                         x.AttributeClass.Name == typeof(ObsoleteAttribute).Name ||
                         x.AttributeClass.Name == "ExperimentalAttribute") ||
                         (t.DeclaredAccessibility != Accessibility.Public &&
                         (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
                         t.TypeKind == TypeKind.Delegate ||
-                        t.IsRefLikeType)
+                        t.Name.EndsWith("Exception") ||
+                        t.IsRefLikeType);
+                }
+
+                bool IsValidSymbol(ISymbol t)
+                {
+                    return !(t.IsAbstract || t.Name.EndsWith("Attribute") || t.IsStatic ||
+                        t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
+                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name ||
+                        x.AttributeClass.Name == "ExperimentalAttribute") ||
+                        (t.DeclaredAccessibility != Accessibility.Public &&
+                        (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
+                        t.ContainingType.TypeKind == TypeKind.Delegate ||
+                        t.Name.EndsWith("Exception") ||
+                        t.ContainingType.IsRefLikeType);
+                }
+
+                bool TryGetConstructibleTypeSymbolName(ITypeSymbol symbol, out string typeName)
+                {
+                    var displayFormat = new SymbolDisplayFormat(SymbolDisplayGlobalNamespaceStyle.Omitted,
+                        SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                        SymbolDisplayGenericsOptions.IncludeTypeParameters);
+
+                    typeName = symbol.ToDisplayString(NullableFlowState.None, displayFormat);
+
+                    if (excludedTypes.Contains(typeName))
+                    {
+                        return false;
+                    }
+
+                    if (typeName.EndsWith("*"))
+                    {
+                        return false;
+                    }
+
+                    if (typeName.StartsWith("MessagePack"))
+                    {
+                        return false;
+                    }
+
+                    if (typeName.Contains("e__FixedBuffer"))
+                    {
+                        return false;
+                    }
+
+                    if (typeName.ToUpperInvariant().Contains("DELEGATE"))
+                    {
+                        return false;
+                    }
+
+                    return !symbol.IsStatic &&
+                        new List<TypeKind>([TypeKind.Enum, TypeKind.Class, TypeKind.Struct, TypeKind.Interface])
+                            .Contains(symbol.TypeKind);
+                }
+
+                void HandleNamedSymbol(INamedTypeSymbol t, string baseTypeName)
+                {
+                    if (!IsValidNamedTypeSymbol(t))
                     {
                         if (verbose)
                         {
@@ -177,12 +248,44 @@ namespace StapleCodeGeneration
                         return false;
                     }
 
+                    var fieldsAndProperties = t.GetMembers().Where(x => x.Kind == SymbolKind.Field || x.Kind == SymbolKind.Property);
+
                     if (BaseTypeIsStapleComponent(t))
                     {
                         componentTypes.Add(typeName);
+
+                        if(!componentFieldsAndProperties.ContainsKey(typeName))
+                        {
+                            var container = new List<KeyValuePair<string, string>>();
+
+                            foreach (var member in fieldsAndProperties)
+                            {
+                                if(!IsValidSymbol(member))
+                                {
+                                    continue;
+                                }
+
+                                var memberType = member switch
+                                {
+                                    IFieldSymbol field => field.Type,
+                                    IPropertySymbol property => property.Type,
+                                    _ => null,
+                                };
+
+                                if(memberType == null ||
+                                    !TryGetConstructibleTypeSymbolName(memberType, out var memberTypeName))
+                                {
+                                    continue;
+                                }
+
+                                container.Add(new(member.Name, memberTypeName));
+                            }
+
+                            componentFieldsAndProperties.Add(typeName, container);
+                        }
                     }
 
-                    foreach (var member in t.GetMembers().Where(x => x.Kind == SymbolKind.Field || x.Kind == SymbolKind.Property))
+                    foreach (var member in fieldsAndProperties)
                     {
                         HandleSymbol(member);
                     }
@@ -195,14 +298,7 @@ namespace StapleCodeGeneration
 
                 void HandleSymbol(ISymbol t)
                 {
-                    if (t.IsAbstract || t.Name.EndsWith("Attribute") || t.IsStatic ||
-                        t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
-                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name ||
-                        x.AttributeClass.Name == "ExperimentalAttribute") ||
-                        (t.DeclaredAccessibility != Accessibility.Public &&
-                        (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
-                        t.ContainingType.TypeKind == TypeKind.Delegate ||
-                        t.ContainingType.IsRefLikeType)
+                    if (!IsValidSymbol(t))
                     {
                         if (verbose)
                         {

@@ -22,3 +22,4 @@ TestProject/*.sln
 Dependencies/cuttlefish
 Dependencies/slang
 Dependencies/SDL_shadercross
+Engine/Staple.Core/Generated

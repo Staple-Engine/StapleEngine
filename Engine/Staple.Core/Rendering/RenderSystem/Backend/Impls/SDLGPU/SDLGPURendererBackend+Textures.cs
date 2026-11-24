@@ -1489,7 +1489,7 @@ internal partial class SDLGPURendererBackend
 
         if (vertexSamplers.IsEmpty == false)
         {
-            if(vertexTextures == null || vertexTextures.Length != vertexSamplers.Length)
+            if(vertexTextures.Length == 0 || vertexTextures.Length != vertexSamplers.Length)
             {
                 vertexSamplers = fragmentSamplers = null;
 
@@ -1521,7 +1521,7 @@ internal partial class SDLGPURendererBackend
             return true;
         }
         
-        if (fragmentTextures == null || fragmentSamplers.Length != fragmentTextures.Length)
+        if (fragmentTextures.Length == 0 || fragmentSamplers.Length != fragmentTextures.Length)
         {
             vertexSamplers = fragmentSamplers = null;
 
