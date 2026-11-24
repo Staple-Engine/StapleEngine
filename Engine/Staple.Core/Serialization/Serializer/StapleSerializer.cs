@@ -7,6 +7,7 @@ using System.Collections;
 using System.Linq;
 using System.Text.Json;
 using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Staple.Internal;
 

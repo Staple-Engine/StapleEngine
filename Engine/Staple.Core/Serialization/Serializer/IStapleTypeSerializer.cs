@@ -1,20 +1,12 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Text.Json;
 
 namespace Staple.Internal;
 
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-internal interface IStapleTypeSerializer
+public interface IStapleTypeSerializer<T>
 {
-    bool HandlesType(Type type);
+    void Serialize(StapleSerializerWriter writer, T value, StapleSerializationMode mode);
 
-    object DeserializeField(Type type, Type fieldType, StapleSerializerField fieldInfo, StapleSerializationMode mode);
-
-    object DeserializeJsonField(Type type, Type fieldType, StapleSerializerField fieldInfo, JsonElement element, StapleSerializationMode mode);
-
-    object SerializeField(object instance, Type type, Type fieldType, StapleSerializationMode mode);
-
-    object SerializeJsonField(object instance, Type type, Type fieldType, StapleSerializationMode mode);
+    T Deserialize(StapleSerializerReader reader, StapleSerializationMode mode);
 }
