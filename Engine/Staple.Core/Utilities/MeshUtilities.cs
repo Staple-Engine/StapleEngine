@@ -69,6 +69,144 @@ public static class MeshUtilities
         public readonly List<Mesh> combinedMeshes = [];
         public readonly List<Material> combinedMaterials = [];
         public AABB combinedMeshBounds;
+
+        public CombinedMeshAsset ToAsset()
+        {
+            var outValue = new CombinedMeshAsset()
+            {
+                combinedBoundsCenter = combinedMeshBounds.center,
+                combinedBoundsSize = combinedMeshBounds.size,
+            };
+
+            if (combinedMeshes.Count != combinedMaterials.Count ||
+                combinedMeshes.Count == 0)
+            {
+                return null;
+            }
+
+            for (var i = 0; i < combinedMeshes.Count; i++)
+            {
+                var mesh = combinedMeshes[i];
+                var material = combinedMaterials[i];
+
+                var components = mesh.Components;
+
+                var entry = new CombinedMeshAsset.MeshData()
+                {
+                    materialGuid = material.Guid.Guid,
+                    vertices = mesh.VerticesInternal,
+                };
+
+                if(components.HasFlag(MeshAssetComponent.UV1))
+                {
+                    entry.uv = mesh.UVInternal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.UV2))
+                {
+                    entry.uv2 = mesh.UV2Internal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.UV3))
+                {
+                    entry.uv3 = mesh.UV3Internal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.UV4))
+                {
+                    entry.uv4 = mesh.UV4Internal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.UV5))
+                {
+                    entry.uv5 = mesh.UV5Internal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.UV6))
+                {
+                    entry.uv6 = mesh.UV6Internal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.UV7))
+                {
+                    entry.uv7 = mesh.UV7Internal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.UV8))
+                {
+                    entry.uv8 = mesh.UV8Internal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.Normal))
+                {
+                    entry.normals = mesh.NormalsInternal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.Tangent))
+                {
+                    entry.tangents = mesh.TangentsInternal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.Bitangent))
+                {
+                    entry.bitangents = mesh.BitangentsInternal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.Color1))
+                {
+                    entry.colors = mesh.ColorsInternal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.Color2))
+                {
+                    entry.colors2 = mesh.Colors2Internal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.Color3))
+                {
+                    entry.colors3 = mesh.Colors3Internal;
+                }
+
+                if (components.HasFlag(MeshAssetComponent.Color4))
+                {
+                    entry.colors4 = mesh.Colors4Internal;
+                }
+
+                outValue.entries.Add(entry);
+            }
+
+            return outValue;
+        }
+
+        public static CombinedMeshData FromAsset(CombinedMeshAsset asset)
+        {
+            if(asset == null)
+            {
+                return null;
+            }
+
+            var outValue = new CombinedMeshData()
+            {
+                combinedMeshBounds = new(asset.combinedBoundsCenter, asset.combinedBoundsSize),
+            };
+
+            foreach(var entry in asset.entries)
+            {
+                var material = ResourceManager.instance.LoadMaterial(entry.materialGuid);
+
+                if(material == null)
+                {
+                    continue;
+                }
+
+                var mesh = entry.ToMesh();
+
+                outValue.combinedMeshes.Add(mesh);
+                outValue.combinedMaterials.Add(material);
+            }
+
+            return outValue;
+        }
     }
 
     public static CombinedMeshData CombineMeshes(Transform meshContainer)
@@ -191,9 +329,6 @@ public static class MeshUtilities
                 var sliceStartIndex = 0;
                 var sliceIndexCount = mesh.IndicesInternal?.Length ?? 0;
 
-                var uniqueIndices = new HashSet<int>();
-                var minimumIndex = 99999;
-
                 if (mesh.submeshes.Count > 0)
                 {
                     var submesh = mesh.submeshes[submeshIndex];
@@ -202,6 +337,9 @@ public static class MeshUtilities
                     sliceStartIndex = submesh.startIndex;
                     sliceIndexCount = submesh.indexCount;
                 }
+
+                var uniqueIndices = new HashSet<int>();
+                var minimumIndex = 99999;
 
                 var sliceIndices = mesh.IndicesInternal.AsSpan(sliceStartIndex, sliceIndexCount);
 

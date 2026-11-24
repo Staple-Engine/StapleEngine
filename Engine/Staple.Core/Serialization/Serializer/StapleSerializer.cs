@@ -20,6 +20,31 @@ internal static class StapleSerializer
 
     private static readonly string LogTag = "Serialization";
 
+    public static bool IsPrimarySerializable(Type type)
+    {
+        if(type.IsPrimitive)
+        {
+            return true;
+        }
+
+        if(type.IsValueType && !type.IsEnum)
+        {
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+            foreach(var field in fields)
+            {
+                if(!IsPrimarySerializable(field.FieldType))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
     /// <summary>
     /// Checks whether this is a parameter that can be directly serialized
     /// </summary>
@@ -27,7 +52,7 @@ internal static class StapleSerializer
     /// <returns>Whether the type can be directly serialized</returns>
     public static bool IsDirectParameter(Type type)
     {
-        if (type.IsPrimitive || type == typeof(string) || type.IsEnum)
+        if (IsPrimarySerializable(type) || type == typeof(string) || type.IsEnum)
         {
             if (type == typeof(IntPtr) || type == typeof(UIntPtr))
             {
@@ -426,7 +451,7 @@ internal static class StapleSerializer
                 {
                     context.setField(field, field.FieldType.ToString(), array);
                 }
-                else if(elementType.IsPrimitive)
+                else if(IsPrimarySerializable(elementType))
                 {
                     if(mode != StapleSerializationMode.Binary && field.GetCustomAttribute<SerializeAsHexAttribute>() != null)
                     {
@@ -557,7 +582,7 @@ internal static class StapleSerializer
                         {
                             context.setField(field, field.FieldType.ToString(), value);
                         }
-                        else if (listType.IsPrimitive)
+                        else if (IsPrimarySerializable(listType))
                         {
                             if (mode != StapleSerializationMode.Binary && field.GetCustomAttribute<SerializeAsHexAttribute>() != null)
                             {
@@ -764,7 +789,7 @@ internal static class StapleSerializer
                 {
                     context.setProperty(property, property.PropertyType.ToString(), array);
                 }
-                else if (elementType.IsPrimitive)
+                else if (IsPrimarySerializable(elementType))
                 {
                     if (mode != StapleSerializationMode.Binary && property.GetCustomAttribute<SerializeAsHexAttribute>() != null)
                     {
@@ -895,7 +920,7 @@ internal static class StapleSerializer
                         {
                             context.setProperty(property, property.PropertyType.ToString(), value);
                         }
-                        else if (listType.IsPrimitive)
+                        else if (IsPrimarySerializable(listType))
                         {
                             if (mode != StapleSerializationMode.Binary && property.GetCustomAttribute<SerializeAsHexAttribute>() != null)
                             {
@@ -1234,7 +1259,7 @@ internal static class StapleSerializer
             {
                 return jsonObject;
             }
-            else if (fieldType.IsPrimitive)
+            else if (IsPrimarySerializable(fieldType))
             {
                 if (fieldInfo.value is JsonElement element)
                 {
@@ -1312,7 +1337,7 @@ internal static class StapleSerializer
                     try
                     {
                         if (sourceValue is not string[] &&
-                            fieldType.GetElementType().IsPrimitive &&
+                            IsPrimarySerializable(fieldType.GetElementType()) &&
                             fieldType.GetElementType() != typeof(bool))
                         {
                             var size = TypeCache.SizeOf(elementType.ToString());
@@ -1346,7 +1371,7 @@ internal static class StapleSerializer
                                     newValue.SetValue(array.GetValue(i), i);
                                 }
                             }
-                            else if (elementType.IsPrimitive)
+                            else if (IsPrimarySerializable(elementType))
                             {
                                 if (array is byte[] buffer)
                                 {
@@ -1406,7 +1431,7 @@ internal static class StapleSerializer
 
                         if (bytes != null)
                         {
-                            if (fieldType.GetElementType().IsPrimitive &&
+                            if (IsPrimarySerializable(fieldType.GetElementType()) &&
                                 fieldType.GetElementType() != typeof(bool))
                             {
                                 var size = TypeCache.SizeOf(elementType.ToString());
@@ -1499,7 +1524,7 @@ internal static class StapleSerializer
                                 list.Add(null);
                             }
                             else if (item.GetType().IsAssignableTo(elementType) ||
-                                elementType.IsPrimitive)
+                                IsPrimarySerializable(elementType))
                             {
                                 list.Add(item);
                             }
@@ -1674,7 +1699,7 @@ internal static class StapleSerializer
 
                             if (bytes != null)
                             {
-                                if (elementType.IsPrimitive &&
+                                if (IsPrimarySerializable(elementType) &&
                                     elementType != typeof(bool))
                                 {
                                     var size = TypeCache.SizeOf(elementType.ToString());
@@ -1807,7 +1832,7 @@ internal static class StapleSerializer
             {
                 return jsonObject;
             }
-            else if (fieldType.IsPrimitive)
+            else if (IsPrimarySerializable(fieldType))
             {
                 if (fieldInfo.value is JsonElement element)
                 {
@@ -1885,7 +1910,7 @@ internal static class StapleSerializer
                     try
                     {
                         if (sourceValue is not string[] &&
-                            fieldType.GetElementType().IsPrimitive &&
+                            IsPrimarySerializable(fieldType.GetElementType()) &&
                             fieldType.GetElementType() != typeof(bool))
                         {
                             var size = TypeCache.SizeOf(elementType.ToString());
@@ -1919,7 +1944,7 @@ internal static class StapleSerializer
                                     newValue.SetValue(array.GetValue(i), i);
                                 }
                             }
-                            else if (elementType.IsPrimitive)
+                            else if (IsPrimarySerializable(elementType))
                             {
                                 if (array is byte[] buffer)
                                 {
@@ -1979,7 +2004,7 @@ internal static class StapleSerializer
 
                         if (bytes != null)
                         {
-                            if (fieldType.GetElementType().IsPrimitive &&
+                            if (IsPrimarySerializable(fieldType.GetElementType()) &&
                                 fieldType.GetElementType() != typeof(bool))
                             {
                                 var size = TypeCache.SizeOf(elementType.ToString());
@@ -2072,7 +2097,7 @@ internal static class StapleSerializer
                                 list.Add(null);
                             }
                             else if (item.GetType().IsAssignableTo(elementType) ||
-                                elementType.IsPrimitive)
+                                IsPrimarySerializable(elementType))
                             {
                                 list.Add(item);
                             }
@@ -2247,7 +2272,7 @@ internal static class StapleSerializer
 
                             if (bytes != null)
                             {
-                                if (elementType.IsPrimitive &&
+                                if (IsPrimarySerializable(elementType) &&
                                     elementType != typeof(bool))
                                 {
                                     var size = TypeCache.SizeOf(elementType.ToString());

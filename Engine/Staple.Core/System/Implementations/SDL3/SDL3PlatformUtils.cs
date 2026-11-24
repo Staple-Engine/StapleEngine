@@ -23,12 +23,15 @@ internal static class SDL3PlatformUtils
         public GCHandle filterDataHandle;
         public byte[][] filterNames;
         public byte[][] filterExtensions;
+        public string[] filterExtensionsNative;
         public GCHandle[] filterNameHandles;
         public GCHandle[] filterExtensionHandles;
         public SDL_PropertiesID props;
 
         public Action<Span<string>> success;
         public Action failure;
+
+        public bool isSave;
     }
 
     private class FolderOpenData
@@ -97,6 +100,22 @@ internal static class SDL3PlatformUtils
             }
 
             var path = Encoding.UTF8.GetString(s, length);
+
+            if(filter >= 0 && filter < fileData.filterExtensionsNative.Length)
+            {
+                var target = fileData.filterExtensionsNative[filter];
+                var extension = "";
+
+                if(target != "*")
+                {
+                    extension = target;
+                }
+
+                if(fileData.isSave && !string.IsNullOrEmpty(extension))
+                {
+                    path += $".{extension}";
+                }
+            }
 
             files.Add(path);
 
@@ -220,11 +239,13 @@ internal static class SDL3PlatformUtils
             {
                 filterData = new SDL_DialogFileFilter[filters.Count],
                 filterExtensions = new byte[filters.Count][],
+                filterExtensionsNative = new string[filters.Count],
                 filterNames = new byte[filters.Count][],
                 filterNameHandles = new GCHandle[filters.Count],
                 filterExtensionHandles = new GCHandle[filters.Count],
                 success = success,
                 failure = failure,
+                isSave = type == SDL_FileDialogType.SDL_FILEDIALOG_SAVEFILE,
             };
 
             container.Add(index, fileOpenData);
@@ -237,6 +258,7 @@ internal static class SDL3PlatformUtils
                 fileOpenData.filterExtensions[counter] = Encoding.UTF8.GetBytes(e);
                 fileOpenData.filterNameHandles[counter] = GCHandle.Alloc(fileOpenData.filterNames[counter], GCHandleType.Pinned);
                 fileOpenData.filterExtensionHandles[counter] = GCHandle.Alloc(fileOpenData.filterExtensions[counter], GCHandleType.Pinned);
+                fileOpenData.filterExtensionsNative[counter] = e;
 
                 unsafe
                 {
