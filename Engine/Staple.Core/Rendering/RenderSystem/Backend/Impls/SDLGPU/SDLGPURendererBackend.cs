@@ -1059,6 +1059,8 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
         if (commandBuffer == null)
         {
+            commands.Clear();
+
             return;
         }
 
@@ -1074,6 +1076,7 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
                     SDL3.SDL_CancelGPUCommandBuffer(commandBuffer);
 
                     commandBuffer = null;
+                    commands.Clear();
 
                     return;
                 }
@@ -1197,9 +1200,9 @@ internal unsafe partial class SDLGPURendererBackend : IRendererBackend, IWorldCh
 
                 GlobalAllocator<byte>.Instance.Return(buffer);
             }
-
-            commandBuffer = null;
         }
+
+        commandBuffer = null;
 
         if (currentRenderTarget == null)
         {
