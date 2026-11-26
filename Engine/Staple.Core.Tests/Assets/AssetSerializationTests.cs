@@ -180,6 +180,45 @@ internal class AssetSerializationTests
         public int GetSerializedField() => serializedField;
     }
 
+    internal class OptimizedSerializationTest : IStapleAsset
+    {
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
+        public Vector3[] values;
+
+        public int test;
+
+        public string str = "asdf";
+    }
+
+    internal class ArraysListsTest : IStapleAsset
+    {
+        public Vector3[] vectorValues;
+
+        public List<Vector3> vectorListValues = [];
+
+        public int[] intValues;
+
+        public List<int> intListValues = [];
+
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress)]
+        public Vector3[] compressedVectors;
+
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress)]
+        public List<Vector3> compressedVectorsList = [];
+
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
+        public Vector3[] compressedBase64Vectors;
+
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
+        public List<Vector3> compressedBase64VectorsList = [];
+
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.UseBase64)]
+        public Vector3[] base64Vectors;
+
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.UseBase64)]
+        public List<Vector3> base64VectorsList = [];
+    }
+
     [Test]
     public void TestSerialize()
     {
@@ -793,6 +832,148 @@ internal class AssetSerializationTests
         Assert.That(result.parameters.Count, Is.EqualTo(1));
 
         Assert.That(result.parameters[nameof(HexDebugAsset.values)].value, Is.EqualTo("ABCDEF01"));
+    }
+
+    [Test]
+    public void TestOptimization()
+    {
+        StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+
+        var asset = new OptimizedSerializationTest
+        {
+            values = [default, new(1, 1, 1), new(1, 2, 3)],
+            test = 123,
+            str = "my text",
+        };
+
+        var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Text);
+
+        Assert.That(result, Is.Not.Null);
+
+        Assert.That(result.typeName, Is.EqualTo(typeof(OptimizedSerializationTest).FullName));
+
+        Assert.That(result.parameters.Count, Is.EqualTo(3));
+
+        Assert.That(result.parameters[nameof(OptimizedSerializationTest.str)].value, Is.EqualTo("my text"));
+
+        var back = (OptimizedSerializationTest)AssetSerialization.Deserialize(result, StapleSerializationMode.Binary);
+
+        Assert.That(back, Is.Not.Null);
+
+        Assert.That(back.values, Is.EqualTo(new Vector3[] { default, new(1, 1, 1), new(1, 2, 3) }));
+        Assert.That(back.test, Is.EqualTo(123));
+        Assert.That(back.str, Is.EqualTo("my text"));
+
+        result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
+
+        Assert.That(result, Is.Not.Null);
+
+        Assert.That(result.typeName, Is.EqualTo(typeof(OptimizedSerializationTest).FullName));
+
+        Assert.That(result.parameters.Count, Is.EqualTo(3));
+
+        Assert.That(result.parameters[nameof(OptimizedSerializationTest.str)].value, Is.EqualTo("my text"));
+
+        back = (OptimizedSerializationTest)AssetSerialization.Deserialize(result, StapleSerializationMode.Binary);
+
+        Assert.That(back, Is.Not.Null);
+
+        Assert.That(back.values, Is.EqualTo(new Vector3[] { default, new(1, 1, 1), new(1, 2, 3) }));
+        Assert.That(back.test, Is.EqualTo(123));
+        Assert.That(back.str, Is.EqualTo("my text"));
+    }
+
+    [Test]
+    public void TestArraysLists()
+    {
+        StapleCodeGeneration.TypeCacheRegistration.RegisterAll();
+
+        Vector3[] vectors = [default, new(1, 1, 1), new(1, 2, 3)];
+
+        var asset = new ArraysListsTest
+        {
+            base64Vectors = vectors,
+            compressedBase64Vectors = vectors,
+            compressedVectors = vectors,
+            intValues = [1, 2, 3],
+            vectorValues = vectors,
+        };
+
+        asset.base64VectorsList.AddRange(vectors);
+        asset.compressedBase64VectorsList.AddRange(vectors);
+        asset.compressedVectorsList.AddRange(vectors);
+        asset.intListValues.AddRange([1, 2, 3]);
+        asset.vectorListValues.AddRange(vectors);
+
+        var result = AssetSerialization.Serialize(asset, StapleSerializationMode.Text);
+
+        Assert.That(result, Is.Not.Null);
+
+        Assert.That(result.typeName, Is.EqualTo(typeof(ArraysListsTest).FullName));
+
+        Assert.That(result.parameters.Count, Is.EqualTo(10));
+
+        var back = (ArraysListsTest)AssetSerialization.Deserialize(result, StapleSerializationMode.Binary);
+
+        Assert.That(back, Is.Not.Null);
+
+        Assert.That(back.base64Vectors, Is.EqualTo(vectors));
+        Assert.That(back.compressedBase64Vectors, Is.EqualTo(vectors));
+        Assert.That(back.compressedVectors, Is.EqualTo(vectors));
+        Assert.That(back.vectorValues, Is.EqualTo(vectors));
+        Assert.That(back.intValues, Is.EqualTo([1, 2, 3]));
+
+        Assert.That(back.base64VectorsList.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.compressedBase64VectorsList.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.compressedVectorsList.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.vectorListValues.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.intListValues.ToArray(), Is.EqualTo([1, 2, 3]));
+
+        result = AssetSerialization.Serialize(asset, StapleSerializationMode.Binary);
+
+        Assert.That(result, Is.Not.Null);
+
+        Assert.That(result.typeName, Is.EqualTo(typeof(ArraysListsTest).FullName));
+
+        Assert.That(result.parameters.Count, Is.EqualTo(10));
+
+        back = (ArraysListsTest)AssetSerialization.Deserialize(result, StapleSerializationMode.Binary);
+
+        Assert.That(back, Is.Not.Null);
+
+        Assert.That(back.base64Vectors, Is.EqualTo(vectors));
+        Assert.That(back.compressedBase64Vectors, Is.EqualTo(vectors));
+        Assert.That(back.compressedVectors, Is.EqualTo(vectors));
+        Assert.That(back.vectorValues, Is.EqualTo(vectors));
+        Assert.That(back.intValues, Is.EqualTo([1, 2, 3]));
+
+        Assert.That(back.base64VectorsList.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.compressedBase64VectorsList.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.compressedVectorsList.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.vectorListValues.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.intListValues.ToArray(), Is.EqualTo([1, 2, 3]));
+
+        var json = Staple.Tooling.Utilities.ToJson(result);
+
+        var recreated = Staple.Tooling.Utilities.FromJson<SerializableStapleAsset>(json);
+
+        Staple.Tooling.Utilities.ExpandSerializedAsset(recreated);
+
+        back = (ArraysListsTest)AssetSerialization.Deserialize(result, StapleSerializationMode.Binary);
+
+        Assert.That(back, Is.Not.Null);
+
+        Assert.That(back.base64Vectors, Is.EqualTo(vectors));
+        Assert.That(back.compressedBase64Vectors, Is.EqualTo(vectors));
+        Assert.That(back.compressedVectors, Is.EqualTo(vectors));
+        Assert.That(back.vectorValues, Is.EqualTo(vectors));
+        Assert.That(back.intValues, Is.EqualTo([1, 2, 3]));
+
+        Assert.That(back.base64VectorsList.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.compressedBase64VectorsList.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.compressedVectorsList.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.vectorListValues.ToArray(), Is.EqualTo(vectors));
+        Assert.That(back.intListValues.ToArray(), Is.EqualTo([1, 2, 3]));
     }
 
     [Test]

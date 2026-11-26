@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Staple.Core\Staple.Core.csproj" />
     <ProjectReference Include="..\Staple.JoltPhysics\Staple.JoltPhysics.csproj" />
+    <ProjectReference Include="..\Staple.Tooling\Staple.Tooling.csproj" />
   </ItemGroup>
   <ItemGroup>
 	<ProjectReference Include="..\TypeRegistration\TypeRegistration.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />

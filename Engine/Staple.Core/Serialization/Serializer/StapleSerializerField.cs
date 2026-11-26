@@ -35,10 +35,7 @@ internal sealed class StapleSerializerField
         {
             var flags = SerializeOptimizedAttribute.OptionFlags.None;
 
-            if(compress)
-            {
-                flags |= SerializeOptimizedAttribute.OptionFlags.Compress;
-            }
+            //Do not decompress
 
             if(useBase64)
             {
@@ -53,6 +50,8 @@ internal sealed class StapleSerializerField
                 {
                     typeName = typeName,
                     value = newValue,
+                    encoded = compress, //Mark as compressed if needed
+                    compress = compress,
                 };
             }
         }
@@ -61,6 +60,9 @@ internal sealed class StapleSerializerField
         {
             typeName = typeName,
             value = v,
+            encoded = encoded,
+            compress = compress,
+            useBase64 = useBase64,
         };
     }
 }
