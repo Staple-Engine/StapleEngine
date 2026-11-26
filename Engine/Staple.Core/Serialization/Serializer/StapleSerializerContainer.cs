@@ -8,7 +8,7 @@ internal sealed class StapleSerializerContainer
     public Dictionary<string, StapleSerializerField> fields = [];
     public string typeName;
 
-    public SerializableStapleAssetContainer ToSerializableContainer()
+    public SerializableStapleAssetContainer ToSerializableContainer(StapleSerializationMode mode)
     {
         var outValue = new SerializableStapleAssetContainer()
         {
@@ -17,7 +17,7 @@ internal sealed class StapleSerializerContainer
 
         foreach(var pair in fields)
         {
-            outValue.fields.Add(pair.Key, pair.Value.ToSerializableParameter());
+            outValue.fields.Add(pair.Key, pair.Value.ToSerializableParameter(mode));
         }
 
         return outValue;

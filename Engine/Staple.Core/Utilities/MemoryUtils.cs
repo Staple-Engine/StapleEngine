@@ -4,7 +4,7 @@ using System.Runtime;
 
 namespace Staple.Internal;
 
-internal static class MemoryUtils
+public static class MemoryUtils
 {
     public static void GarbageCollect(bool force)
     {
@@ -39,5 +39,48 @@ internal static class MemoryUtils
         source.AsSpan().CopyTo(outValue.AsSpan());
 
         return outValue;
+    }
+
+    public static byte[] ToByteArray<T>(ReadOnlySpan<T> contents) where T : unmanaged
+    {
+        var byteSize = TypeCache.SizeOf(typeof(T).ToString()) * contents.Length;
+
+        var buffer = new byte[byteSize];
+
+        unsafe
+        {
+            fixed(void *ptr = buffer)
+            {
+                contents.CopyTo(new Span<T>(ptr, contents.Length));
+            }
+        }
+
+        return buffer;
+    }
+
+    public static void FillArrayWithBytes<T>(byte[] data, Array target) where T: unmanaged
+    {
+        if(target is not T[] localArray)
+        {
+            return;
+        }
+
+        var byteSize = TypeCache.SizeOf(typeof(T).ToString());
+
+        if (data.Length % byteSize != 0)
+        {
+            return;
+        }
+
+        var elementCount = data.Length / byteSize;
+
+        unsafe
+        {
+            fixed (byte* ptr = data)
+            {
+                new Span<T>(ptr, elementCount).CopyTo(localArray.AsSpan());
+            }
+        }
+
     }
 }

@@ -10,55 +10,55 @@ public partial class CombinedMeshAsset : IStapleAsset
     [Serializable]
     public class MeshData
     {
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector3[] vertices;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector3[] normals;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector3[] tangents;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector3[] bitangents;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Color[] colors;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Color[] colors2;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Color[] colors3;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Color[] colors4;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector2[] uv;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector2[] uv2;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector2[] uv3;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector2[] uv4;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector2[] uv5;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector2[] uv6;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector2[] uv7;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public Vector2[] uv8;
 
-        [SerializeAsHex]
+        [SerializeOptimized(SerializeOptimizedAttribute.OptionFlags.Compress | SerializeOptimizedAttribute.OptionFlags.UseBase64)]
         public int[] indices;
         public MeshTopology meshTopology;
         public string materialGuid;
@@ -154,6 +154,7 @@ public partial class CombinedMeshAsset : IStapleAsset
             return new Mesh(true, false)
             {
                 VerticesInternal = vertices,
+                IndicesInternal = indices,
                 UVInternal = uv,
                 UV2Internal = uv2,
                 UV3Internal = uv3,
@@ -169,6 +170,7 @@ public partial class CombinedMeshAsset : IStapleAsset
                 Colors2Internal = colors2,
                 Colors3Internal = colors3,
                 Colors4Internal = colors4,
+                MeshTopology = meshTopology,
             };
         }
     }

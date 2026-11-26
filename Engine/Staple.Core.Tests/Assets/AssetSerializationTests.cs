@@ -85,13 +85,13 @@ internal class AssetSerializationTests
 
     internal class HexAsset : IStapleAsset
     {
-        [SerializeAsHex]
+        [SerializeOptimized]
         public List<int> values = [];
     }
 
     internal class HexDebugAsset : IStapleAsset
     {
-        [SerializeAsHex]
+        [SerializeOptimized]
         public List<byte> values = [];
     }
 
@@ -116,7 +116,7 @@ internal class AssetSerializationTests
     {
         public bool[] flags;
 
-        [SerializeAsHex]
+        [SerializeOptimized]
         public int[] values;
 
         public float[] floatValues;

@@ -11,3 +11,4 @@
 [assembly: InternalsVisibleTo("Staple.Player.MacOSX")]
 [assembly: InternalsVisibleTo("Staple.Player.Windows")]
 [assembly: InternalsVisibleTo("Staple.ProjectManagement")]
+[assembly: InternalsVisibleTo("Staple.Tooling")]

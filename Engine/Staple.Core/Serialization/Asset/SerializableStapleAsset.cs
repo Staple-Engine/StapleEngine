@@ -31,12 +31,24 @@ public class SerializableStapleAssetParameter
     [Key(1)]
     public object value;
 
+    [Key(2)]
+    public bool encoded;
+
+    [Key(3)]
+    public bool compress;
+
+    [Key(4)]
+    public bool useBase64;
+
     internal StapleSerializerField ToSerializerField()
     {
         return new()
         {
             typeName = typeName,
             value = value is SerializableStapleAssetContainer container ? container.ToSerializerContainer() : value,
+            encoded = encoded,
+            compress = compress,
+            useBase64 = useBase64,
         };
     }
 }

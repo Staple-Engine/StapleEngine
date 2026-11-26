@@ -16,40 +16,31 @@ namespace Staple
 
         private readonly string[] blacklistedNamespaces =
         [
-            "MessagePack.",
-            "NAudio.",
-            "JoltPhysicsSharp.",
-            "NVorbis.",
-            "GLFW.",
-            "SDL2.",
-            "SDL3.",
-            "Bgfx.",
-            "DrLibs.",
-            "OpenAL.",
-            "Newtonsoft.",
-            "NUnit.",
-            "NuGet.",
-            "Hexa.",
-            "ImGui.",
-            "Android.",
-            "Java.",
-            "Javax.",
-            "Org.",
-            "Xamarin.",
-            "_Microsoft.",
-            "Dalvik.",
-            "NfdSharp.",
-            "System.Reflection.",
-            "System.Collections.Generic.I",
-            "System.Func",
-            "System.Action",
-            "System.Span",
-            "Evergine.",
-            "SDL.",
-            "System.Buffers.",
-            "System.IO.",
+            "MessagePack",
+            "NAudio",
+            "JoltPhysicsSharp",
+            "NVorbis",
+            "SDL2",
+            "SDL3",
+            "Bgfx",
+            "DrLibs",
+            "OpenAL",
+            "Newtonsoft",
+            "NUnit",
+            "NuGet",
+            "Hexa",
+            "ImGui",
+            "Android",
+            "Java",
+            "Javax",
+            "Org",
+            "Xamarin",
+            "_Microsoft",
+            "Dalvik",
+            "Evergine",
+            "SDL",
+            "System",
             "Standart.Hash.xxHash",
-            "System.Type",
             "Staple.PerformanceProfiler",
             "Staple.EntityQuery",
             "Staple.SceneQuery",
@@ -57,18 +48,182 @@ namespace Staple
             "Staple.IndexBuffer",
             "Staple.ExpandableContainer",
             "Staple.World",
+            "StbImageSharp",
+            "StbImageWriteSharp",
+            "Microsoft",
+            "FastNoiseLite",
+            "Nerdbank",
         ];
+
+        private readonly string[] whitelistedNamespaces =
+        [
+            "System.Collections",
+            "System.Numerics",
+        ];
+
+        private readonly string[] blacklistedUnmanagedTypes =
+        [
+            "MessagePack",
+            "NAudio",
+            "JoltPhysicsSharp",
+            "NVorbis",
+            "SDL2",
+            "SDL3",
+            "Bgfx",
+            "DrLibs",
+            "OpenAL",
+            "Newtonsoft",
+            "NUnit",
+            "NuGet",
+            "Hexa",
+            "ImGui",
+            "Android",
+            "Java",
+            "Javax",
+            "Org",
+            "Xamarin",
+            "_Microsoft",
+            "Dalvik",
+            "NfdSharp",
+            "Evergine",
+            "SDL",
+            "System",
+            "Standart.Hash.xxHash",
+            "Staple.PerformanceProfiler",
+            "Staple.EntityQuery",
+            "Staple.SceneQuery",
+            "Staple.VertexBuffer",
+            "Staple.IndexBuffer",
+            "Staple.ExpandableContainer",
+            "Staple.World",
+            "StbImageSharp",
+            "StbImageWriteSharp",
+            "Microsoft",
+            "FastNoiseLite",
+            "Staple.EntityID",
+            "Staple.InputActionContext",
+            "Staple.Internal.AppEvent",
+            "Staple.Internal.Gamepad",
+            "Staple.Internal.Keyboard",
+            "Staple.Internal.MaximizeWindow",
+            "Staple.Internal.Mouse",
+            "Staple.Internal.Touch",
+            "Staple.Internal.MeshAsset",
+            "Staple.Internal.RenderSystem",
+            "Staple.Internal.ResetEvent",
+            "Staple.Internal.ResourcePak",
+            "Staple.Internal.SDL",
+            "Staple.Internal.StapleShader",
+            "Staple.Internal.TextRenderer",
+            "Staple.Internal.Texture",
+            "Staple.Input",
+            "Staple.Jobs",
+            "Staple.Mesh",
+            "Staple.Ray",
+            "Staple.RenderEntry",
+            "Staple.TextParameters",
+            "Staple.Internal",
+        ];
+
+        private readonly string[] whitelistedUnmanagedTypes =
+        [
+            typeof(char).FullName,
+            typeof(byte).FullName,
+            typeof(sbyte).FullName,
+            typeof(ushort).FullName,
+            typeof(short).FullName,
+            typeof(uint).FullName,
+            typeof(int).FullName,
+            typeof(ulong).FullName,
+            typeof(long).FullName,
+            typeof(float).FullName,
+            typeof(double).FullName,
+            "System.Numerics",
+        ];
+
+        private readonly string[] whitelistedTypes =
+        [
+            typeof(char).FullName,
+            typeof(byte).FullName,
+            typeof(sbyte).FullName,
+            typeof(ushort).FullName,
+            typeof(short).FullName,
+            typeof(uint).FullName,
+            typeof(int).FullName,
+            typeof(ulong).FullName,
+            typeof(long).FullName,
+            typeof(float).FullName,
+            typeof(double).FullName,
+            typeof(string).FullName,
+            typeof(bool).FullName,
+        ];
+
+        private bool IsBlacklisted(string typeName)
+        {
+            foreach (var item in whitelistedTypes)
+            {
+                if (typeName.StartsWith(item))
+                {
+                    return false;
+                }
+            }
+
+            foreach (var item in whitelistedNamespaces)
+            {
+                if(typeName.StartsWith(item))
+                {
+                    return false;
+                }
+            }
+
+            foreach(var item in whitelistedUnmanagedTypes)
+            {
+                if(typeName.StartsWith(item))
+                {
+                    return false;
+                }
+            }
+
+            foreach (var item in blacklistedNamespaces)
+            {
+                if (typeName.StartsWith(item))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsBlacklistedUnmanagedType(string typeName)
+        {
+            foreach (var item in whitelistedUnmanagedTypes)
+            {
+                if (typeName.StartsWith(item))
+                {
+                    return false;
+                }
+            }
+
+            foreach (var item in blacklistedUnmanagedTypes)
+            {
+                if (typeName.StartsWith(item))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            /*
-#if DEBUG
+#if DEBUG && false
             if (!Debugger.IsAttached)
             {
                 Debugger.Launch();
             }
 #endif
-            */
 
             var excludedTypes = new List<string>();
 
@@ -102,6 +257,7 @@ namespace StapleCodeGeneration
 
             var types = new HashSet<string>();
             var constructibleTypes = new HashSet<string>();
+            var unmanagedConstructibleTypes = new HashSet<string>();
             var sizableTypes = new HashSet<string>();
             var componentTypes = new HashSet<string>();
             var typeSizes = new Dictionary<string, int>();
@@ -111,28 +267,117 @@ namespace StapleCodeGeneration
             {
                 bool IsValidNamedTypeSymbol(INamedTypeSymbol t)
                 {
-                    return !(t.IsAbstract || t.IsGenericType || t.IsStatic || t.Name.EndsWith("Attribute") ||
-                        t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
-                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name ||
-                        x.AttributeClass.Name == "ExperimentalAttribute") ||
-                        (t.DeclaredAccessibility != Accessibility.Public &&
-                        (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
+                    return !(t.IsAbstract ||
+                        t.IsGenericType ||
+                        t.IsStatic ||
+                        t.IsRefLikeType ||
                         t.TypeKind == TypeKind.Delegate ||
+                        t.Name.EndsWith("Attribute") ||
                         t.Name.EndsWith("Exception") ||
-                        t.IsRefLikeType);
+                        t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
+                            x.AttributeClass.Name == typeof(ObsoleteAttribute).Name ||
+                            x.AttributeClass.Name == "ExperimentalAttribute") ||
+                        (t.DeclaredAccessibility != Accessibility.Public &&
+                        (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)));
                 }
 
                 bool IsValidSymbol(ISymbol t)
                 {
-                    return !(t.IsAbstract || t.Name.EndsWith("Attribute") || t.IsStatic ||
-                        t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
-                        x.AttributeClass.Name == typeof(ObsoleteAttribute).Name ||
-                        x.AttributeClass.Name == "ExperimentalAttribute") ||
-                        (t.DeclaredAccessibility != Accessibility.Public &&
-                        (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
-                        t.ContainingType.TypeKind == TypeKind.Delegate ||
+                    return !(t.IsAbstract ||
+                        t.IsStatic ||
+                        t.Name.EndsWith("Attribute") ||
                         t.Name.EndsWith("Exception") ||
-                        t.ContainingType.IsRefLikeType);
+                        t.GetAttributes().Any(x => x.AttributeClass.Name == typeof(RequiredAttributeAttribute).Name ||
+                            x.AttributeClass.Name == typeof(ObsoleteAttribute).Name ||
+                            x.AttributeClass.Name == "ExperimentalAttribute") ||
+                        (t.DeclaredAccessibility != Accessibility.Public &&
+                            (t.DeclaredAccessibility != Accessibility.Internal || !isSelf)) ||
+                        (t.ContainingType != null &&
+                            (t.ContainingType.TypeKind == TypeKind.Delegate || t.ContainingType.IsRefLikeType))
+                        );
+                }
+
+                bool IsPrimitive(ITypeSymbol t)
+                {
+                    return t.SpecialType switch
+                    {
+                        SpecialType.System_Boolean => true,
+                        SpecialType.System_Byte => true,
+                        SpecialType.System_SByte => true,
+                        SpecialType.System_UInt16 => true,
+                        SpecialType.System_Int16 => true,
+                        SpecialType.System_UInt32 => true,
+                        SpecialType.System_Int32 => true,
+                        SpecialType.System_UInt64 => true,
+                        SpecialType.System_Int64 => true,
+                        SpecialType.System_Single => true,
+                        SpecialType.System_Double => true,
+                        SpecialType.System_Char => true,
+                        SpecialType.System_Enum => true,
+                        _ => false,
+                    };
+                }
+
+                bool IsValidUnmanagedSerializerSymbol(ITypeSymbol t, HashSet<string> checkedTypes)
+                {
+                    if (!IsValidSymbol(t) ||
+                        (!t.IsValueType && !t.IsUnmanagedType) ||
+                        !TryGetConstructibleTypeSymbolName(t, out var typeName) ||
+                        IsBlacklistedUnmanagedType(typeName))
+                    {
+                        return false;
+                    }
+
+                    if (checkedTypes.Contains(typeName))
+                    {
+                        return true;
+                    }
+
+                    if (IsPrimitive(t))
+                    {
+                        checkedTypes.Add(typeName);
+
+                        return true;
+                    }
+
+                    if(t.TypeKind == TypeKind.Struct)
+                    {
+                        var members = t.GetMembers()
+                            .Where(x => x.Kind == SymbolKind.Field || x.Kind == SymbolKind.Property)
+                            .ToArray();
+
+                        foreach (var member in members)
+                        {
+                            if (member is IFieldSymbol field && !SymbolEqualityComparer.Default.Equals(field.Type, t))
+                            {
+                                if (!IsValidUnmanagedSerializerSymbol(field.Type, checkedTypes))
+                                {
+                                    return false;
+                                }
+
+                                if (TryGetConstructibleTypeSymbolName(field.Type, out var subtypeName))
+                                {
+                                    checkedTypes.Add(subtypeName);
+                                }
+                            }
+                            else if (member is IPropertySymbol property && !SymbolEqualityComparer.Default.Equals(property.Type, t))
+                            {
+                                if (!IsValidUnmanagedSerializerSymbol(property.Type, checkedTypes))
+                                {
+                                    return false;
+                                }
+
+                                if (TryGetConstructibleTypeSymbolName(property.Type, out var subtypeName))
+                                {
+                                    checkedTypes.Add(subtypeName);
+                                }
+                            }
+                        }
+                    }
+
+                    checkedTypes.Add(typeName);
+
+                    return true;
                 }
 
                 bool TryGetConstructibleTypeSymbolName(ITypeSymbol symbol, out string typeName)
@@ -224,6 +469,13 @@ namespace StapleCodeGeneration
                         t.TypeKind == TypeKind.Interface))
                     {
                         constructibleTypes.Add(typeName);
+                    }
+
+                    var cache = new HashSet<string>();
+
+                    if (IsValidUnmanagedSerializerSymbol(t, cache))
+                    {
+                        unmanagedConstructibleTypes.Add(typeName);
                     }
 
                     if (!t.IsStatic &&
@@ -406,11 +658,6 @@ namespace StapleCodeGeneration
 
                 void HandleNamespace(INamespaceSymbol n)
                 {
-                    if (n.Name == "System" || n.Name == "Microsoft")
-                    {
-                        return;
-                    }
-
                     var namespaceName = n.Name;
 
                     void Name(INamespaceSymbol s)
@@ -430,14 +677,19 @@ namespace StapleCodeGeneration
 
                     Name(n.ContainingNamespace);
 
-                    foreach (var t in n.GetTypeMembers())
-                    {
-                        HandleNamedSymbol(t, namespaceName);
-                    }
-
                     foreach (var ns in n.GetNamespaceMembers())
                     {
                         HandleNamespace(ns);
+                    }
+
+                    if (IsBlacklisted(namespaceName))
+                    {
+                        return;
+                    }
+
+                    foreach (var t in n.GetTypeMembers())
+                    {
+                        HandleNamedSymbol(t, namespaceName);
                     }
                 }
 
@@ -452,10 +704,10 @@ namespace StapleCodeGeneration
             context.RegisterSourceOutput(context.CompilationProvider.Combine(configFile),
                 (sourceContext, compilation) =>
             {
-                excludedTypes = compilation.Right.ToString()
+                excludedTypes = [.. compilation.Right.ToString()
                     .Split('\n')
                     .Select(x => x.Trim())
-                    .ToList();
+                    ];
 
                 var module = compilation.Left.SourceModule;
 
@@ -466,6 +718,116 @@ namespace StapleCodeGeneration
 
                 Perform(module.ContainingAssembly, true);
 
+                unmanagedConstructibleTypes.Add(typeof(char).FullName);
+                unmanagedConstructibleTypes.Add(typeof(byte).FullName);
+                unmanagedConstructibleTypes.Add(typeof(sbyte).FullName);
+                unmanagedConstructibleTypes.Add(typeof(ushort).FullName);
+                unmanagedConstructibleTypes.Add(typeof(short).FullName);
+                unmanagedConstructibleTypes.Add(typeof(uint).FullName);
+                unmanagedConstructibleTypes.Add(typeof(int).FullName);
+                unmanagedConstructibleTypes.Add(typeof(ulong).FullName);
+                unmanagedConstructibleTypes.Add(typeof(long).FullName);
+                unmanagedConstructibleTypes.Add(typeof(float).FullName);
+                unmanagedConstructibleTypes.Add(typeof(double).FullName);
+
+                types.Add(typeof(char).FullName);
+                types.Add(typeof(byte).FullName);
+                types.Add(typeof(sbyte).FullName);
+                types.Add(typeof(ushort).FullName);
+                types.Add(typeof(short).FullName);
+                types.Add(typeof(uint).FullName);
+                types.Add(typeof(int).FullName);
+                types.Add(typeof(ulong).FullName);
+                types.Add(typeof(long).FullName);
+                types.Add(typeof(float).FullName);
+                types.Add(typeof(double).FullName);
+                types.Add(typeof(string).FullName);
+
+                sizableTypes.Add(typeof(char).FullName);
+                sizableTypes.Add(typeof(byte).FullName);
+                sizableTypes.Add(typeof(sbyte).FullName);
+                sizableTypes.Add(typeof(ushort).FullName);
+                sizableTypes.Add(typeof(short).FullName);
+                sizableTypes.Add(typeof(uint).FullName);
+                sizableTypes.Add(typeof(int).FullName);
+                sizableTypes.Add(typeof(ulong).FullName);
+                sizableTypes.Add(typeof(long).FullName);
+                sizableTypes.Add(typeof(float).FullName);
+                sizableTypes.Add(typeof(double).FullName);
+
+                constructibleTypes.Add(typeof(char).FullName);
+                constructibleTypes.Add(typeof(byte).FullName);
+                constructibleTypes.Add(typeof(sbyte).FullName);
+                constructibleTypes.Add(typeof(ushort).FullName);
+                constructibleTypes.Add(typeof(short).FullName);
+                constructibleTypes.Add(typeof(uint).FullName);
+                constructibleTypes.Add(typeof(int).FullName);
+                constructibleTypes.Add(typeof(ulong).FullName);
+                constructibleTypes.Add(typeof(long).FullName);
+                constructibleTypes.Add(typeof(float).FullName);
+                constructibleTypes.Add(typeof(double).FullName);
+                constructibleTypes.Add(typeof(string).FullName);
+
+                foreach (var type in unmanagedConstructibleTypes)
+                {
+                    var serializerName = $"{type.Replace('.', '_')}UnmanagedSerializer";
+
+                    source += $@"
+            Staple.Internal.TypeCache.RegisterUnmanagedArraySerializer<{type}>(new {serializerName}());
+";
+
+
+                    var serializerSource = $@"// <auto-generated />
+using Staple;
+using Staple.Internal;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+
+namespace StapleCodeGeneration
+{{
+    public class {serializerName} : IStapleUnmanagedArraySerializer
+    {{
+        public byte[] SerializeArray(Array array)
+        {{
+            if(array is not {type}[] localArray)
+            {{
+                return null;
+            }}
+
+            var arraySpan = new Span<{type}>(localArray);
+
+            return MemoryUtils.ToByteArray(arraySpan);
+        }}
+
+        public byte[] SerializeList(IList list)
+        {{
+            if(list is not List<{type}> localList)
+            {{
+                return null;
+            }}
+
+            var byteSize = TypeCache.SizeOf(typeof({type}).ToString()) * localList.Count;
+
+            var buffer = new byte[byteSize];
+
+            var listSpan = CollectionsMarshal.AsSpan(localList);
+
+            return MemoryUtils.ToByteArray(listSpan);
+        }}
+
+        public void DeserializeArray(byte[] data, Array target)
+        {{
+            MemoryUtils.FillArrayWithBytes<{type}>(data, target);
+        }}
+    }}
+}}
+";
+
+                    sourceContext.AddSource($"{serializerName}.Generated.cs", SourceText.From(serializerSource, Encoding.UTF8));
+                }
+
                 foreach (var type in types)
                 {
                     /*
@@ -475,19 +837,7 @@ namespace StapleCodeGeneration
                     }
                     */
 
-                    bool skip = false;
-
-                    foreach (var item in blacklistedNamespaces)
-                    {
-                        if (type.StartsWith(item))
-                        {
-                            skip = true;
-
-                            break;
-                        }
-                    }
-
-                    if (skip)
+                    if (IsBlacklisted(type))
                     {
                         continue;
                     }

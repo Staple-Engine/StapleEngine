@@ -6,6 +6,9 @@ internal sealed class StapleSerializerField
 {
     public string typeName;
     public object value;
+    public bool encoded;
+    public bool compress;
+    public bool useBase64;
 
     public object ToRawValue()
     {
@@ -24,12 +27,40 @@ internal sealed class StapleSerializerField
         return value;
     }
 
-    public SerializableStapleAssetParameter ToSerializableParameter()
+    public SerializableStapleAssetParameter ToSerializableParameter(StapleSerializationMode mode)
     {
+        var v = value is StapleSerializerContainer container ? container.ToSerializableContainer(mode) : value;
+
+        if(value is string && encoded && mode != StapleSerializationMode.Text)
+        {
+            var flags = SerializeOptimizedAttribute.OptionFlags.None;
+
+            if(compress)
+            {
+                flags |= SerializeOptimizedAttribute.OptionFlags.Compress;
+            }
+
+            if(useBase64)
+            {
+                flags |= SerializeOptimizedAttribute.OptionFlags.UseBase64;
+            }
+
+            var newValue = StapleSerializer.DecodeOptimizedSerialization(value as string, flags);
+
+            if(newValue != null)
+            {
+                return new()
+                {
+                    typeName = typeName,
+                    value = newValue,
+                };
+            }
+        }
+
         return new()
         {
             typeName = typeName,
-            value = value is StapleSerializerContainer container ? container.ToSerializableContainer() : value,
+            value = v,
         };
     }
 }

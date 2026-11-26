@@ -95,6 +95,7 @@ public static class MeshUtilities
                 {
                     materialGuid = material.Guid.Guid,
                     vertices = mesh.VerticesInternal,
+                    indices = mesh.IndicesInternal,
                 };
 
                 if(components.HasFlag(MeshAssetComponent.UV1))

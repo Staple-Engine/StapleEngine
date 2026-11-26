@@ -45,6 +45,10 @@ public static class TypeCache
 
     internal static readonly Dictionary<string, HashSet<string>> inheritance = [];
 
+    internal static readonly Dictionary<string, int> unmanagedArraySerializerLookup = [];
+
+    internal static readonly List<IStapleUnmanagedArraySerializer> unmanagedArraySerializers = [];
+
     /// <summary>
     /// Clears the type cache
     /// </summary>
@@ -56,6 +60,8 @@ public static class TypeCache
         componentCallbacks.Clear();
         subclassCaches.Clear();
         inheritance.Clear();
+        unmanagedArraySerializerLookup.Clear();
+        unmanagedArraySerializers.Clear();
 
         frozenArrayConstructors = null;
         frozenComponentCallbacks = null;
@@ -356,5 +362,41 @@ public static class TypeCache
         {
             componentCallbacks.Add(type.ToString(), callbacks);
         }
+    }
+
+    /// <summary>
+    /// Registers an unmanaged array serializer for a specific type
+    /// </summary>
+    /// <typeparam name="T">The serializer</typeparam>
+    public static void RegisterUnmanagedArraySerializer<T>(IStapleUnmanagedArraySerializer serializer) where T: unmanaged
+    {
+        if(unmanagedArraySerializerLookup.ContainsKey(typeof(T).ToString()))
+        {
+            return;
+        }
+
+        unmanagedArraySerializerLookup.Add(typeof(T).ToString(), unmanagedArraySerializers.Count);
+        unmanagedArraySerializers.Add(serializer);
+    }
+
+    /// <summary>
+    /// Attempts to get an unmanaged array serializer for a specific type
+    /// </summary>
+    /// <param name="type">The type</param>
+    /// <param name="serializer">The serializer</param>
+    /// <returns>Whether the type was found</returns>
+    public static bool TryGetUnmanagedArraySerializer(Type type, out IStapleUnmanagedArraySerializer serializer)
+    {
+        if(!unmanagedArraySerializerLookup.TryGetValue(type.ToString(), out var index) ||
+            unmanagedArraySerializers[index] is not IStapleUnmanagedArraySerializer s)
+        {
+            serializer = default;
+
+            return false;
+        }
+
+        serializer = s;
+
+        return true;
     }
 }

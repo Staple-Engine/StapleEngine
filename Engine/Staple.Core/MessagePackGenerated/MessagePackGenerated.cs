@@ -4666,9 +4666,12 @@ namespace MessagePack.Formatters.Staple.Internal
             }
 
             global::MessagePack.IFormatterResolver formatterResolver = options.Resolver;
-            writer.WriteArrayHeader(2);
+            writer.WriteArrayHeader(5);
             formatterResolver.GetFormatterWithVerify<string>().Serialize(ref writer, value.typeName, options);
             formatterResolver.GetFormatterWithVerify<object>().Serialize(ref writer, value.value, options);
+            writer.Write(value.encoded);
+            writer.Write(value.compress);
+            writer.Write(value.useBase64);
         }
 
         public global::Staple.Internal.SerializableStapleAssetParameter Deserialize(ref global::MessagePack.MessagePackReader reader, global::MessagePack.MessagePackSerializerOptions options)
@@ -4692,6 +4695,15 @@ namespace MessagePack.Formatters.Staple.Internal
                         break;
                     case 1:
                         ____result.value = formatterResolver.GetFormatterWithVerify<object>().Deserialize(ref reader, options);
+                        break;
+                    case 2:
+                        ____result.encoded = reader.ReadBoolean();
+                        break;
+                    case 3:
+                        ____result.compress = reader.ReadBoolean();
+                        break;
+                    case 4:
+                        ____result.useBase64 = reader.ReadBoolean();
                         break;
                     default:
                         reader.Skip();

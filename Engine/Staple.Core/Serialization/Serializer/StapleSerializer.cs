@@ -7,6 +7,7 @@ using System.Collections;
 using System.Linq;
 using System.Text.Json;
 using System.Numerics;
+using System.IO.Compression;
 
 namespace Staple.Internal;
 
@@ -20,20 +21,20 @@ internal static class StapleSerializer
 
     private static readonly string LogTag = "Serialization";
 
-    public static bool IsPrimarySerializable(Type type)
+    public static bool IsSerializableAsUnmanagedArray(Type type)
     {
-        if(type.IsPrimitive)
+        if (type.IsPrimitive)
         {
             return true;
         }
 
-        if(type.IsValueType && !type.IsEnum)
+        if (type.IsValueType && !type.IsEnum)
         {
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
-            foreach(var field in fields)
+            foreach (var field in fields)
             {
-                if(!IsPrimarySerializable(field.FieldType))
+                if (!IsSerializableAsUnmanagedArray(field.FieldType))
                 {
                     return false;
                 }
@@ -52,7 +53,7 @@ internal static class StapleSerializer
     /// <returns>Whether the type can be directly serialized</returns>
     public static bool IsDirectParameter(Type type)
     {
-        if (IsPrimarySerializable(type) || type == typeof(string) || type.IsEnum)
+        if (IsSerializableAsUnmanagedArray(type) || type == typeof(string) || type.IsEnum)
         {
             if (type == typeof(IntPtr) || type == typeof(UIntPtr))
             {
@@ -77,7 +78,7 @@ internal static class StapleSerializer
             return false;
         }
 
-        if(type.GetCustomAttribute<SerializeInEditorAttribute>() != null && !Platform.IsEditor)
+        if (type.GetCustomAttribute<SerializeInEditorAttribute>() != null && !Platform.IsEditor)
         {
             return false;
         }
@@ -92,17 +93,17 @@ internal static class StapleSerializer
             return true;
         }
 
-        if(type.IsAssignableTo(typeof(Component)))
+        if (type.IsAssignableTo(typeof(Component)))
         {
             return true;
         }
 
-        if(type == typeof(Entity))
+        if (type == typeof(Entity))
         {
             return true;
         }
 
-        if(type == typeof(Sprite))
+        if (type == typeof(Sprite))
         {
             return true;
         }
@@ -117,7 +118,7 @@ internal static class StapleSerializer
             return true;
         }
 
-        if(type.IsArray && IsValidType(type.GetElementType()))
+        if (type.IsArray && IsValidType(type.GetElementType()))
         {
             return true;
         }
@@ -149,28 +150,23 @@ internal static class StapleSerializer
     /// Serializes a primitive array
     /// </summary>
     /// <param name="array">The array to serialize</param>
+    /// <param name="containedType">The contained type of the array</param>
     /// <returns>The serialized bytes</returns>
-    public static byte[] SerializePrimitiveArray(Array array)
+    public static byte[] SerializeUnmanagedArray(Array array)
     {
-        if(array.GetType().GetElementType() == typeof(bool))
+        if (array.GetType().GetElementType() == typeof(bool))
         {
             bool[] boolArray = (bool[])array;
 
             return boolArray.Select(x => (byte)(x ? 1 : 0)).ToArray();
         }
 
-        var size = TypeCache.SizeOf(array.GetType().GetElementType().ToString());
-
-        if(size <= 0)
+        if (!TypeCache.TryGetUnmanagedArraySerializer(array.GetType().GetElementType(), out var serializer))
         {
             return null;
         }
 
-        var buffer = new byte[size * array.Length];
-
-        Buffer.BlockCopy(array, 0, buffer, 0, buffer.Length);
-
-        return buffer;
+        return serializer.SerializeArray(array);
     }
 
     /// <summary>
@@ -178,16 +174,16 @@ internal static class StapleSerializer
     /// </summary>
     /// <param name="buffer">The buffer</param>
     /// <param name="target">The target array</param>
-    public static void DeserializePrimitiveArray(byte[] buffer, Array target)
+    public static void DeserializeUnmanagedArray(byte[] buffer, Array target)
     {
         if (target.GetType().GetElementType() == typeof(bool))
         {
-            if(buffer.Length != target.Length)
+            if (buffer.Length != target.Length)
             {
                 return;
             }
 
-            for(var i = 0; i < buffer.Length; i++)
+            for (var i = 0; i < buffer.Length; i++)
             {
                 target.SetValue(buffer[i] == 1, i);
             }
@@ -195,19 +191,12 @@ internal static class StapleSerializer
             return;
         }
 
-        var size = TypeCache.SizeOf(target.GetType().GetElementType().ToString());
-
-        if (size <= 0)
+        if (!TypeCache.TryGetUnmanagedArraySerializer(target.GetType().GetElementType(), out var serializer))
         {
             return;
         }
 
-        if(buffer.Length % size != 0)
-        {
-            return;
-        }
-
-        Buffer.BlockCopy(buffer, 0, target, 0, buffer.Length);
+        serializer.DeserializeArray(buffer, target);
     }
 
     /// <summary>
@@ -216,159 +205,26 @@ internal static class StapleSerializer
     /// <param name="list">The array to serialize</param>
     /// <param name="elementType">The element type</param>
     /// <returns>The serialized bytes</returns>
-    public static byte[] SerializePrimitiveList(IList list, Type elementType)
+    public static byte[] SerializeUnmanagedList(IList list, Type elementType)
     {
         if (elementType == typeof(bool))
         {
             var boolArray = new List<byte>();
 
-            foreach(bool value in list)
+            foreach (bool value in list)
             {
                 boolArray.Add((byte)(value ? 1 : 0));
             }
 
-            return boolArray.ToArray();
+            return [.. boolArray];
         }
 
-        var size = TypeCache.SizeOf(elementType.ToString());
-
-        if (size <= 0)
+        if (!TypeCache.TryGetUnmanagedArraySerializer(elementType, out var serializer))
         {
             return null;
         }
 
-        switch (elementType)
-        {
-            case Type t when t == typeof(byte):
-
-                {
-                    var l = (List<byte>)list;
-
-                    return l.ToArray();
-                }
-
-            case Type t when t == typeof(sbyte):
-
-                {
-                    var l = (List<sbyte>)list;
-
-                    var buffer = new byte[size * l.Count];
-
-                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
-
-                    return buffer;
-                }
-
-            case Type t when t == typeof(ushort):
-
-                {
-                    var l = (List<ushort>)list;
-
-                    var buffer = new byte[size * l.Count];
-
-                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
-
-                    return buffer;
-                }
-
-            case Type t when t == typeof(short):
-
-                {
-                    var l = (List<short>)list;
-
-                    var buffer = new byte[size * l.Count];
-
-                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
-
-                    return buffer;
-                }
-
-            case Type t when t == typeof(uint):
-
-                {
-                    var l = (List<uint>)list;
-
-                    var buffer = new byte[size * l.Count];
-
-                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
-
-                    return buffer;
-                }
-
-            case Type t when t == typeof(int):
-
-                {
-                    var l = (List<int>)list;
-
-                    var buffer = new byte[size * l.Count];
-
-                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
-
-                    return buffer;
-                }
-
-            case Type t when t == typeof(ulong):
-
-                {
-                    var l = (List<ulong>)list;
-
-                    var buffer = new byte[size * l.Count];
-
-                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
-
-                    return buffer;
-                }
-
-            case Type t when t == typeof(long):
-
-                {
-                    var l = (List<long>)list;
-
-                    var buffer = new byte[size * l.Count];
-
-                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
-
-                    return buffer;
-                }
-
-            case Type t when t == typeof(char):
-
-                {
-                    var l = (List<char>)list;
-
-                    var buffer = new byte[size * l.Count];
-
-                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
-
-                    return buffer;
-                }
-
-            case Type t when t == typeof(float):
-
-                {
-                    var l = (List<float>)list;
-
-                    var buffer = new byte[size * l.Count];
-
-                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
-
-                    return buffer;
-                }
-
-            case Type t when t == typeof(double):
-
-                {
-                    var l = (List<double>)list;
-
-                    var buffer = new byte[size * l.Count];
-
-                    Buffer.BlockCopy(l.ToArray(), 0, buffer, 0, buffer.Length);
-
-                    return buffer;
-                }
-        }
-
-        return null;
+        return serializer.SerializeList(list);
     }
 
     /// <summary>
@@ -405,23 +261,23 @@ internal static class StapleSerializer
                 return;
             }
 
-            foreach(var s in TypeSerializers)
+            foreach (var s in TypeSerializers)
             {
-                if(s.HandlesType(field.FieldType))
+                if (s.HandlesType(field.FieldType))
                 {
                     var o = mode != StapleSerializationMode.Binary ? s.SerializeJsonField(value, instance.GetType(), field.FieldType, mode) :
                         s.SerializeField(value, instance.GetType(), field.FieldType, mode);
 
-                    if(o != null)
+                    if (o != null)
                     {
-                        context.setField(field, value.GetType().ToString(), o);
+                        context.setField(field, value.GetType().ToString(), o, false, default);
 
                         return;
                     }
                 }
             }
 
-            if(field.FieldType.IsArray && IsValidType(field.FieldType.GetElementType()))
+            if (field.FieldType.IsArray && IsValidType(field.FieldType.GetElementType()))
             {
                 var array = (Array)value;
 
@@ -432,9 +288,9 @@ internal static class StapleSerializer
                 {
                     var assetList = new List<string>();
 
-                    foreach(var item in array)
+                    foreach (var item in array)
                     {
-                        if(item is IGuidAsset asset)
+                        if (item is IGuidAsset asset)
                         {
                             //Normalize the asset path in case the guid is actually a path
                             assetList.Add(AssetSerialization.GetAssetPathFromCache(asset.Guid.Guid));
@@ -445,29 +301,31 @@ internal static class StapleSerializer
                         }
                     }
 
-                    context.setField(field, field.FieldType.ToString(), assetList.ToArray());
+                    context.setField(field, field.FieldType.ToString(), assetList.ToArray(), false, default);
                 }
-                else if(elementType == typeof(string))
+                else if (elementType == typeof(string))
                 {
-                    context.setField(field, field.FieldType.ToString(), array);
+                    context.setField(field, field.FieldType.ToString(), array, false, default);
                 }
-                else if(IsPrimarySerializable(elementType))
+                else if (IsSerializableAsUnmanagedArray(elementType))
                 {
-                    if(mode != StapleSerializationMode.Binary && field.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                    if (field.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization)
                     {
-                        var buffer = SerializePrimitiveArray(array);
+                        var buffer = SerializeUnmanagedArray(array);
 
                         if (buffer != null)
                         {
-                            context.setField(field, field.FieldType.ToString(), Convert.ToHexString(buffer));
+                            var encoded = EncodeOptimizedSerialization(buffer, optimization.flags);
+
+                            context.setField(field, field.FieldType.ToString(), encoded, true, optimization.flags);
                         }
                     }
                     else
                     {
-                        context.setField(field, field.FieldType.ToString(), value);
+                        context.setField(field, field.FieldType.ToString(), value, false, default);
                     }
                 }
-                else if(elementType.GetCustomAttribute<SerializableAttribute>() != null)
+                else if (elementType.GetCustomAttribute<SerializableAttribute>() != null)
                 {
                     try
                     {
@@ -487,25 +345,25 @@ internal static class StapleSerializer
                             }
                         }
 
-                        context.setField(field, field.FieldType.ToString(), newList);
+                        context.setField(field, field.FieldType.ToString(), newList, false, default);
                     }
                     catch (Exception e)
                     {
                         Log.Debug($"[{LogTag}] Failed to deserialize a {elementType.ToString()} list: {e}");
                     }
                 }
-                else if(elementType.IsEnum)
+                else if (elementType.IsEnum)
                 {
-                    if(elementType.GetCustomAttribute<FlagsAttribute>() != null)
+                    if (elementType.GetCustomAttribute<FlagsAttribute>() != null)
                     {
                         var newList = new List<long>();
 
-                        foreach(var item in array)
+                        foreach (var item in array)
                         {
                             newList.Add((long)item);
                         }
 
-                        context.setField(field, field.FieldType.ToString(), newList);
+                        context.setField(field, field.FieldType.ToString(), newList, false, default);
                     }
                     else
                     {
@@ -516,29 +374,29 @@ internal static class StapleSerializer
                             newList.Add(item.ToString());
                         }
 
-                        context.setField(field, field.FieldType.ToString(), newList);
+                        context.setField(field, field.FieldType.ToString(), newList, false, default);
                     }
                 }
                 else
                 {
-                    foreach(var s in TypeSerializers)
+                    foreach (var s in TypeSerializers)
                     {
-                        if(s.HandlesType(elementType))
+                        if (s.HandlesType(elementType))
                         {
                             var newList = new List<object>();
 
-                            foreach(var item in array)
+                            foreach (var item in array)
                             {
                                 var o = mode != StapleSerializationMode.Binary ? s.SerializeJsonField(item, instance.GetType(), elementType, mode) :
                                     s.SerializeField(item, instance.GetType(), elementType, mode);
 
-                                if(o != null)
+                                if (o != null)
                                 {
                                     newList.Add(o);
                                 }
                             }
 
-                            context.setField(field, field.FieldType.ToString(), newList);
+                            context.setField(field, field.FieldType.ToString(), newList, false, default);
 
                             return;
                         }
@@ -576,28 +434,30 @@ internal static class StapleSerializer
                                 }
                             }
 
-                            context.setField(field, field.FieldType.ToString(), newList);
+                            context.setField(field, field.FieldType.ToString(), newList, false, default);
                         }
                         else if (listType == typeof(string))
                         {
-                            context.setField(field, field.FieldType.ToString(), value);
+                            context.setField(field, field.FieldType.ToString(), value, false, default);
                         }
-                        else if (IsPrimarySerializable(listType))
+                        else if (IsSerializableAsUnmanagedArray(listType))
                         {
-                            if (mode != StapleSerializationMode.Binary && field.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                            if (field.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization)
                             {
                                 var list = (IList)value;
 
-                                var buffer = SerializePrimitiveList(list, listType);
+                                var buffer = SerializeUnmanagedList(list, listType);
 
                                 if (buffer != null)
                                 {
-                                    context.setField(field, field.FieldType.ToString(), Convert.ToHexString(buffer));
+                                    var encoded = EncodeOptimizedSerialization(buffer, optimization.flags);
+
+                                    context.setField(field, field.FieldType.ToString(), encoded, true, optimization.flags);
                                 }
                             }
                             else
                             {
-                                context.setField(field, field.FieldType.ToString(), value);
+                                context.setField(field, field.FieldType.ToString(), value, false, default);
                             }
                         }
                         else if (listType.GetCustomAttribute<SerializableAttribute>() != null)
@@ -614,9 +474,9 @@ internal static class StapleSerializer
                                     {
                                         var container = SerializeContainer(item, mode);
 
-                                        if(container != null)
+                                        if (container != null)
                                         {
-                                            if(mode == StapleSerializationMode.Scene)
+                                            if (mode == StapleSerializationMode.Scene)
                                             {
                                                 newList.Add(container.ToRawContainer());
                                             }
@@ -632,16 +492,16 @@ internal static class StapleSerializer
                                     }
                                 }
 
-                                context.setField(field, field.FieldType.ToString(), newList);
+                                context.setField(field, field.FieldType.ToString(), newList, false, default);
                             }
                             catch (Exception e)
                             {
                                 Log.Debug($"[{LogTag}] Failed to deserialize a {listType.ToString()} list: {e}");
                             }
                         }
-                        else if(listType.IsEnum)
+                        else if (listType.IsEnum)
                         {
-                            if(listType.GetCustomAttribute<FlagsAttribute>() != null)
+                            if (listType.GetCustomAttribute<FlagsAttribute>() != null)
                             {
                                 var newList = new List<long>();
 
@@ -652,7 +512,7 @@ internal static class StapleSerializer
                                     newList.Add((long)item);
                                 }
 
-                                context.setField(field, field.FieldType.ToString(), newList);
+                                context.setField(field, field.FieldType.ToString(), newList, false, default);
                             }
                             else
                             {
@@ -665,7 +525,7 @@ internal static class StapleSerializer
                                     newList.Add(item.ToString());
                                 }
 
-                                context.setField(field, field.FieldType.ToString(), newList);
+                                context.setField(field, field.FieldType.ToString(), newList, false, default);
                             }
                         }
 
@@ -686,11 +546,11 @@ internal static class StapleSerializer
                     {
                         if (mode == StapleSerializationMode.Scene)
                         {
-                            context.setField(field, field.FieldType.ToString(), innerContainer.ToRawContainer());
+                            context.setField(field, field.FieldType.ToString(), innerContainer.ToRawContainer(), false, default);
                         }
                         else
                         {
-                            context.setField(field, field.FieldType.ToString(), innerContainer);
+                            context.setField(field, field.FieldType.ToString(), innerContainer, false, default);
                         }
                     }
                 }
@@ -702,7 +562,7 @@ internal static class StapleSerializer
                 return;
             }
 
-            context.setField(field, value.GetType().ToString(), value);
+            context.setField(field, value.GetType().ToString(), value, false, default);
         }
     }
 
@@ -717,7 +577,7 @@ internal static class StapleSerializer
     {
         var hasSerializeField = property.GetCustomAttribute<SerializeFieldAttribute>() != null;
 
-        if (property.GetCustomAttribute<Staple.NonSerializedAttribute>() != null ||    
+        if (property.GetCustomAttribute<Staple.NonSerializedAttribute>() != null ||
             property.GetCustomAttribute<System.NonSerializedAttribute>() != null ||
             !property.CanRead ||
             !property.CanWrite ||
@@ -752,7 +612,7 @@ internal static class StapleSerializer
 
                     if (o != null)
                     {
-                        context.setProperty(property, value.GetType().ToString(), o);
+                        context.setProperty(property, value.GetType().ToString(), o, false, default);
 
                         return;
                     }
@@ -783,26 +643,28 @@ internal static class StapleSerializer
                         }
                     }
 
-                    context.setProperty(property, property.PropertyType.ToString(), assetList.ToArray());
+                    context.setProperty(property, property.PropertyType.ToString(), assetList.ToArray(), false, default);
                 }
                 else if (elementType == typeof(string))
                 {
-                    context.setProperty(property, property.PropertyType.ToString(), array);
+                    context.setProperty(property, property.PropertyType.ToString(), array, false, default);
                 }
-                else if (IsPrimarySerializable(elementType))
+                else if (IsSerializableAsUnmanagedArray(elementType))
                 {
-                    if (mode != StapleSerializationMode.Binary && property.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                    if (property.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization)
                     {
-                        var buffer = SerializePrimitiveArray(array);
+                        var buffer = SerializeUnmanagedArray(array);
 
                         if (buffer != null)
                         {
-                            context.setProperty(property, property.PropertyType.ToString(), Convert.ToHexString(buffer));
+                            var encoded = EncodeOptimizedSerialization(buffer, optimization.flags);
+
+                            context.setProperty(property, property.PropertyType.ToString(), encoded, true, optimization.flags);
                         }
                     }
                     else
                     {
-                        context.setProperty(property, property.PropertyType.ToString(), value);
+                        context.setProperty(property, property.PropertyType.ToString(), value, false, default);
                     }
                 }
                 else if (elementType.GetCustomAttribute<SerializableAttribute>() != null)
@@ -825,7 +687,7 @@ internal static class StapleSerializer
                             }
                         }
 
-                        context.setProperty(property, property.PropertyType.ToString(), newList);
+                        context.setProperty(property, property.PropertyType.ToString(), newList, false, default);
                     }
                     catch (Exception e)
                     {
@@ -843,7 +705,7 @@ internal static class StapleSerializer
                             newList.Add((long)item);
                         }
 
-                        context.setProperty(property, property.PropertyType.ToString(), newList);
+                        context.setProperty(property, property.PropertyType.ToString(), newList, false, default);
                     }
                     else
                     {
@@ -854,7 +716,7 @@ internal static class StapleSerializer
                             newList.Add(item.ToString());
                         }
 
-                        context.setProperty(property, property.PropertyType.ToString(), newList);
+                        context.setProperty(property, property.PropertyType.ToString(), newList, false, default);
                     }
                 }
                 else
@@ -876,7 +738,7 @@ internal static class StapleSerializer
                                 }
                             }
 
-                            context.setProperty(property, property.PropertyType.ToString(), newList);
+                            context.setProperty(property, property.PropertyType.ToString(), newList, false, default);
 
                             return;
                         }
@@ -914,28 +776,30 @@ internal static class StapleSerializer
                                 }
                             }
 
-                            context.setProperty(property, property.PropertyType.ToString(), newList);
+                            context.setProperty(property, property.PropertyType.ToString(), newList, false, default);
                         }
                         else if (listType == typeof(string))
                         {
-                            context.setProperty(property, property.PropertyType.ToString(), value);
+                            context.setProperty(property, property.PropertyType.ToString(), value, false, default);
                         }
-                        else if (IsPrimarySerializable(listType))
+                        else if (IsSerializableAsUnmanagedArray(listType))
                         {
-                            if (mode != StapleSerializationMode.Binary && property.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                            if (property.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization)
                             {
                                 var list = (IList)value;
 
-                                var buffer = SerializePrimitiveList(list, listType);
+                                var buffer = SerializeUnmanagedList(list, listType);
 
                                 if (buffer != null)
                                 {
-                                    context.setProperty(property, property.PropertyType.ToString(), Convert.ToHexString(buffer));
+                                    var encoded = EncodeOptimizedSerialization(buffer, optimization.flags);
+
+                                    context.setProperty(property, property.PropertyType.ToString(), encoded, true, optimization.flags);
                                 }
                             }
                             else
                             {
-                                context.setProperty(property, property.PropertyType.ToString(), value);
+                                context.setProperty(property, property.PropertyType.ToString(), value, false, default);
                             }
                         }
                         else if (listType.GetCustomAttribute<SerializableAttribute>() != null)
@@ -970,7 +834,7 @@ internal static class StapleSerializer
                                     }
                                 }
 
-                                context.setProperty(property, property.PropertyType.ToString(), newList);
+                                context.setProperty(property, property.PropertyType.ToString(), newList, false, default);
                             }
                             catch (Exception e)
                             {
@@ -990,7 +854,7 @@ internal static class StapleSerializer
                                     newList.Add((long)item);
                                 }
 
-                                context.setProperty(property, property.PropertyType.ToString(), newList);
+                                context.setProperty(property, property.PropertyType.ToString(), newList, false, default);
                             }
                             else
                             {
@@ -1003,7 +867,7 @@ internal static class StapleSerializer
                                     newList.Add(item.ToString());
                                 }
 
-                                context.setProperty(property, property.PropertyType.ToString(), newList);
+                                context.setProperty(property, property.PropertyType.ToString(), newList, false, default);
                             }
                         }
 
@@ -1024,11 +888,11 @@ internal static class StapleSerializer
                     {
                         if (mode == StapleSerializationMode.Scene)
                         {
-                            context.setProperty(property, property.PropertyType.ToString(), innerContainer.ToRawContainer());
+                            context.setProperty(property, property.PropertyType.ToString(), innerContainer.ToRawContainer(), false, default);
                         }
                         else
                         {
-                            context.setProperty(property, property.PropertyType.ToString(), innerContainer);
+                            context.setProperty(property, property.PropertyType.ToString(), innerContainer, false, default);
                         }
                     }
                 }
@@ -1040,7 +904,7 @@ internal static class StapleSerializer
                 return;
             }
 
-            context.setProperty(property, value.GetType().ToString(), value);
+            context.setProperty(property, value.GetType().ToString(), value, false, default);
         }
     }
 
@@ -1064,22 +928,28 @@ internal static class StapleSerializer
         };
 
         var context = new StapleSerializerContext(() => instance,
-            (field, typeName, value) => outValue.fields.Add(field.Name, new()
+            (field, typeName, value, encoded, flags) => outValue.fields.Add(field.Name, new()
             {
                 typeName = typeName,
                 value = value,
+                encoded = encoded,
+                compress = flags.HasFlag(SerializeOptimizedAttribute.OptionFlags.Compress),
+                useBase64 = flags.HasFlag(SerializeOptimizedAttribute.OptionFlags.UseBase64),
             }),
-            (field, typeName, value) => outValue.fields.Add(field.Name, new()
+            (field, typeName, value, encoded, flags) => outValue.fields.Add(field.Name, new()
             {
                 typeName = typeName,
                 value = value,
+                encoded = encoded,
+                compress = flags.HasFlag(SerializeOptimizedAttribute.OptionFlags.Compress),
+                useBase64 = flags.HasFlag(SerializeOptimizedAttribute.OptionFlags.UseBase64),
             }));
 
         var fields = instance.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
         foreach (var field in fields)
         {
-            if(field.IsFamilyOrAssembly ||
+            if (field.IsFamilyOrAssembly ||
                 field.FieldType.IsNestedFamORAssem ||
                 field.FieldType.IsNestedAssembly)
             {
@@ -1110,8 +980,11 @@ internal static class StapleSerializer
         var condensed = fieldInfo.value is JsonElement jsonElement ?
             GetJsonArray(type, TypeCache.GetType(fieldInfo.typeName), jsonElement, mode) : fieldInfo.value;
 
-        object sourceValue = hasAttribute(typeof(SerializeAsHexAttribute)) && condensed is string s ?
-            s : condensed is object[] a ? a : condensed is List<string> l ? l : null;
+        var optimized = hasAttribute(typeof(SerializeOptimizedAttribute));
+
+        object sourceValue = optimized && condensed is string s ? s :
+            optimized && condensed is byte[] b ? b :
+            condensed is object[] a ? a : condensed is List<string> l ? l : null;
 
         if (sourceValue is List<string> li)
         {
@@ -1130,7 +1003,7 @@ internal static class StapleSerializer
 
     private static object[] GetJsonArray(Type type, Type fieldType, JsonElement element, StapleSerializationMode mode)
     {
-        if(element.ValueKind != JsonValueKind.Array)
+        if (element.ValueKind != JsonValueKind.Array)
         {
             return null;
         }
@@ -1138,18 +1011,18 @@ internal static class StapleSerializer
         var elementType = fieldType.IsArray ? fieldType.GetElementType() :
             fieldType.IsGenericType && fieldType.GetGenericTypeDefinition() == typeof(List<>) ? fieldType.GetGenericArguments()[0] : null;
 
-        if(elementType == null)
+        if (elementType == null)
         {
             return null;
         }
 
         var array = new object[element.GetArrayLength()];
 
-        for(var i = 0; i < element.GetArrayLength(); i++)
+        for (var i = 0; i < element.GetArrayLength(); i++)
         {
             var o = GetJsonValue(type, elementType, element[i], mode);
 
-            if(o != null)
+            if (o != null)
             {
                 array.SetValue(o, i);
             }
@@ -1160,9 +1033,9 @@ internal static class StapleSerializer
 
     private static object GetJsonValue(Type type, Type fieldType, JsonElement element, StapleSerializationMode mode)
     {
-        foreach(var s in TypeSerializers)
+        foreach (var s in TypeSerializers)
         {
-            if(s.HandlesType(fieldType))
+            if (s.HandlesType(fieldType))
             {
                 return s.DeserializeJsonField(type, fieldType, null, element, mode);
             }
@@ -1179,11 +1052,11 @@ internal static class StapleSerializer
 
             var fields = new Dictionary<string, StapleSerializerField>();
 
-            foreach(var p in element.EnumerateObject())
+            foreach (var p in element.EnumerateObject())
             {
                 var localField = fieldType.GetField(p.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-                if(localField == null)
+                if (localField == null)
                 {
                     continue;
                 }
@@ -1259,7 +1132,18 @@ internal static class StapleSerializer
             {
                 return jsonObject;
             }
-            else if (IsPrimarySerializable(fieldType))
+            else if (TypeSerializers.Any(x => x.HandlesType(fieldType)))
+            {
+                foreach (var s in TypeSerializers)
+                {
+                    if (s.HandlesType(fieldType))
+                    {
+                        return fieldInfo.value is JsonElement element ? s.DeserializeJsonField(type, fieldType, fieldInfo, element, mode) :
+                            s.DeserializeField(type, fieldType, fieldInfo, mode);
+                    }
+                }
+            }
+            else if (IsSerializableAsUnmanagedArray(fieldType))
             {
                 if (fieldInfo.value is JsonElement element)
                 {
@@ -1269,17 +1153,6 @@ internal static class StapleSerializer
                 }
 
                 return Convert.ChangeType(fieldInfo.value, fieldType);
-            }
-            else if(TypeSerializers.Any(x => x.HandlesType(fieldType)))
-            {
-                foreach(var s in TypeSerializers)
-                {
-                    if(s.HandlesType(fieldType))
-                    {
-                        return fieldInfo.value is JsonElement element ? s.DeserializeJsonField(type, fieldType, fieldInfo, element, mode) :
-                            s.DeserializeField(type, fieldType, fieldInfo, mode);
-                    }
-                }
             }
             else if (!IsDirectParameter(fieldType.GetType()) &&
                 fieldType.GetCustomAttribute<SerializableAttribute>() != null)
@@ -1332,12 +1205,46 @@ internal static class StapleSerializer
 
                 var sourceValue = GetArrayValue(fieldInfo, type, (t) => field.GetCustomAttribute(t) != null, mode);
 
-                if (sourceValue is Array array)
+                if (sourceValue is byte[] encoded &&
+                    field.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization2)
+                {
+                    try
+                    {
+                        var bytes = DecodeOptimizedSerialization(encoded, optimization2.flags);
+
+                        if (bytes != null)
+                        {
+                            if (IsSerializableAsUnmanagedArray(fieldType.GetElementType()) &&
+                                fieldType.GetElementType() != typeof(bool))
+                            {
+                                var size = TypeCache.SizeOf(elementType.ToString());
+
+                                newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length / size);
+                            }
+                            else
+                            {
+                                newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length);
+                            }
+
+                            if (newValue != null)
+                            {
+                                DeserializeUnmanagedArray(bytes, newValue);
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[{LogTag}] Failed to deserialize {field.Name}: {e}");
+
+                        return null;
+                    }
+                }
+                else if (sourceValue is Array array)
                 {
                     try
                     {
                         if (sourceValue is not string[] &&
-                            IsPrimarySerializable(fieldType.GetElementType()) &&
+                            IsSerializableAsUnmanagedArray(fieldType.GetElementType()) &&
                             fieldType.GetElementType() != typeof(bool))
                         {
                             var size = TypeCache.SizeOf(elementType.ToString());
@@ -1371,11 +1278,11 @@ internal static class StapleSerializer
                                     newValue.SetValue(array.GetValue(i), i);
                                 }
                             }
-                            else if (IsPrimarySerializable(elementType))
+                            else if (IsSerializableAsUnmanagedArray(elementType))
                             {
                                 if (array is byte[] buffer)
                                 {
-                                    DeserializePrimitiveArray(buffer, newValue);
+                                    DeserializeUnmanagedArray(buffer, newValue);
                                 }
                             }
                             else if (elementType.GetCustomAttribute<SerializableAttribute>() != null &&
@@ -1423,15 +1330,16 @@ internal static class StapleSerializer
                         return null;
                     }
                 }
-                else if (sourceValue is string hexString && field.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                else if (sourceValue is string hexString &&
+                    field.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization)
                 {
                     try
                     {
-                        var bytes = Convert.FromHexString(hexString);
+                        var bytes = DecodeOptimizedSerialization(hexString, optimization.flags);
 
                         if (bytes != null)
                         {
-                            if (IsPrimarySerializable(fieldType.GetElementType()) &&
+                            if (IsSerializableAsUnmanagedArray(fieldType.GetElementType()) &&
                                 fieldType.GetElementType() != typeof(bool))
                             {
                                 var size = TypeCache.SizeOf(elementType.ToString());
@@ -1445,7 +1353,7 @@ internal static class StapleSerializer
 
                             if (newValue != null)
                             {
-                                DeserializePrimitiveArray(bytes, newValue);
+                                DeserializeUnmanagedArray(bytes, newValue);
                             }
                         }
                     }
@@ -1519,12 +1427,12 @@ internal static class StapleSerializer
                     {
                         foreach (var item in array)
                         {
-                            if(item == null)
+                            if (item == null)
                             {
                                 list.Add(null);
                             }
                             else if (item.GetType().IsAssignableTo(elementType) ||
-                                IsPrimarySerializable(elementType))
+                                IsSerializableAsUnmanagedArray(elementType))
                             {
                                 list.Add(item);
                             }
@@ -1549,19 +1457,19 @@ internal static class StapleSerializer
 
                                     if (mode == StapleSerializationMode.Scene)
                                     {
-                                        if(item is Dictionary<object, object> contents)
+                                        if (item is Dictionary<object, object> contents)
                                         {
                                             innerTypeName = elementType.ToString();
 
                                             parameters = [];
 
-                                            foreach(var pair in contents)
+                                            foreach (var pair in contents)
                                             {
-                                                if(pair.Key is string key)
+                                                if (pair.Key is string key)
                                                 {
                                                     var elementField = elementType.GetField(key, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-                                                    if(elementField == null)
+                                                    if (elementField == null)
                                                     {
                                                         continue;
                                                     }
@@ -1609,17 +1517,39 @@ internal static class StapleSerializer
                                             string containerKey = null;
                                             string parameterTypeName = null;
                                             object parameterValue = null;
+                                            var encoded = false;
+                                            var compress = false;
+                                            var useBase64 = false;
 
                                             if (containerPair.Key is string &&
                                                 containerPair.Value is Dictionary<object, object> containerData &&
-                                                containerData.Count == 2 &&
                                                 containerData.ContainsKey(nameof(StapleSerializerContainer.typeName)) &&
-                                                containerData.ContainsKey(nameof(StapleSerializerField.value)) &&
-                                                containerData[nameof(StapleSerializerContainer.typeName)] is string)
+                                                containerData.ContainsKey(nameof(StapleSerializerField.value)))
                                             {
                                                 containerKey = (string)containerPair.Key;
                                                 parameterTypeName = (string)containerData[nameof(StapleSerializerContainer.typeName)];
-                                                parameterValue = containerData["value"];
+
+                                                if (containerData[nameof(StapleSerializerContainer.typeName)] is string &&
+                                                    containerData.TryGetValue(nameof(StapleSerializerField.value), out var value))
+                                                {
+                                                    if (value is byte[] &&
+                                                        containerData.TryGetValue(nameof(StapleSerializerField.encoded), out var encodedObject) &&
+                                                        containerData.TryGetValue(nameof(StapleSerializerField.compress), out var compressObject) &&
+                                                        containerData.TryGetValue(nameof(StapleSerializerField.useBase64), out var useBase64Object) &&
+                                                        encodedObject is bool encodedValue &&
+                                                        compressObject is bool compressValue &&
+                                                        useBase64Object is bool useBase64Value)
+                                                    {
+                                                        parameterValue = value;
+                                                        encoded = encodedValue;
+                                                        compress = compressValue;
+                                                        useBase64 = useBase64Value;
+                                                    }
+                                                    else
+                                                    {
+                                                        parameterValue = value;
+                                                    }
+                                                }
                                             }
                                             //TODO: Check if still usable. Probably not.
                                             else if (containerPair.Key is string &&
@@ -1640,6 +1570,9 @@ internal static class StapleSerializer
                                                 {
                                                     typeName = parameterTypeName,
                                                     value = parameterValue,
+                                                    encoded = encoded,
+                                                    compress = compress,
+                                                    useBase64 = useBase64,
                                                 };
 
                                                 containerParameters.Add(containerKey, tempParameter);
@@ -1689,17 +1622,18 @@ internal static class StapleSerializer
 
                         return list;
                     }
-                    else if (sourceValue is string hexString && field.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                    else if (sourceValue is string hexString &&
+                        field.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization)
                     {
                         Array newValue = null;
 
                         try
                         {
-                            var bytes = Convert.FromHexString(hexString);
+                            var bytes = DecodeOptimizedSerialization(hexString, optimization.flags);
 
                             if (bytes != null)
                             {
-                                if (IsPrimarySerializable(elementType) &&
+                                if (IsSerializableAsUnmanagedArray(elementType) &&
                                     elementType != typeof(bool))
                                 {
                                     var size = TypeCache.SizeOf(elementType.ToString());
@@ -1713,7 +1647,53 @@ internal static class StapleSerializer
 
                                 if (newValue != null)
                                 {
-                                    DeserializePrimitiveArray(bytes, newValue);
+                                    DeserializeUnmanagedArray(bytes, newValue);
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"[{LogTag}] Failed to deserialize base64 array of {elementType.ToString()}: {e}");
+
+                            return null;
+                        }
+
+                        if (newValue != null)
+                        {
+                            foreach (var element in newValue)
+                            {
+                                list.Add(element);
+                            }
+
+                            return list;
+                        }
+                    }
+                    else if (sourceValue is byte[] encoded &&
+                        field.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization2)
+                    {
+                        Array newValue = null;
+
+                        try
+                        {
+                            var bytes = DecodeOptimizedSerialization(encoded, optimization2.flags);
+
+                            if (bytes != null)
+                            {
+                                if (IsSerializableAsUnmanagedArray(elementType) &&
+                                    elementType != typeof(bool))
+                                {
+                                    var size = TypeCache.SizeOf(elementType.ToString());
+
+                                    newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length / size);
+                                }
+                                else
+                                {
+                                    newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length);
+                                }
+
+                                if (newValue != null)
+                                {
+                                    DeserializeUnmanagedArray(bytes, newValue);
                                 }
                             }
                         }
@@ -1832,7 +1812,7 @@ internal static class StapleSerializer
             {
                 return jsonObject;
             }
-            else if (IsPrimarySerializable(fieldType))
+            else if (IsSerializableAsUnmanagedArray(fieldType))
             {
                 if (fieldInfo.value is JsonElement element)
                 {
@@ -1910,7 +1890,7 @@ internal static class StapleSerializer
                     try
                     {
                         if (sourceValue is not string[] &&
-                            IsPrimarySerializable(fieldType.GetElementType()) &&
+                            IsSerializableAsUnmanagedArray(fieldType.GetElementType()) &&
                             fieldType.GetElementType() != typeof(bool))
                         {
                             var size = TypeCache.SizeOf(elementType.ToString());
@@ -1944,11 +1924,11 @@ internal static class StapleSerializer
                                     newValue.SetValue(array.GetValue(i), i);
                                 }
                             }
-                            else if (IsPrimarySerializable(elementType))
+                            else if (IsSerializableAsUnmanagedArray(elementType))
                             {
                                 if (array is byte[] buffer)
                                 {
-                                    DeserializePrimitiveArray(buffer, newValue);
+                                    DeserializeUnmanagedArray(buffer, newValue);
                                 }
                             }
                             else if (elementType.GetCustomAttribute<SerializableAttribute>() != null &&
@@ -1996,15 +1976,16 @@ internal static class StapleSerializer
                         return null;
                     }
                 }
-                else if (sourceValue is string hexString && property.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                else if (sourceValue is string hexString &&
+                    property.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization)
                 {
                     try
                     {
-                        var bytes = Convert.FromHexString(hexString);
+                        var bytes = DecodeOptimizedSerialization(hexString, optimization.flags);
 
                         if (bytes != null)
                         {
-                            if (IsPrimarySerializable(fieldType.GetElementType()) &&
+                            if (IsSerializableAsUnmanagedArray(fieldType.GetElementType()) &&
                                 fieldType.GetElementType() != typeof(bool))
                             {
                                 var size = TypeCache.SizeOf(elementType.ToString());
@@ -2018,7 +1999,41 @@ internal static class StapleSerializer
 
                             if (newValue != null)
                             {
-                                DeserializePrimitiveArray(bytes, newValue);
+                                DeserializeUnmanagedArray(bytes, newValue);
+                            }
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Debug($"[{LogTag}] Failed to deserialize {property.Name}: {e}");
+
+                        return null;
+                    }
+                }
+                else if (sourceValue is byte[] encoded &&
+                    property.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization2)
+                {
+                    try
+                    {
+                        var bytes = DecodeOptimizedSerialization(encoded, optimization2.flags);
+
+                        if (bytes != null)
+                        {
+                            if (IsSerializableAsUnmanagedArray(fieldType.GetElementType()) &&
+                                fieldType.GetElementType() != typeof(bool))
+                            {
+                                var size = TypeCache.SizeOf(elementType.ToString());
+
+                                newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length / size);
+                            }
+                            else
+                            {
+                                newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length);
+                            }
+
+                            if (newValue != null)
+                            {
+                                DeserializeUnmanagedArray(bytes, newValue);
                             }
                         }
                     }
@@ -2097,7 +2112,7 @@ internal static class StapleSerializer
                                 list.Add(null);
                             }
                             else if (item.GetType().IsAssignableTo(elementType) ||
-                                IsPrimarySerializable(elementType))
+                                IsSerializableAsUnmanagedArray(elementType))
                             {
                                 list.Add(item);
                             }
@@ -2262,17 +2277,18 @@ internal static class StapleSerializer
 
                         return list;
                     }
-                    else if (sourceValue is string hexString && property.GetCustomAttribute<SerializeAsHexAttribute>() != null)
+                    else if (sourceValue is string hexString &&
+                        property.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization)
                     {
                         Array newValue = null;
 
                         try
                         {
-                            var bytes = Convert.FromHexString(hexString);
+                            var bytes = DecodeOptimizedSerialization(hexString, optimization.flags);
 
                             if (bytes != null)
                             {
-                                if (IsPrimarySerializable(elementType) &&
+                                if (IsSerializableAsUnmanagedArray(elementType) &&
                                     elementType != typeof(bool))
                                 {
                                     var size = TypeCache.SizeOf(elementType.ToString());
@@ -2286,7 +2302,53 @@ internal static class StapleSerializer
 
                                 if (newValue != null)
                                 {
-                                    DeserializePrimitiveArray(bytes, newValue);
+                                    DeserializeUnmanagedArray(bytes, newValue);
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Debug($"[{LogTag}] Failed to deserialize base64 array of {elementType.ToString()}: {e}");
+
+                            return null;
+                        }
+
+                        if (newValue != null)
+                        {
+                            foreach (var element in newValue)
+                            {
+                                list.Add(element);
+                            }
+
+                            return list;
+                        }
+                    }
+                    else if (sourceValue is byte[] encoded &&
+                        property.GetCustomAttribute<SerializeOptimizedAttribute>() is SerializeOptimizedAttribute optimization2)
+                    {
+                        Array newValue = null;
+
+                        try
+                        {
+                            var bytes = DecodeOptimizedSerialization(encoded, optimization2.flags);
+
+                            if (bytes != null)
+                            {
+                                if (IsSerializableAsUnmanagedArray(elementType) &&
+                                    elementType != typeof(bool))
+                                {
+                                    var size = TypeCache.SizeOf(elementType.ToString());
+
+                                    newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length / size);
+                                }
+                                else
+                                {
+                                    newValue = TypeCache.CreateArray(elementType.ToString(), bytes.Length);
+                                }
+
+                                if (newValue != null)
+                                {
+                                    DeserializeUnmanagedArray(bytes, newValue);
                                 }
                             }
                         }
@@ -2417,8 +2479,8 @@ internal static class StapleSerializer
                         return false;
                     }
                 }
-                
-                if(!TryDeserializeField())
+
+                if (!TryDeserializeField())
                 {
                     try
                     {
@@ -2502,7 +2564,7 @@ internal static class StapleSerializer
                         });
                     }
                 }
-                else if(v.TryGetValue(nameof(SerializableStapleAssetParameter.value), out var value))
+                else if (v.TryGetValue(nameof(SerializableStapleAssetParameter.value), out var value))
                 {
                     decodedContainer.fields.Add(parameterName, new()
                     {
@@ -2531,7 +2593,7 @@ internal static class StapleSerializer
 
         try
         {
-            var container = SerializeContainer(instance, mode)?.ToSerializableContainer();
+            var container = SerializeContainer(instance, mode)?.ToSerializableContainer(mode);
 
             if (container == null)
             {
@@ -2577,5 +2639,88 @@ internal static class StapleSerializer
         }
 
         return instance;
+    }
+
+    /// <summary>
+    /// Encodes a buffer with the options from <see cref="SerializeOptimizedAttribute"/>
+    /// </summary>
+    /// <param name="buffer">The buffer to handle</param>
+    /// <param name="flags">The optimization flags</param>
+    /// <returns>The encoded string</returns>
+    internal static string EncodeOptimizedSerialization(byte[] buffer, SerializeOptimizedAttribute.OptionFlags flags)
+    {
+        if (flags.HasFlag(SerializeOptimizedAttribute.OptionFlags.Compress))
+        {
+            var maxSize = ZstandardEncoder.GetMaxCompressedLength(buffer.Length);
+
+            var temp = new byte[maxSize];
+
+            if (ZstandardEncoder.TryCompress(buffer.AsSpan(), temp.AsSpan(), out var written))
+            {
+                buffer = new byte[written];
+
+                temp.AsSpan(0, written).CopyTo(buffer.AsSpan());
+            }
+        }
+
+        if (flags.HasFlag(SerializeOptimizedAttribute.OptionFlags.UseBase64))
+        {
+            return Convert.ToBase64String(buffer);
+        }
+
+        return Convert.ToHexString(buffer);
+    }
+
+    /// <summary>
+    /// Decodes a buffer with the options from <see cref="SerializeOptimizedAttribute"/>
+    /// </summary>
+    /// <param name="hexString">The encoded string</param>
+    /// <param name="flags">The optimization flags</param>
+    /// <returns>The decoded buffer</returns>
+    internal static byte[] DecodeOptimizedSerialization(string hexString, SerializeOptimizedAttribute.OptionFlags flags)
+    {
+        byte[] bytes;
+
+        if (flags.HasFlag(SerializeOptimizedAttribute.OptionFlags.UseBase64))
+        {
+            bytes = Convert.FromBase64String(hexString);
+        }
+        else
+        {
+            bytes = Convert.FromHexString(hexString);
+        }
+
+        if (bytes != null)
+        {
+            return DecodeOptimizedSerialization(bytes, flags);
+        }
+
+        return bytes;
+    }
+
+    /// <summary>
+    /// Decodes a buffer with the options from <see cref="SerializeOptimizedAttribute"/>
+    /// </summary>
+    /// <param name="encoded">The encoded bytes</param>
+    /// <param name="flags">The optimization flags</param>
+    /// <returns>The decoded buffer</returns>
+    internal static byte[] DecodeOptimizedSerialization(byte[] encoded, SerializeOptimizedAttribute.OptionFlags flags)
+    {
+        if (flags.HasFlag(SerializeOptimizedAttribute.OptionFlags.Compress))
+        {
+            if (ZstandardDecoder.TryGetMaxDecompressedLength(encoded.AsSpan(), out var read))
+            {
+                var temp = new byte[read];
+
+                if (ZstandardDecoder.TryDecompress(encoded.AsSpan(), temp.AsSpan(), out var written))
+                {
+                    encoded = new byte[written];
+
+                    temp.AsSpan(0, written).CopyTo(encoded.AsSpan());
+                }
+            }
+        }
+
+        return encoded;
     }
 }

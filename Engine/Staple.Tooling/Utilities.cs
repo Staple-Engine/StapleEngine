@@ -205,6 +205,40 @@ public class Utilities
                 }
             }
 
+            if(outValue.TryGetValue(nameof(SerializableStapleAssetParameter.typeName), out var typeNameObject) &&
+                outValue.TryGetValue(nameof(SerializableStapleAssetParameter.value), out var valueObject) &&
+                outValue.TryGetValue(nameof(SerializableStapleAssetParameter.encoded), out var encodedObject) &&
+                outValue.ContainsKey(nameof(SerializableStapleAssetParameter.compress)) &&
+                outValue.TryGetValue(nameof(SerializableStapleAssetParameter.useBase64), out var useBase64Object))
+            {
+                var expandedTypeName = ExpandNewtonsoftObject(typeNameObject);
+                var expandedValue = ExpandNewtonsoftObject(valueObject);
+                var expandedEncoded = ExpandNewtonsoftObject(encodedObject);
+                var expandedUseBase64 = ExpandNewtonsoftObject(useBase64Object);
+
+                if(expandedTypeName is string typeName &&
+                    expandedValue is string value &&
+                    expandedEncoded is bool encoded &&
+                    expandedUseBase64 is bool useBase64 &&
+                    encoded)
+                {
+                    var flags = SerializeOptimizedAttribute.OptionFlags.None;
+
+                    if(useBase64)
+                    {
+                        flags |= SerializeOptimizedAttribute.OptionFlags.UseBase64;
+                    }
+
+                    //Don't decompress
+                    var byteData = StapleSerializer.DecodeOptimizedSerialization(value, flags);
+
+                    if(byteData != null)
+                    {
+                        outValue[nameof(SerializableStapleAssetParameter.value)] = byteData;
+                    }
+                }
+            }
+
             return outValue;
         }
         else if (target is JArray arrayValue)

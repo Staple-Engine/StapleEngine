@@ -326,11 +326,11 @@ public partial class ProjectManager
 
             if (backend.publish)
             {
-                args = $" publish -r {backend.platformRuntime} \"Player\" -c {configurationName} -o \"{outPath}\"";
+                args = $" publish -r {backend.platformRuntime} \"Player\" -c {configurationName} -o \"{outPath}\" -mt";
             }
             else
             {
-                args = $" build \"Player\" -c {configurationName} -o \"{outPath}\"";
+                args = $" build \"Player\" -c {configurationName} -o \"{outPath}\" -mt";
             }
 
             processInfo = new ProcessStartInfo("dotnet", args)
